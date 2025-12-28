@@ -2,4 +2,6 @@ from django.apps import AppConfig
 
 
 class QrAccessConfig(AppConfig):
-    name = 'qr_access'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "qr_access"
+    verbose_name = "الدخول عبر QR"
