@@ -15,49 +15,149 @@ class Assessment(models.Model):
     """
     اختبار/تدريب مرتبط بمهارة + فصل + معلمة.
     """
-    skill = models.ForeignKey(Skill, on_delete=models.CASCADE, related_name="assessments")
-    classroom = models.ForeignKey(ClassRoom, on_delete=models.CASCADE, related_name="assessments")
-    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name="assessments")
+    skill = models.ForeignKey(
+        Skill,
+        on_delete=models.CASCADE,
+        related_name="assessments",
+        verbose_name="المهارة"
+    )
 
-    title = models.CharField(max_length=250)
-    assessment_type = models.CharField(max_length=20, choices=AssessmentType.choices)
+    classroom = models.ForeignKey(
+        ClassRoom,
+        on_delete=models.CASCADE,
+        related_name="assessments",
+        verbose_name="الفصل"
+    )
 
-    duration_minutes = models.PositiveIntegerField(default=10)  # مؤقت الاختبار
-    is_open = models.BooleanField(default=False)  # المعلمة تفتح الاختبار
-    created_at = models.DateTimeField(auto_now_add=True)
+    teacher = models.ForeignKey(
+        Teacher,
+        on_delete=models.CASCADE,
+        related_name="assessments",
+        verbose_name="المعلمة"
+    )
 
-    questions = models.ManyToManyField(Question, blank=True, related_name="assessments")
+    title = models.CharField(
+        max_length=250,
+        verbose_name="عنوان الاختبار/التدريب"
+    )
+
+    assessment_type = models.CharField(
+        max_length=20,
+        choices=AssessmentType.choices,
+        verbose_name="نوع التقييم"
+    )
+
+    duration_minutes = models.PositiveIntegerField(
+        default=10,
+        verbose_name="مدة الوقت (بالدقائق)"
+    )
+
+    is_open = models.BooleanField(
+        default=False,
+        verbose_name="مفتوح للطالبات؟"
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاريخ الإنشاء"
+    )
+
+    questions = models.ManyToManyField(
+        Question,
+        blank=True,
+        related_name="assessments",
+        verbose_name="الأسئلة"
+    )
+
+    class Meta:
+        verbose_name = "اختبار/تدريب"
+        verbose_name_plural = "الاختبارات والتدريبات"
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.title} ({self.assessment_type})"
-
+        return f"{self.title} ({self.get_assessment_type_display()})"
+    
 
 class Attempt(models.Model):
     """
     محاولة طالبة للاختبار/التدريب (تُستخدم للتقارير التفصيلية).
     """
-    assessment = models.ForeignKey(Assessment, on_delete=models.CASCADE, related_name="attempts")
-    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name="attempts")
+    assessment = models.ForeignKey(
+        Assessment,
+        on_delete=models.CASCADE,
+        related_name="attempts",
+        verbose_name="الاختبار/التدريب"
+    )
 
-    started_at = models.DateTimeField(auto_now_add=True)
-    submitted_at = models.DateTimeField(blank=True, null=True)
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name="attempts",
+        verbose_name="الطالبة"
+    )
 
-    score = models.FloatField(default=0)
-    total = models.PositiveIntegerField(default=0)
+    started_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="وقت البدء"
+    )
+
+    submitted_at = models.DateTimeField(
+        blank=True,
+        null=True,
+        verbose_name="وقت التسليم"
+    )
+
+    score = models.FloatField(
+        default=0,
+        verbose_name="الدرجة"
+    )
+
+    total = models.PositiveIntegerField(
+        default=0,
+        verbose_name="الدرجة الكاملة"
+    )
+
+    class Meta:
+        verbose_name = "محاولة"
+        verbose_name_plural = "محاولات الطالبات"
+        ordering = ["-started_at"]
 
     def __str__(self):
         return f"{self.student} - {self.assessment}"
-
+    
 
 class AttemptAnswer(models.Model):
     """
     إجابة سؤال داخل محاولة.
     """
-    attempt = models.ForeignKey(Attempt, on_delete=models.CASCADE, related_name="answers")
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    attempt = models.ForeignKey(
+        Attempt,
+        on_delete=models.CASCADE,
+        related_name="answers",
+        verbose_name="المحاولة"
+    )
 
-    chosen_option = models.CharField(max_length=1, blank=True, default="")
-    is_correct = models.BooleanField(default=False)
+    question = models.ForeignKey(
+        Question,
+        on_delete=models.CASCADE,
+        verbose_name="السؤال"
+    )
+
+    chosen_option = models.CharField(
+        max_length=1,
+        blank=True,
+        default="",
+        verbose_name="الإجابة المختارة"
+    )
+
+    is_correct = models.BooleanField(
+        default=False,
+        verbose_name="صحيحة؟"
+    )
+
+    class Meta:
+        verbose_name = "إجابة داخل محاولة"
+        verbose_name_plural = "إجابات المحاولات"
 
     def __str__(self):
-        return f"{self.attempt} - Q"
+        return f"{self.attempt} - سؤال"
