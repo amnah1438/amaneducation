@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ settings.platform_name|default:"منصتي" }}</title>
+  <style>
+    body { margin:0; font-family: system-ui, -apple-system, "Tajawal", Arial; background:#f6f6fb; }
+    header { background:#fff; padding:16px 18px; border-bottom:1px solid #e7e7ee; }
+    .top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .logo { width:56px; height:56px; object-fit:contain; background:#fff; border-radius:12px; border:1px solid #eee; }
+    .title { text-align:center; flex:1; }
+    .title h1 { margin:0; font-size:18px; color:#006C35; }
+    .tabs { display:flex; gap:10px; justify-content:center; margin-top:12px; }
+    .tab { padding:10px 14px; border-radius:14px; background:#E6E6FA; border:1px solid #d7d7f1; cursor:pointer; }
+    .tab.primary { background:#006C35; color:#fff; border-color:#006C35; }
+    .note { margin:18px auto; max-width:900px; padding:14px; background:#fff; border:1px solid #eee; border-radius:14px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="top">
+    <!-- يمين: شعار الوزارة -->
+    <div>
+      {% if settings and settings.ministry_logo %}
+        <img class="logo" src="{{ settings.ministry_logo.url }}" alt="شعار الوزارة">
+      {% else %}
+        <div class="logo"></div>
+      {% endif %}
+    </div>
+
+    <!-- المنتصف: اسم المنصة -->
+    <div class="title">
+      <h1>{{ settings.platform_name|default:"آمنه مالح العنزي" }}</h1>
+      <div style="color:#666; font-size:13px; margin-top:6px;">
+        {{ settings.header_line_1 }} — {{ settings.header_line_2 }}<br>
+        {{ settings.header_line_3 }}<br>
+        {{ settings.header_line_4 }}
+      </div>
+    </div>
+
+    <!-- يسار: شعار المدرسة -->
+    <div>
+      {% if settings and settings.school_logo %}
+        <img class="logo" src="{{ settings.school_logo.url }}" alt="شعار المدرسة">
+      {% else %}
+        <div class="logo"></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- تبويبات رئيسية -->
+  <div class="tabs">
+    <div class="tab primary">القدرات</div>
+    <div class="tab">التحصيلي</div>
+  </div>
+</header>
+
+<div class="note">
+  ✅ المنصة شغالة الآن.  
+  الخطوة القادمة: نضيف تبويبات القدرات (كمي/لفظي) والتحصيلي (رياضيات/أحياء/كيمياء/فيزياء) + قائمة المهارات.
+</div>
+
+</body>
+</html>
