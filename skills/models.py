@@ -20,19 +20,56 @@ class Section(models.TextChoices):
 
 class Skill(models.Model):
     """
-    مهارة (تأسيس ضمن القدرات: لفظي/كمي) أو مهارة/موضوع ضمن التحصيلي حسب القسم.
+    مهارة (تأسيس ضمن القدرات: لفظي/كمي)
+    أو مهارة/موضوع ضمن التحصيلي حسب المادة.
     """
-    track = models.CharField(max_length=20, choices=Track.choices, default=Track.QUDURAT)
-    section = models.CharField(max_length=20, choices=Section.choices)
-    title = models.CharField(max_length=250)
-    description = models.TextField(blank=True, default="")
 
-    teacher_owner = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True, related_name="skills")
+    track = models.CharField(
+        max_length=20,
+        choices=Track.choices,
+        default=Track.QUDURAT,
+        verbose_name="المسار"
+    )
 
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    section = models.CharField(
+        max_length=20,
+        choices=Section.choices,
+        verbose_name="القسم / المادة"
+    )
+
+    title = models.CharField(
+        max_length=250,
+        verbose_name="اسم المهارة"
+    )
+
+    description = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="وصف المهارة"
+    )
+
+    teacher_owner = models.ForeignKey(
+        Teacher,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="skills",
+        verbose_name="المعلمة المسؤولة"
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="مفعّلة"
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="تاريخ الإضافة"
+    )
 
     class Meta:
+        verbose_name = "مهارة"
+        verbose_name_plural = "المهارات"
         ordering = ["track", "section", "title"]
 
     def __str__(self):
