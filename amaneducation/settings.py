@@ -28,7 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Project Apps (12)
+    # Project Apps
     'core',
     'accounts',
     'students',
@@ -66,10 +66,18 @@ ROOT_URLCONF = 'amaneducation.urls'
 # =========================
 # 🖼️ القوالب
 # =========================
+# ✅ تم تعريف مجلد القوالب العام:
+# /Users/amnah/aman education/amaneducation/templates
+# وهو يساوي: BASE_DIR / "templates"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # قوالب عامة
+
+        # قوالب عامة للمشروع كله
+        'DIRS': [
+            BASE_DIR / 'templates',
+        ],
+
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -104,18 +112,10 @@ DATABASES = {
 # 🔑 التحقق من كلمات المرور
 # =========================
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 
@@ -123,11 +123,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # 🌍 اللغة والتوقيت
 # =========================
 LANGUAGE_CODE = 'ar'
-
 TIME_ZONE = 'Asia/Riyadh'
 
 USE_I18N = True
-USE_L10N = True
 USE_TZ = True
 
 
@@ -135,9 +133,13 @@ USE_TZ = True
 # 📁 الملفات الثابتة
 # =========================
 STATIC_URL = '/static/'
+
+# ✅ تأكدي أن مجلد static موجود داخل BASE_DIR
+# /Users/amnah/aman education/amaneducation/static
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
