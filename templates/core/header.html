@@ -1,0 +1,44 @@
+<header class="platform-header">
+    <div class="logo right">
+        <img src="{{ settings.moe_logo.url }}" alt="شعار وزارة التعليم">
+    </div>
+
+    <div class="header-center">
+        <h1>{{ settings.platform_name }}</h1>
+        <span>برمجية تعليمية</span>
+    </div>
+
+    <div class="logo left">
+        <img src="{{ settings.school_logo.url }}" alt="شعار المدرسة">
+    </div>
+</header>
+
+<nav class="main-tabs">
+    <button class="tab active" data-tab="qdrat">القدرات</button>
+    <button class="tab" data-tab="tahsili">التحصيلي</button>
+    <button class="tab" data-tab="print">🖨️ طباعة المحتوى</button>
+</nav>
+
+<section class="sub-tabs">
+
+    <div class="sub active" id="qdrat">
+        <button>الكمي</button>
+        <button>اللفظي</button>
+    </div>
+
+    <div class="sub" id="tahsili">
+        <button>الرياضيات</button>
+        <button>الأحياء</button>
+        <button>الكيمياء</button>
+        <button>الفيزياء</button>
+    </div>
+
+    <div class="sub" id="print">
+        <div class="stats">
+            <div>📘 عدد الدروس<br><strong>25</strong></div>
+            <div>✏️ عدد الأمثلة<br><strong>120</strong></div>
+            <div>🧪 اختبارات محاكية<br><strong>5</strong></div>
+        </div>
+    </div>
+
+</section>
