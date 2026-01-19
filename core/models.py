@@ -34,8 +34,6 @@ class SchoolSettings(models.Model):
         return super(SchoolSettings, self).save(*args, **kwargs)
 
 
-# --- تعديل قسم المهارات لدعم المعلمات المتعددات ---
-
 class Teacher(models.Model):
     """ موديل جديد لتعريف أسماء المعلمات """
     name = models.CharField(max_length=200, verbose_name="اسم المعلمة")
@@ -49,20 +47,16 @@ class Teacher(models.Model):
 
 class Skill(models.Model):
     CATEGORY_CHOICES = [
-        ('كمي', 'قسم القدرات - كمي'), # عدلت الرموز للعربية لتطابق لوحة الإدارة عندك
+        ('كمي', 'قسم القدرات - كمي'),
         ('لفظي', 'قسم القدرات - لفظي'),
         ('رياضيات', 'قسم التحصيلي - رياضيات'),
         ('أحياء', 'قسم التحصيلي - أحياء'),
         ('كيمياء', 'قسم التحصيلي - كيمياء'),
         ('فيزياء', 'قسم التحصيلي - فيزياء'),
     ]
-
     title = models.CharField(max_length=200, verbose_name="عنوان المهارة/الدرس")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name="القسم التابع له")
-    
-    # التعديل هنا: حقل يسمح باختيار أكثر من معلمة
     teachers = models.ManyToManyField(Teacher, blank=True, verbose_name="المعلمات المسؤولات")
-    
     icon_image = models.ImageField(upload_to="skills_icons/", blank=True, null=True, verbose_name="أيقونة المهارة (اختياري)")
     short_description = models.CharField(max_length=300, blank=True, verbose_name="وصف مختصر للبطاقة")
     card_color = models.CharField(max_length=7, default="#2D5A27", verbose_name="لون البطاقة")
@@ -74,3 +68,21 @@ class Skill(models.Model):
 
     def __str__(self):
         return f"{self.get_category_display()} - {self.title}"
+
+# --- هذا هو الجزء الذي كان ينقصك وسبب الخطأ ---
+class Profile(models.Model):
+    USER_ROLES = [
+        ('ADMIN', 'مديرة'),
+        ('TEACHER', 'معلمة'),
+        ('STUDENT', 'طالبة'),
+    ]
+    user = models.OneToOneField('auth.User', on_delete=models.CASCADE, verbose_name="المستخدم")
+    role = models.CharField(max_length=10, choices=USER_ROLES, default='STUDENT', verbose_name="الدور")
+    pin_code = models.CharField(max_length=6, blank=True, verbose_name="رمز التحقق (PIN)")
+
+    class Meta:
+        verbose_name = "4. ملفات المستخدمين"
+        verbose_name_plural = "4. ملفات المستخدمين"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_role_display()}"
