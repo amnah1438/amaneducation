@@ -83,20 +83,46 @@ class SchoolSettings(models.Model):
     )
 
     class Meta:
-        verbose_name = "إعدادات الهوية الرسمية"
-        verbose_name_plural = "إعدادات الهوية الرسمية"
+        verbose_name = "1. إعدادات الهوية الرسمية"
+        verbose_name_plural = "1. إعدادات الهوية الرسمية"
 
     def __str__(self):
         return self.platform_name
 
     def save(self, *args, **kwargs):
-        """
-        تعديل لضمان وجود سجل إعدادات واحد فقط في قاعدة البيانات.
-        إذا حاول أي شخص إضافة سجل جديد، سيقوم النظام بتحديث السجل الموجود بدلاً من التكرار.
-        """
         if not self.pk and SchoolSettings.objects.exists():
-            # إذا أردتِ منع الإضافة تماماً:
-            # return 
-            # أو الأفضل: تحديث السجل الموجود
             self.pk = SchoolSettings.objects.first().pk
         return super(SchoolSettings, self).save(*args, **kwargs)
+
+
+# --- القسم الجديد: المهارات والدروس (لتطبيق التبويبات التفاعلية) ---
+
+class Skill(models.Model):
+    """
+    هذا الموديل يمثل البطاقات التي ستظهر عند الضغط على (كمي، لفظي، رياضيات، إلخ)
+    """
+    CATEGORY_CHOICES = [
+        ('QUANT', 'قسم القدرات - كمي'),
+        ('VERBAL', 'قسم القدرات - لفظي'),
+        ('MATH', 'قسم التحصيلي - رياضيات'),
+        ('BIO', 'قسم التحصيلي - أحياء'),
+        ('CHEM', 'قسم التحصيلي - كيمياء'),
+        ('PHYS', 'قسم التحصيلي - فيزياء'),
+    ]
+
+    title = models.CharField(max_length=200, verbose_name="عنوان المهارة/الدرس")
+    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES, verbose_name="القسم التابع له")
+    icon_image = models.ImageField(upload_to="skills_icons/", blank=True, null=True, verbose_name="أيقونة المهارة (اختياري)")
+    short_description = models.CharField(max_length=300, blank=True, verbose_name="وصف مختصر للبطاقة")
+    
+    # لون البطاقة (مثل اللون الأخضر في منصة سليمان المالكي)
+    card_color = models.CharField(max_length=7, default="#2D5A27", verbose_name="لون البطاقة")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "2. إضافة مهارة/درس"
+        verbose_name_plural = "2. إضافة مهارات ودروس"
+
+    def __str__(self):
+        return f"{self.get_category_display()} - {self.title}"
