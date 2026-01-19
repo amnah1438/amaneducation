@@ -1,44 +1,91 @@
-<header class="platform-header">
-    <div class="logo right">
-        <img src="{{ settings.moe_logo.url }}" alt="شعار وزارة التعليم">
-    </div>
+<header class="py-3 border-bottom shadow-sm bg-white">
+    <div class="container-fluid px-5">
+        <div class="row align-items-center">
+            
+            <div class="col-md-4 text-end">
+                {% if settings.ministry_logo %}
+                    <img src="{{ settings.ministry_logo.url }}" alt="شعار وزارة التعليم" style="height: 85px;">
+                {% else %}
+                    <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار وزارة التعليم</div>
+                {% endif %}
+                
+                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.85rem;">
+                    <div>{{ settings.header_line_1 }}</div>
+                    <div>{{ settings.header_line_2 }}</div>
+                </div>
+            </div>
 
-    <div class="header-center">
-        <h1>{{ settings.platform_name }}</h1>
-        <span>برمجية تعليمية</span>
-    </div>
+            <div class="col-md-4 text-center">
+                <h2 class="fw-bold mb-1" style="color: #4b0082; font-family: 'Tajawal', sans-serif;">
+                    {{ settings.platform_name }}
+                </h2>
+                <div class="badge bg-lavender text-dark border p-2 mt-1">
+                    برمجية المنصة: {{ settings.principal_name }}
+                </div>
+            </div>
 
-    <div class="logo left">
-        <img src="{{ settings.school_logo.url }}" alt="شعار المدرسة">
+            <div class="col-md-4 text-start">
+                {% if settings.school_logo %}
+                    <img src="{{ settings.school_logo.url }}" alt="شعار المدرسة" style="height: 85px;">
+                {% else %}
+                    <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار المدرسة</div>
+                {% endif %}
+
+                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.85rem;">
+                    <div>{{ settings.header_line_3 }}</div>
+                    <div>{{ settings.header_line_4 }}</div>
+                </div>
+            </div>
+
+        </div>
     </div>
 </header>
 
-<nav class="main-tabs">
-    <button class="tab active" data-tab="qdrat">القدرات</button>
-    <button class="tab" data-tab="tahsili">التحصيلي</button>
-    <button class="tab" data-tab="print">🖨️ طباعة المحتوى</button>
-</nav>
+<style>
+    .bg-lavender { background-color: #E6E6FA; }
+</style><header class="py-3 border-bottom shadow-sm bg-white">
+    <div class="container-fluid px-5">
+        <div class="row align-items-center">
+            
+            <div class="col-md-4 text-end">
+                {% if settings.ministry_logo %}
+                    <img src="{{ settings.ministry_logo.url }}" alt="شعار وزارة التعليم" style="height: 85px;">
+                {% else %}
+                    <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار وزارة التعليم</div>
+                {% endif %}
+                
+                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.85rem;">
+                    <div>{{ settings.header_line_1 }}</div>
+                    <div>{{ settings.header_line_2 }}</div>
+                </div>
+            </div>
 
-<section class="sub-tabs">
+            <div class="col-md-4 text-center">
+                <h2 class="fw-bold mb-1" style="color: #4b0082; font-family: 'Tajawal', sans-serif;">
+                    {{ settings.platform_name }}
+                </h2>
+                <div class="badge bg-lavender text-dark border p-2 mt-1">
+                    برمجية المنصة: {{ settings.principal_name }}
+                </div>
+            </div>
 
-    <div class="sub active" id="qdrat">
-        <button>الكمي</button>
-        <button>اللفظي</button>
-    </div>
+            <div class="col-md-4 text-start">
+                {% if settings.school_logo %}
+                    <img src="{{ settings.school_logo.url }}" alt="شعار المدرسة" style="height: 85px;">
+                {% else %}
+                    <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار المدرسة</div>
+                {% endif %}
 
-    <div class="sub" id="tahsili">
-        <button>الرياضيات</button>
-        <button>الأحياء</button>
-        <button>الكيمياء</button>
-        <button>الفيزياء</button>
-    </div>
+                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.85rem;">
+                    <div>{{ settings.header_line_3 }}</div>
+                    <div>{{ settings.header_line_4 }}</div>
+                </div>
+            </div>
 
-    <div class="sub" id="print">
-        <div class="stats">
-            <div>📘 عدد الدروس<br><strong>25</strong></div>
-            <div>✏️ عدد الأمثلة<br><strong>120</strong></div>
-            <div>🧪 اختبارات محاكية<br><strong>5</strong></div>
         </div>
     </div>
+</header>
 
-</section>
+<style>
+    .bg-lavender { background-color: #E6E6FA; }
+</style>
