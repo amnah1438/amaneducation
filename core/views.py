@@ -1,7 +1,13 @@
 from django.shortcuts import render
-from .models import SchoolSettings
-
+from .models import SchoolSettings, Skill
 
 def home(request):
-    settings_obj = SchoolSettings.objects.first()
-    return render(request, "core/home.html", {"settings": settings_obj})
+    settings = SchoolSettings.objects.first()
+    # جلب جميع المهارات لتعرض في التبويبات
+    all_skills = Skill.objects.all()
+    
+    context = {
+        'settings': settings,
+        'skills': all_skills,
+    }
+    return render(request, 'core/home.html', context)
