@@ -5,84 +5,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ settings.platform_name }}</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Tajawal', sans-serif; background-color: #f0f0ff; }
-        .main-section { background-color: #E6E6FA; padding: 60px 0; min-height: 500px; }
-        .tab-main { border: 2px solid #4b0082; color: #4b0082; border-radius: 50px; padding: 10px 40px; font-weight: bold; background: white; transition: 0.3s; }
-        .tab-main:hover, .tab-main.active { background: #4b0082; color: white; }
-        .sub-tabs-container { display: none; margin-top: 25px; animation: slideDown 0.4s ease; }
-        .btn-sub { border-radius: 20px; padding: 5px 25px; font-size: 0.9rem; margin: 5px; background-color: #2D5A27; color: white; border: none; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .stat-card { background: white; border-radius: 20px; padding: 30px; border-bottom: 8px solid #4b0082; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        :root { --lavender-bg: #E6E6FA; --deep-purple: #4b0082; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8f9ff; margin: 0; padding: 0; }
+        
+        /* زر السندويش لدخول المعلمات - أعلى اليمين */
+        .admin-burger { position: fixed; top: 15px; right: 20px; z-index: 2000; }
+        
+        .hero-section { background-color: var(--lavender-bg); padding: 80px 0; min-height: 450px; }
+        
+        /* تصميم التبويبات الرئيسية */
+        .tab-main { border: 2px solid var(--deep-purple); color: var(--deep-purple); border-radius: 50px; padding: 12px 45px; font-weight: bold; background: white; transition: 0.3s; margin: 5px; }
+        .tab-main:hover, .tab-main.active { background: var(--deep-purple); color: white; }
+        
+        /* التبويبات الفرعية */
+        .sub-tabs-box { display: none; margin-top: 25px; animation: fadeIn 0.4s ease; }
+        .btn-sub { border-radius: 20px; padding: 6px 30px; font-size: 0.95rem; margin: 5px; background-color: #2D5A27; color: white; border: none; transition: 0.2s; }
+        .btn-sub:hover { background-color: #1e3d1a; transform: scale(1.05); }
+
+        /* البطاقات الإحصائية */
+        .stat-card { background: white; border-radius: 20px; padding: 35px; border-bottom: 8px solid var(--deep-purple); box-shadow: 0 15px 35px rgba(0,0,0,0.05); transition: 0.3s; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-{% include "core/header.html" %}
-
-<div class="main-section text-center">
-    <div class="container">
-        <h1 class="fw-bold mb-5">مرحباً بكِ في منصة التدريب</h1>
-
-        <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
-            <button class="btn tab-main" onclick="toggleTabs('qodrat', this)">قسم القدرات</button>
-            <button class="btn tab-main" onclick="toggleTabs('tahsili', this)">قسم التحصيلي</button>
-            <button class="btn tab-main" style="border-color: #333; color: #333;">طباعة المحتوى 🖨️</button>
-        </div>
-
-        <div id="qodrat-area" class="sub-tabs-container">
-            <button class="btn btn-sub">الكمي</button>
-            <button class="btn btn-sub">اللفظي</button>
-        </div>
-
-        <div id="tahsili-area" class="sub-tabs-container">
-            <button class="btn btn-sub">الرياضيات</button>
-            <button class="btn btn-sub">الأحياء</button>
-            <button class="btn btn-sub">الكيمياء</button>
-            <button class="btn btn-sub">الفيزياء</button>
-        </div>
-
-        <div class="row g-4 mt-5">
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <h2 class="fw-bold text-primary">25</h2>
-                    <p class="text-muted">عدد الدروس 📘</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <h2 class="fw-bold text-primary">120</h2>
-                    <p class="text-muted">عدد الأمثلة 📝</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <h2 class="fw-bold text-primary">5</h2>
-                    <p class="text-muted">اختبارات محاكية ⏱️</p>
-                </div>
-            </div>
-        </div>
+    <div class="admin-burger">
+        <a href="/admin/" class="btn btn-dark shadow-lg px-4 py-2 rounded-pill">
+            <span class="me-2">☰</span> لوحة الإدارة
+        </a>
     </div>
-</div>
 
-{% include "core/footer.html" %}
+    {% include "core/header.html" %}
 
-<script>
-    function toggleTabs(section, btn) {
-        // إخفاء جميع التبويبات الفرعية
-        document.getElementById('qodrat-area').style.display = 'none';
-        document.getElementById('tahsili-area').style.display = 'none';
-        
-        // إزالة حالة النشاط من الأزرار
-        document.querySelectorAll('.tab-main').forEach(b => b.classList.remove('active'));
-        
-        // إظهار القسم المطلوب 
-        document.getElementById(section + '-area').style.display = 'block';
-        btn.classList.add('active');
-    }
-</script>
+    <main class="hero-section text-center">
+        <div class="container">
+            <h1 class="fw-bold mb-5" style="color: #222;">مرحبًا بكِ في منصة التدريب</h1>
+
+            <div class="d-flex justify-content-center flex-wrap mb-4">
+                <button class="btn tab-main" onclick="toggleTabs('qodrat', this)">قسم القدرات</button>
+                <button class="btn tab-main" onclick="toggleTabs('tahsili', this)">قسم التحصيلي</button>
+                <button class="btn tab-main" style="border-color: #555; color: #555;">طباعة المحتوى 🖨️</button>
+            </div>
+
+            <div id="qodrat-sub" class="sub-tabs-box">
+                <a href="#" class="btn btn-sub">الكمي</a>
+                <a href="#" class="btn btn-sub">اللفظي</a>
+            </div>
+
+            <div id="tahsili-sub" class="sub-tabs-box">
+                <a href="#" class="btn btn-sub">الرياضيات</a>
+                <a href="#" class="btn btn-sub">الأحياء</a>
+                <a href="#" class="btn btn-sub">الكيمياء</a>
+                <a href="#" class="btn btn-sub">الفيزياء</a>
+            </div>
+
+            <div class="row g-4 mt-5">
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h1 class="fw-bold text-primary">5</h1>
+                        <p class="text-muted fw-bold mb-0">اختبارات محاكية ⏱️</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h1 class="fw-bold text-primary">120</h1>
+                        <p class="text-muted fw-bold mb-0">عدد الأمثلة 📝</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card">
+                        <h1 class="fw-bold text-primary">25</h1>
+                        <p class="text-muted fw-bold mb-0">عدد الدروس 📘</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    {% include "core/footer.html" %}
+
+    <script>
+        function toggleTabs(section, btn) {
+            // إخفاء كل التبويبات الفرعية أولاً
+            document.getElementById('qodrat-sub').style.display = 'none';
+            document.getElementById('tahsili-sub').style.display = 'none';
+            
+            // إزالة اللون البنفسجي من الأزرار الأخرى
+            document.querySelectorAll('.tab-main').forEach(b => b.classList.remove('active'));
+            
+            // إظهار القسم المختار وإضافة اللون البنفسجي للزر
+            document.getElementById(section + '-sub').style.display = 'block';
+            btn.classList.add('active');
+        }
+    </script>
 
 </body>
 </html>
