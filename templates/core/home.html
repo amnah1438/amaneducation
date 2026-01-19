@@ -5,92 +5,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ settings.platform_name }}</title>
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/home.css' %}">
-
     <style>
-        :root { --primary-lavender: #E6E6FA; --dark-purple: #4b0082; }
-        body { font-family: 'Tajawal', sans-serif; background-color: var(--primary-lavender); }
-        .tab-btn { border-radius: 30px; padding: 12px 35px; font-weight: bold; transition: 0.3s; border: 2px solid var(--dark-purple); }
-        .sub-tabs { display: none; margin-top: 20px; animation: fadeIn 0.5s; }
-        .stat-card { background: white; border-radius: 15px; padding: 20px; border-bottom: 5px solid var(--dark-purple); }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        /* تصميم زر "السندويش" للدخول */
-        .admin-entry { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+        body { font-family: 'Tajawal', sans-serif; background-color: #f0f0ff; }
+        .main-section { background-color: #E6E6FA; padding: 60px 0; min-height: 500px; }
+        .tab-main { border: 2px solid #4b0082; color: #4b0082; border-radius: 50px; padding: 10px 40px; font-weight: bold; background: white; transition: 0.3s; }
+        .tab-main:hover, .tab-main.active { background: #4b0082; color: white; }
+        .sub-tabs-container { display: none; margin-top: 25px; animation: slideDown 0.4s ease; }
+        .btn-sub { border-radius: 20px; padding: 5px 25px; font-size: 0.9rem; margin: 5px; background-color: #2D5A27; color: white; border: none; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .stat-card { background: white; border-radius: 20px; padding: 30px; border-bottom: 8px solid #4b0082; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
     </style>
 </head>
-
 <body>
-
-<div class="admin-entry">
-    <button class="btn btn-dark shadow" onclick="location.href='/admin/'">☰ لوحة الإدارة</button>
-</div>
 
 {% include "core/header.html" %}
 
-<main class="container text-center mt-5">
-    <h2 class="fw-bold mb-4">مرحبًا بكِ في منصة التدريب</h2>
-    
-    <div class="d-flex justify-content-center gap-3 mb-4">
-        <button class="btn btn-outline-primary tab-btn" onclick="showSubTabs('qodrat')">قسم القدرات</button>
-        <button class="btn btn-outline-success tab-btn" onclick="showSubTabs('tahsili')">قسم التحصيلي</button>
-        <button class="btn btn-outline-dark tab-btn">طباعة المحتوى 🖨️</button>
-    </div>
+<div class="main-section text-center">
+    <div class="container">
+        <h1 class="fw-bold mb-5">مرحباً بكِ في منصة التدريب</h1>
 
-    <div id="qodrat-tabs" class="sub-tabs">
-        <div class="d-flex justify-content-center gap-2">
-            <a href="/skills/qodrat/quant/" class="btn btn-sm btn-primary rounded-pill px-4">الكمي</a>
-            <a href="/skills/qodrat/verbal/" class="btn btn-sm btn-primary rounded-pill px-4">اللفظي</a>
+        <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
+            <button class="btn tab-main" onclick="toggleTabs('qodrat', this)">قسم القدرات</button>
+            <button class="btn tab-main" onclick="toggleTabs('tahsili', this)">قسم التحصيلي</button>
+            <button class="btn tab-main" style="border-color: #333; color: #333;">طباعة المحتوى 🖨️</button>
         </div>
-    </div>
 
-    <div id="tahsili-tabs" class="sub-tabs">
-        <div class="d-flex justify-content-center gap-2 flex-wrap">
-            <a href="/skills/math/" class="btn btn-sm btn-success rounded-pill px-4">الرياضيات</a>
-            <a href="/skills/biology/" class="btn btn-sm btn-success rounded-pill px-4">الأحياء</a>
-            <a href="/skills/chemistry/" class="btn btn-sm btn-success rounded-pill px-4">الكيمياء</a>
-            <a href="/skills/physics/" class="btn btn-sm btn-success rounded-pill px-4">الفيزياء</a>
+        <div id="qodrat-area" class="sub-tabs-container">
+            <button class="btn btn-sub">الكمي</button>
+            <button class="btn btn-sub">اللفظي</button>
         </div>
-    </div>
 
-    <div class="row g-4 mt-5">
-        <div class="col-md-4">
-            <div class="stat-card">
-                <h3 class="fw-bold text-primary">25</h3>
-                <p class="text-muted mb-0">عدد الدروس 📘</p>
+        <div id="tahsili-area" class="sub-tabs-container">
+            <button class="btn btn-sub">الرياضيات</button>
+            <button class="btn btn-sub">الأحياء</button>
+            <button class="btn btn-sub">الكيمياء</button>
+            <button class="btn btn-sub">الفيزياء</button>
+        </div>
+
+        <div class="row g-4 mt-5">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h2 class="fw-bold text-primary">25</h2>
+                    <p class="text-muted">عدد الدروس 📘</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h2 class="fw-bold text-primary">120</h2>
+                    <p class="text-muted">عدد الأمثلة 📝</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h2 class="fw-bold text-primary">5</h2>
+                    <p class="text-muted">اختبارات محاكية ⏱️</p>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="stat-card">
-                <h3 class="fw-bold text-primary">120</h3>
-                <p class="text-muted mb-0">عدد الأمثلة 📝</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card">
-                <h3 class="fw-bold text-primary">5</h3>
-                <p class="text-muted mb-0">اختبارات محاكية ⏱️</p>
-            </div>
-        </div>
     </div>
-</main>
+</div>
 
 {% include "core/footer.html" %}
 
 <script>
-    function showSubTabs(type) {
-        // إخفاء الكل أولاً
-        document.getElementById('qodrat-tabs').style.display = 'none';
-        document.getElementById('tahsili-tabs').style.display = 'none';
+    function toggleTabs(section, btn) {
+        // إخفاء جميع التبويبات الفرعية
+        document.getElementById('qodrat-area').style.display = 'none';
+        document.getElementById('tahsili-area').style.display = 'none';
         
-        // إظهار التبويب المختار
-        if(type === 'qodrat') {
-            document.getElementById('qodrat-tabs').style.display = 'block';
-        } else if(type === 'tahsili') {
-            document.getElementById('tahsili-tabs').style.display = 'block';
-        }
+        // إزالة حالة النشاط من الأزرار
+        document.querySelectorAll('.tab-main').forEach(b => b.classList.remove('active'));
+        
+        // إظهار القسم المطلوب 
+        document.getElementById(section + '-area').style.display = 'block';
+        btn.classList.add('active');
     }
 </script>
 
