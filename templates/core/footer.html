@@ -1,44 +1,36 @@
-<footer class="mt-5 pt-4 pb-5" style="background-color: #f8f9fa; border-top: 3px solid {{ settings.primary_color|default:'#E6E6FA' }};">
+<footer class="mt-5 pt-4 pb-5 shadow-sm" style="background-color: #f8f9fa; border-top: 3px solid #E6E6FA;">
     <div class="container text-center">
         
-        {% if settings.platform_vision %}
-        <div class="row justify-content-center mb-4">
+        <div class="row justify-content-center mb-3">
             <div class="col-md-8">
-                <p class="lead fw-bold" style="color: #4b0082; font-style: italic;">
-                    "{{ settings.platform_vision }}"
+                <p class="lead fw-bold" style="color: #5a5a5a;">
+                    {{ settings.platform_name|default:"منصة القدرات والتحصيلي" }}
                 </p>
+                <p class="small text-muted">{{ settings.platform_vision|default:"رؤيتنا: تمكين الطالبات من التميز الأكاديمي" }}</p>
             </div>
         </div>
-        {% endif %}
 
-        <hr class="w-25 mx-auto mb-4">
+        <hr class="w-25 mx-auto mb-4" style="color: #E6E6FA;">
 
         <div class="row align-items-center">
-            <div class="col-md-4 text-md-end text-center mb-3 mb-md-0">
+            <div class="col-md-4 text-center text-md-end mb-3 mb-md-0">
                 <small class="text-muted">
-                    © جميع الحقوق محفوظة - وزارة التعليم <br>
-                    المملكة العربية السعودية
+                    وزارة التعليم • المملكة العربية السعودية<br>
+                    الإدارة العامة للتعليم بالحدود الشمالية
                 </small>
             </div>
             
             <div class="col-md-4 text-center mb-3 mb-md-0">
-                <div class="fw-bold" style="color: #2d5a27;">
-                    برمجية المنصة: {{ settings.principal_name }}
-                </div>
-                <small class="text-muted">نظام إدارة التدريب الرقمي</small>
+                <div class="fw-bold" style="color: #2D5A27;">برمجية المنصة: {{ settings.platform_name }}</div>
+                <small class="text-muted">جميع الحقوق محفوظة &copy; 2026</small>
             </div>
 
-            <div class="col-md-4 text-md-start text-center">
-                <div class="small text-muted">
-                    <strong>آخر تحديث للنظام:</strong> <br>
-                    {{ settings.updated_at|date:"Y-m-d" }} مـ
-                </div>
+            <div class="col-md-4 text-center text-md-start">
+                <small class="text-muted">
+                    آخر تحديث للنظام: <br>
+                    <strong>{{ settings.updated_at|date:"Y-m-d" }}</strong>
+                </small>
             </div>
-        </div>
-
-        <div class="mt-4">
-            <a href="#" class="text-decoration-none mx-2 text-secondary small">سياسة الخصوصية</a>
-            <a href="#" class="text-decoration-none mx-2 text-secondary small">الدعم الفني</a>
         </div>
     </div>
 </footer>
