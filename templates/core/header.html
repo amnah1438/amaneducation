@@ -4,34 +4,34 @@
             
             <div class="col-md-4 text-end">
                 {% if settings.ministry_logo %}
-                    <img src="{{ settings.ministry_logo.url }}" alt="شعار وزارة التعليم" style="height: 85px;">
+                    <img src="{{ settings.ministry_logo.url }}" alt="شعار وزارة التعليم" style="height: 100px; width: auto;">
                 {% else %}
                     <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار وزارة التعليم</div>
                 {% endif %}
                 
-                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.85rem;">
+                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.70rem;">
                     <div>{{ settings.header_line_1 }}</div>
                     <div>{{ settings.header_line_2 }}</div>
                 </div>
             </div>
 
             <div class="col-md-4 text-center">
-                <h2 class="fw-bold mb-1" style="color: #4b0082; font-family: 'Tajawal', sans-serif;">
+                <h2 class="fw-bold mb-1" style="color: #4b0082; font-family: 'Tajawal', sans-serif; font-size: 1.8rem;">
                     {{ settings.platform_name }}
                 </h2>
-                <div class="badge bg-lavender text-dark border p-2 mt-1">
-                    برمجية المنصة: {{ settings.principal_name }}
+                <div class="badge bg-lavender text-dark border p-2 mt-1" style="font-size: 0.9rem;">
+                    المديرة: {{ settings.principal_name }}
                 </div>
             </div>
 
             <div class="col-md-4 text-start">
                 {% if settings.school_logo %}
-                    <img src="{{ settings.school_logo.url }}" alt="شعار المدرسة" style="height: 85px;">
+                    <img src="{{ settings.school_logo.url }}" alt="شعار المدرسة" style="height: 85px; width: auto;">
                 {% else %}
                     <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار المدرسة</div>
                 {% endif %}
 
-                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.85rem;">
+                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.70rem;">
                     <div>{{ settings.header_line_3 }}</div>
                     <div>{{ settings.header_line_4 }}</div>
                 </div>

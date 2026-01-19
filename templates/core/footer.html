@@ -3,10 +3,12 @@
         
         <div class="row justify-content-center mb-3">
             <div class="col-md-8">
-                <p class="lead fw-bold" style="color: #5a5a5a;">
-                    {{ settings.platform_name|default:"منصة القدرات والتحصيلي" }}
+                <p class="lead fw-bold mb-1" style="color: #4b0082;">
+                    {{ settings.platform_name|default:"منصة التدريب الذكي" }}
                 </p>
-                <p class="small text-muted">{{ settings.platform_vision|default:"رؤيتنا: تمكين الطالبات من التميز الأكاديمي" }}</p>
+                <p class="small text-muted">
+                    رؤيتنا: {{ settings.platform_vision|default:"تمكين الطالبات من التميز الأكاديمي" }}
+                </p>
             </div>
         </div>
 
@@ -16,19 +18,21 @@
             <div class="col-md-4 text-center text-md-end mb-3 mb-md-0">
                 <small class="text-muted">
                     وزارة التعليم • المملكة العربية السعودية<br>
-                    الإدارة العامة للتعليم بالحدود الشمالية
+                    {{ settings.header_line_3|default:"الإدارة العامة للتعليم بالحدود الشمالية" }}
                 </small>
             </div>
             
             <div class="col-md-4 text-center mb-3 mb-md-0">
-                <div class="fw-bold" style="color: #2D5A27;">برمجية المنصة: {{ settings.platform_name }}</div>
+                <div class="fw-bold" style="color: #2D5A27; font-size: 1.1rem;">
+                    برمجية المنصة: {{ settings.principal_name }}
+                </div>
                 <small class="text-muted">جميع الحقوق محفوظة &copy; 2026</small>
             </div>
 
             <div class="col-md-4 text-center text-md-start">
                 <small class="text-muted">
                     آخر تحديث للنظام: <br>
-                    <strong>{{ settings.updated_at|date:"Y-m-d" }}</strong>
+                    <strong>{{ settings.updated_at|date:"Y-m-d" }} مـ</strong>
                 </small>
             </div>
         </div>

@@ -115,7 +115,7 @@ class Skill(models.Model):
     icon_image = models.ImageField(upload_to="skills_icons/", blank=True, null=True, verbose_name="أيقونة المهارة (اختياري)")
     short_description = models.CharField(max_length=300, blank=True, verbose_name="وصف مختصر للبطاقة")
     
-    # لون البطاقة (مثل اللون الأخضر في منصة سليمان المالكي)
+    # لون البطاقة (مثل اللون الأخضر)
     card_color = models.CharField(max_length=7, default="#2D5A27", verbose_name="لون البطاقة")
 
     created_at = models.DateTimeField(auto_now_add=True)
