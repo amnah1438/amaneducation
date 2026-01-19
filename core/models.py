@@ -69,14 +69,18 @@ class Skill(models.Model):
     def __str__(self):
         return f"{self.get_category_display()} - {self.title}"
 
-# --- هذا هو الجزء الذي كان ينقصك وسبب الخطأ ---
 class Profile(models.Model):
     USER_ROLES = [
         ('ADMIN', 'مديرة'),
         ('TEACHER', 'معلمة'),
         ('STUDENT', 'طالبة'),
     ]
-    user = models.OneToOneField('auth.User', on_delete=models.CASCADE, verbose_name="المستخدم")
+    user = models.OneToOneField(
+        'auth.User', 
+        on_delete=models.CASCADE, 
+        verbose_name="المستخدم",
+        related_name="core_profile"  # تم التعديل هنا لتمييزه عن تطبيق accounts
+    )
     role = models.CharField(max_length=10, choices=USER_ROLES, default='STUDENT', verbose_name="الدور")
     pin_code = models.CharField(max_length=6, blank=True, verbose_name="رمز التحقق (PIN)")
 
