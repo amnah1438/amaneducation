@@ -43,49 +43,4 @@
 
 <style>
     .bg-lavender { background-color: #E6E6FA; }
-</style><header class="py-3 border-bottom shadow-sm bg-white">
-    <div class="container-fluid px-5">
-        <div class="row align-items-center">
-            
-            <div class="col-md-4 text-end">
-                {% if settings.ministry_logo %}
-                    <img src="{{ settings.ministry_logo.url }}" alt="شعار وزارة التعليم" style="height: 85px;">
-                {% else %}
-                    <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار وزارة التعليم</div>
-                {% endif %}
-                
-                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.85rem;">
-                    <div>{{ settings.header_line_1 }}</div>
-                    <div>{{ settings.header_line_2 }}</div>
-                </div>
-            </div>
-
-            <div class="col-md-4 text-center">
-                <h2 class="fw-bold mb-1" style="color: #4b0082; font-family: 'Tajawal', sans-serif;">
-                    {{ settings.platform_name }}
-                </h2>
-                <div class="badge bg-lavender text-dark border p-2 mt-1">
-                    برمجية المنصة: {{ settings.principal_name }}
-                </div>
-            </div>
-
-            <div class="col-md-4 text-start">
-                {% if settings.school_logo %}
-                    <img src="{{ settings.school_logo.url }}" alt="شعار المدرسة" style="height: 85px;">
-                {% else %}
-                    <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار المدرسة</div>
-                {% endif %}
-
-                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.85rem;">
-                    <div>{{ settings.header_line_3 }}</div>
-                    <div>{{ settings.header_line_4 }}</div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-</header>
-
-<style>
-    .bg-lavender { background-color: #E6E6FA; }
 </style>

@@ -13,23 +13,20 @@
         :root { --lavender-bg: #E6E6FA; --deep-purple: #4b0082; }
         body { font-family: 'Tajawal', sans-serif; background-color: #f8f9ff; margin: 0; padding: 0; }
         
-        /* زر السندويش لدخول المعلمات - أعلى اليمين */
+        /* زر السندويش (لوحة الإدارة) - أعلى اليمين */
         .admin-burger { position: fixed; top: 15px; right: 20px; z-index: 2000; }
         
         .hero-section { background-color: var(--lavender-bg); padding: 80px 0; min-height: 450px; }
         
-        /* تصميم التبويبات الرئيسية */
+        /* أزرار التبويبات الرئيسية */
         .tab-main { border: 2px solid var(--deep-purple); color: var(--deep-purple); border-radius: 50px; padding: 12px 45px; font-weight: bold; background: white; transition: 0.3s; margin: 5px; }
         .tab-main:hover, .tab-main.active { background: var(--deep-purple); color: white; }
         
-        /* التبويبات الفرعية */
+        /* أزرار التبويبات الفرعية */
         .sub-tabs-box { display: none; margin-top: 25px; animation: fadeIn 0.4s ease; }
-        .btn-sub { border-radius: 20px; padding: 6px 30px; font-size: 0.95rem; margin: 5px; background-color: #2D5A27; color: white; border: none; transition: 0.2s; }
-        .btn-sub:hover { background-color: #1e3d1a; transform: scale(1.05); }
+        .btn-sub { border-radius: 20px; padding: 6px 30px; font-size: 0.95rem; margin: 5px; background-color: #2D5A27; color: white; border: none; }
 
-        /* البطاقات الإحصائية */
-        .stat-card { background: white; border-radius: 20px; padding: 35px; border-bottom: 8px solid var(--deep-purple); box-shadow: 0 15px 35px rgba(0,0,0,0.05); transition: 0.3s; }
-        
+        .stat-card { background: white; border-radius: 20px; padding: 35px; border-bottom: 8px solid var(--deep-purple); box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -45,7 +42,7 @@
 
     <main class="hero-section text-center">
         <div class="container">
-            <h1 class="fw-bold mb-5" style="color: #222;">مرحبًا بكِ في منصة التدريب</h1>
+            <h1 class="fw-bold mb-5">مرحبًا بكِ في منصة التدريب</h1>
 
             <div class="d-flex justify-content-center flex-wrap mb-4">
                 <button class="btn tab-main" onclick="toggleTabs('qodrat', this)">قسم القدرات</button>
@@ -92,18 +89,12 @@
 
     <script>
         function toggleTabs(section, btn) {
-            // إخفاء كل التبويبات الفرعية أولاً
             document.getElementById('qodrat-sub').style.display = 'none';
             document.getElementById('tahsili-sub').style.display = 'none';
-            
-            // إزالة اللون البنفسجي من الأزرار الأخرى
             document.querySelectorAll('.tab-main').forEach(b => b.classList.remove('active'));
-            
-            // إظهار القسم المختار وإضافة اللون البنفسجي للزر
             document.getElementById(section + '-sub').style.display = 'block';
             btn.classList.add('active');
         }
     </script>
-
 </body>
 </html>
