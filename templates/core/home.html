@@ -4,63 +4,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>{{ settings.platform_name|default:"المنصة التعليمية" }}</title>
-
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <title>{{ settings.platform_name }}</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
-    <script defer src="{% static 'js/home.js' %}"></script>
 
     <style>
-        :root {
-            /* سحب اللون الأساسي من الإعدادات التي برمجناها */
-            --primary-color: {{ settings.primary_color|default:"#E6E6FA" }};
-        }
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: var(--primary-color);
-        }
-        .home-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            margin-top: 50px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-        }
+        :root { --primary-lavender: #E6E6FA; --dark-purple: #4b0082; }
+        body { font-family: 'Tajawal', sans-serif; background-color: var(--primary-lavender); }
+        .tab-btn { border-radius: 30px; padding: 12px 35px; font-weight: bold; transition: 0.3s; border: 2px solid var(--dark-purple); }
+        .sub-tabs { display: none; margin-top: 20px; animation: fadeIn 0.5s; }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; border-bottom: 5px solid var(--dark-purple); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* تصميم زر "السندويش" للدخول */
+        .admin-entry { position: fixed; top: 20px; right: 20px; z-index: 1000; }
     </style>
 </head>
 
 <body>
 
+<div class="admin-entry">
+    <button class="btn btn-dark shadow" onclick="location.href='/admin/'">☰ لوحة الإدارة</button>
+</div>
+
 {% include "core/header.html" %}
 
-<main class="container">
-    <div class="home-card text-center">
-        <h2 class="fw-bold mb-3">مرحبًا بكِ في {{ settings.platform_name }}</h2>
-        <p class="text-muted mb-5">اختاري القسم ثم التخصص لبدء التدريب.</p>
+<main class="container text-center mt-5">
+    <h2 class="fw-bold mb-4">مرحبًا بكِ في منصة التدريب</h2>
+    
+    <div class="d-flex justify-content-center gap-3 mb-4">
+        <button class="btn btn-outline-primary tab-btn" onclick="showSubTabs('qodrat')">قسم القدرات</button>
+        <button class="btn btn-outline-success tab-btn" onclick="showSubTabs('tahsili')">قسم التحصيلي</button>
+        <button class="btn btn-outline-dark tab-btn">طباعة المحتوى 🖨️</button>
+    </div>
 
-        <div class="row g-3 justify-content-center">
-            <div class="col-md-4">
-                <a href="#" class="btn btn-lg btn-outline-primary w-100 py-3 rounded-4 shadow-sm">قسم القدرات</a>
-            </div>
-            <div class="col-md-4">
-                <a href="#" class="btn btn-lg btn-outline-success w-100 py-3 rounded-4 shadow-sm">قسم التحصيلي</a>
+    <div id="qodrat-tabs" class="sub-tabs">
+        <div class="d-flex justify-content-center gap-2">
+            <a href="/skills/qodrat/quant/" class="btn btn-sm btn-primary rounded-pill px-4">الكمي</a>
+            <a href="/skills/qodrat/verbal/" class="btn btn-sm btn-primary rounded-pill px-4">اللفظي</a>
+        </div>
+    </div>
+
+    <div id="tahsili-tabs" class="sub-tabs">
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a href="/skills/math/" class="btn btn-sm btn-success rounded-pill px-4">الرياضيات</a>
+            <a href="/skills/biology/" class="btn btn-sm btn-success rounded-pill px-4">الأحياء</a>
+            <a href="/skills/chemistry/" class="btn btn-sm btn-success rounded-pill px-4">الكيمياء</a>
+            <a href="/skills/physics/" class="btn btn-sm btn-success rounded-pill px-4">الفيزياء</a>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-5">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h3 class="fw-bold text-primary">25</h3>
+                <p class="text-muted mb-0">عدد الدروس 📘</p>
             </div>
         </div>
-        
-        {% if settings.platform_vision %}
-        <div class="mt-5 p-3 bg-light rounded-3">
-            <h6 class="text-primary fw-bold">رؤيتنا</h6>
-            <p class="mb-0 small">{{ settings.platform_vision }}</p>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h3 class="fw-bold text-primary">120</h3>
+                <p class="text-muted mb-0">عدد الأمثلة 📝</p>
+            </div>
         </div>
-        {% endif %}
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h3 class="fw-bold text-primary">5</h3>
+                <p class="text-muted mb-0">اختبارات محاكية ⏱️</p>
+            </div>
+        </div>
     </div>
 </main>
 
 {% include "core/footer.html" %}
+
+<script>
+    function showSubTabs(type) {
+        // إخفاء الكل أولاً
+        document.getElementById('qodrat-tabs').style.display = 'none';
+        document.getElementById('tahsili-tabs').style.display = 'none';
+        
+        // إظهار التبويب المختار
+        if(type === 'qodrat') {
+            document.getElementById('qodrat-tabs').style.display = 'block';
+        } else if(type === 'tahsili') {
+            document.getElementById('tahsili-tabs').style.display = 'block';
+        }
+    }
+</script>
 
 </body>
 </html>
