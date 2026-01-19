@@ -1,4 +1,44 @@
-<footer class="platform-footer">
-    <p>© وزارة التعليم – المملكة العربية السعودية</p>
-    <p>برمجية: {{ settings.platform_owner }}</p>
+<footer class="mt-5 pt-4 pb-5" style="background-color: #f8f9fa; border-top: 3px solid {{ settings.primary_color|default:'#E6E6FA' }};">
+    <div class="container text-center">
+        
+        {% if settings.platform_vision %}
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-8">
+                <p class="lead fw-bold" style="color: #4b0082; font-style: italic;">
+                    "{{ settings.platform_vision }}"
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        <hr class="w-25 mx-auto mb-4">
+
+        <div class="row align-items-center">
+            <div class="col-md-4 text-md-end text-center mb-3 mb-md-0">
+                <small class="text-muted">
+                    © جميع الحقوق محفوظة - وزارة التعليم <br>
+                    المملكة العربية السعودية
+                </small>
+            </div>
+            
+            <div class="col-md-4 text-center mb-3 mb-md-0">
+                <div class="fw-bold" style="color: #2d5a27;">
+                    برمجية المنصة: {{ settings.principal_name }}
+                </div>
+                <small class="text-muted">نظام إدارة التدريب الرقمي</small>
+            </div>
+
+            <div class="col-md-4 text-md-start text-center">
+                <div class="small text-muted">
+                    <strong>آخر تحديث للنظام:</strong> <br>
+                    {{ settings.updated_at|date:"Y-m-d" }} مـ
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <a href="#" class="text-decoration-none mx-2 text-secondary small">سياسة الخصوصية</a>
+            <a href="#" class="text-decoration-none mx-2 text-secondary small">الدعم الفني</a>
+        </div>
+    </div>
 </footer>
