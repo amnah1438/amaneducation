@@ -72,3 +72,36 @@ class SchoolSettings(models.Model):
 
     def __str__(self):
         return self.platform_name
+from django.db import models
+
+class SchoolSettings(models.Model):
+    # ... الأكواد السابقة كما هي ...
+
+    # إضافات جديدة للتحكم في المظهر (اللافندر)
+    primary_color = models.CharField(
+        max_length=7, 
+        default="#E6E6FA", 
+        verbose_name="اللون الأساسي (لافندر)"
+    )
+    
+    # إضافات لخدمة "المشرفات" (إظهار/إخفاء الإحصاءات العامة)
+    show_stats_to_public = models.BooleanField(
+        default=True, 
+        verbose_name="إظهار الإحصاءات العامة للمشرفات"
+    )
+
+    # حقل لإضافة ملاحظة أو رؤية المنصة تظهر في الأسفل
+    platform_vision = models.TextField(
+        blank=True, 
+        verbose_name="رؤية المنصة (تظهر في التذييل)"
+    )
+
+    # لضمان وجود سجل واحد فقط من الإعدادات في المنصة
+    def save(self, *args, **kwargs):
+        if not self.pk and SchoolSettings.objects.exists():
+            return # يمنع إنشاء أكثر من سجل واحد للإعدادات
+        return super(SchoolSettings, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "إعدادات الهوية الرسمية"
+        verbose_name_plural = "إعدادات الهوية الرسمية"
