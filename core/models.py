@@ -1,15 +1,12 @@
 from django.db import models
 
-
 class SchoolSettings(models.Model):
     """
     إعدادات المدرسة العامة (لوحة الإدارة):
-    - اسم المنصة
-    - شعارات الوزارة والمدرسة
-    - اسم المديرة
-    - بيانات الديباجة الرسمية للتقارير
+    تحتوي على الهوية البصرية، بيانات الديباجة الرسمية، وصلاحيات عرض الإحصاءات للمشرفات.
     """
 
+    # --- القسم الأول: هوية المنصة ---
     platform_name = models.CharField(
         max_length=200,
         default="آمنه مالح العنزي",
@@ -23,6 +20,12 @@ class SchoolSettings(models.Model):
         verbose_name="اسم المديرة"
     )
 
+    platform_vision = models.TextField(
+        blank=True, 
+        verbose_name="رؤية المنصة (تظهر في التذييل)"
+    )
+
+    # --- القسم الثاني: الشعارات والألوان ---
     ministry_logo = models.ImageField(
         upload_to="logos/",
         blank=True,
@@ -37,6 +40,13 @@ class SchoolSettings(models.Model):
         verbose_name="شعار المدرسة"
     )
 
+    primary_color = models.CharField(
+        max_length=7, 
+        default="#E6E6FA", 
+        verbose_name="اللون الأساسي (لافندر)"
+    )
+
+    # --- القسم الثالث: الديباجة الرسمية للتقارير ---
     header_line_1 = models.CharField(
         max_length=200,
         default="المملكة العربية السعودية",
@@ -61,47 +71,32 @@ class SchoolSettings(models.Model):
         verbose_name="سطر الديباجة 4"
     )
 
+    # --- القسم الرابع: التحكم في العرض للمشرفات ---
+    show_stats_to_public = models.BooleanField(
+        default=True, 
+        verbose_name="إظهار الإحصاءات العامة للمشرفات"
+    )
+
     updated_at = models.DateTimeField(
         auto_now=True,
         verbose_name="آخر تحديث"
     )
 
     class Meta:
-        verbose_name = "إعدادات المدرسة"
-        verbose_name_plural = "إعدادات المدرسة"
+        verbose_name = "إعدادات الهوية الرسمية"
+        verbose_name_plural = "إعدادات الهوية الرسمية"
 
     def __str__(self):
         return self.platform_name
-from django.db import models
 
-class SchoolSettings(models.Model):
-    # ... الأكواد السابقة كما هي ...
-
-    # إضافات جديدة للتحكم في المظهر (اللافندر)
-    primary_color = models.CharField(
-        max_length=7, 
-        default="#E6E6FA", 
-        verbose_name="اللون الأساسي (لافندر)"
-    )
-    
-    # إضافات لخدمة "المشرفات" (إظهار/إخفاء الإحصاءات العامة)
-    show_stats_to_public = models.BooleanField(
-        default=True, 
-        verbose_name="إظهار الإحصاءات العامة للمشرفات"
-    )
-
-    # حقل لإضافة ملاحظة أو رؤية المنصة تظهر في الأسفل
-    platform_vision = models.TextField(
-        blank=True, 
-        verbose_name="رؤية المنصة (تظهر في التذييل)"
-    )
-
-    # لضمان وجود سجل واحد فقط من الإعدادات في المنصة
     def save(self, *args, **kwargs):
+        """
+        تعديل لضمان وجود سجل إعدادات واحد فقط في قاعدة البيانات.
+        إذا حاول أي شخص إضافة سجل جديد، سيقوم النظام بتحديث السجل الموجود بدلاً من التكرار.
+        """
         if not self.pk and SchoolSettings.objects.exists():
-            return # يمنع إنشاء أكثر من سجل واحد للإعدادات
+            # إذا أردتِ منع الإضافة تماماً:
+            # return 
+            # أو الأفضل: تحديث السجل الموجود
+            self.pk = SchoolSettings.objects.first().pk
         return super(SchoolSettings, self).save(*args, **kwargs)
-
-    class Meta:
-        verbose_name = "إعدادات الهوية الرسمية"
-        verbose_name_plural = "إعدادات الهوية الرسمية"
