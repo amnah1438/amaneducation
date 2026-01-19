@@ -41,6 +41,18 @@
 
         .content-area { display: none; margin-top: 40px; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* تحسين شكل كبسولة أسماء المعلمات */
+        .teacher-badge {
+            background-color: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin: 2px;
+        }
     </style>
 </head>
 <body>
@@ -88,11 +100,16 @@
                                 <p class="text-muted small">{{ skill.short_description }}</p>
                                 
                                 <div class="mb-3">
-                                    <small class="text-secondary d-block">المعلمات المسؤولة:</small>
-                                    <span class="badge bg-light text-dark border">
-                                        {{ skill.teachers.all|join:", " }}
-                                        {% if not skill.teachers.all %}{{ skill.teacher_name }}{% endif %}
-                                    </span>
+                                    <small class="text-secondary d-block mb-2">المعلمات المسؤولات:</small>
+                                    <div class="d-flex justify-content-center flex-wrap">
+                                        {% for teacher in skill.teachers.all %}
+                                            <span class="teacher-badge">
+                                                {{ teacher.name }}
+                                            </span>
+                                        {% empty %}
+                                            <span class="text-muted small">لم يتم تحديد معلمات</span>
+                                        {% endfor %}
+                                    </div>
                                 </div>
 
                                 <button type="button" class="btn btn-sm text-white px-4 rounded-pill btn-skill-action">
@@ -130,7 +147,6 @@
             document.getElementById('stats-area').style.display = 'none';
             document.getElementById('skills-display-area').style.display = 'block';
             document.querySelectorAll('.skill-item').forEach(function(item) {
-                // الكود الآن يطابق الكلمة العربية التي يرسلها الزر مع الـ Category في البطاقة
                 item.style.display = (item.getAttribute('data-category') === catCode) ? 'block' : 'none';
             });
         }
