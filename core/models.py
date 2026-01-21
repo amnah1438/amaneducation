@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class SchoolSettings(models.Model):
     # --- القسم الأول: هوية المنصة ---
@@ -37,6 +38,7 @@ class SchoolSettings(models.Model):
 class Teacher(models.Model):
     """ موديل جديد لتعريف أسماء المعلمات """
     name = models.CharField(max_length=200, verbose_name="اسم المعلمة")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name="حساب المستخدم المرتبط")
     
     class Meta:
         verbose_name = "3. أسماء المعلمات"
@@ -44,6 +46,7 @@ class Teacher(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Skill(models.Model):
     CATEGORY_CHOICES = [
@@ -57,9 +60,20 @@ class Skill(models.Model):
     title = models.CharField(max_length=200, verbose_name="عنوان المهارة/الدرس")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name="القسم التابع له")
     teachers = models.ManyToManyField(Teacher, blank=True, verbose_name="المعلمات المسؤولات")
+    
+    # --- إضافات الشرح المرن للمعلمة ---
+    content_text = models.TextField(blank=True, verbose_name="شرح الدرس (كتابة)")
+    video_url = models.URLField(blank=True, verbose_name="رابط فيديو (YouTube/Drive)")
+    pdf_file = models.FileField(upload_to='skills_pdf/', blank=True, null=True, verbose_name="ملف PDF للشرح")
+    image_explainer = models.ImageField(upload_to='skills_images/', blank=True, null=True, verbose_name="صورة توضيحية للشرح")
+
+    # --- إعدادات بطاقة العرض ---
     icon_image = models.ImageField(upload_to="skills_icons/", blank=True, null=True, verbose_name="أيقونة المهارة (اختياري)")
     short_description = models.CharField(max_length=300, blank=True, verbose_name="وصف مختصر للبطاقة")
     card_color = models.CharField(max_length=7, default="#2D5A27", verbose_name="لون البطاقة")
+    
+    # --- مرونة التحكم في الاختبارات ---
+    required_questions_count = models.PositiveIntegerField(default=10, verbose_name="عدد أسئلة الاختبار (الافتراضي 10)")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -68,6 +82,32 @@ class Skill(models.Model):
 
     def __str__(self):
         return f"{self.get_category_display()} - {self.title}"
+
+
+class Question(models.Model):
+    """ موديل الأسئلة: يدعم القدرات (قبلي/بعدي) والتحصيلي (بعدي) """
+    TEST_TYPES = [('PRE', 'اختبار قبلي'), ('POST', 'اختبار بعدي')]
+    CORRECT_CHOICES = [('A', 'خيار أ'), ('B', 'خيار ب'), ('C', 'خيار ج'), ('D', 'خيار د')]
+
+    skill = models.ForeignKey(Skill, related_name='questions', on_delete=models.CASCADE, verbose_name="المهارة/الدرس")
+    test_type = models.CharField(max_length=4, choices=TEST_TYPES, default='POST', verbose_name="نوع الاختبار")
+    
+    question_text = models.TextField(verbose_name="نص السؤال")
+    option_a = models.CharField(max_length=300, verbose_name="خيار (أ)")
+    option_b = models.CharField(max_length=300, verbose_name="خيار (ب)")
+    option_c = models.CharField(max_length=300, verbose_name="خيار (ج)")
+    option_d = models.CharField(max_length=300, verbose_name="خيار (د)")
+    
+    correct_answer = models.CharField(max_length=1, choices=CORRECT_CHOICES, verbose_name="الإجابة الصحيحة")
+    feedback = models.TextField(blank=True, verbose_name="التغذية الراجعة (تفسير الإجابة)")
+
+    class Meta:
+        verbose_name = "سؤال"
+        verbose_name_plural = "أسئلة الاختبارات"
+
+    def __str__(self):
+        return f"{self.get_test_type_display()} - {self.question_text[:50]}"
+
 
 class Profile(models.Model):
     USER_ROLES = [
@@ -79,7 +119,7 @@ class Profile(models.Model):
         'auth.User', 
         on_delete=models.CASCADE, 
         verbose_name="المستخدم",
-        related_name="core_profile"  # تم التعديل هنا لتمييزه عن تطبيق accounts
+        related_name="core_profile"
     )
     role = models.CharField(max_length=10, choices=USER_ROLES, default='STUDENT', verbose_name="الدور")
     pin_code = models.CharField(max_length=6, blank=True, verbose_name="رمز التحقق (PIN)")
