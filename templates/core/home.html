@@ -37,6 +37,12 @@
         .btn-skill-action {
             background-color: var(--card-color); 
             border: none;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .btn-skill-action:hover {
+            opacity: 0.9;
+            color: white;
         }
 
         .content-area { display: none; margin-top: 40px; animation: fadeIn 0.5s ease; }
@@ -112,9 +118,9 @@
                                     </div>
                                 </div>
 
-                                <button type="button" class="btn btn-sm text-white px-4 rounded-pill btn-skill-action">
+                                <a href="{% url 'skill_detail' skill.id %}" class="btn btn-sm text-white px-4 rounded-pill btn-skill-action">
                                     دخول الدرس
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
