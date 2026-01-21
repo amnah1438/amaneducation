@@ -33,4 +33,4 @@ def skill_detail(request, skill_id):
         'pre_questions': pre_questions,
         'post_questions': post_questions,
     }
-    return render(request, 'core/skill_detail.html', context)
+    return render(request, 'skill_detail.html', context)
