@@ -23,6 +23,7 @@ class SkillAdmin(admin.ModelAdmin):
     filter_horizontal = ("teachers",) 
 
     def get_teachers(self, obj):
+        # تم تعديل هذا السطر للتأكد من جلب الأسماء بشكل صحيح للموقع
         return ", ".join([t.name for t in obj.teachers.all()])
     get_teachers.short_description = "المعلمات المسؤولات"
 
