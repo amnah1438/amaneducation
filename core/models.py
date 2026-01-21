@@ -36,9 +36,17 @@ class SchoolSettings(models.Model):
 
 
 class Teacher(models.Model):
-    """ موديل جديد لتعريف أسماء المعلمات """
+    """ موديل تعريف أسماء المعلمات مع حل مشكلة التضارب """
     name = models.CharField(max_length=200, verbose_name="اسم المعلمة")
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name="حساب المستخدم المرتبط")
+    # تم إضافة related_name="core_teacher_profile" لحل الخطأ الذي ظهر لكِ
+    user = models.OneToOneField(
+        User, 
+        on_delete=models.CASCADE, 
+        null=True, 
+        blank=True, 
+        related_name="core_teacher_profile", 
+        verbose_name="حساب المستخدم المرتبط"
+    )
     
     class Meta:
         verbose_name = "3. أسماء المعلمات"
@@ -61,19 +69,17 @@ class Skill(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name="القسم التابع له")
     teachers = models.ManyToManyField(Teacher, blank=True, verbose_name="المعلمات المسؤولات")
     
-    # --- إضافات الشرح المرن للمعلمة ---
+    # --- محتوى الشرح المرن ---
     content_text = models.TextField(blank=True, verbose_name="شرح الدرس (كتابة)")
     video_url = models.URLField(blank=True, verbose_name="رابط فيديو (YouTube/Drive)")
     pdf_file = models.FileField(upload_to='skills_pdf/', blank=True, null=True, verbose_name="ملف PDF للشرح")
     image_explainer = models.ImageField(upload_to='skills_images/', blank=True, null=True, verbose_name="صورة توضيحية للشرح")
 
-    # --- إعدادات بطاقة العرض ---
+    # --- إعدادات العرض والتحكم ---
     icon_image = models.ImageField(upload_to="skills_icons/", blank=True, null=True, verbose_name="أيقونة المهارة (اختياري)")
     short_description = models.CharField(max_length=300, blank=True, verbose_name="وصف مختصر للبطاقة")
     card_color = models.CharField(max_length=7, default="#2D5A27", verbose_name="لون البطاقة")
-    
-    # --- مرونة التحكم في الاختبارات ---
-    required_questions_count = models.PositiveIntegerField(default=10, verbose_name="عدد أسئلة الاختبار (الافتراضي 10)")
+    required_questions_count = models.PositiveIntegerField(default=10, verbose_name="عدد أسئلة الاختبار")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -85,7 +91,7 @@ class Skill(models.Model):
 
 
 class Question(models.Model):
-    """ موديل الأسئلة: يدعم القدرات (قبلي/بعدي) والتحصيلي (بعدي) """
+    """ موديل الأسئلة: يدعم الخيارات الأربعة والتغذية الراجعة """
     TEST_TYPES = [('PRE', 'اختبار قبلي'), ('POST', 'اختبار بعدي')]
     CORRECT_CHOICES = [('A', 'خيار أ'), ('B', 'خيار ب'), ('C', 'خيار ج'), ('D', 'خيار د')]
 
@@ -99,7 +105,7 @@ class Question(models.Model):
     option_d = models.CharField(max_length=300, verbose_name="خيار (د)")
     
     correct_answer = models.CharField(max_length=1, choices=CORRECT_CHOICES, verbose_name="الإجابة الصحيحة")
-    feedback = models.TextField(blank=True, verbose_name="التغذية الراجعة (تفسير الإجابة)")
+    feedback = models.TextField(blank=True, verbose_name="التغذية الراجعة (تظهر في التقرير)")
 
     class Meta:
         verbose_name = "سؤال"
