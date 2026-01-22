@@ -4,23 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الاختبار القبلي - {{ skill.name }}</title>
+    <title>الاختبار القبلي - {{ skill.title }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f3f0f7; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f3f0f7; color: #4a4a4a; }
         .test-container { max-width: 800px; margin: 50px auto; }
-        .question-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border-right: 5px solid #6f42c1; }
-        .option-item { border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.3s; text-align: right; background: white; width: 100%; font-size: 1.2rem; display: block; color: #4a4a4a; }
-        .option-item:hover { border-color: #6f42c1; background-color: #f8f4ff; }
-        .btn-submit { background-color: #6f42c1; color: white; padding: 12px 40px; border-radius: 10px; font-weight: bold; border: none; }
+        .question-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border-right: 5px solid #6f42c1; }
+        .option-item { border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; margin-bottom: 12px; cursor: pointer; transition: 0.3s; text-align: right; background: white; width: 100%; font-size: 1.2rem; display: block; color: #4a4a4a; font-weight: 500; }
+        .option-item:hover { border-color: #6f42c1; background-color: #f8f4ff; transform: scale(1.01); }
+        .btn-submit { background-color: #6f42c1; color: white; padding: 12px 45px; border-radius: 10px; font-weight: bold; border: none; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
 <div class="container test-container">
     <div class="text-center mb-5">
-        <h2 class="fw-bold" style="color: #6f42c1;">📝 الاختبار القبلي: {{ skill.name }}</h2>
+        <h2 class="fw-bold" style="color: #6f42c1;">📝 الاختبار القبلي: {{ skill.title }}</h2>
         <p class="text-muted">أجب على الأسئلة التالية لقياس مستواك قبل البدء</p>
     </div>
 
@@ -28,37 +28,34 @@
         {% csrf_token %}
         {% for question in questions %}
         <div class="question-card">
-            <h5 class="fw-bold mb-4">{{ forloop.counter }}. {{ question.question_text }}</h5>
+            <h5 class="fw-bold mb-4" style="line-height: 1.6;">{{ forloop.counter }}. {{ question.question_text }}</h5>
             
             <div class="options-list">
-                {# محاولة عرض الخيار الأول بكل أسمائه البرمجية المحتملة #}
-                {% if question.option_1 %}<button type="button" class="option-item">{{ question.option_1 }}</button>
-                {% elif question.خيار_أ %}<button type="button" class="option-item">{{ question.خيار_أ }}</button>
-                {% elif question.choice_a %}<button type="button" class="option-item">{{ question.choice_a }}</button>{% endif %}
+                {# تم مطابقة الأسماء مع ملف models.py الخاص بكِ #}
+                {% if question.option_a %}
+                    <button type="button" class="option-item">أ) {{ question.option_a }}</button>
+                {% endif %}
 
-                {# الخيار الثاني #}
-                {% if question.option_2 %}<button type="button" class="option-item">{{ question.option_2 }}</button>
-                {% elif question.خيار_ب %}<button type="button" class="option-item">{{ question.خيار_ب }}</button>
-                {% elif question.choice_b %}<button type="button" class="option-item">{{ question.choice_b }}</button>{% endif %}
+                {% if question.option_b %}
+                    <button type="button" class="option-item">ب) {{ question.option_b }}</button>
+                {% endif %}
 
-                {# الخيار الثالث #}
-                {% if question.option_3 %}<button type="button" class="option-item">{{ question.option_3 }}</button>
-                {% elif question.خيار_ج %}<button type="button" class="option-item">{{ question.خيار_ج }}</button>
-                {% elif question.choice_c %}<button type="button" class="option-item">{{ question.choice_c }}</button>{% endif %}
+                {% if question.option_c %}
+                    <button type="button" class="option-item">ج) {{ question.option_c }}</button>
+                {% endif %}
 
-                {# الخيار الرابع #}
-                {% if question.option_4 %}<button type="button" class="option-item">{{ question.option_4 }}</button>
-                {% elif question.خيار_د %}<button type="button" class="option-item">{{ question.خيار_د }}</button>
-                {% elif question.choice_d %}<button type="button" class="option-item">{{ question.choice_d }}</button>{% endif %}
+                {% if question.option_d %}
+                    <button type="button" class="option-item">د) {{ question.option_d }}</button>
+                {% endif %}
             </div>
         </div>
         {% empty %}
-        <div class="alert alert-warning text-center">لا توجد أسئلة مضافة.</div>
+        <div class="alert alert-warning text-center">لا توجد أسئلة مضافة لهذا الدرس حتى الآن.</div>
         {% endfor %}
 
         <div class="text-center mt-5">
-            <a href="/skill/{{ skill.id }}/" class="btn btn-outline-secondary me-3">إلغاء</a>
-            <button type="submit" class="btn btn-submit shadow">إنهاء الاختبار</button>
+            <a href="/skill/{{ skill.id }}/" class="btn btn-outline-secondary me-3 shadow-sm">إلغاء</a>
+            <button type="submit" class="btn btn-submit shadow">إنهاء الاختبار وحفظ النتيجة</button>
         </div>
     </form>
 </div>
