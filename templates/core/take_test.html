@@ -11,8 +11,8 @@
         body { font-family: 'Cairo', sans-serif; background-color: #f3f0f7; }
         .test-container { max-width: 800px; margin: 50px auto; }
         .question-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border-right: 5px solid #6f42c1; }
-        .option-btn { border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.3s; text-align: right; background: none; width: 100%; font-size: 1.1rem; }
-        .option-btn:hover { border-color: #6f42c1; background-color: #f8f4ff; }
+        .option-item { border: 2px solid #e0e0e0; border-radius: 10px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: 0.3s; text-align: right; background: white; width: 100%; font-size: 1.2rem; display: block; color: #4a4a4a; }
+        .option-item:hover { border-color: #6f42c1; background-color: #f8f4ff; }
         .btn-submit { background-color: #6f42c1; color: white; padding: 12px 40px; border-radius: 10px; font-weight: bold; border: none; }
     </style>
 </head>
@@ -31,27 +31,35 @@
             <h5 class="fw-bold mb-4">{{ forloop.counter }}. {{ question.question_text }}</h5>
             
             <div class="options-list">
-                {% if question.خيار_أ %}
-                <button type="button" class="option-btn d-block">{{ question.خيار_أ }}</button>
-                {% endif %}
+                {# سنحاول عرض الخيارات بناءً على الاحتمالات المتاحة في قاعدة بياناتك #}
                 
-                {% if question.خيار_ب %}
-                <button type="button" class="option-btn d-block">{{ question.خيار_ب }}</button>
+                {% if question.option_1 %}
+                    <button type="button" class="option-item">{{ question.option_1 }}</button>
+                {% elif question.خيار_أ %}
+                    <button type="button" class="option-item">{{ question.خيار_أ }}</button>
                 {% endif %}
-                
-                {% if question.خيار_ج %}
-                <button type="button" class="option-btn d-block">{{ question.خيار_ج }}</button>
+
+                {% if question.option_2 %}
+                    <button type="button" class="option-item">{{ question.option_2 }}</button>
+                {% elif question.خيار_ب %}
+                    <button type="button" class="option-item">{{ question.خيار_ب }}</button>
                 {% endif %}
-                
-                {% if question.خيار_د %}
-                <button type="button" class="option-btn d-block">{{ question.خيار_د }}</button>
+
+                {% if question.option_3 %}
+                    <button type="button" class="option-item">{{ question.option_3 }}</button>
+                {% elif question.خيار_ج %}
+                    <button type="button" class="option-item">{{ question.خيار_ج }}</button>
+                {% endif %}
+
+                {% if question.option_4 %}
+                    <button type="button" class="option-item">{{ question.option_4 }}</button>
+                {% elif question.خيار_د %}
+                    <button type="button" class="option-item">{{ question.خيار_د }}</button>
                 {% endif %}
             </div>
         </div>
         {% empty %}
-        <div class="alert alert-warning text-center">
-            لا توجد أسئلة مضافة لهذا الاختبار حالياً.
-        </div>
+        <div class="alert alert-warning text-center">لا توجد أسئلة مضافة.</div>
         {% endfor %}
 
         <div class="text-center mt-5">
@@ -61,6 +69,5 @@
     </form>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
