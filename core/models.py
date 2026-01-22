@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
-# استيراد حقل محرر النصوص المتطور
-from ckeditor.fields import RichTextField 
+# استيراد الحقل الذي يدعم رفع الصور مباشرة
+from ckeditor_uploader.fields import RichTextUploadingField 
 
 class SchoolSettings(models.Model):
     # --- القسم الأول: هوية المنصة ---
@@ -69,8 +69,8 @@ class Skill(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name="القسم التابع له")
     teachers = models.ManyToManyField(Teacher, blank=True, verbose_name="المعلمات المسؤولات")
     
-    # تم التغيير لـ RichTextField ليظهر محرر الرياضيات في شرح الدرس
-    content_text = RichTextField(blank=True, null=True, verbose_name="شرح الدرس (كتابة)")
+    # هنا نستخدم المحرر العلمي دائماً لشرح الدروس لأنه يحتاج توضيح
+    content_text = RichTextUploadingField(config_name='scientific_editor', blank=True, null=True, verbose_name="شرح الدرس (كتابة)")
     
     video_url = models.URLField(blank=True, verbose_name="رابط فيديو (YouTube/Drive)")
     pdf_file = models.FileField(upload_to='skills_pdf/', blank=True, null=True, verbose_name="ملف PDF للشرح")
@@ -97,15 +97,16 @@ class Question(models.Model):
     skill = models.ForeignKey(Skill, related_name='questions', on_delete=models.CASCADE, verbose_name="المهارة/الدرس")
     test_type = models.CharField(max_length=4, choices=TEST_TYPES, default='POST', verbose_name="نوع الاختبار")
     
-    # تم التغيير لـ RichTextField لدعم الرموز في نص السؤال والخيارات والتغذية الراجعة
-    question_text = RichTextField(verbose_name="نص السؤال")
-    option_a = RichTextField(verbose_name="خيار (أ)")
-    option_b = RichTextField(verbose_name="خيار (ب)")
-    option_c = RichTextField(verbose_name="خيار (ج)")
-    option_d = RichTextField(verbose_name="خيار (د)")
+    # حقول تدعم الصور والرموز تلقائياً
+    # ملاحظة: سيتم استخدام config_name='scientific_editor' في الواجهة البرمجية بناءً على القسم
+    question_text = RichTextUploadingField(config_name='scientific_editor', verbose_name="نص السؤال")
+    option_a = RichTextUploadingField(config_name='scientific_editor', verbose_name="خيار (أ)")
+    option_b = RichTextUploadingField(config_name='scientific_editor', verbose_name="خيار (ب)")
+    option_c = RichTextUploadingField(config_name='scientific_editor', verbose_name="خيار (ج)")
+    option_d = RichTextUploadingField(config_name='scientific_editor', verbose_name="خيار (د)")
     
     correct_answer = models.CharField(max_length=1, choices=CORRECT_CHOICES, verbose_name="الإجابة الصحيحة")
-    feedback = RichTextField(blank=True, null=True, verbose_name="التغذية الراجعة (تظهر في التقرير)")
+    feedback = RichTextUploadingField(config_name='scientific_editor', blank=True, null=True, verbose_name="التغذية الراجعة")
 
     class Meta:
         verbose_name = "سؤال"
