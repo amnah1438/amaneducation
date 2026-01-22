@@ -21,7 +21,6 @@ ALLOWED_HOSTS = []
 # 📦 التطبيقات (INSTALLED_APPS)
 # =========================
 INSTALLED_APPS = [
-    # Django default
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -29,11 +28,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # مكتبة محرر النصوص المطور ورفع الصور
     'ckeditor',
     'ckeditor_uploader', 
 
-    # تطبيقات المشروع الأساسية
     'core',
     'accounts',
     'students',
@@ -62,9 +59,6 @@ MIDDLEWARE = [
 ]
 
 
-# =========================
-# 🌐 الروابط والقوالب
-# =========================
 ROOT_URLCONF = 'amaneducation.urls'
 
 TEMPLATES = [
@@ -85,17 +79,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'amaneducation.wsgi.application'
 
-
-# =========================
-# 🗄️ قاعدة البيانات
-# =========================
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 
 # =========================
 # 🌍 اللغة والتوقيت
@@ -116,49 +105,52 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# إعدادات رفع الصور الخاصة بالمحرر
 CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_IMAGE_BACKEND = "pillow" # للتأكد من معالجة الصور بشكل صحيح
+CKEDITOR_IMAGE_BACKEND = "pillow"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # ======================================================
-# ➕ إعدادات محرر الرياضيات والرسم والرفع (النسخة الاحترافية)
+# ➕ إعدادات المحرر النهائية (منظمة بـ 3 أسطر لمنع الاختفاء)
 # ======================================================
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
         'toolbar': 'Custom',
         'width': '100%',
-        'height': '250px',
+        'height': '220px', # ارتفاع مناسب لا يغطي الأسئلة
         'language': 'ar',
         'contentsLangDirection': 'rtl',
         'toolbar_Custom': [
-            # السطر الأول: التنسيق
-            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'],
-            ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft'],
-            '/', 
-            # السطر الثاني: الرسم باليد والرموز والصور
-            ['ckeditor_wiris_formulaEditor', 'Mathjax', 'SpecialChar'], # علامة WIRIS هي التي تفتح الرسم باليد
-            ['Image', 'Table', 'HorizontalRule'],
-            ['Source', 'Maximize'],
+            # السطر الأول: التنسيق اللفظي الأساسي
+            ['Bold', 'Italic', 'Underline', '-', 'TextColor', 'BGColor', '-', 'RemoveFormat'],
+            ['JustifyRight', 'JustifyCenter', 'JustifyLeft', '-', 'NumberedList', 'BulletedList'],
+            '/', # سطر جديد
+            
+            # السطر الثاني: الرياضيات والرموز والسبورة
+            ['ckeditor_wiris_formulaEditor', 'Mathjax', 'SpecialChar'],
+            ['Subscript', 'Superscript', 'Table', 'HorizontalRule'],
+            '/', # سطر جديد
+            
+            # السطر الثالث: الصور والتحكم
+            ['Image', 'Link', 'Unlink', '-', 'Source', 'Maximize'],
         ],
         'extraPlugins': ','.join([
-            'mathjax',      # المعادلات بالكود
-            'widget',
-            'lineutils',
-            'dialog',
-            'ckeditor_wiris', # تفعيل الرسم باليد بالفأرة
-            'uploadimage',    # تفعيل سحب وإفلات الصور
+            'mathjax', 
+            'widget', 
+            'lineutils', 
+            'dialog', 
+            'ckeditor_wiris', # سبورة الرسم بالفأرة
+            'image2', 
+            'uploadimage',
+            'colorbutton',
         ]),
         'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-        
-        # تفعيل تبويب "الرفع" في نافذة الصور
         'filebrowserUploadUrl': '/ckeditor/upload/',
         'filebrowserBrowseUrl': '/ckeditor/browse/',
         
-        # تخصيص الرموز العربية السريعة
+        # رموز عربية جاهزة
         'specialChars': ['≥', '≤', '>', '<', '|', '√', '²', '³', 'π', 'س', 'ص', 'ع'],
     },
 }
