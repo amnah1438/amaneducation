@@ -1,15 +1,15 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
-# 1. المسارات الأساسية
+# 1. المسارات الأساسية للمشروع
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 2. الأمان
+# 2. إعدادات الأمان (تأكدي من عدم تغيير الـ Key الخاص بك)
 SECRET_KEY = 'django-insecure-f^#4+1-yrnoelle5gc++9#uq8$mqua6hi70p66_#@1#gk-z7lh'
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*'] # للسماح بالتشغيل المحلي
 
-# 3. التطبيقات (INSTALLED_APPS)
+# 3. التطبيقات المثبتة (مهم جداً ترتيب CKEditor)
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'ckeditor',
     'ckeditor_uploader', 
 
-    # تطبيقات المنصة الخاصة بك
+    # تطبيقات المنصة الخاصة بك (تأكدي أن الأسماء مطابقة لمجلداتك)
     'core',
     'accounts',
     'students',
@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'qr_access',
 ]
 
-# 4. الوسطاء (MIDDLEWARE)
+# 4. الوسطاء (Middleware)
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -49,10 +49,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'amaneducation.urls'
 
+# 5. القوالب (Templates)
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -67,7 +68,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'amaneducation.wsgi.application'
 
-# 5. قاعدة البيانات
+# 6. قاعدة البيانات (SQLite)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -75,70 +76,69 @@ DATABASES = {
     }
 }
 
-# 6. اللغة والتوقيت
+# 7. كلمات المرور
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
+
+# 8. اللغة والتوقيت
 LANGUAGE_CODE = 'ar'
 TIME_ZONE = 'Asia/Riyadh'
 USE_I18N = True
+USE_L10N = True
 USE_TZ = True
 
-# 7. الملفات الثابتة والوسائط (لضمان ظهور الصور والرموز)
+# 9. الملفات الثابتة والوسائط (حل مشكلة "المصدر مفقود")
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# إعدادات رفع الصور
+# 10. إعدادات رفع CKEditor
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
 CKEDITOR_RESTRICT_BY_USER = False 
-
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+CKEDITOR_BROWSE_SHOW_METADATA = True
 
 # ======================================================
-# ➕ إعدادات المحرر (CKEditor) - النسخة الاحترافية المخصصة
+# ➕ إعدادات المحرر الاحترافية (للقدرات والتحصيلي)
 # ======================================================
 CKEDITOR_CONFIGS = {
-    # النسخة العلمية (للقدرات الكمي، الرياضيات، الفيزياء، الكيمياء)
     'scientific_editor': {
         'skin': 'moono-lisa',
         'toolbar': 'Custom',
         'width': '100%',
-        'height': '300px',
+        'height': '250px',
         'language': 'ar',
         'contentsLangDirection': 'rtl',
         'toolbar_Custom': [
             ['Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor', 'RemoveFormat'],
             ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft'],
             '/', 
-            # أيقونة WIRIS للرسم باليد والرموز المعقدة
-            ['ckeditor_wiris_formulaEditor', 'Mathjax', 'SpecialChar', 'Table', 'HorizontalRule'], 
+            # أيقونة السيجما للرياضيات والجداول
+            ['Mathjax', 'SpecialChar', 'Table', 'HorizontalRule'], 
             ['Image', 'Link', 'Unlink', 'Maximize', 'Source'],
         ],
         'extraPlugins': ','.join([
-            'mathjax', 'widget', 'lineutils', 'dialog', 'ckeditor_wiris', 'image2', 'uploadimage',
+            'mathjax', 'widget', 'lineutils', 'dialog', 'image2', 'uploadimage',
         ]),
-        'mathJaxLib': 'https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS_HTML',
+        # رابط مكتبة الرياضيات (MathJax) ليعمل بدون مشاكل Terminal
+        'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
+        
         'filebrowserUploadUrl': '/ckeditor/upload/',
         'filebrowserBrowseUrl': '/ckeditor/browse/',
     },
-
-    # النسخة الافتراضية (لباقي الأقسام - بسيطة كما كانت)
+    
     'default': {
-        'skin': 'moono-lisa',
-        'toolbar': 'Custom',
-        'width': '100%',
+        'toolbar': 'Full',
         'height': '200px',
-        'language': 'ar',
-        'contentsLangDirection': 'rtl',
-        'toolbar_Custom': [
-            ['Bold', 'Italic', 'Underline', '-', 'TextColor', 'BGColor', 'RemoveFormat'],
-            ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft'],
-            ['Image', 'Link', 'Unlink', 'Maximize'],
-        ],
-        'extraPlugins': ','.join(['image2', 'uploadimage']),
-        'filebrowserUploadUrl': '/ckeditor/upload/',
-        'filebrowserBrowseUrl': '/ckeditor/browse/',
+        'width': '100%',
     },
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
