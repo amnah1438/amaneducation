@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+# استيراد حقل محرر النصوص المتطور
+from ckeditor.fields import RichTextField 
 
 class SchoolSettings(models.Model):
     # --- القسم الأول: هوية المنصة ---
@@ -36,9 +38,7 @@ class SchoolSettings(models.Model):
 
 
 class Teacher(models.Model):
-    """ موديل تعريف أسماء المعلمات مع حل مشكلة التضارب """
     name = models.CharField(max_length=200, verbose_name="اسم المعلمة")
-    # تم إضافة related_name="core_teacher_profile" لحل الخطأ الذي ظهر لكِ
     user = models.OneToOneField(
         User, 
         on_delete=models.CASCADE, 
@@ -69,13 +69,13 @@ class Skill(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name="القسم التابع له")
     teachers = models.ManyToManyField(Teacher, blank=True, verbose_name="المعلمات المسؤولات")
     
-    # --- محتوى الشرح المرن ---
-    content_text = models.TextField(blank=True, verbose_name="شرح الدرس (كتابة)")
+    # تم التغيير لـ RichTextField ليظهر محرر الرياضيات في شرح الدرس
+    content_text = RichTextField(blank=True, null=True, verbose_name="شرح الدرس (كتابة)")
+    
     video_url = models.URLField(blank=True, verbose_name="رابط فيديو (YouTube/Drive)")
     pdf_file = models.FileField(upload_to='skills_pdf/', blank=True, null=True, verbose_name="ملف PDF للشرح")
     image_explainer = models.ImageField(upload_to='skills_images/', blank=True, null=True, verbose_name="صورة توضيحية للشرح")
 
-    # --- إعدادات العرض والتحكم ---
     icon_image = models.ImageField(upload_to="skills_icons/", blank=True, null=True, verbose_name="أيقونة المهارة (اختياري)")
     short_description = models.CharField(max_length=300, blank=True, verbose_name="وصف مختصر للبطاقة")
     card_color = models.CharField(max_length=7, default="#2D5A27", verbose_name="لون البطاقة")
@@ -91,21 +91,21 @@ class Skill(models.Model):
 
 
 class Question(models.Model):
-    """ موديل الأسئلة: يدعم الخيارات الأربعة والتغذية الراجعة """
     TEST_TYPES = [('PRE', 'اختبار قبلي'), ('POST', 'اختبار بعدي')]
     CORRECT_CHOICES = [('A', 'خيار أ'), ('B', 'خيار ب'), ('C', 'خيار ج'), ('D', 'خيار د')]
 
     skill = models.ForeignKey(Skill, related_name='questions', on_delete=models.CASCADE, verbose_name="المهارة/الدرس")
     test_type = models.CharField(max_length=4, choices=TEST_TYPES, default='POST', verbose_name="نوع الاختبار")
     
-    question_text = models.TextField(verbose_name="نص السؤال")
-    option_a = models.CharField(max_length=300, verbose_name="خيار (أ)")
-    option_b = models.CharField(max_length=300, verbose_name="خيار (ب)")
-    option_c = models.CharField(max_length=300, verbose_name="خيار (ج)")
-    option_d = models.CharField(max_length=300, verbose_name="خيار (د)")
+    # تم التغيير لـ RichTextField لدعم الرموز في نص السؤال والخيارات والتغذية الراجعة
+    question_text = RichTextField(verbose_name="نص السؤال")
+    option_a = RichTextField(verbose_name="خيار (أ)")
+    option_b = RichTextField(verbose_name="خيار (ب)")
+    option_c = RichTextField(verbose_name="خيار (ج)")
+    option_d = RichTextField(verbose_name="خيار (د)")
     
     correct_answer = models.CharField(max_length=1, choices=CORRECT_CHOICES, verbose_name="الإجابة الصحيحة")
-    feedback = models.TextField(blank=True, verbose_name="التغذية الراجعة (تظهر في التقرير)")
+    feedback = RichTextField(blank=True, null=True, verbose_name="التغذية الراجعة (تظهر في التقرير)")
 
     class Meta:
         verbose_name = "سؤال"
