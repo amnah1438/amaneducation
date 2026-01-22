@@ -31,31 +31,25 @@
             <h5 class="fw-bold mb-4">{{ forloop.counter }}. {{ question.question_text }}</h5>
             
             <div class="options-list">
-                {# سنحاول عرض الخيارات بناءً على الاحتمالات المتاحة في قاعدة بياناتك #}
-                
-                {% if question.option_1 %}
-                    <button type="button" class="option-item">{{ question.option_1 }}</button>
-                {% elif question.خيار_أ %}
-                    <button type="button" class="option-item">{{ question.خيار_أ }}</button>
-                {% endif %}
+                {# محاولة عرض الخيار الأول بكل أسمائه البرمجية المحتملة #}
+                {% if question.option_1 %}<button type="button" class="option-item">{{ question.option_1 }}</button>
+                {% elif question.خيار_أ %}<button type="button" class="option-item">{{ question.خيار_أ }}</button>
+                {% elif question.choice_a %}<button type="button" class="option-item">{{ question.choice_a }}</button>{% endif %}
 
-                {% if question.option_2 %}
-                    <button type="button" class="option-item">{{ question.option_2 }}</button>
-                {% elif question.خيار_ب %}
-                    <button type="button" class="option-item">{{ question.خيار_ب }}</button>
-                {% endif %}
+                {# الخيار الثاني #}
+                {% if question.option_2 %}<button type="button" class="option-item">{{ question.option_2 }}</button>
+                {% elif question.خيار_ب %}<button type="button" class="option-item">{{ question.خيار_ب }}</button>
+                {% elif question.choice_b %}<button type="button" class="option-item">{{ question.choice_b }}</button>{% endif %}
 
-                {% if question.option_3 %}
-                    <button type="button" class="option-item">{{ question.option_3 }}</button>
-                {% elif question.خيار_ج %}
-                    <button type="button" class="option-item">{{ question.خيار_ج }}</button>
-                {% endif %}
+                {# الخيار الثالث #}
+                {% if question.option_3 %}<button type="button" class="option-item">{{ question.option_3 }}</button>
+                {% elif question.خيار_ج %}<button type="button" class="option-item">{{ question.خيار_ج }}</button>
+                {% elif question.choice_c %}<button type="button" class="option-item">{{ question.choice_c }}</button>{% endif %}
 
-                {% if question.option_4 %}
-                    <button type="button" class="option-item">{{ question.option_4 }}</button>
-                {% elif question.خيار_د %}
-                    <button type="button" class="option-item">{{ question.خيار_د }}</button>
-                {% endif %}
+                {# الخيار الرابع #}
+                {% if question.option_4 %}<button type="button" class="option-item">{{ question.option_4 }}</button>
+                {% elif question.خيار_د %}<button type="button" class="option-item">{{ question.خيار_د }}</button>
+                {% elif question.choice_d %}<button type="button" class="option-item">{{ question.choice_d }}</button>{% endif %}
             </div>
         </div>
         {% empty %}
