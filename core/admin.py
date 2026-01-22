@@ -1,16 +1,32 @@
 from django.contrib import admin
 from .models import SchoolSettings, Profile, Teacher, Skill, Question
 
-# --- تنظيف العناوين الرئيسية في لوحة الإدارة (لمساتكِ الأصلية) ---
+# --- تنظيف العناوين الرئيسية في لوحة الإدارة ---
 admin.site.site_header = "إدارة منصة آمنة التعليمية"
 admin.site.index_title = "لوحة التحكم بالعناصر"
 
-# --- 1. نظام الأسئلة المدمج (Inline) ---
-# هذا الجزء يسمح للمعلمة بإضافة الأسئلة داخل صفحة المهارة مباشرة
-class QuestionInline(admin.TabularInline):
+# --- 1. نظام الأسئلة المدمج (الإصدار المنظم) ---
+# تم تغيير النوع إلى StackedInline ليأخذ كل سؤال وخيار عرض الصفحة كاملاً
+class QuestionInline(admin.StackedInline):
     model = Question
-    extra = 1  # عدد الصفوف الفارغة للإضافة السريعة
-    fields = ('test_type', 'question_text', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer', 'feedback')
+    extra = 1  
+    
+    # تنظيم الحقول داخل الأسئلة لتكون مريحة للمعلمة
+    fieldsets = (
+        (None, {
+            'fields': ('test_type', 'question_text'),
+        }),
+        ('خيارات الإجابة', {
+            'fields': (
+                ('option_a', 'option_b'), # وضعنا أ و ب بجانب بعض للتوفير لكن بمساحة واسعة
+                ('option_c', 'option_d'), # ج و د بجانب بعض
+            ),
+        }),
+        ('النتيجة والتغذية الراجعة', {
+            'fields': ('correct_answer', 'feedback'),
+        }),
+    )
+    
     verbose_name = "سؤال الاختبار"
     verbose_name_plural = "بنك أسئلة المهارة (قبلي وبعدي)"
 
@@ -20,15 +36,15 @@ class SchoolSettingsAdmin(admin.ModelAdmin):
 
 @admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ("name", "user") # أضفنا اليوزر للتأكد من ربط الحساب
+    list_display = ("name", "user") 
     search_fields = ("name",)
 
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
-    # --- عرض البيانات في القائمة (شغلك السابق) ---
+    # --- عرض البيانات في القائمة ---
     list_display = ("title", "category", "get_teachers", "required_questions_count")
     list_filter = ("category",)
-    filter_horizontal = ("teachers",) # الصناديق التي أعجبتك لاختيار المعلمات
+    filter_horizontal = ("teachers",) 
     
     # --- إضافة الأسئلة داخل الصفحة ---
     inlines = [QuestionInline]
@@ -40,11 +56,11 @@ class SkillAdmin(admin.ModelAdmin):
         }),
         ('محتوى الشرح (مرونة المعلمة)', {
             'fields': ('content_text', 'video_url', 'pdf_file', 'image_explainer'),
-            'description': 'يمكن للمعلمة وضع الشرح بصيغة نص، فيديو، PDF، أو صورة.'
+            'description': 'يمكن للمعلمة وضع الشرح بصيغة نص أو رموز رياضية، فيديو، PDF، أو صورة.'
         }),
-        ('تنسيق البطاقة (شغلك السابق)', {
+        ('تنسيق البطاقة (الإعدادات البصرية)', {
             'fields': ('icon_image', 'short_description', 'card_color'),
-            'classes': ('collapse',), # القسم يكون مغلقاً ويفتح عند الحاجة
+            'classes': ('collapse',), 
         }),
     )
 
@@ -54,7 +70,6 @@ class SkillAdmin(admin.ModelAdmin):
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    """ لعرض الأسئلة بشكل منفصل إذا رغبتِ في البحث عنها """
     list_display = ("question_text", "skill", "test_type", "correct_answer")
     list_filter = ("test_type", "skill")
     search_fields = ("question_text",)
