@@ -1,15 +1,15 @@
 from pathlib import Path
 import os
 
+# 1. المسارات الأساسية
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# 2. الأمان
 SECRET_KEY = 'django-insecure-f^#4+1-yrnoelle5gc++9#uq8$mqua6hi70p66_#@1#gk-z7lh'
 DEBUG = True
 ALLOWED_HOSTS = []
 
-# =========================
-# 📦 التأكد من التطبيقات
-# =========================
+# 3. التطبيقات (تأكدي من إضافة ckeditor_uploader)
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -18,9 +18,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # تطبيقات المحرر المطور
     'ckeditor',
-    'ckeditor_uploader', # ضروري لتبويب الصور
+    'ckeditor_uploader', 
 
+    # تطبيقاتك الخاصة
     'core',
     'accounts',
     'students',
@@ -34,6 +36,7 @@ INSTALLED_APPS = [
     'qr_access',
 ]
 
+# 4. الوسطاء
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -64,6 +67,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'amaneducation.wsgi.application'
 
+# 5. قاعدة البيانات
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -71,11 +75,13 @@ DATABASES = {
     }
 }
 
+# 6. اللغة والتوقيت
 LANGUAGE_CODE = 'ar'
 TIME_ZONE = 'Asia/Riyadh'
 USE_I18N = True
 USE_TZ = True
 
+# 7. الملفات الثابتة والرفع (ضرورية جداً لعمل الصور)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -83,35 +89,35 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# مسارات الرفع
+# مسارات رفع الصور الخاصة ببنك الأسئلة
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ======================================================
-# ➕ إعدادات المحرر (إصلاح مشكلة الاختفاء)
+# ➕ إعدادات المحرر (حل مشكلة الصور والرموز المختفية)
 # ======================================================
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
         'toolbar': 'Custom',
-        'width': 'auto', # جعل العرض يتكيف مع الصفحة
-        'height': '200px',
+        'width': '100%',
+        'height': '220px',
         'language': 'ar',
         'contentsLangDirection': 'rtl',
         'toolbar_Custom': [
-            # سطر 1: الخط واللون
-            ['Bold', 'Italic', 'Underline', 'Strike', 'TextColor', 'BGColor', 'RemoveFormat'],
+            # سطر 1: أدوات الكتابة والتلوين (التي سألت عنها المعلمات)
+            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor', 'RemoveFormat'],
+            '/', 
+            # سطر 2: المحاذاة والترقيم
+            ['JustifyRight', 'JustifyCenter', 'JustifyLeft', '-', 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
             '/',
-            # سطر 2: الفقرات والترقيم
-            ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft', 'JustifyBlock'],
+            # سطر 3: الرموز والرياضيات والجداول (للقسم الكمي)
+            ['Mathjax', 'SpecialChar', 'Table', 'HorizontalRule', 'Subscript', 'Superscript'],
             '/',
-            # سطر 3: الرياضيات والرموز (التي كانت ناقصة)
-            ['Mathjax', 'SpecialChar', 'Table', 'HorizontalRule'],
-            '/',
-            # سطر 4: الصور والروابط والتحكم
-            ['Image', 'Link', 'Unlink', 'Source', 'Maximize'],
+            # سطر 4: رفع الصور والروابط والتحكم الكامل
+            ['Image', 'Link', 'Unlink', '-', 'Source', 'Maximize'],
         ],
         'extraPlugins': ','.join([
             'mathjax', 
@@ -120,8 +126,11 @@ CKEDITOR_CONFIGS = {
             'dialog', 
             'image2', 
             'uploadimage',
+            'colorbutton',
         ]),
         'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
+        
+        # تفعيل خيار الرفع من الجهاز (Upload Tab) لحل مشكلة "مصدر مفقود"
         'filebrowserUploadUrl': '/ckeditor/upload/',
         'filebrowserBrowseUrl': '/ckeditor/browse/',
     },
