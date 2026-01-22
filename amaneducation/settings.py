@@ -28,10 +28,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # مكتبة محرر النصوص (الرياضيات واللفظي)
+    # مكتبة محرر النصوص المطور
     'ckeditor',
 
-    # تطبيقات المشروع
+    # تطبيقات المشروع الأساسية
     'core',
     'accounts',
     'students',
@@ -118,31 +118,33 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # ======================================================
-# ➕ إعدادات محرر الرياضيات والنصوص (تعديل الشكل النهائي)
+# ➕ إعدادات محرر الرياضيات والنصوص (النسخة المنظمة)
 # ======================================================
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
         'toolbar': 'Custom',
-        'width': '100%',     # جعل المحرر يأخذ العرض الكامل
-        'height': '180px',    # ارتفاع مريح للكتابة
-        'language': 'ar',    # واجهة عربية
+        'width': '100%',     # جعل المحرر يأخذ العرض الكامل لمنع التداخل
+        'height': '180px',    # ارتفاع مريح جداً للكتابة
+        'language': 'ar',    # واجهة المحرر باللغة العربية
         'toolbar_Custom': [
-            # السطر الأول: التنسيق النصي (مهم جداً للقسم اللفظي)
+            # السطر الأول: أدوات التنسيق النصي (مثالية للقسم اللفظي)
             ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'],
             ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
             ['JustifyRight', 'JustifyCenter', 'JustifyLeft', 'JustifyBlock'],
-            '/', # سطر جديد للأدوات التقنية لتقليل الزحمة
-            # السطر الثاني: الرياضيات والروابط (مهم للقسم الكمي والتحصيلي)
+            
+            '/', # هذا السطر يقوم بكسر الأدوات لسطر جديد لمنع الزحام في الخانات الضيقة
+            
+            # السطر الثاني: أدوات الرياضيات والوسائط (مثالية للقسم الكمي والتحصيلي)
             ['Mathjax', 'SpecialChar'],
-            ['Link', 'Unlink', 'Image', 'Table'],
-            ['Source', 'Maximize'], # زر Maximize يفتح صفحة كاملة للرسم براحة
+            ['Link', 'Unlink', 'Image', 'Table', 'HorizontalRule'],
+            ['Source', 'Maximize'], # زر Maximize يتيح للمعلمة الكتابة في شاشة كاملة
         ],
         'extraPlugins': ','.join([
-            'mathjax',      # دعم المعادلات
-            'widget',       # تنظيم العناصر
-            'lineutils',    # مساعدة في التنسيق
-            'dialog',       # نوافذ منبثقة مرتبة
+            'mathjax',      # تفعيل أيقونة الرياضيات
+            'widget',       # لتنظيم العناصر داخل النص
+            'lineutils',    # لتحسين مظهر الخطوط
+            'dialog',       # لفتح نوافذ الإضافة بشكل مرتب
         ]),
         'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
     },
