@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-# استيراد الحقل الذي يدعم رفع الصور مباشرة
+# استيراد الحقل المخصص لرفع الصور والمحرر المتطور
 from ckeditor_uploader.fields import RichTextUploadingField 
 
 class SchoolSettings(models.Model):
@@ -69,8 +69,13 @@ class Skill(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name="القسم التابع له")
     teachers = models.ManyToManyField(Teacher, blank=True, verbose_name="المعلمات المسؤولات")
     
-    # هنا نستخدم المحرر العلمي دائماً لشرح الدروس لأنه يحتاج توضيح
-    content_text = RichTextUploadingField(config_name='scientific_editor', blank=True, null=True, verbose_name="شرح الدرس (كتابة)")
+    # استخدام المحرر العلمي لضمان وجود الرموز الرياضية في شرح الدروس
+    content_text = RichTextUploadingField(
+        config_name='scientific_editor', 
+        blank=True, 
+        null=True, 
+        verbose_name="شرح الدرس (كتابة)"
+    )
     
     video_url = models.URLField(blank=True, verbose_name="رابط فيديو (YouTube/Drive)")
     pdf_file = models.FileField(upload_to='skills_pdf/', blank=True, null=True, verbose_name="ملف PDF للشرح")
@@ -97,8 +102,7 @@ class Question(models.Model):
     skill = models.ForeignKey(Skill, related_name='questions', on_delete=models.CASCADE, verbose_name="المهارة/الدرس")
     test_type = models.CharField(max_length=4, choices=TEST_TYPES, default='POST', verbose_name="نوع الاختبار")
     
-    # حقول تدعم الصور والرموز تلقائياً
-    # ملاحظة: سيتم استخدام config_name='scientific_editor' في الواجهة البرمجية بناءً على القسم
+    # استخدام المحرر العلمي (scientific_editor) في جميع حقول الأسئلة والخيارات
     question_text = RichTextUploadingField(config_name='scientific_editor', verbose_name="نص السؤال")
     option_a = RichTextUploadingField(config_name='scientific_editor', verbose_name="خيار (أ)")
     option_b = RichTextUploadingField(config_name='scientific_editor', verbose_name="خيار (ب)")
@@ -113,7 +117,8 @@ class Question(models.Model):
         verbose_name_plural = "أسئلة الاختبارات"
 
     def __str__(self):
-        return f"{self.get_test_type_display()} - {self.question_text[:50]}"
+        # منع الخطأ إذا كان النص طويلاً
+        return f"{self.get_test_type_display()} - {str(self.question_text)[:50]}"
 
 
 class Profile(models.Model):
