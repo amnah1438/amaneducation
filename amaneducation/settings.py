@@ -1,24 +1,14 @@
 from pathlib import Path
 import os
 
-# =========================
-# 📁 المسار الأساسي
-# =========================
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# =========================
-# 🔐 الأمان
-# =========================
 SECRET_KEY = 'django-insecure-f^#4+1-yrnoelle5gc++9#uq8$mqua6hi70p66_#@1#gk-z7lh'
-
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
-
 # =========================
-# 📦 التطبيقات (INSTALLED_APPS)
+# 📦 التأكد من التطبيقات
 # =========================
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -29,7 +19,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'ckeditor',
-    'ckeditor_uploader', 
+    'ckeditor_uploader', # ضروري لتبويب الصور
 
     'core',
     'accounts',
@@ -44,10 +34,6 @@ INSTALLED_APPS = [
     'qr_access',
 ]
 
-
-# =========================
-# 🧱 الوسطاء (MIDDLEWARE)
-# =========================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -57,7 +43,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 
 ROOT_URLCONF = 'amaneducation.urls'
 
@@ -86,18 +71,11 @@ DATABASES = {
     }
 }
 
-# =========================
-# 🌍 اللغة والتوقيت
-# =========================
 LANGUAGE_CODE = 'ar'
 TIME_ZONE = 'Asia/Riyadh'
 USE_I18N = True
 USE_TZ = True
 
-
-# =========================
-# 📁 الملفات الثابتة والرفع
-# =========================
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -105,52 +83,46 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# مسارات الرفع
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 # ======================================================
-# ➕ إعدادات المحرر النهائية (منظمة بـ 3 أسطر لمنع الاختفاء)
+# ➕ إعدادات المحرر (إصلاح مشكلة الاختفاء)
 # ======================================================
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
         'toolbar': 'Custom',
-        'width': '100%',
-        'height': '220px', # ارتفاع مناسب لا يغطي الأسئلة
+        'width': 'auto', # جعل العرض يتكيف مع الصفحة
+        'height': '200px',
         'language': 'ar',
         'contentsLangDirection': 'rtl',
         'toolbar_Custom': [
-            # السطر الأول: التنسيق اللفظي الأساسي
-            ['Bold', 'Italic', 'Underline', '-', 'TextColor', 'BGColor', '-', 'RemoveFormat'],
-            ['JustifyRight', 'JustifyCenter', 'JustifyLeft', '-', 'NumberedList', 'BulletedList'],
-            '/', # سطر جديد
-            
-            # السطر الثاني: الرياضيات والرموز والسبورة
-            ['ckeditor_wiris_formulaEditor', 'Mathjax', 'SpecialChar'],
-            ['Subscript', 'Superscript', 'Table', 'HorizontalRule'],
-            '/', # سطر جديد
-            
-            # السطر الثالث: الصور والتحكم
-            ['Image', 'Link', 'Unlink', '-', 'Source', 'Maximize'],
+            # سطر 1: الخط واللون
+            ['Bold', 'Italic', 'Underline', 'Strike', 'TextColor', 'BGColor', 'RemoveFormat'],
+            '/',
+            # سطر 2: الفقرات والترقيم
+            ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft', 'JustifyBlock'],
+            '/',
+            # سطر 3: الرياضيات والرموز (التي كانت ناقصة)
+            ['Mathjax', 'SpecialChar', 'Table', 'HorizontalRule'],
+            '/',
+            # سطر 4: الصور والروابط والتحكم
+            ['Image', 'Link', 'Unlink', 'Source', 'Maximize'],
         ],
         'extraPlugins': ','.join([
             'mathjax', 
             'widget', 
             'lineutils', 
             'dialog', 
-            'ckeditor_wiris', # سبورة الرسم بالفأرة
             'image2', 
             'uploadimage',
-            'colorbutton',
         ]),
         'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
         'filebrowserUploadUrl': '/ckeditor/upload/',
         'filebrowserBrowseUrl': '/ckeditor/browse/',
-        
-        # رموز عربية جاهزة
-        'specialChars': ['≥', '≤', '>', '<', '|', '√', '²', '³', 'π', 'س', 'ص', 'ع'],
     },
 }
