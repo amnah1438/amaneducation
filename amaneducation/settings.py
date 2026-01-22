@@ -18,7 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # تطبيقات المحرر (تأكدي من تثبيتها بـ pip install django-ckeditor)
+    # تطبيقات المحرر المطور
     'ckeditor',
     'ckeditor_uploader', 
 
@@ -81,7 +81,7 @@ TIME_ZONE = 'Asia/Riyadh'
 USE_I18N = True
 USE_TZ = True
 
-# 7. الملفات الثابتة والوسائط (Media & Static)
+# 7. الملفات الثابتة والوسائط (لضمان ظهور الصور والرموز)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -89,7 +89,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# إعدادات رفع الصور الخاصة بالمحرر
+# إعدادات رفع الصور
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
 CKEDITOR_RESTRICT_BY_USER = False 
@@ -97,39 +97,47 @@ CKEDITOR_RESTRICT_BY_USER = False
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ======================================================
-# ➕ إعدادات المحرر (CKEditor) - النسخة الاحترافية الشاملة
+# ➕ إعدادات المحرر (CKEditor) - النسخة الاحترافية المخصصة
 # ======================================================
 CKEDITOR_CONFIGS = {
+    # النسخة العلمية (للقدرات الكمي، الرياضيات، الفيزياء، الكيمياء)
+    'scientific_editor': {
+        'skin': 'moono-lisa',
+        'toolbar': 'Custom',
+        'width': '100%',
+        'height': '300px',
+        'language': 'ar',
+        'contentsLangDirection': 'rtl',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor', 'RemoveFormat'],
+            ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft'],
+            '/', 
+            # أيقونة WIRIS للرسم باليد والرموز المعقدة
+            ['ckeditor_wiris_formulaEditor', 'Mathjax', 'SpecialChar', 'Table', 'HorizontalRule'], 
+            ['Image', 'Link', 'Unlink', 'Maximize', 'Source'],
+        ],
+        'extraPlugins': ','.join([
+            'mathjax', 'widget', 'lineutils', 'dialog', 'ckeditor_wiris', 'image2', 'uploadimage',
+        ]),
+        'mathJaxLib': 'https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS_HTML',
+        'filebrowserUploadUrl': '/ckeditor/upload/',
+        'filebrowserBrowseUrl': '/ckeditor/browse/',
+    },
+
+    # النسخة الافتراضية (لباقي الأقسام - بسيطة كما كانت)
     'default': {
         'skin': 'moono-lisa',
         'toolbar': 'Custom',
         'width': '100%',
-        'height': '250px',
+        'height': '200px',
         'language': 'ar',
         'contentsLangDirection': 'rtl',
         'toolbar_Custom': [
-            # سطر 1: الخطوط، الألوان، والتنسيق الأساسي
-            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor', 'RemoveFormat'],
+            ['Bold', 'Italic', 'Underline', '-', 'TextColor', 'BGColor', 'RemoveFormat'],
             ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft'],
-            '/', 
-            # سطر 2: الرياضيات، الجداول، والرموز الخاصة
-            ['Mathjax', 'SpecialChar', 'Table', 'HorizontalRule', 'Subscript', 'Superscript'], 
-            '/',
-            # سطر 3: الروابط ورفع الصور (تفعيل تبويب الرفع)
-            ['Image', 'Link', 'Unlink', 'Source', 'Maximize'],
+            ['Image', 'Link', 'Unlink', 'Maximize'],
         ],
-        'extraPlugins': ','.join([
-            'mathjax',      # لأيقونة الرياضيات والرموز
-            'widget', 
-            'lineutils', 
-            'dialog', 
-            'image2',       # للتحكم المتقدم بالصور
-            'uploadimage',  # للسماح برفع الصور من الجهاز
-        ]),
-        # رابط المكتبة العالمية لتشغيل الرياضيات (تأكدي من اتصال الإنترنت)
-        'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-        
-        # أهم الروابط لظهور تبويب الرفع "Upload" داخل نافذة الصور
+        'extraPlugins': ','.join(['image2', 'uploadimage']),
         'filebrowserUploadUrl': '/ckeditor/upload/',
         'filebrowserBrowseUrl': '/ckeditor/browse/',
     },
