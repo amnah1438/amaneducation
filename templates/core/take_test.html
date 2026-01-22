@@ -4,61 +4,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الاختبار القبلي - {{ skill.title }}</title>
+    <title>{{ skill.title }} - {{ settings.platform_name }}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f3f0f7; color: #4a4a4a; }
-        .test-container { max-width: 800px; margin: 50px auto; }
-        .question-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border-right: 5px solid #6f42c1; }
-        .option-item { border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; margin-bottom: 12px; cursor: pointer; transition: 0.3s; text-align: right; background: white; width: 100%; font-size: 1.2rem; display: block; color: #4a4a4a; font-weight: 500; }
-        .option-item:hover { border-color: #6f42c1; background-color: #f8f4ff; transform: scale(1.01); }
-        .btn-submit { background-color: #6f42c1; color: white; padding: 12px 45px; border-radius: 10px; font-weight: bold; border: none; font-size: 1.1rem; }
+        .navbar { background-color: #6f42c1; }
+        .header-section { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; border-right: 5px solid #6f42c1; }
+        .video-container { border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #000; margin-bottom: 30px; }
+        .content-card { background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .btn-test { background-color: #6f42c1; color: white; padding: 12px 30px; border-radius: 10px; font-weight: bold; transition: 0.3s; text-decoration: none; display: block; }
+        .btn-test:hover { background-color: #59359a; color: white; transform: translateY(-2px); }
+        .math-content { line-height: 2; font-size: 1.15rem; }
     </style>
 </head>
 <body>
 
-<div class="container test-container">
-    <div class="text-center mb-5">
-        <h2 class="fw-bold" style="color: #6f42c1;">📝 الاختبار القبلي: {{ skill.title }}</h2>
-        <p class="text-muted">أجب على الأسئلة التالية لقياس مستواك قبل البدء</p>
+<nav class="navbar navbar-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            {% if settings.school_logo %}
+                <img src="{{ settings.school_logo.url }}" alt="Logo" width="40" class="me-2">
+            {% endif %}
+            {{ settings.platform_name }}
+        </a>
+    </div>
+</nav>
+
+<div class="container mt-5">
+    <div class="header-section text-center">
+        <h1 class="fw-bold" style="color: #6f42c1;">{{ skill.title }}</h1>
+        <p class="text-muted">{{ skill.get_category_display }}</p>
     </div>
 
-    <form method="POST">
-        {% csrf_token %}
-        {% for question in questions %}
-        <div class="question-card">
-            <h5 class="fw-bold mb-4" style="line-height: 1.6;">{{ forloop.counter }}. {{ question.question_text }}</h5>
-            
-            <div class="options-list">
-                {# تم مطابقة الأسماء مع ملف models.py الخاص بكِ #}
-                {% if question.option_a %}
-                    <button type="button" class="option-item">أ) {{ question.option_a }}</button>
-                {% endif %}
+    <div class="row">
+        <div class="col-lg-8">
+            {% if skill.video_url %}
+            <div class="video-container">
+                <div class="ratio ratio-16x9">
+                    <iframe src="{{ skill.video_url }}" title="شرح الدرس" allowfullscreen></iframe>
+                </div>
+            </div>
+            {% endif %}
 
-                {% if question.option_b %}
-                    <button type="button" class="option-item">ب) {{ question.option_b }}</button>
-                {% endif %}
+            <div class="content-card">
+                <h3 class="fw-bold mb-4" style="color: #6f42c1; border-bottom: 2px solid #f3f0f7; padding-bottom: 10px;">📖 شرح الدرس</h3>
+                <div class="math-content">
+                    {% if skill.content_text %}
+                        {{ skill.content_text|linebreaks }}
+                    {% else %}
+                        <p class="text-muted">لا يوجد شرح مكتوب مضاف حالياً.</p>
+                    {% endif %}
+                </div>
 
-                {% if question.option_c %}
-                    <button type="button" class="option-item">ج) {{ question.option_c }}</button>
-                {% endif %}
-
-                {% if question.option_d %}
-                    <button type="button" class="option-item">د) {{ question.option_d }}</button>
+                {% if skill.image_explainer %}
+                <div class="mt-4 text-center">
+                    <img src="{{ skill.image_explainer.url }}" class="img-fluid rounded shadow-sm" alt="توضيح الدرس">
+                </div>
                 {% endif %}
             </div>
         </div>
-        {% empty %}
-        <div class="alert alert-warning text-center">لا توجد أسئلة مضافة لهذا الدرس حتى الآن.</div>
-        {% endfor %}
 
-        <div class="text-center mt-5">
-            <a href="/skill/{{ skill.id }}/" class="btn btn-outline-secondary me-3 shadow-sm">إلغاء</a>
-            <button type="submit" class="btn btn-submit shadow">إنهاء الاختبار وحفظ النتيجة</button>
+        <div class="col-lg-4">
+            <div class="content-card text-center">
+                <h4 class="fw-bold mb-4">التقييمات</h4>
+                <div class="d-grid gap-3">
+                    <a href="/skill/{{ skill.id }}/test/" class="btn btn-test shadow-sm">
+                        📝 بدء الاختبار القبلي
+                    </a>
+                    <hr>
+                    <button class="btn btn-outline-secondary py-3" disabled>
+                        🎓 الاختبار البعدي (مغلق)
+                    </button>
+                    <small class="text-muted">شاهد الشرح أولاً لتتمكن من الاختبار</small>
+                </div>
+            </div>
+
+            {% if skill.pdf_file %}
+            <div class="content-card text-center">
+                <h5>📁 ملخص الدرس (PDF)</h5>
+                <a href="{{ skill.pdf_file.url }}" class="btn btn-outline-primary w-100 mt-2" target="_blank">تحميل الملخص</a>
+            </div>
+            {% endif %}
         </div>
-    </form>
+    </div>
 </div>
+
+<footer class="text-center py-4 mt-5 text-muted">
+    <p>&copy; 2026 {{ settings.platform_name }} - مبرمجة المنصة: {{ settings.developer_name }}</p>
+</footer>
 
 </body>
 </html>
