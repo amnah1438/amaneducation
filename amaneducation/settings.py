@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 # =========================
 # 📁 المسار الأساسي
@@ -28,8 +29,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # مكتبة محرر النصوص المطور
+    # مكتبة محرر النصوص المطور ورفع الصور
     'ckeditor',
+    'ckeditor_uploader', 
 
     # تطبيقات المشروع الأساسية
     'core',
@@ -114,38 +116,49 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# إعدادات رفع الصور الخاصة بالمحرر
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_IMAGE_BACKEND = "pillow" # للتأكد من معالجة الصور بشكل صحيح
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # ======================================================
-# ➕ إعدادات محرر الرياضيات والنصوص (النسخة المنظمة)
+# ➕ إعدادات محرر الرياضيات والرسم والرفع (النسخة الاحترافية)
 # ======================================================
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
         'toolbar': 'Custom',
-        'width': '100%',     # جعل المحرر يأخذ العرض الكامل لمنع التداخل
-        'height': '180px',    # ارتفاع مريح جداً للكتابة
-        'language': 'ar',    # واجهة المحرر باللغة العربية
+        'width': '100%',
+        'height': '250px',
+        'language': 'ar',
+        'contentsLangDirection': 'rtl',
         'toolbar_Custom': [
-            # السطر الأول: أدوات التنسيق النصي (مثالية للقسم اللفظي)
+            # السطر الأول: التنسيق
             ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'],
-            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
-            ['JustifyRight', 'JustifyCenter', 'JustifyLeft', 'JustifyBlock'],
-            
-            '/', # هذا السطر يقوم بكسر الأدوات لسطر جديد لمنع الزحام في الخانات الضيقة
-            
-            # السطر الثاني: أدوات الرياضيات والوسائط (مثالية للقسم الكمي والتحصيلي)
-            ['Mathjax', 'SpecialChar'],
-            ['Link', 'Unlink', 'Image', 'Table', 'HorizontalRule'],
-            ['Source', 'Maximize'], # زر Maximize يتيح للمعلمة الكتابة في شاشة كاملة
+            ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft'],
+            '/', 
+            # السطر الثاني: الرسم باليد والرموز والصور
+            ['ckeditor_wiris_formulaEditor', 'Mathjax', 'SpecialChar'], # علامة WIRIS هي التي تفتح الرسم باليد
+            ['Image', 'Table', 'HorizontalRule'],
+            ['Source', 'Maximize'],
         ],
         'extraPlugins': ','.join([
-            'mathjax',      # تفعيل أيقونة الرياضيات
-            'widget',       # لتنظيم العناصر داخل النص
-            'lineutils',    # لتحسين مظهر الخطوط
-            'dialog',       # لفتح نوافذ الإضافة بشكل مرتب
+            'mathjax',      # المعادلات بالكود
+            'widget',
+            'lineutils',
+            'dialog',
+            'ckeditor_wiris', # تفعيل الرسم باليد بالفأرة
+            'uploadimage',    # تفعيل سحب وإفلات الصور
         ]),
         'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
+        
+        # تفعيل تبويب "الرفع" في نافذة الصور
+        'filebrowserUploadUrl': '/ckeditor/upload/',
+        'filebrowserBrowseUrl': '/ckeditor/browse/',
+        
+        # تخصيص الرموز العربية السريعة
+        'specialChars': ['≥', '≤', '>', '<', '|', '√', '²', '³', 'π', 'س', 'ص', 'ع'],
     },
 }
