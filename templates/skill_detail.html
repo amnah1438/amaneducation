@@ -10,11 +10,11 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f3f0f7; /* لافندر فاتح جداً */
+            background-color: #f3f0f7;
             color: #4a4a4a;
         }
         .navbar {
-            background-color: #6f42c1; /* لافندر غامق */
+            background-color: #6f42c1;
         }
         .header-section {
             background: white;
@@ -44,6 +44,8 @@
             border-radius: 10px;
             font-weight: bold;
             transition: 0.3s;
+            text-decoration: none; /* لمنع ظهور خط تحت النص */
+            display: block;
         }
         .btn-test:hover {
             background-color: #59359a;
@@ -84,7 +86,11 @@
             <div class="content-card shadow-sm">
                 <h3 class="fw-bold mb-3" style="color: #6f42c1;">وصف المهارة</h3>
                 <div class="skill-description" style="line-height: 1.8; font-size: 1.1rem;">
-                    {{ skill.description|linebreaks }}
+                    {% if skill.description %}
+                        {{ skill.description|linebreaks }}
+                    {% else %}
+                        <p class="text-muted italic">لا يوجد وصف متاح لهذه المهارة حالياً. يمكنك إضافته من لوحة الإدارة.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -94,9 +100,9 @@
                 <h4 class="fw-bold mb-4">التقييمات</h4>
                 
                 <div class="d-grid gap-3">
-                    <button class="btn btn-test shadow-sm">
+                    <a href="/skill/{{ skill.id }}/test/" class="btn btn-test shadow-sm">
                         📝 بدء الاختبار القبلي
-                    </button>
+                    </a>
                     
                     <hr>
                     
