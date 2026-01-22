@@ -17,7 +17,7 @@ ALLOWED_HOSTS = []
 
 
 # =========================
-# 📦 التطبيقات
+# 📦 التطبيقات (INSTALLED_APPS)
 # =========================
 INSTALLED_APPS = [
     # Django default
@@ -28,10 +28,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # المكتبة الجديدة لمحرر نصوص الرياضيات
+    # مكتبة محرر النصوص (الرياضيات واللفظي)
     'ckeditor',
 
-    # Project Apps
+    # تطبيقات المشروع
     'core',
     'accounts',
     'students',
@@ -47,7 +47,7 @@ INSTALLED_APPS = [
 
 
 # =========================
-# 🧱 الوسطاء
+# 🧱 الوسطاء (MIDDLEWARE)
 # =========================
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -61,20 +61,14 @@ MIDDLEWARE = [
 
 
 # =========================
-# 🌐 الروابط
+# 🌐 الروابط والقوالب
 # =========================
 ROOT_URLCONF = 'amaneducation.urls'
 
-
-# =========================
-# 🖼️ القوالب
-# =========================
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR / 'templates',
-        ],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -87,10 +81,6 @@ TEMPLATES = [
     },
 ]
 
-
-# =========================
-# 🚀 WSGI
-# =========================
 WSGI_APPLICATION = 'amaneducation.wsgi.application'
 
 
@@ -106,67 +96,54 @@ DATABASES = {
 
 
 # =========================
-# 🔑 التحقق من كلمات المرور
-# =========================
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
-
-# =========================
 # 🌍 اللغة والتوقيت
 # =========================
 LANGUAGE_CODE = 'ar'
 TIME_ZONE = 'Asia/Riyadh'
-
 USE_I18N = True
 USE_TZ = True
 
 
 # =========================
-# 📁 الملفات الثابتة
+# 📁 الملفات الثابتة والرفع
 # =========================
 STATIC_URL = '/static/'
-
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
-
+STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-
-# =========================
-# 📁 ملفات الرفع (media)
-# =========================
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-
-# =========================
-# 🆔 الإعداد الافتراضي للمفاتيح
-# =========================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# =========================
-# ➕ إعدادات محرر الرياضيات للمعلمات (إضافة جديدة)
-# =========================
+# ======================================================
+# ➕ إعدادات محرر الرياضيات والنصوص (تعديل الشكل النهائي)
+# ======================================================
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
         'toolbar': 'Custom',
+        'width': '100%',     # جعل المحرر يأخذ العرض الكامل
+        'height': '180px',    # ارتفاع مريح للكتابة
+        'language': 'ar',    # واجهة عربية
         'toolbar_Custom': [
-            ['Bold', 'Italic', 'Underline'],
-            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
-            ['Link', 'Unlink'],
-            ['RemoveFormat', 'Source'],
-            ['Mathjax', 'SpecialChar'], # زر Mathjax هو المسؤول عن الرموز الرياضية
+            # السطر الأول: التنسيق النصي (مهم جداً للقسم اللفظي)
+            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'RemoveFormat'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            ['JustifyRight', 'JustifyCenter', 'JustifyLeft', 'JustifyBlock'],
+            '/', # سطر جديد للأدوات التقنية لتقليل الزحمة
+            # السطر الثاني: الرياضيات والروابط (مهم للقسم الكمي والتحصيلي)
+            ['Mathjax', 'SpecialChar'],
+            ['Link', 'Unlink', 'Image', 'Table'],
+            ['Source', 'Maximize'], # زر Maximize يفتح صفحة كاملة للرسم براحة
         ],
-        'extraPlugins': 'mathjax',
+        'extraPlugins': ','.join([
+            'mathjax',      # دعم المعادلات
+            'widget',       # تنظيم العناصر
+            'lineutils',    # مساعدة في التنسيق
+            'dialog',       # نوافذ منبثقة مرتبة
+        ]),
         'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-        'width': '100%',
     },
 }
