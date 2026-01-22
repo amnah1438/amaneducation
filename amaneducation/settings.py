@@ -28,6 +28,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # المكتبة الجديدة لمحرر نصوص الرياضيات
+    'ckeditor',
+
     # Project Apps
     'core',
     'accounts',
@@ -66,18 +69,12 @@ ROOT_URLCONF = 'amaneducation.urls'
 # =========================
 # 🖼️ القوالب
 # =========================
-# ✅ تم تعريف مجلد القوالب العام:
-# /Users/amnah/aman education/amaneducation/templates
-# وهو يساوي: BASE_DIR / "templates"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-
-        # قوالب عامة للمشروع كله
         'DIRS': [
             BASE_DIR / 'templates',
         ],
-
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -134,8 +131,6 @@ USE_TZ = True
 # =========================
 STATIC_URL = '/static/'
 
-# ✅ تأكدي أن مجلد static موجود داخل BASE_DIR
-# /Users/amnah/aman education/amaneducation/static
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
@@ -154,3 +149,24 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # 🆔 الإعداد الافتراضي للمفاتيح
 # =========================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# =========================
+# ➕ إعدادات محرر الرياضيات للمعلمات (إضافة جديدة)
+# =========================
+CKEDITOR_CONFIGS = {
+    'default': {
+        'skin': 'moono-lisa',
+        'toolbar': 'Custom',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline'],
+            ['NumberedList', 'BulletedList', '-', 'Outdent', 'Indent', '-', 'JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock'],
+            ['Link', 'Unlink'],
+            ['RemoveFormat', 'Source'],
+            ['Mathjax', 'SpecialChar'], # زر Mathjax هو المسؤول عن الرموز الرياضية
+        ],
+        'extraPlugins': 'mathjax',
+        'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
+        'width': '100%',
+    },
+}
