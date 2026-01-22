@@ -69,7 +69,7 @@ class Skill(models.Model):
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, verbose_name="القسم التابع له")
     teachers = models.ManyToManyField(Teacher, blank=True, verbose_name="المعلمات المسؤولات")
     
-    # استخدام المحرر العلمي لضمان وجود الرموز الرياضية في شرح الدروس
+    # استخدام المحرر العلمي لضمان وجود الرموز الرياضية والصور في شرح الدروس
     content_text = RichTextUploadingField(
         config_name='scientific_editor', 
         blank=True, 
@@ -102,7 +102,7 @@ class Question(models.Model):
     skill = models.ForeignKey(Skill, related_name='questions', on_delete=models.CASCADE, verbose_name="المهارة/الدرس")
     test_type = models.CharField(max_length=4, choices=TEST_TYPES, default='POST', verbose_name="نوع الاختبار")
     
-    # استخدام المحرر العلمي (scientific_editor) في جميع حقول الأسئلة والخيارات
+    # نستخدم scientific_editor لجميع الأسئلة كقاعدة أساسية تدعم الصور والجداول والروابط
     question_text = RichTextUploadingField(config_name='scientific_editor', verbose_name="نص السؤال")
     option_a = RichTextUploadingField(config_name='scientific_editor', verbose_name="خيار (أ)")
     option_b = RichTextUploadingField(config_name='scientific_editor', verbose_name="خيار (ب)")
@@ -117,8 +117,10 @@ class Question(models.Model):
         verbose_name_plural = "أسئلة الاختبارات"
 
     def __str__(self):
-        # منع الخطأ إذا كان النص طويلاً
-        return f"{self.get_test_type_display()} - {str(self.question_text)[:50]}"
+        # استخراج النص بدون وسوم HTML للعرض في القائمة
+        from django.utils.html import strip_tags
+        clean_text = strip_tags(self.question_text)
+        return f"{self.get_test_type_display()} - {clean_text[:50]}"
 
 
 class Profile(models.Model):
