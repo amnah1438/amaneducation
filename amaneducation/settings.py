@@ -9,7 +9,7 @@ SECRET_KEY = 'django-insecure-f^#4+1-yrnoelle5gc++9#uq8$mqua6hi70p66_#@1#gk-z7lh
 DEBUG = True
 ALLOWED_HOSTS = []
 
-# 3. التطبيقات (تأكدي من وجود ckeditor_uploader)
+# 3. التطبيقات (INSTALLED_APPS)
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -18,11 +18,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # تطبيقات المحرر المطور
+    # تطبيقات المحرر (تأكدي من تثبيتها بـ pip install django-ckeditor)
     'ckeditor',
     'ckeditor_uploader', 
 
-    # تطبيقاتك الخاصة
+    # تطبيقات المنصة الخاصة بك
     'core',
     'accounts',
     'students',
@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'qr_access',
 ]
 
-# 4. الوسطاء
+# 4. الوسطاء (MIDDLEWARE)
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -81,7 +81,7 @@ TIME_ZONE = 'Asia/Riyadh'
 USE_I18N = True
 USE_TZ = True
 
-# 7. الملفات الثابتة والرفع
+# 7. الملفات الثابتة والوسائط (Media & Static)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -89,7 +89,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# مسارات رفع الصور (ضرورية لإنهاء مشكلة المصدر المفقود)
+# إعدادات رفع الصور الخاصة بالمحرر
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
 CKEDITOR_RESTRICT_BY_USER = False 
@@ -97,7 +97,7 @@ CKEDITOR_RESTRICT_BY_USER = False
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ======================================================
-# ➕ إعدادات المحرر الاحترافية (الرسم باليد + رفع الصور)
+# ➕ إعدادات المحرر (CKEditor) - النسخة الاحترافية الشاملة
 # ======================================================
 CKEDITOR_CONFIGS = {
     'default': {
@@ -108,29 +108,28 @@ CKEDITOR_CONFIGS = {
         'language': 'ar',
         'contentsLangDirection': 'rtl',
         'toolbar_Custom': [
-            # سطر 1: أدوات النص وتلوينه
-            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor', '-', 'RemoveFormat'],
+            # سطر 1: الخطوط، الألوان، والتنسيق الأساسي
+            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor', 'RemoveFormat'],
             ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft'],
             '/', 
-            # سطر 2: الرياضيات والرسم باليد (WIRIS)
-            ['ckeditor_wiris_formulaEditor', 'Mathjax', 'SpecialChar', 'Table', 'HorizontalRule'], 
+            # سطر 2: الرياضيات، الجداول، والرموز الخاصة
+            ['Mathjax', 'SpecialChar', 'Table', 'HorizontalRule', 'Subscript', 'Superscript'], 
             '/',
-            # سطر 3: رفع الصور والتحكم
-            ['Image', 'Link', 'Unlink', 'Maximize', 'Source'],
+            # سطر 3: الروابط ورفع الصور (تفعيل تبويب الرفع)
+            ['Image', 'Link', 'Unlink', 'Source', 'Maximize'],
         ],
         'extraPlugins': ','.join([
-            'mathjax',
-            'widget',
-            'lineutils',
-            'dialog',
-            'ckeditor_wiris', # ميزة الرسم باليد
-            'image2',
-            'uploadimage',
+            'mathjax',      # لأيقونة الرياضيات والرموز
+            'widget', 
+            'lineutils', 
+            'dialog', 
+            'image2',       # للتحكم المتقدم بالصور
+            'uploadimage',  # للسماح برفع الصور من الجهاز
         ]),
-        # رابط مكتبة الرياضيات (لتحويل الرسم إلى معادلة احترافية)
+        # رابط المكتبة العالمية لتشغيل الرياضيات (تأكدي من اتصال الإنترنت)
         'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
         
-        # تفعيل تبويب الرفع (Upload) في نافذة الصور
+        # أهم الروابط لظهور تبويب الرفع "Upload" داخل نافذة الصور
         'filebrowserUploadUrl': '/ckeditor/upload/',
         'filebrowserBrowseUrl': '/ckeditor/browse/',
     },
