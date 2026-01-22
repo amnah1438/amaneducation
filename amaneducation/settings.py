@@ -4,12 +4,12 @@ from pathlib import Path
 # 1. المسارات الأساسية للمشروع
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 2. إعدادات الأمان (تأكدي من عدم تغيير الـ Key الخاص بك)
+# 2. إعدادات الأمان
 SECRET_KEY = 'django-insecure-f^#4+1-yrnoelle5gc++9#uq8$mqua6hi70p66_#@1#gk-z7lh'
 DEBUG = True
 ALLOWED_HOSTS = ['*'] # للسماح بالتشغيل المحلي
 
-# 3. التطبيقات المثبتة (مهم جداً ترتيب CKEditor)
+# 3. التطبيقات المثبتة
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -22,7 +22,7 @@ INSTALLED_APPS = [
     'ckeditor',
     'ckeditor_uploader', 
 
-    # تطبيقات المنصة الخاصة بك (تأكدي أن الأسماء مطابقة لمجلداتك)
+    # تطبيقات المنصة الخاصة بك
     'core',
     'accounts',
     'students',
@@ -91,7 +91,7 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# 9. الملفات الثابتة والوسائط (حل مشكلة "المصدر مفقود")
+# 9. الملفات الثابتة والوسائط
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -106,38 +106,51 @@ CKEDITOR_RESTRICT_BY_USER = False
 CKEDITOR_BROWSE_SHOW_METADATA = True
 
 # ======================================================
-# ➕ إعدادات المحرر الاحترافية (للقدرات والتحصيلي)
+# ➕ إعدادات المحرر الاحترافية (تعديل الأقسام)
 # ======================================================
 CKEDITOR_CONFIGS = {
+    # 1. النسخة العلمية (للقدرات والتحصيلي): تشمل (الصور، الجداول، الروابط، والرموز)
     'scientific_editor': {
         'skin': 'moono-lisa',
         'toolbar': 'Custom',
         'width': '100%',
-        'height': '250px',
+        'height': '300px',
         'language': 'ar',
         'contentsLangDirection': 'rtl',
         'toolbar_Custom': [
             ['Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor', 'RemoveFormat'],
             ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft'],
             '/', 
-            # أيقونة السيجما للرياضيات والجداول
-            ['Mathjax', 'SpecialChar', 'Table', 'HorizontalRule'], 
-            ['Image', 'Link', 'Unlink', 'Maximize', 'Source'],
+            ['Image', 'Table', 'Link', 'Unlink'], # صور وجداول وروابط
+            ['Mathjax', 'SpecialChar', 'HorizontalRule', 'Maximize', 'Source'], # رموز رياضية
         ],
         'extraPlugins': ','.join([
             'mathjax', 'widget', 'lineutils', 'dialog', 'image2', 'uploadimage',
         ]),
-        # رابط مكتبة الرياضيات (MathJax) ليعمل بدون مشاكل Terminal
         'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
-        
         'filebrowserUploadUrl': '/ckeditor/upload/',
         'filebrowserBrowseUrl': '/ckeditor/browse/',
     },
     
+    # 2. النسخة الافتراضية (لباقي الأقسام): تشمل (الصور، الجداول، الروابط) فقط
     'default': {
-        'toolbar': 'Full',
-        'height': '200px',
+        'skin': 'moono-lisa',
+        'toolbar': 'Custom',
         'width': '100%',
+        'height': '200px',
+        'language': 'ar',
+        'contentsLangDirection': 'rtl',
+        'toolbar_Custom': [
+            ['Bold', 'Italic', 'Underline', 'RemoveFormat'],
+            ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft'],
+            ['Image', 'Table', 'Link', 'Unlink'], # صور وجداول وروابط فقط (بدون أزرار رياضيات)
+            ['Maximize', 'Source'],
+        ],
+        'extraPlugins': ','.join([
+            'widget', 'lineutils', 'dialog', 'image2', 'uploadimage',
+        ]),
+        'filebrowserUploadUrl': '/ckeditor/upload/',
+        'filebrowserBrowseUrl': '/ckeditor/browse/',
     },
 }
 
