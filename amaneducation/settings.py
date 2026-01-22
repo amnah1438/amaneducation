@@ -9,7 +9,7 @@ SECRET_KEY = 'django-insecure-f^#4+1-yrnoelle5gc++9#uq8$mqua6hi70p66_#@1#gk-z7lh
 DEBUG = True
 ALLOWED_HOSTS = []
 
-# 3. التطبيقات (تأكدي من إضافة ckeditor_uploader)
+# 3. التطبيقات (تأكدي من وجود ckeditor_uploader)
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -81,7 +81,7 @@ TIME_ZONE = 'Asia/Riyadh'
 USE_I18N = True
 USE_TZ = True
 
-# 7. الملفات الثابتة والرفع (ضرورية جداً لعمل الصور)
+# 7. الملفات الثابتة والرفع
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
@@ -89,48 +89,48 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# مسارات رفع الصور الخاصة ببنك الأسئلة
+# مسارات رفع الصور (ضرورية لإنهاء مشكلة المصدر المفقود)
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
+CKEDITOR_RESTRICT_BY_USER = False 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ======================================================
-# ➕ إعدادات المحرر (حل مشكلة الصور والرموز المختفية)
+# ➕ إعدادات المحرر الاحترافية (الرسم باليد + رفع الصور)
 # ======================================================
 CKEDITOR_CONFIGS = {
     'default': {
         'skin': 'moono-lisa',
         'toolbar': 'Custom',
         'width': '100%',
-        'height': '220px',
+        'height': '250px',
         'language': 'ar',
         'contentsLangDirection': 'rtl',
         'toolbar_Custom': [
-            # سطر 1: أدوات الكتابة والتلوين (التي سألت عنها المعلمات)
-            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor', 'RemoveFormat'],
+            # سطر 1: أدوات النص وتلوينه
+            ['Bold', 'Italic', 'Underline', 'Strike', '-', 'TextColor', 'BGColor', '-', 'RemoveFormat'],
+            ['NumberedList', 'BulletedList', '-', 'JustifyRight', 'JustifyCenter', 'JustifyLeft'],
             '/', 
-            # سطر 2: المحاذاة والترقيم
-            ['JustifyRight', 'JustifyCenter', 'JustifyLeft', '-', 'NumberedList', 'BulletedList', '-', 'Outdent', 'Indent'],
+            # سطر 2: الرياضيات والرسم باليد (WIRIS)
+            ['ckeditor_wiris_formulaEditor', 'Mathjax', 'SpecialChar', 'Table', 'HorizontalRule'], 
             '/',
-            # سطر 3: الرموز والرياضيات والجداول (للقسم الكمي)
-            ['Mathjax', 'SpecialChar', 'Table', 'HorizontalRule', 'Subscript', 'Superscript'],
-            '/',
-            # سطر 4: رفع الصور والروابط والتحكم الكامل
-            ['Image', 'Link', 'Unlink', '-', 'Source', 'Maximize'],
+            # سطر 3: رفع الصور والتحكم
+            ['Image', 'Link', 'Unlink', 'Maximize', 'Source'],
         ],
         'extraPlugins': ','.join([
-            'mathjax', 
-            'widget', 
-            'lineutils', 
-            'dialog', 
-            'image2', 
+            'mathjax',
+            'widget',
+            'lineutils',
+            'dialog',
+            'ckeditor_wiris', # ميزة الرسم باليد
+            'image2',
             'uploadimage',
-            'colorbutton',
         ]),
+        # رابط مكتبة الرياضيات (لتحويل الرسم إلى معادلة احترافية)
         'mathJaxLib': 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=TeX-AMS_HTML',
         
-        # تفعيل خيار الرفع من الجهاز (Upload Tab) لحل مشكلة "مصدر مفقود"
+        # تفعيل تبويب الرفع (Upload) في نافذة الصور
         'filebrowserUploadUrl': '/ckeditor/upload/',
         'filebrowserBrowseUrl': '/ckeditor/browse/',
     },
