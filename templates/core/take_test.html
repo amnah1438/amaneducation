@@ -17,7 +17,7 @@
         .header-section { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; border-right: 5px solid #6f42c1; }
         .video-container { border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: #000; margin-bottom: 30px; }
         .content-card { background: white; padding: 25px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-        .btn-test { background-color: #6f42c1; color: white; padding: 12px 30px; border-radius: 10px; font-weight: bold; transition: 0.3s; text-decoration: none; display: block; }
+        .btn-test { background-color: #6f42c1; color: white; padding: 12px 30px; border-radius: 10px; font-weight: bold; transition: 0.3s; text-decoration: none; display: block; text-align: center; }
         .btn-test:hover { background-color: #59359a; color: white; transform: translateY(-2px); }
         .math-content { line-height: 2; font-size: 1.15rem; }
     </style>
@@ -73,7 +73,7 @@
             <div class="content-card text-center">
                 <h4 class="fw-bold mb-4">التقييمات</h4>
                 <div class="d-grid gap-3">
-                    <a href="/skill/{{ skill.id }}/test/" class="btn btn-test shadow-sm">
+                    <a href="{% url 'take_test' skill.id %}" class="btn btn-test shadow-sm">
                         📝 بدء الاختبار القبلي
                     </a>
                     <hr>
