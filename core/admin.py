@@ -1,10 +1,9 @@
 from django.contrib import admin
 from .models import SchoolSettings, Profile, Teacher, Skill, Question
 
-# 1. تخصيص عنوان لوحة التحكم
+# 1. إعدادات العناوين
 admin.site.site_header = "إدارة منصة آمنة التعليمية 📚"
 admin.site.site_title = "لوحة تحكم آمنة"
-admin.site.index_title = "مرحباً بكِ في إدارة المحتوى"
 
 class QuestionInline(admin.StackedInline):
     model = Question
@@ -17,7 +16,7 @@ class SkillAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('المعلومات الأساسية', {'fields': ('title', 'category', 'short_description')}),
-        ('المحتوى التعليمي (فيديو وملفات)', {'fields': ('video_url', 'content_text', 'image_explainer', 'pdf_file')}),
+        ('المحتوى التعليمي', {'fields': ('video_url', 'content_text', 'image_explainer', 'pdf_file')}),
         ('إعدادات إضافية', {'fields': ('card_color',)}),
     )
 
@@ -25,70 +24,75 @@ class SkillAdmin(admin.ModelAdmin):
         response = super().render_change_form(request, context, **kwargs)
         response.render()
         
-        custom_logic = """
+        # كود التنسيق الجمالي والأدوات الذكية
+        custom_style_logic = """
         <script>
-            // وظيفة إدراج رمز "قابل للسحب" بمرونة تامة
-            function insertMovableIcon(editorId) {
+            // وظيفة إدراج صندوق نص حر (اكتبي فيه أي رمز وحركيه)
+            function insertFreeBox(editorId) {
                 var editor = CKEDITOR.instances[editorId];
-                // كود HTML لرمز قابل للتحريك بالفأرة (Drag and Drop)
-                var movableHtml = `
-                    <span class="movable-symbol" contenteditable="true" 
-                          style="display:inline-block; cursor:move; color:#6f42c1; font-weight:bold; padding:5px; border:1px dashed #ddd; position:relative;">
-                        +
-                    </span>`;
-                editor.insertHtml(movableHtml);
+                var html = '<span class="draggable-item" contenteditable="true" style="display:inline-block; min-width:20px; border:1px dashed #6f42c1; cursor:move; color:#6f42c1; padding:2px; margin:0 5px;">+</span>';
+                editor.insertHtml(html);
             }
 
             document.addEventListener('DOMContentLoaded', function() {
                 if (typeof CKEDITOR !== 'undefined') {
                     CKEDITOR.on('instanceReady', function(ev) {
                         ev.editor.config.contentsLangDirection = 'rtl';
-                        // إضافة خيار تباعد الأسطر (Line Height)
-                        ev.editor.config.extraPlugins = 'lineheight';
-                        ev.editor.config.line_height = "0.5;0.8;1.0;1.2;1.5;2.0";
+                        // تفعيل خيار التقريب (تباعد الأسطر)
+                        ev.editor.config.line_height = "0.5;0.7;1.0;1.2;1.5";
                         ev.editor.editable().setStyle('font-family', 'Cairo, sans-serif');
                     });
                 }
             });
         </script>
         <style>
-            /* تنسيق الألوان البنفسجية */
-            :root { --primary: #6f42c1; --bg-light: #f8f6fc; }
-            #header { background: var(--primary) !important; }
-            .module h2 { background: #59359a !important; }
+            /* --- تحسين المظهر العام بنفسجي ملكي --- */
+            :root { --p: #6f42c1; --bg: #fdfbff; }
+            #header { background: var(--p) !important; }
+            .module h2 { background: #59359a !important; border-radius: 8px 8px 0 0; }
             
-            /* --- اللمسة الجمالية: الفاصل البنفسجي العريض بين الأسئلة --- */
+            /* --- الفاصل البنفسجي بين الأسئلة (أصبح أنحف وأجمل) --- */
             .inline-group .inline-related {
-                border: 3px solid #e0d9f0 !important;
-                border-top: 12px solid var(--primary) !important; /* فاصل سميك جداً */
-                margin-bottom: 50px !important;
-                border-radius: 15px !important;
-                box-shadow: 0 10px 20px rgba(111, 66, 193, 0.05);
+                border: 1px solid #e0d9f0 !important;
+                border-top: 6px solid var(--p) !important;
+                margin-bottom: 35px !important;
+                border-radius: 10px !important;
+                box-shadow: 0 4px 15px rgba(111, 66, 193, 0.05);
             }
 
-            /* زر التحريك الجديد */
-            .custom-actions { margin-bottom: 10px; background: var(--bg-light); padding: 10px; border-radius: 8px; border: 1px solid #d1c4e9; }
-            .drag-btn { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 6px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-            .drag-btn:hover { background: var(--primary); color: white; }
-            
-            /* جعل الرموز قابلة للتحريك داخل المحرر */
-            .movable-symbol:active { cursor: grabbing; outline: 2px solid var(--primary); }
+            /* --- شريط الأدوات الأنيق فوق المحرر --- */
+            .amna-toolbar {
+                display: flex; align-items: center; gap: 15px;
+                background: var(--bg); padding: 8px 15px;
+                border: 1px solid #e0d9f0; border-bottom: none;
+                border-radius: 10px 10px 0 0; margin-top: 10px;
+            }
+            .btn-amna {
+                background: var(--p); color: white; border: none;
+                padding: 5px 15px; border-radius: 6px; cursor: pointer;
+                font-size: 13px; font-weight: bold; transition: 0.2s;
+            }
+            .btn-amna:hover { background: #59359a; transform: translateY(-1px); }
+            .hint-text { color: #888; font-size: 12px; }
+
+            /* إخفاء البوردر القبيح للمحرر القديم */
+            .django-ckeditor-widget { border: none !important; }
         </style>
         """
         
-        # حقن الأزرار فوق كل محرر سؤال
-        tool_html = """
-        <div class="custom-actions">
-            <button type="button" class="drag-btn" onclick="insertMovableIcon(this.parentElement.nextElementSibling.querySelector('textarea').id)">
-                🖱️ إدراج رمز "سحب وإفلات" (للتحريك بحرية)
+        # إضافة الشريط الأنيق قبل كل محرر
+        toolbar_html = """
+        <div class="amna-toolbar">
+            <button type="button" class="btn-amna" onclick="insertFreeBox(this.parentElement.nextElementSibling.querySelector('textarea').id)">
+                🖱️ إدراج رمز حر للتحريك
             </button>
-            <span style="margin-right:15px; font-size:12px; color:#666;">👈 استخدم خيار (Line Height) في المحرر لتقريب الأسطر</span>
+            <span class="hint-text">💡 للتقريب: استخدمي أيقونة المسافات في شريط الأدوات بالأعلى.</span>
         </div>
         """
         
         content = response.content.decode('utf-8')
-        new_content = content.replace('</body>', custom_logic + '</body>')
-        new_content = new_content.replace('<div class="django-ckeditor-widget"', tool_html + '<div class="django-ckeditor-widget"')
+        new_content = content.replace('</body>', custom_style_logic + '</body>')
+        new_content = new_content.replace('<div class="django-ckeditor-widget"', toolbar_html + '<div class="django-ckeditor-widget"')
         
         response.content = new_content.encode('utf-8')
         return response
