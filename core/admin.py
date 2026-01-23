@@ -1,106 +1,25 @@
 from django.contrib import admin
 from .models import SchoolSettings, Profile, Teacher, Skill, Question
 
-# عنوان لوحة التحكم
+# 1. تخصيص عنوان لوحة التحكم
 admin.site.site_header = "إدارة منصة آمنة التعليمية 📚"
 
-# كود محرر الرياضيات العربي الخاص
-ARABIC_MATH_JS = """
-<script>
-    function insertArabicMath(editorId, type) {
-        var editor = CKEDITOR.instances[editorId];
-        var content = "";
-        if (type === 'fraction') {
-            content = '<span style="display:inline-block; vertical-align:middle; text-align:center; direction:rtl; font-family:Arial;">' +
-                      '<div style="border-bottom:1px solid #000; padding:0 5px;">البسط</div>' +
-                      '<div>المقام</div></span>&nbsp;';
-        } else if (type === 'root') {
-            content = '<span style="direction:rtl; font-family:Arial;">√<span style="border-top:1px solid #000; padding-top:2px;">&nbsp;الرقم&nbsp;</span></span>&nbsp;';
-        } else if (type === 'power') {
-            content = '<sup>٢</sup>';
-        }
-        editor.insertHtml(content);
-    }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        if (typeof CKEDITOR !== 'undefined') {
-            CKEDITOR.on('instanceReady', function(evt) {
-                var editorId = evt.editor.name;
-                var widget = document.getElementById(editorId).closest('.django-ckeditor-widget');
-                if (widget) {
-                    var mathBar = document.createElement('div');
-                    mathBar.style = "margin-bottom:10px; background:#f0f7f0; padding:12px; border:2px solid #2d5a27; border-radius:10px; display:flex; align-items:center; gap:10px;";
-                    mathBar.innerHTML = `
-                        <strong style="color:#2d5a27; font-size:13px;">🧮 أدوات الرياضيات:</strong>
-                        <button type="button" onclick="insertArabicMath('${editorId}', 'fraction')" style="cursor:pointer; background:#2d5a27; color:white; border:none; padding:5px 10px; border-radius:4px;">➕ كسر</button>
-                        <button type="button" onclick="insertArabicMath('${editorId}', 'root')" style="cursor:pointer; background:#2d5a27; color:white; border:none; padding:5px 10px; border-radius:4px;">➕ جذر</button>
-                        <button type="button" onclick="insertArabicMath('${editorId}', 'power')" style="cursor:pointer; background:#2d5a27; color:white; border:none; padding:5px 10px; border-radius:4px;">➕ أس</button>
-                    `;
-                    widget.prepend(mathBar);
-                }
-            });
-        }
-    });
-</script>
-"""
-
-# إعداد الأسئلة داخل صفحة المهارة (تم تنظيف الحقول لتجنب الخطأ)
-class QuestionInline(admin.TabularInline):
-    model = Question
-    extra = 1
-    # ملاحظة: تم حذف choice_a, choice_b الخ.. لأنها غير موجودة في قاعدة بياناتك
-    # إذا كنتِ تعرفين أسماء حقول الخيارات عندك، يمكنك إضافتها هنا
-    fields = ['question_text', 'correct_answer'] 
-
-@admin.register(Skill)
-class SkillAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category')
-    inlines = [QuestionInline]
-
-    def render_change_form(self, request, context, **kwargs):
-        response = super().render_change_form(request, context, **kwargs)
-        response.render()
-        new_content = response.content.decode('utf-8').replace('</body>', ARABIC_MATH_JS + '</body>')
-        response.content = new_content.encode('utf-8')
-        return response
-
-@admin.register(Question)
-class QuestionAdmin(admin.ModelAdmin):
-    list_display = ('question_text', 'skill')
-    
-    def render_change_form(self, request, context, **kwargs):
-        response = super().render_change_form(request, context, **kwargs)
-        response.render()
-        new_content = response.content.decode('utf-8').replace('</body>', ARABIC_MATH_JS + '</body>')
-        response.content = new_content.encode('utf-8')
-        return response
-
-admin.site.register(SchoolSettings)
-admin.site.register(Teacher)
-admin.site.register(Profile)
-from django.contrib import admin
-from django import forms
-from .models import SchoolSettings, Profile, Teacher, Skill, Question
-
-# عنوان لوحة التحكم
-admin.site.site_header = "إدارة منصة آمنة التعليمية 📚"
-
-# كود إصلاح الخطوط العربية والرياضيات (يمنع ظهور الرموز الغريبة)
-FIX_ARABIC_MATH_JS = """
+# 2. محرر آمنة للرياضيات العربية (حل مشكلة الرموز والخيارات)
+FIX_JS = """
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof CKEDITOR !== 'undefined') {
             CKEDITOR.on('instanceReady', function(ev) {
-                // إجبار المحرر على دعم الخطوط العربية والرموز
-                ev.editor.editable().setStyle('direction', 'rtl');
-                ev.editor.editable().setStyle('font-family', 'Arial, sans-serif');
-                ev.editor.config.entities = false; // يمنع تحويل العربي لرموز غريبة مثل & #1632;
+                // إجبار المحرر على الكتابة العربية الصحيحة ومنع الرموز الغريبة
+                ev.editor.config.contentsLangDirection = 'rtl';
+                ev.editor.config.entities = false; 
                 ev.editor.config.basicEntities = false;
+                ev.editor.editable().setStyle('font-family', 'Arial, sans-serif');
             });
         }
     });
 
-    function insertMath(editorId, type) {
+    function insertArabicMath(editorId, type) {
         var editor = CKEDITOR.instances[editorId];
         var html = "";
         if (type === 'frac') {
@@ -109,18 +28,25 @@ FIX_ARABIC_MATH_JS = """
                    '<div>مقام</div></span>&nbsp;';
         } else if (type === 'sqrt') {
             html = '<span style="direction:rtl;">√<span style="border-top:1px solid #000;">&nbsp;رقم&nbsp;</span></span>&nbsp;';
+        } else if (type === 'pow') {
+            html = '<sup>٢</sup>';
         }
         editor.insertHtml(html);
     }
 </script>
+<style>
+    .math-tool-bar { margin-bottom:10px; background:#e8f5e9; padding:10px; border:2px solid #2d5a27; border-radius:8px; display:flex; gap:10px; align-items:center; }
+    .math-btn { cursor:pointer; background:#2d5a27; color:white; border:none; padding:5px 12px; border-radius:4px; font-weight:bold; }
+</style>
 """
 
-# إعداد شكل إضافة السؤال (Inline)
-class QuestionInline(admin.StackedInline): # غيرناها لـ Stacked عشان تظهر الخيارات واضحة
+# 3. إعداد الأسئلة (Inline) لتظهر فيها الخيارات
+class QuestionInline(admin.StackedInline): # Stacked تظهر الخيارات بشكل عمودي وواضح
     model = Question
     extra = 1
-    # سأترك النظام يظهر الحقول تلقائياً لتجنب خطأ FieldError مرة أخرى
+    # لم نحدد fields لكي يظهر Django كل شيء موجود في قاعدة البيانات تلقائياً
 
+# 4. تسجيل المهارات (Skill) مرة واحدة فقط
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
     list_display = ('title', 'category')
@@ -129,22 +55,36 @@ class SkillAdmin(admin.ModelAdmin):
     def render_change_form(self, request, context, **kwargs):
         response = super().render_change_form(request, context, **kwargs)
         response.render()
-        content = response.content.decode('utf-8').replace('</body>', FIX_ARABIC_MATH_JS + '</body>')
-        response.content = content.encode('utf-8')
+        # إضافة أزرار الرياضيات فوق كل صندوق نص
+        content = response.content.decode('utf-8')
+        # كود لإضافة الأزرار برمجياً فوق الـ CKEditor
+        math_buttons = """
+        <script>
+            CKEDITOR.on('instanceReady', function(evt) {
+                var id = evt.editor.name;
+                var el = document.getElementById(id).closest('.django-ckeditor-widget');
+                if(el && !el.querySelector('.math-tool-bar')) {
+                    var bar = document.createElement('div');
+                    bar.className = 'math-tool-bar';
+                    bar.innerHTML = '<strong>🧮 أدوات الرياضيات:</strong>' +
+                        '<button type="button" class="math-btn" onclick="insertArabicMath(\\''+id+'\\', \\'frac\\')">كسر عربي</button>' +
+                        '<button type="button" class="math-btn" onclick="insertArabicMath(\\''+id+'\\', \\'sqrt\\')">جذر عربي</button>' +
+                        '<button type="button" class="math-btn" onclick="insertArabicMath(\\''+id+'\\', \\'pow\\')">أس²</button>';
+                    el.prepend(bar);
+                }
+            });
+        </script>
+        """
+        new_content = content.replace('</body>', FIX_JS + math_buttons + '</body>')
+        response.content = new_content.encode('utf-8')
         return response
 
+# 5. تسجيل الأسئلة بشكل منفصل أيضاً
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('question_text', 'skill')
-    
-    def render_change_form(self, request, context, **kwargs):
-        response = super().render_change_form(request, context, **kwargs)
-        response.render()
-        content = response.content.decode('utf-8').replace('</body>', FIX_ARABIC_MATH_JS + '</body>')
-        response.content = content.encode('utf-8')
-        return response
 
-# تسجيل باقي الموديلات
+# 6. تسجيل باقي الأقسام (تأكدي أنها مسجلة مرة واحدة فقط)
 admin.site.register(SchoolSettings)
 admin.site.register(Teacher)
 admin.site.register(Profile)
