@@ -34,10 +34,8 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
             margin-bottom: 30px; 
             border-right: 8px solid #6f42c1;
-            position: relative;
         }
 
-        /* تنسيق رأس السؤال (الرقم والنص) */
         .question-header {
             display: flex;
             align-items: flex-start;
@@ -54,7 +52,6 @@
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 1.1rem;
         }
         .q-text {
             font-size: 1.3rem;
@@ -62,39 +59,55 @@
             color: #333;
             flex: 1;
             unicode-bidi: plaintext;
-            /* لضمان توازن الكسور والجذور مع النص */
-            display: inline-block;
-            vertical-align: middle;
         }
 
-        /* تنسيق الخيارات */
+        /* تنسيق الخيارات بالدوائر الأنيقة */
+        .option-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
         .option-item { 
             border: 2px solid #edebf5; 
             border-radius: 15px; 
-            padding: 18px 25px; 
-            margin-bottom: 15px; 
-            cursor: pointer; 
-            transition: all 0.2s ease-in-out; 
+            padding: 15px 20px; 
             background: #fff; 
             width: 100%; 
             font-size: 1.2rem; 
             display: flex; 
             align-items: center; 
-            color: #4a4a4a; 
+            gap: 15px;
+            transition: 0.3s;
             unicode-bidi: plaintext;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
-        .option-item:hover { 
-            border-color: #6f42c1; 
-            background-color: #fbfaff; 
-            transform: translateX(-5px); 
+
+        /* دائرة الحرف (أ، ب، ج، د) */
+        .option-letter {
+            min-width: 35px;
+            height: 35px;
+            border: 2px solid #6f42c1;
+            color: #6f42c1;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1rem;
+            background: white;
+            transition: 0.3s;
         }
 
         input[type="radio"]:checked + .option-item {
             border-color: #6f42c1;
             background-color: #f1ecf9;
-            box-shadow: 0 4px 15px rgba(111, 66, 193, 0.15);
-            font-weight: bold;
+        }
+
+        input[type="radio"]:checked + .option-item .option-letter {
+            background: #6f42c1;
+            color: white;
         }
 
         input[type="radio"] { display: none; }
@@ -111,8 +124,9 @@
         }
         .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(111, 66, 193, 0.3); color: white; }
 
-        /* تعديلات خاصة لـ MathJax ليظهر في منتصف السطر */
-        .mjx-chtml { margin: 0 5px !important; vertical-align: middle !important; }
+        /* موازنة الرياضيات لتكون في منتصف السطر تماماً */
+        .mjx-chtml { vertical-align: middle !important; margin: 5px 0 !important; }
+        .option-text { flex: 1; display: flex; align-items: center; }
     </style>
 </head>
 <body>
@@ -120,7 +134,7 @@
 <div class="container test-container">
     <div class="text-center mb-5">
         <h2 class="fw-bold" style="color: #6f42c1;">📝 الاختبار القبلي: {{ skill.title }}</h2>
-        <p class="text-muted">أجب بتركيز، كل التوفيق لكِ يا بطلة</p>
+        <p class="text-muted">اختر الإجابة الصحيحة من الخيارات أدناه</p>
     </div>
 
     <form method="POST">
@@ -134,30 +148,42 @@
             
             <div class="options-list">
                 {% if question.option_a %}
-                    <label class="w-100">
+                    <label class="option-wrapper">
                         <input type="radio" name="question_{{ question.id }}" value="A" required>
-                        <span class="option-item">أ) {{ question.option_a|safe }}</span>
+                        <span class="option-item">
+                            <span class="option-letter">أ</span>
+                            <span class="option-text">{{ question.option_a|safe }}</span>
+                        </span>
                     </label>
                 {% endif %}
 
                 {% if question.option_b %}
-                    <label class="w-100">
+                    <label class="option-wrapper">
                         <input type="radio" name="question_{{ question.id }}" value="B">
-                        <span class="option-item">ب) {{ question.option_b|safe }}</span>
+                        <span class="option-item">
+                            <span class="option-letter">ب</span>
+                            <span class="option-text">{{ question.option_b|safe }}</span>
+                        </span>
                     </label>
                 {% endif %}
 
                 {% if question.option_c %}
-                    <label class="w-100">
+                    <label class="option-wrapper">
                         <input type="radio" name="question_{{ question.id }}" value="C">
-                        <span class="option-item">ج) {{ question.option_c|safe }}</span>
+                        <span class="option-item">
+                            <span class="option-letter">ج</span>
+                            <span class="option-text">{{ question.option_c|safe }}</span>
+                        </span>
                     </label>
                 {% endif %}
 
                 {% if question.option_d %}
-                    <label class="w-100">
+                    <label class="option-wrapper">
                         <input type="radio" name="question_{{ question.id }}" value="D">
-                        <span class="option-item">د) {{ question.option_d|safe }}</span>
+                        <span class="option-item">
+                            <span class="option-letter">د</span>
+                            <span class="option-text">{{ question.option_d|safe }}</span>
+                        </span>
                     </label>
                 {% endif %}
             </div>
