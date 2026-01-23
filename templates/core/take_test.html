@@ -14,6 +14,10 @@
                 inlineMath: [['$', '$'], ['\\(', '\\)']],
                 displayMath: [['$$', '$$'], ['\\[', '\\]']],
                 processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
             }
         };
     </script>
@@ -24,9 +28,44 @@
         body { font-family: 'Cairo', sans-serif; background-color: #f3f0f7; color: #4a4a4a; }
         .test-container { max-width: 800px; margin: 50px auto; }
         .question-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border-right: 5px solid #6f42c1; }
-        .option-item { border: 2px solid #e0e0e0; border-radius: 12px; padding: 15px; margin-bottom: 12px; cursor: pointer; transition: 0.3s; text-align: right; background: white; width: 100%; font-size: 1.2rem; display: block; color: #4a4a4a; font-weight: 500; }
+        
+        /* تحسين الخيارات ومنع انقلاب الأرقام */
+        .option-item { 
+            border: 2px solid #e0e0e0; 
+            border-radius: 12px; 
+            padding: 15px; 
+            margin-bottom: 12px; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            text-align: right; 
+            background: white; 
+            width: 100%; 
+            font-size: 1.2rem; 
+            display: flex; 
+            align-items: center; 
+            color: #4a4a4a; 
+            font-weight: 500;
+            unicode-bidi: plaintext; /* يمنع قلب الأرقام */
+        }
         .option-item:hover { border-color: #6f42c1; background-color: #f8f4ff; transform: scale(1.01); }
+        
+        /* تنسيق محتوى الرياضيات داخل السؤال */
+        .math-text { 
+            display: inline-block; 
+            direction: rtl; 
+            unicode-bidi: plaintext; 
+            line-height: 1.8;
+        }
+
         .btn-submit { background-color: #6f42c1; color: white; padding: 12px 45px; border-radius: 10px; font-weight: bold; border: none; font-size: 1.1rem; }
+        
+        /* إخفاء نقاط الراديو الأصلية لجعل التصميم أجمل */
+        input[type="radio"] { display: none; }
+        input[type="radio"]:checked + .option-item {
+            border-color: #6f42c1;
+            background-color: #f1ecf9;
+            box-shadow: 0 0 10px rgba(111, 66, 193, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -34,30 +73,44 @@
 <div class="container test-container">
     <div class="text-center mb-5">
         <h2 class="fw-bold" style="color: #6f42c1;">📝 الاختبار القبلي: {{ skill.title }}</h2>
-        <p class="text-muted">أجب على الأسئلة التالية (تظهر الرموز الرياضية تلقائياً)</p>
+        <p class="text-muted">أجب على الأسئلة التالية (ستظهر الكسور والجذور بشكل صحيح الآن)</p>
     </div>
 
     <form method="POST">
         {% csrf_token %}
         {% for question in questions %}
-        <div class="question-card">
-            <h5 class="fw-bold mb-4" style="line-height: 1.6;">{{ forloop.counter }}. {{ question.question_text }}</h5>
+        <div class="question-card tex2jax_process">
+            <h5 class="fw-bold mb-4 math-text">
+                {{ forloop.counter }}. {{ question.question_text|safe }}
+            </h5>
             
             <div class="options-list">
                 {% if question.option_a %}
-                    <button type="button" class="option-item">أ) {{ question.option_a }}</button>
+                    <label class="w-100">
+                        <input type="radio" name="question_{{ question.id }}" value="A">
+                        <span class="option-item">أ) {{ question.option_a|safe }}</span>
+                    </label>
                 {% endif %}
 
                 {% if question.option_b %}
-                    <button type="button" class="option-item">ب) {{ question.option_b }}</button>
+                    <label class="w-100">
+                        <input type="radio" name="question_{{ question.id }}" value="B">
+                        <span class="option-item">ب) {{ question.option_b|safe }}</span>
+                    </label>
                 {% endif %}
 
                 {% if question.option_c %}
-                    <button type="button" class="option-item">ج) {{ question.option_c }}</button>
+                    <label class="w-100">
+                        <input type="radio" name="question_{{ question.id }}" value="C">
+                        <span class="option-item">ج) {{ question.option_c|safe }}</span>
+                    </label>
                 {% endif %}
 
                 {% if question.option_d %}
-                    <button type="button" class="option-item">د) {{ question.option_d }}</button>
+                    <label class="w-100">
+                        <input type="radio" name="question_{{ question.id }}" value="D">
+                        <span class="option-item">د) {{ question.option_d|safe }}</span>
+                    </label>
                 {% endif %}
             </div>
         </div>
@@ -66,7 +119,7 @@
         {% endfor %}
 
         <div class="text-center mt-5">
-            <a href="/skill/{{ skill.id }}/" class="btn btn-outline-secondary me-3 shadow-sm">إلغاء</a>
+            <a href="{% url 'skill_detail' skill.id %}" class="btn btn-outline-secondary me-3 shadow-sm">إلغاء</a>
             <button type="submit" class="btn btn-submit shadow">إنهاء الاختبار وحفظ النتيجة</button>
         </div>
     </form>
