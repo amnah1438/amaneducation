@@ -21,51 +21,98 @@
             }
         };
     </script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f3f0f7; color: #4a4a4a; }
-        .test-container { max-width: 800px; margin: 50px auto; }
-        .question-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border-right: 5px solid #6f42c1; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f3f0f7; color: #4a4a4a; line-height: 1.6; }
+        .test-container { max-width: 850px; margin: 50px auto; }
         
-        /* تحسين الخيارات ومنع انقلاب الأرقام */
-        .option-item { 
-            border: 2px solid #e0e0e0; 
-            border-radius: 12px; 
-            padding: 15px; 
-            margin-bottom: 12px; 
-            cursor: pointer; 
-            transition: 0.3s; 
-            text-align: right; 
+        .question-card { 
             background: white; 
+            padding: 35px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05); 
+            margin-bottom: 30px; 
+            border-right: 8px solid #6f42c1;
+            position: relative;
+        }
+
+        /* تنسيق رأس السؤال (الرقم والنص) */
+        .question-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .q-number {
+            background: #6f42c1;
+            color: white;
+            min-width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .q-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #333;
+            flex: 1;
+            unicode-bidi: plaintext;
+            /* لضمان توازن الكسور والجذور مع النص */
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* تنسيق الخيارات */
+        .option-item { 
+            border: 2px solid #edebf5; 
+            border-radius: 15px; 
+            padding: 18px 25px; 
+            margin-bottom: 15px; 
+            cursor: pointer; 
+            transition: all 0.2s ease-in-out; 
+            background: #fff; 
             width: 100%; 
             font-size: 1.2rem; 
             display: flex; 
             align-items: center; 
             color: #4a4a4a; 
-            font-weight: 500;
-            unicode-bidi: plaintext; /* يمنع قلب الأرقام */
+            unicode-bidi: plaintext;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
-        .option-item:hover { border-color: #6f42c1; background-color: #f8f4ff; transform: scale(1.01); }
-        
-        /* تنسيق محتوى الرياضيات داخل السؤال */
-        .math-text { 
-            display: inline-block; 
-            direction: rtl; 
-            unicode-bidi: plaintext; 
-            line-height: 1.8;
+        .option-item:hover { 
+            border-color: #6f42c1; 
+            background-color: #fbfaff; 
+            transform: translateX(-5px); 
         }
 
-        .btn-submit { background-color: #6f42c1; color: white; padding: 12px 45px; border-radius: 10px; font-weight: bold; border: none; font-size: 1.1rem; }
-        
-        /* إخفاء نقاط الراديو الأصلية لجعل التصميم أجمل */
-        input[type="radio"] { display: none; }
         input[type="radio"]:checked + .option-item {
             border-color: #6f42c1;
             background-color: #f1ecf9;
-            box-shadow: 0 0 10px rgba(111, 66, 193, 0.2);
+            box-shadow: 0 4px 15px rgba(111, 66, 193, 0.15);
+            font-weight: bold;
         }
+
+        input[type="radio"] { display: none; }
+
+        .btn-submit { 
+            background: linear-gradient(45deg, #6f42c1, #8e44ad);
+            color: white; 
+            padding: 15px 50px; 
+            border-radius: 50px; 
+            font-weight: bold; 
+            border: none; 
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+        .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(111, 66, 193, 0.3); color: white; }
+
+        /* تعديلات خاصة لـ MathJax ليظهر في منتصف السطر */
+        .mjx-chtml { margin: 0 5px !important; vertical-align: middle !important; }
     </style>
 </head>
 <body>
@@ -73,21 +120,22 @@
 <div class="container test-container">
     <div class="text-center mb-5">
         <h2 class="fw-bold" style="color: #6f42c1;">📝 الاختبار القبلي: {{ skill.title }}</h2>
-        <p class="text-muted">أجب على الأسئلة التالية (ستظهر الكسور والجذور بشكل صحيح الآن)</p>
+        <p class="text-muted">أجب بتركيز، كل التوفيق لكِ يا بطلة</p>
     </div>
 
     <form method="POST">
         {% csrf_token %}
         {% for question in questions %}
         <div class="question-card tex2jax_process">
-            <h5 class="fw-bold mb-4 math-text">
-                {{ forloop.counter }}. {{ question.question_text|safe }}
-            </h5>
+            <div class="question-header">
+                <div class="q-number">{{ forloop.counter }}</div>
+                <div class="q-text">{{ question.question_text|safe }}</div>
+            </div>
             
             <div class="options-list">
                 {% if question.option_a %}
                     <label class="w-100">
-                        <input type="radio" name="question_{{ question.id }}" value="A">
+                        <input type="radio" name="question_{{ question.id }}" value="A" required>
                         <span class="option-item">أ) {{ question.option_a|safe }}</span>
                     </label>
                 {% endif %}
@@ -115,12 +163,12 @@
             </div>
         </div>
         {% empty %}
-        <div class="alert alert-warning text-center">لا توجد أسئلة مضافة لهذا الدرس حتى الآن.</div>
+        <div class="alert alert-warning text-center">لا توجد أسئلة مضافة حالياً.</div>
         {% endfor %}
 
-        <div class="text-center mt-5">
-            <a href="{% url 'skill_detail' skill.id %}" class="btn btn-outline-secondary me-3 shadow-sm">إلغاء</a>
-            <button type="submit" class="btn btn-submit shadow">إنهاء الاختبار وحفظ النتيجة</button>
+        <div class="text-center mt-5 mb-5">
+            <a href="{% url 'skill_detail' skill.id %}" class="btn btn-outline-secondary me-3 px-4 rounded-pill">إلغاء</a>
+            <button type="submit" class="btn btn-submit shadow">إرسال الإجابات وحفظ النتيجة</button>
         </div>
     </form>
 </div>
