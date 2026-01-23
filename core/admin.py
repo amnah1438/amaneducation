@@ -16,21 +16,24 @@ class SkillAdmin(admin.ModelAdmin):
         response = super().render_change_form(request, context, **kwargs)
         response.render()
         
-        custom_logic = """
+        # كود الأدوات الصغيرة والتقريب التلقائي
+        final_script = """
         <script>
-            // وظيفة تقريب الأسطر (تباعد صغير جداً)
-            function shrinkLines(editorId) {
+            // 1. وظيفة التقريب (تجبر الأسطر على الالتصاق ببعضها)
+            function forceTightLines(editorId) {
                 var editor = CKEDITOR.instances[editorId];
-                var style = new CKEDITOR.style({ element: 'div', attributes: { 'style': 'line-height:0.6;' } });
-                editor.applyStyle(style);
+                var content = editor.getData();
+                // نغلف المحتوى بـ div يقلل المسافات جداً
+                var newContent = '<div style="line-height: 0.6; font-size: 22px;">' + content + '</div>';
+                editor.setData(newContent);
             }
 
-            // وظيفة إدراج رمز حر وقابل للسحب
-            function insertDraggableIcon(editorId) {
+            // 2. وظيفة الرمز الحر (يتحرك ويثبت في أي مكان)
+            function addMovableSymbol(editorId) {
                 var editor = CKEDITOR.instances[editorId];
-                // نستخدم خاصية draggable و absolute للتحريك
-                var html = '<span class="movable" contenteditable="true" draggable="true" ondragstart="event.dataTransfer.setData(\'text/plain\',null)" style="display:inline-block; cursor:move; color:#6f42c1; font-weight:bold; position:relative; padding:2px; border:1px dashed #ddd;">+</span>&nbsp;';
-                editor.insertHtml(html);
+                // الرمز الآن يوضع كـ "ملصق" شفاف لا يؤثر على النص
+                var sticker = '<span contenteditable="true" style="display:inline-block; cursor:move; color:#6f42c1; font-weight:bold; position:relative; top:0; right:0; padding:0 5px; border:1px solid #e0d9f0;">+</span>';
+                editor.insertHtml(sticker);
             }
 
             document.addEventListener('DOMContentLoaded', function() {
@@ -44,42 +47,36 @@ class SkillAdmin(admin.ModelAdmin):
         </script>
         <style>
             :root { --p: #6f42c1; }
-            #header { background: var(--p) !important; }
-            
-            /* فاصل بنفسجي أنيق ونحيف */
-            .inline-group .inline-related {
-                border: 1px solid #ddd !important;
-                border-top: 5px solid var(--p) !important;
-                margin-bottom: 25px !important;
-                border-radius: 8px !important;
-            }
+            /* إخفاء البوكسات القبيحة تماماً */
+            .inline-group .inline-related { border: 1px solid #ddd !important; border-top: 4px solid var(--p) !important; margin-bottom: 20px !important; border-radius: 8px !important; }
 
-            /* تحويل البوكس الكبير إلى أيقونات صغيرة أنيقة فوق المحرر */
-            .mini-tools {
-                display: flex; gap: 8px; padding: 5px; 
-                background: #fff; border: 1px solid #eee; border-bottom: none;
-                border-radius: 5px 5px 0 0; width: fit-content; margin-top: 10px;
+            /* تحويل الأزرار إلى أيقونات صغيرة جداً وأنيقة */
+            .amna-mini-tools {
+                display: inline-flex; gap: 5px; margin-bottom: -1px; margin-top: 10px;
             }
-            .tool-icon {
-                background: #f8f6fc; border: 1px solid var(--p); color: var(--p);
-                padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;
+            .mini-tool-btn {
+                background: #fff; border: 1px solid #ddd; color: var(--p);
+                padding: 2px 10px; border-radius: 4px 4px 0 0; cursor: pointer;
+                font-size: 11px; font-weight: bold; border-bottom: none;
             }
-            .tool-icon:hover { background: var(--p); color: white; }
-            .django-ckeditor-widget { border: none !important; }
+            .mini-tool-btn:hover { background: var(--p); color: #fff; border-color: var(--p); }
+            
+            /* تنظيف واجهة المحرر */
+            .django-ckeditor-widget { border: none !important; width: 100% !important; }
         </style>
         """
         
-        # الأيقونات الصغيرة الجديدة
-        mini_toolbar = """
-        <div class="mini-tools">
-            <button type="button" class="tool-icon" title="إدراج رمز للتحريك" onclick="insertDraggableIcon(this.parentElement.nextElementSibling.querySelector('textarea').id)">➕ رمز حر</button>
-            <button type="button" class="tool-icon" title="تقريب الأسطر من بعضها" onclick="shrinkLines(this.parentElement.nextElementSibling.querySelector('textarea').id)">↕️ تقريب الأسطر</button>
+        # الأدوات الجديدة على شكل ألسنة صغيرة (Tabs) فوق المحرر
+        tabs_html = """
+        <div class="amna-mini-tools">
+            <button type="button" class="mini-tool-btn" onclick="addMovableSymbol(this.parentElement.nextElementSibling.querySelector('textarea').id)">➕ إدراج رمز</button>
+            <button type="button" class="mini-tool-btn" onclick="forceTightLines(this.parentElement.nextElementSibling.querySelector('textarea').id)">↕️ تقريب الأسطر فوراً</button>
         </div>
         """
         
         content = response.content.decode('utf-8')
-        new_content = content.replace('</body>', custom_logic + '</body>')
-        new_content = new_content.replace('<div class="django-ckeditor-widget"', mini_toolbar + '<div class="django-ckeditor-widget"')
+        new_content = content.replace('</body>', final_script + '</body>')
+        new_content = new_content.replace('<div class="django-ckeditor-widget"', tabs_html + '<div class="django-ckeditor-widget"')
         
         response.content = new_content.encode('utf-8')
         return response
