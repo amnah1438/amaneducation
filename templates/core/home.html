@@ -59,6 +59,13 @@
             display: inline-block;
             margin: 2px;
         }
+
+        /* ✨ اللمسة الإضافية: إصلاح الأرقام والرياضيات في أي نص يظهر ✨ */
+        .math-text-fix {
+            unicode-bidi: plaintext;
+            text-align: right;
+            direction: rtl;
+        }
     </style>
 </head>
 <body>
@@ -102,8 +109,8 @@
                                 {% else %}
                                     <div class="display-6 mb-3">📘</div>
                                 {% endif %}
-                                <h5 class="fw-bold">{{ skill.title }}</h5>
-                                <p class="text-muted small">{{ skill.short_description }}</p>
+                                <h5 class="fw-bold math-text-fix">{{ skill.title }}</h5>
+                                <p class="text-muted small math-text-fix">{{ skill.short_description }}</p>
                                 
                                 <div class="mb-3">
                                     <small class="text-secondary d-block mb-2">المعلمات المسؤولات:</small>
