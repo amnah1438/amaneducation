@@ -1,209 +1,101 @@
 from django.contrib import admin
 from .models import SchoolSettings, Profile, Teacher, Skill, Question
 
+# --- إعدادات واجهة الإدارة ---
 admin.site.site_header = "إدارة منصة آمنة التعليمية 📚"
 
-# =====================================
-# MathJax + منشئ معادلات للمعلمات
-# =====================================
-MATH_BUILDER_JS = """
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-<style>
-#math-builder-bar {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 9999;
-}
-#math-builder-bar button {
-    background:#1f7a5f;
-    color:white;
-    border:none;
-    padding:10px 22px;
-    border-radius:25px;
-    font-weight:bold;
-    cursor:pointer;
-}
-.math-modal input {
-    width:100%;
-    padding:6px;
-    margin:4px 0;
-}
-.math-modal button {
-    margin-top:6px;
-}
-</style>
-
+# --- كود التشغيل القوي لحل مشكلة التجميد وتفعيل الرسم ---
+MATHLIVE_JS = """
+<script src="https://unpkg.com/mathlive"></script>
 <script>
-(function(){
+    document.addEventListener('DOMContentLoaded', function() {
+        // إعدادات عالمية للوحة المفاتيح لتعمل بشكل أفضل على الماك
+        if (window.mathVirtualKeyboard) {
+            window.mathVirtualKeyboard.layouts = 'default';
+        }
 
-let activeEditor = null;
+        window.openMathDrawer = function(targetId) {
+            const editor = CKEDITOR.instances[targetId];
+            const overlay = document.createElement('div');
+            overlay.id = "math-overlay";
+            overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; align-items:center; justify-content:center;";
+            
+            overlay.innerHTML = `
+                <div style="background:white; padding:25px; border-radius:15px; width:95%; max-width:800px; direction:rtl; text-align:right;">
+                    <h3 style="color:#2d5a27; margin-bottom:15px;">🎨 ارسم أو اكتب الرموز الرياضية</h3>
+                    
+                    <math-field id="drawer-field" 
+                        style="width:100%; font-size:32px; border:2px solid #2d5a27; border-radius:10px; margin-bottom:20px; padding:15px; background:#f9f9f9;"
+                        virtual-keyboard-mode="onfocus">
+                    </math-field>
 
-// تحويل الأرقام إلى عربية
-function toArabicDigits(text) {
-    const map = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
-    return text.replace(/[0-9]/g, d => map[d]);
-}
+                    <div style="display:flex; gap:15px; justify-content:center;">
+                        <button id="insert-math" style="background:#2d5a27; color:white; border:none; padding:12px 35px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:18px;">✅ إدراج في النص</button>
+                        <button id="close-math" style="background:#cc0000; color:white; border:none; padding:12px 35px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:18px;">❌ إلغاء</button>
+                    </div>
+                    <div style="background:#fff9c4; padding:10px; border-radius:8px; margin-top:15px; font-size:14px; color:#333; text-align:center;">
+                        💡 <b>لتفعيل الرسم:</b> اضغطي داخل المربع الأبيض، ثم من اللوحة السفلية اضغطي على زر "لوحة المفاتيح الصغيرة" (بجانب الـ ☰) واختاري 📝.
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
 
-// =======================
-// نافذة منشئ المعادلات
-// =======================
-function openMathBuilder() {
-    if (!activeEditor) {
-        alert('اضغطي داخل مربع السؤال أولًا');
-        return;
-    }
+            const mf = document.getElementById('drawer-field');
+            
+            // إجبار الحقل على العمل فوراً
+            setTimeout(() => {
+                mf.focus();
+                if (window.mathVirtualKeyboard) window.mathVirtualKeyboard.show();
+            }, 500);
 
-    const overlay = document.createElement('div');
-    overlay.style = `
-        position:fixed; inset:0;
-        background:rgba(0,0,0,0.4);
-        z-index:100000;
-        display:flex; align-items:center; justify-content:center;
-    `;
+            document.getElementById('insert-math').onclick = function() {
+                if(mf.value) {
+                    editor.insertHtml('\\\\(' + mf.value + '\\\\)');
+                }
+                document.getElementById('math-overlay').remove();
+            };
 
-    overlay.innerHTML = `
-        <div class="math-modal"
-             style="background:#fff;padding:20px;border-radius:15px;width:420px;direction:rtl">
-            <h3>🧮 إنشاء معادلة رياضية</h3>
+            document.getElementById('close-math').onclick = () => {
+                document.getElementById('math-overlay').remove();
+            };
+        };
 
-            <hr>
-            <b>➗ كسر</b>
-            <input id="fracTop" placeholder="البسط">
-            <input id="fracBottom" placeholder="المقام">
-            <button onclick="insertFraction()">إدراج كسر</button>
-
-            <hr>
-            <b>√ جذر</b>
-            <input id="sqrtVal" placeholder="داخل الجذر">
-            <button onclick="insertSqrt()">إدراج جذر</button>
-
-            <hr>
-            <b>⬆️ أس</b>
-            <input id="powBase" placeholder="الأساس">
-            <input id="powExp" placeholder="الأس">
-            <button onclick="insertPower()">إدراج أس</button>
-
-            <hr>
-            <button onclick="closeBuilder()" style="background:#b00020;color:white">
-                إغلاق
-            </button>
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    // ===== وظائف الإدراج =====
-    window.insertFraction = function() {
-        const a = toArabicDigits(document.getElementById('fracTop').value);
-        const b = toArabicDigits(document.getElementById('fracBottom').value);
-        activeEditor.insertHtml('\\\\(\\\\frac{' + a + '}{' + b + '}\\\\)');
-        closeBuilder();
-    };
-
-    window.insertSqrt = function() {
-        const a = toArabicDigits(document.getElementById('sqrtVal').value);
-        activeEditor.insertHtml('\\\\(\\\\sqrt{' + a + '}\\\\)');
-        closeBuilder();
-    };
-
-    window.insertPower = function() {
-        const a = toArabicDigits(document.getElementById('powBase').value);
-        const b = toArabicDigits(document.getElementById('powExp').value);
-        activeEditor.insertHtml('\\\\(' + a + '^{' + b + '}\\\\)');
-        closeBuilder();
-    };
-
-    window.closeBuilder = function() {
-        overlay.remove();
-    };
-}
-
-// =======================
-// زر واحد ثابت
-// =======================
-function addButton() {
-    if (document.getElementById('math-builder-bar')) return;
-
-    const bar = document.createElement('div');
-    bar.id = 'math-builder-bar';
-
-    const btn = document.createElement('button');
-    btn.textContent = '🧮 إدراج معادلة';
-    btn.onclick = openMathBuilder;
-
-    bar.appendChild(btn);
-    document.body.appendChild(bar);
-}
-
-// =======================
-// تتبع المحرر النشط
-// =======================
-function trackEditors() {
-    if (!window.CKEDITOR) return;
-
-    for (const name in CKEDITOR.instances) {
-        const ed = CKEDITOR.instances[name];
-        if (ed._tracked) continue;
-
-        ed.on('focus', function(){
-            activeEditor = ed;
-        });
-        ed._tracked = true;
-    }
-}
-
-// مراقبة الصفحة
-const observer = new MutationObserver(() => {
-    addButton();
-    trackEditors();
-});
-observer.observe(document.body, { childList:true, subtree:true });
-
-})();
+        function injectButtons() {
+            document.querySelectorAll('.django-ckeditor-widget').forEach(widget => {
+                const textareaId = widget.querySelector('textarea').id;
+                if (!widget.querySelector('.math-draw-btn')) {
+                    const btn = document.createElement('button');
+                    btn.innerHTML = '📝 إدراج رموز رياضية (رسم/كتابة)';
+                    btn.type = 'button';
+                    btn.style = "margin-top:10px; background:#2d5a27; color:white; padding:8px 20px; border-radius:25px; cursor:pointer; font-weight:bold; border:none;";
+                    btn.onclick = () => window.openMathDrawer(textareaId);
+                    widget.appendChild(btn);
+                }
+            });
+        }
+        setTimeout(injectButtons, 2000);
+    });
 </script>
 """
 
-# ================================
-# Inline الأسئلة
-# ================================
-class QuestionInline(admin.TabularInline):
-    model = Question
-    extra = 1
-
-# ================================
-# Skill Admin
-# ================================
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
-    inlines = [QuestionInline]
-
-    def render_change_form(self, request, context, *args, **kwargs):
-        response = super().render_change_form(request, context, *args, **kwargs)
+    list_display = ('title', 'category')
+    def render_change_form(self, request, context, **kwargs):
+        response = super().render_change_form(request, context, **kwargs)
         response.render()
-        response.content = response.content.replace(
-            b'</body>', MATH_BUILDER_JS.encode() + b'</body>'
-        )
+        response.content = response.content.replace(b'</body>', MATHLIVE_JS.encode() + b'</body>')
         return response
 
-# ================================
-# Question Admin
-# ================================
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-
-    def render_change_form(self, request, context, *args, **kwargs):
-        response = super().render_change_form(request, context, *args, **kwargs)
+    list_display = ('question_text', 'skill')
+    def render_change_form(self, request, context, **kwargs):
+        response = super().render_change_form(request, context, **kwargs)
         response.render()
-        response.content = response.content.replace(
-            b'</body>', MATH_BUILDER_JS.encode() + b'</body>'
-        )
+        response.content = response.content.replace(b'</body>', MATHLIVE_JS.encode() + b'</body>')
         return response
 
-# ================================
-# باقي التسجيلات
-# ================================
 admin.site.register(SchoolSettings)
 admin.site.register(Teacher)
 admin.site.register(Profile)
