@@ -8,7 +8,7 @@ admin.site.site_header = "إدارة منصة آمنة التعليمية 📚"
 
 
 # ================================
-# كود لوحة الرموز + الرسم (محسّن)
+# كود لوحة الرموز + الرسم (كما عدلناه)
 # ================================
 MATHLIVE_JS = """
 <script src="https://unpkg.com/mathlive/dist/mathlive.min.js"></script>
@@ -17,14 +17,10 @@ MATHLIVE_JS = """
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // 🔧 إعدادات لوحة المفاتيح
     window.mathVirtualKeyboard.layouts = ['numeric', 'symbols', 'greek'];
     window.mathVirtualKeyboard.visible = false;
     window.mathVirtualKeyboard.policy = 'manual';
 
-    // =========================
-    // فتح لوحة الرسم والمعادلات
-    // =========================
     window.openMathDrawer = function(targetId) {
 
         const editor = CKEDITOR.instances[targetId];
@@ -98,18 +94,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const mf = document.getElementById('mathField');
 
-        // تفعيل التركيز ولوحة المفاتيح
         setTimeout(() => {
             mf.focus();
             mathVirtualKeyboard.show();
         }, 300);
 
-        // ✍️ تفعيل الرسم اليدوي
         document.getElementById('drawBtn').onclick = () => {
             mf.executeCommand('toggleHandwriting');
         };
 
-        // ✅ إدراج المعادلة في CKEditor
         document.getElementById('insertBtn').onclick = () => {
             const latex = mf.getValue('latex');
             if (latex) {
@@ -119,17 +112,12 @@ document.addEventListener('DOMContentLoaded', function () {
             mathVirtualKeyboard.hide();
         };
 
-        // ❌ إغلاق اللوحة
         document.getElementById('closeBtn').onclick = () => {
             overlay.remove();
             mathVirtualKeyboard.hide();
         };
     };
 
-
-    // =========================
-    // زر داخل CKEditor
-    // =========================
     function injectButtons() {
         document.querySelectorAll('.django-ckeditor-widget').forEach(widget => {
 
@@ -158,17 +146,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     setTimeout(injectButtons, 1500);
-
 });
 </script>
 """
 
+
 # ================================
-# Admin registrations (كما هي)
+# Inline الأسئلة (الإضافة الناقصة)
+# ================================
+class QuestionInline(admin.TabularInline):
+    model = Question
+    extra = 1
+
+
+# ================================
+# Skill Admin (مع الأسئلة + MathLive)
 # ================================
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
     list_display = ('title', 'category')
+    inlines = [QuestionInline]
 
     def render_change_form(self, request, context, add=False, change=False, form_url='', obj=None):
         response = super().render_change_form(request, context, add, change, form_url, obj)
@@ -180,6 +177,9 @@ class SkillAdmin(admin.ModelAdmin):
         return response
 
 
+# ================================
+# Question Admin (كما هو + MathLive)
+# ================================
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('question_text', 'skill')
