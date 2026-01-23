@@ -78,3 +78,73 @@ class QuestionAdmin(admin.ModelAdmin):
 admin.site.register(SchoolSettings)
 admin.site.register(Teacher)
 admin.site.register(Profile)
+from django.contrib import admin
+from django import forms
+from .models import SchoolSettings, Profile, Teacher, Skill, Question
+
+# عنوان لوحة التحكم
+admin.site.site_header = "إدارة منصة آمنة التعليمية 📚"
+
+# كود إصلاح الخطوط العربية والرياضيات (يمنع ظهور الرموز الغريبة)
+FIX_ARABIC_MATH_JS = """
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof CKEDITOR !== 'undefined') {
+            CKEDITOR.on('instanceReady', function(ev) {
+                // إجبار المحرر على دعم الخطوط العربية والرموز
+                ev.editor.editable().setStyle('direction', 'rtl');
+                ev.editor.editable().setStyle('font-family', 'Arial, sans-serif');
+                ev.editor.config.entities = false; // يمنع تحويل العربي لرموز غريبة مثل & #1632;
+                ev.editor.config.basicEntities = false;
+            });
+        }
+    });
+
+    function insertMath(editorId, type) {
+        var editor = CKEDITOR.instances[editorId];
+        var html = "";
+        if (type === 'frac') {
+            html = '<span style="display:inline-block; vertical-align:middle; text-align:center; direction:rtl;">' +
+                   '<div style="border-bottom:1px solid #000; padding:0 5px;">بسط</div>' +
+                   '<div>مقام</div></span>&nbsp;';
+        } else if (type === 'sqrt') {
+            html = '<span style="direction:rtl;">√<span style="border-top:1px solid #000;">&nbsp;رقم&nbsp;</span></span>&nbsp;';
+        }
+        editor.insertHtml(html);
+    }
+</script>
+"""
+
+# إعداد شكل إضافة السؤال (Inline)
+class QuestionInline(admin.StackedInline): # غيرناها لـ Stacked عشان تظهر الخيارات واضحة
+    model = Question
+    extra = 1
+    # سأترك النظام يظهر الحقول تلقائياً لتجنب خطأ FieldError مرة أخرى
+
+@admin.register(Skill)
+class SkillAdmin(admin.ModelAdmin):
+    list_display = ('title', 'category')
+    inlines = [QuestionInline]
+
+    def render_change_form(self, request, context, **kwargs):
+        response = super().render_change_form(request, context, **kwargs)
+        response.render()
+        content = response.content.decode('utf-8').replace('</body>', FIX_ARABIC_MATH_JS + '</body>')
+        response.content = content.encode('utf-8')
+        return response
+
+@admin.register(Question)
+class QuestionAdmin(admin.ModelAdmin):
+    list_display = ('question_text', 'skill')
+    
+    def render_change_form(self, request, context, **kwargs):
+        response = super().render_change_form(request, context, **kwargs)
+        response.render()
+        content = response.content.decode('utf-8').replace('</body>', FIX_ARABIC_MATH_JS + '</body>')
+        response.content = content.encode('utf-8')
+        return response
+
+# تسجيل باقي الموديلات
+admin.site.register(SchoolSettings)
+admin.site.register(Teacher)
+admin.site.register(Profile)
