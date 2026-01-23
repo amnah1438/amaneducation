@@ -1,10 +1,10 @@
-from django.contrib admin
+from django.contrib import admin  # تم تصحيح هذا السطر
 from .models import SchoolSettings, Profile, Teacher, Skill, Question
 
-# إعدادات واجهة الإدارة
+# عنوان لوحة التحكم
 admin.site.site_header = "إدارة منصة آمنة التعليمية 📚"
 
-# كود لوحة الرموز المطور مع توضيح مكان الرسم
+# كود لوحة الرسم والرموز
 MATHLIVE_JS = """
 <script src="https://unpkg.com/mathlive"></script>
 <script>
@@ -27,7 +27,7 @@ MATHLIVE_JS = """
                         <button id="close-math" style="background:#cc0000; color:white; border:none; padding:10px 30px; border-radius:8px; cursor:pointer; font-weight:bold;">❌ إلغاء</button>
                     </div>
                     <p style="margin-top:15px; font-size:14px; color:#c62828; text-align:center; font-weight:bold; background:#ffebee; padding:10px; border-radius:5px;">
-                        💡 للرسم: انقري داخل المربع الأبيض أعلاه، ثم من اللوحة السفلية اضغطي على زر "لوحة المفاتيح الصغيرة" واختاري أيقونة القلم 📝.
+                        💡 للرسم: انقري داخل المربع الأبيض، ثم من اللوحة السفلية اضغطي على زر "لوحة المفاتيح" واختاري أيقونة القلم 📝.
                     </p>
                 </div>`;
             document.body.appendChild(overlay);
@@ -63,28 +63,27 @@ MATHLIVE_JS = """
 </script>
 """
 
-# --- تسجيل زر الأسئلة بشكل صريح ليظهر في القائمة ---
+# تسجيل زر الأسئلة بشكل صريح ليظهر في القائمة الجانبية
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('question_text', 'skill')
-    # هذا السطر هو الذي يحقن زر الرسم داخل صفحة السؤال
     def render_change_form(self, request, context, **kwargs):
         response = super().render_change_form(request, context, **kwargs)
         response.render()
         response.content = response.content.replace(b'</body>', MATHLIVE_JS.encode() + b'</body>')
         return response
 
-# --- تسجيل المهارات ---
+# تسجيل المهارات
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
     list_display = ('title', 'category')
     def render_change_form(self, request, context, **kwargs):
-        response = super().render_change_form(request, context, **kwargs)
+        response = super().render_change_form(request, request, context, **kwargs)
         response.render()
         response.content = response.content.replace(b'</body>', MATHLIVE_JS.encode() + b'</body>')
         return response
 
-# تسجيل بقية الموديلات الأساسية
+# تسجيل الموديلات الباقية
 admin.site.register(SchoolSettings)
 admin.site.register(Teacher)
 admin.site.register(Profile)
