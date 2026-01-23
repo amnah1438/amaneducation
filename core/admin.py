@@ -16,89 +16,70 @@ class SkillAdmin(admin.ModelAdmin):
         response = super().render_change_form(request, context, **kwargs)
         response.render()
         
-        # كود التحريك الحر الفعلي + حذف البوكسات المشوهة
-        advanced_logic = """
+        custom_logic = """
         <script>
-            // وظيفة إدراج رمز يمكنك تحريكه بالفأرة في أي مكان (مثل الستيكر)
-            function insertFloatingSymbol(editorId) {
+            // وظيفة تقريب الأسطر (تباعد صغير جداً)
+            function shrinkLines(editorId) {
                 var editor = CKEDITOR.instances[editorId];
-                // نستخدم Style تجعل العنصر يطفو فوق النص وتحركه بحرية
-                var symbolHtml = `
-                    <span class="floating-sticker" contenteditable="true" 
-                          style="display:inline-block; position:absolute; cursor:move; 
-                                 background:rgba(111, 66, 193, 0.1); border:1px dashed #6f42c1; 
-                                 padding:2px 8px; border-radius:4px; color:#6f42c1; z-index:9999;">
-                        +
-                    </span>&nbsp;`;
-                editor.insertHtml(symbolHtml);
+                var style = new CKEDITOR.style({ element: 'div', attributes: { 'style': 'line-height:0.6;' } });
+                editor.applyStyle(style);
+            }
+
+            // وظيفة إدراج رمز حر وقابل للسحب
+            function insertDraggableIcon(editorId) {
+                var editor = CKEDITOR.instances[editorId];
+                // نستخدم خاصية draggable و absolute للتحريك
+                var html = '<span class="movable" contenteditable="true" draggable="true" ondragstart="event.dataTransfer.setData(\'text/plain\',null)" style="display:inline-block; cursor:move; color:#6f42c1; font-weight:bold; position:relative; padding:2px; border:1px dashed #ddd;">+</span>&nbsp;';
+                editor.insertHtml(html);
             }
 
             document.addEventListener('DOMContentLoaded', function() {
                 if (typeof CKEDITOR !== 'undefined') {
                     CKEDITOR.on('instanceReady', function(ev) {
                         ev.editor.config.contentsLangDirection = 'rtl';
-                        // تفعيل ميزة تباعد الأسطر (التقريب) في القائمة
-                        ev.editor.config.line_height = "0.5;0.7;1.0;1.2;1.5";
                         ev.editor.editable().setStyle('font-family', 'Cairo, sans-serif');
-                        
-                        // إضافة كود برمجي يسمح بالسحب والإفلات داخل المحرر
-                        ev.editor.on('doubleclick', function(evt) {
-                            var element = evt.data.element;
-                            if (element.hasClass('floating-sticker')) {
-                                alert('يمكنك الآن سحب هذا الرمز بالفأرة لأي مكان');
-                            }
-                        });
                     });
                 }
             });
         </script>
         <style>
-            /* حذف أي بوكسات قديمة وتنسيق الواجهة */
             :root { --p: #6f42c1; }
             #header { background: var(--p) !important; }
             
-            /* الفاصل البنفسجي الأنيق (خط نحيف فوق كل سؤال) */
+            /* فاصل بنفسجي أنيق ونحيف */
             .inline-group .inline-related {
-                border: 1px solid #eee !important;
+                border: 1px solid #ddd !important;
                 border-top: 5px solid var(--p) !important;
-                margin-bottom: 30px !important;
+                margin-bottom: 25px !important;
                 border-radius: 8px !important;
-                overflow: visible !important;
             }
 
-            /* شريط الأدوات الجديد: أنيق، بسيط، وبدون بوكسات كبيرة */
-            .amna-simple-bar {
-                display: flex; align-items: center; 
-                padding: 10px; background: #fff; 
-                border: 1px solid #ddd; border-bottom: none;
-                border-radius: 8px 8px 0 0; margin-top: 15px;
+            /* تحويل البوكس الكبير إلى أيقونات صغيرة أنيقة فوق المحرر */
+            .mini-tools {
+                display: flex; gap: 8px; padding: 5px; 
+                background: #fff; border: 1px solid #eee; border-bottom: none;
+                border-radius: 5px 5px 0 0; width: fit-content; margin-top: 10px;
             }
-            .btn-sticker {
-                background: var(--p); color: white; border: none;
-                padding: 6px 15px; border-radius: 4px; cursor: pointer;
-                font-weight: bold; font-size: 13px;
+            .tool-icon {
+                background: #f8f6fc; border: 1px solid var(--p); color: var(--p);
+                padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold;
             }
-            .btn-sticker:hover { background: #59359a; }
-            .hint { margin-right: 15px; color: #777; font-size: 12px; }
-
-            /* إخفاء ويدجت django الأصلية المزعجة */
+            .tool-icon:hover { background: var(--p); color: white; }
             .django-ckeditor-widget { border: none !important; }
         </style>
         """
         
-        # الشريط الجديد النظيف
-        clean_toolbar = """
-        <div class="amna-simple-bar">
-            <button type="button" class="btn-sticker" onclick="insertFloatingSymbol(this.parentElement.nextElementSibling.querySelector('textarea').id)">
-                ➕ إدراج رمز "حر الحركة"
-            </button>
-            <span class="hint">💡 <b>لتحريك الرمز:</b> اسحبيه بالفأرة وضعي الزائد في المكان الذي تريدينه.</span>
+        # الأيقونات الصغيرة الجديدة
+        mini_toolbar = """
+        <div class="mini-tools">
+            <button type="button" class="tool-icon" title="إدراج رمز للتحريك" onclick="insertDraggableIcon(this.parentElement.nextElementSibling.querySelector('textarea').id)">➕ رمز حر</button>
+            <button type="button" class="tool-icon" title="تقريب الأسطر من بعضها" onclick="shrinkLines(this.parentElement.nextElementSibling.querySelector('textarea').id)">↕️ تقريب الأسطر</button>
         </div>
         """
         
         content = response.content.decode('utf-8')
-        new_content = content.replace('</body>', advanced_logic + '</body>')
-        new_content = new_content.replace('<div class="django-ckeditor-widget"', clean_toolbar + '<div class="django-ckeditor-widget"')
+        new_content = content.replace('</body>', custom_logic + '</body>')
+        new_content = new_content.replace('<div class="django-ckeditor-widget"', mini_toolbar + '<div class="django-ckeditor-widget"')
         
         response.content = new_content.encode('utf-8')
         return response
