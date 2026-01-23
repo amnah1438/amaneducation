@@ -1,19 +1,14 @@
 from django.contrib import admin
 from .models import SchoolSettings, Profile, Teacher, Skill, Question
 
-# --- إعدادات واجهة الإدارة ---
+# إعدادات الواجهة
 admin.site.site_header = "إدارة منصة آمنة التعليمية 📚"
 
-# --- كود التشغيل القوي لحل مشكلة التجميد وتفعيل الرسم ---
+# كود تفعيل اللوحة بقوة أكبر للماك
 MATHLIVE_JS = """
 <script src="https://unpkg.com/mathlive"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // إعدادات عالمية للوحة المفاتيح لتعمل بشكل أفضل على الماك
-        if (window.mathVirtualKeyboard) {
-            window.mathVirtualKeyboard.layouts = 'default';
-        }
-
         window.openMathDrawer = function(targetId) {
             const editor = CKEDITOR.instances[targetId];
             const overlay = document.createElement('div');
@@ -22,41 +17,34 @@ MATHLIVE_JS = """
             
             overlay.innerHTML = `
                 <div style="background:white; padding:25px; border-radius:15px; width:95%; max-width:800px; direction:rtl; text-align:right;">
-                    <h3 style="color:#2d5a27; margin-bottom:15px;">🎨 ارسم أو اكتب الرموز الرياضية</h3>
-                    
+                    <h3 style="color:#2d5a27;">🎨 لوحة الرسم والرموز الرياضية</h3>
                     <math-field id="drawer-field" 
-                        style="width:100%; font-size:32px; border:2px solid #2d5a27; border-radius:10px; margin-bottom:20px; padding:15px; background:#f9f9f9;"
+                        style="width:100%; font-size:32px; border:2px solid #2d5a27; border-radius:10px; margin-bottom:20px; padding:15px;"
                         virtual-keyboard-mode="onfocus">
                     </math-field>
-
                     <div style="display:flex; gap:15px; justify-content:center;">
-                        <button id="insert-math" style="background:#2d5a27; color:white; border:none; padding:12px 35px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:18px;">✅ إدراج في النص</button>
-                        <button id="close-math" style="background:#cc0000; color:white; border:none; padding:12px 35px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:18px;">❌ إلغاء</button>
+                        <button id="insert-math" style="background:#2d5a27; color:white; border:none; padding:12px 35px; border-radius:8px; cursor:pointer; font-weight:bold;">✅ إدراج في الدرس</button>
+                        <button id="close-math" style="background:#cc0000; color:white; border:none; padding:12px 35px; border-radius:8px; cursor:pointer; font-weight:bold;">❌ إلغاء</button>
                     </div>
-                    <div style="background:#fff9c4; padding:10px; border-radius:8px; margin-top:15px; font-size:14px; color:#333; text-align:center;">
-                        💡 <b>لتفعيل الرسم:</b> اضغطي داخل المربع الأبيض، ثم من اللوحة السفلية اضغطي على زر "لوحة المفاتيح الصغيرة" (بجانب الـ ☰) واختاري 📝.
-                    </div>
-                </div>
-            `;
+                </div>`;
             document.body.appendChild(overlay);
 
             const mf = document.getElementById('drawer-field');
-            
-            // إجبار الحقل على العمل فوراً
-            setTimeout(() => {
-                mf.focus();
+            setTimeout(() => { 
+                mf.focus(); 
                 if (window.mathVirtualKeyboard) window.mathVirtualKeyboard.show();
-            }, 500);
+            }, 400);
 
             document.getElementById('insert-math').onclick = function() {
-                if(mf.value) {
-                    editor.insertHtml('\\\\(' + mf.value + '\\\\)');
+                if(mf.value) { 
+                    editor.insertHtml('\\\\(' + mf.value + '\\\\)'); 
                 }
                 document.getElementById('math-overlay').remove();
+                mathVirtualKeyboard.hide();
             };
-
             document.getElementById('close-math').onclick = () => {
                 document.getElementById('math-overlay').remove();
+                mathVirtualKeyboard.hide();
             };
         };
 
@@ -65,9 +53,9 @@ MATHLIVE_JS = """
                 const textareaId = widget.querySelector('textarea').id;
                 if (!widget.querySelector('.math-draw-btn')) {
                     const btn = document.createElement('button');
-                    btn.innerHTML = '📝 إدراج رموز رياضية (رسم/كتابة)';
+                    btn.innerHTML = '📝 رسم أو إدراج رموز رياضية';
                     btn.type = 'button';
-                    btn.style = "margin-top:10px; background:#2d5a27; color:white; padding:8px 20px; border-radius:25px; cursor:pointer; font-weight:bold; border:none;";
+                    btn.style = "margin-top:10px; background:#2d5a27; color:white; padding:8px 20px; border-radius:25px; cursor:pointer; border:none; font-weight:bold;";
                     btn.onclick = () => window.openMathDrawer(textareaId);
                     widget.appendChild(btn);
                 }
@@ -87,6 +75,7 @@ class SkillAdmin(admin.ModelAdmin):
         response.content = response.content.replace(b'</body>', MATHLIVE_JS.encode() + b'</body>')
         return response
 
+# تسجيل الأسئلة بشكل مستقل ليعود الزر للقائمة الجانبية
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('question_text', 'skill')
