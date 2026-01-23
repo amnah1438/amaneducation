@@ -1,84 +1,82 @@
 from django.contrib import admin
 from .models import SchoolSettings, Profile, Teacher, Skill, Question
 
-# 1. إعدادات عنوان لوحة التحكم
+# 1. إعدادات رأس الصفحة
 admin.site.site_header = "إدارة منصة آمنة التعليمية 📚"
 
-# 2. كود لوحة الرسم والرموز الرياضية (MathLive)
-MATHLIVE_JS = """
-<script src="https://unpkg.com/mathlive"></script>
+# 2. كود محرر الرياضيات العربي الخاص (يظهر فوق صناديق النصوص)
+ARABIC_MATH_JS = """
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        window.openMathDrawer = function(targetId) {
-            const editor = CKEDITOR.instances[targetId];
-            const overlay = document.createElement('div');
-            overlay.id = "math-overlay";
-            overlay.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; display:flex; align-items:center; justify-content:center;";
-            overlay.innerHTML = `
-                <div style="background:white; padding:25px; border-radius:15px; width:95%; max-width:800px; direction:rtl; text-align:right;">
-                    <h3 style="color:#2d5a27;">🎨 لوحة الرسم والرموز الرياضية</h3>
-                    <math-field id="drawer-field" style="width:100%; font-size:32px; border:2px solid #2d5a27; border-radius:10px; margin-bottom:15px; padding:15px;" virtual-keyboard-mode="onfocus"></math-field>
-                    <div style="display:flex; gap:10px; justify-content:center;">
-                        <button id="insert-math" style="background:#2d5a27; color:white; border:none; padding:10px 30px; border-radius:8px; cursor:pointer; font-weight:bold;">✅ إدراج</button>
-                        <button id="close-math" style="background:#cc0000; color:white; border:none; padding:10px 30px; border-radius:8px; cursor:pointer; font-weight:bold;">❌ إلغاء</button>
-                    </div>
-                </div>`;
-            document.body.appendChild(overlay);
-            const mf = document.getElementById('drawer-field');
-            setTimeout(() => { mf.focus(); if (window.mathVirtualKeyboard) window.mathVirtualKeyboard.show(); }, 400);
-            document.getElementById('insert-math').onclick = function() {
-                if(mf.value) { editor.insertHtml('\\\\(' + mf.value + '\\\\)'); }
-                document.getElementById('math-overlay').remove();
-            };
-            document.getElementById('close-math').onclick = () => document.getElementById('math-overlay').remove();
-        };
-        function injectButtons() {
-            document.querySelectorAll('.django-ckeditor-widget').forEach(widget => {
-                const textareaId = widget.querySelector('textarea').id;
-                if (!widget.querySelector('.math-draw-btn')) {
-                    const btn = document.createElement('button');
-                    btn.innerHTML = '📝 رسم أو إدراج رموز رياضية';
-                    btn.type = 'button';
-                    btn.style = "margin: 10px 0; background:#2d5a27; color:white; padding:8px 15px; border-radius:20px; border:none; cursor:pointer; font-weight:bold;";
-                    btn.onclick = () => window.openMathDrawer(textareaId);
-                    widget.appendChild(btn);
-                }
-            });
+    function insertArabicMath(editorId, type) {
+        var editor = CKEDITOR.instances[editorId];
+        var content = "";
+        
+        if (type === 'fraction') {
+            // كسر عربي: بسط ومقام مع خط بينهما
+            content = '<span style="display:inline-block; vertical-align:middle; text-align:center; direction:rtl; font-family:Arial;">' +
+                      '<div style="border-bottom:1px solid #000; padding:0 5px;">البسط</div>' +
+                      '<div>المقام</div></span>&nbsp;';
+        } else if (type === 'root') {
+            // جذر عربي احترافي
+            content = '<span style="direction:rtl; font-family:Arial;">√<span style="border-top:1px solid #000; padding-top:2px;">&nbsp;الرقم&nbsp;</span></span>&nbsp;';
+        } else if (type === 'power') {
+            // أس عربي
+            content = '<sup>٢</sup>';
         }
-        setTimeout(injectButtons, 2000);
+        editor.insertHtml(content);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        CKEDITOR.on('instanceReady', function(evt) {
+            var editorId = evt.editor.name;
+            var container = document.getElementById(editorId).closest('.django-ckeditor-widget');
+            
+            var mathBar = document.createElement('div');
+            mathBar.style = "margin-bottom:10px; background:#f0f7f0; padding:12px; border:2px solid #2d5a27; border-radius:10px; display:flex; align-items:center; gap:10px;";
+            mathBar.innerHTML = `
+                <strong style="color:#2d5a27; font-size:14px;">🧮 أدوات الرياضيات العربية:</strong>
+                <button type="button" onclick="insertArabicMath('${editorId}', 'fraction')" style="cursor:pointer; background:#2d5a27; color:white; border:none; padding:6px 12px; border-radius:5px; font-weight:bold;">➕ كسر عربي</button>
+                <button type="button" onclick="insertArabicMath('${editorId}', 'root')" style="cursor:pointer; background:#2d5a27; color:white; border:none; padding:6px 12px; border-radius:5px; font-weight:bold;">➕ جذر عربي</button>
+                <button type="button" onclick="insertArabicMath('${editorId}', 'power')" style="cursor:pointer; background:#2d5a27; color:white; border:none; padding:6px 12px; border-radius:5px; font-weight:bold;">➕ أس²</button>
+                <small style="color:#666; margin-right:auto;">(بعد الإدراج، غيري الكلمات بالأرقام العربية)</small>
+            `;
+            container.prepend(mathBar);
+        });
     });
 </script>
 """
 
-# 3. تفعيل إضافة الأسئلة داخل صفحة المهارة (Inline)
+# 3. إعداد الأسئلة داخل صفحة المهارة
 class QuestionInline(admin.TabularInline):
     model = Question
     extra = 1
+    fields = ['question_text', 'choice_a', 'choice_b', 'choice_c', 'choice_d', 'correct_answer']
 
-# 4. تسجيل قسم المهارات (Skill) مع الأسئلة المدمجة
 @admin.register(Skill)
 class SkillAdmin(admin.ModelAdmin):
     list_display = ('title', 'category')
-    inlines = [QuestionInline] # لربط الأسئلة بالمهارة في نفس الصفحة
-    
+    inlines = [QuestionInline]
+
     def render_change_form(self, request, context, **kwargs):
-        # تصحيح الـ request لتجنب الخطأ السابق
         response = super().render_change_form(request, context, **kwargs)
         response.render()
-        response.content = response.content.replace(b'</body>', MATHLIVE_JS.encode() + b'</body>')
+        # حقن المحرر الخاص في الصفحة
+        new_content = response.content.decode('utf-8').replace('</body>', ARABIC_MATH_JS + '</body>')
+        response.content = new_content.encode('utf-8')
         return response
 
-# 5. تسجيل قسم الأسئلة (Question) ليعود للقائمة الجانبية (تمت إعادته هنا)
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ('question_text', 'skill')
+    
     def render_change_form(self, request, context, **kwargs):
         response = super().render_change_form(request, context, **kwargs)
         response.render()
-        response.content = response.content.replace(b'</body>', MATHLIVE_JS.encode() + b'</body>')
+        new_content = response.content.decode('utf-8').replace('</body>', ARABIC_MATH_JS + '</body>')
+        response.content = new_content.encode('utf-8')
         return response
 
-# 6. تسجيل باقي الأقسام الأساسية
+# 4. تسجيل باقي الموديلات
 admin.site.register(SchoolSettings)
 admin.site.register(Teacher)
 admin.site.register(Profile)
