@@ -6,7 +6,6 @@ from .forms import LoginForm
 
 def login_view(request):
     """صفحة تسجيل الدخول"""
-    # لو المستخدم داخل أصلاً — وجّهه للصفحة المناسبة
     if request.user.is_authenticated:
         return redirect_by_role(request.user)
 
@@ -37,12 +36,12 @@ def logout_view(request):
 def redirect_by_role(user):
     """توجيه المستخدم حسب دوره"""
     try:
-        role = user.profile.role
-        if role == 'admin':
-            return redirect('admin_dashboard')
-        elif role == 'teacher':
-            return redirect('teacher_dashboard')
-        elif role == 'student':
-            return redirect('student_dashboard')
+        role = user.core_profile.role
+        if role == 'ADMIN':
+            return redirect('home')
+        elif role == 'TEACHER':
+            return redirect('home')
+        elif role == 'STUDENT':
+            return redirect('home')
     except:
         return redirect('home')
