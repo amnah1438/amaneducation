@@ -21,24 +21,41 @@
       border-radius: 20px;
       padding: 40px 32px;
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.2);
     }
     .logo { text-align: center; margin-bottom: 28px; }
     .logo h1 { font-size: 1.4rem; font-weight: 900; color: #1a7a4a; margin-bottom: 4px; }
     .logo p { font-size: 0.85rem; color: #888; }
+
+    /* تبويبات نوع الدخول */
+    .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+    .tab {
+      flex: 1; padding: 10px;
+      border-radius: 10px; border: 2px solid #e4e4e4;
+      background: #f5f7fa; cursor: pointer;
+      text-align: center; font-family: 'Cairo', sans-serif;
+      font-size: 0.88rem; font-weight: 700; color: #666;
+      transition: all 0.2s;
+    }
+    .tab.active {
+      background: linear-gradient(135deg, #1a7a4a, #1a4a8a);
+      color: white; border-color: transparent;
+    }
+
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+
     .form-group { margin-bottom: 18px; }
     .form-group label {
       display: block; font-weight: 700;
-      font-size: 0.88rem; color: #333;
-      margin-bottom: 6px;
+      font-size: 0.88rem; color: #333; margin-bottom: 6px;
     }
     .form-input {
       width: 100%; padding: 12px 16px;
-      border: 2px solid #e4e4e4;
-      border-radius: 10px; font-family: 'Cairo', sans-serif;
-      font-size: 0.95rem; transition: border-color 0.2s;
-      outline: none;
+      border: 2px solid #e4e4e4; border-radius: 10px;
+      font-family: 'Cairo', sans-serif; font-size: 0.95rem;
+      transition: border-color 0.2s; outline: none;
     }
     .form-input:focus { border-color: #1a7a4a; }
     .btn-login {
@@ -63,25 +80,57 @@
   <div class="login-card">
     <div class="logo">
       <h1>🎓 منصة آمنة التعليمية</h1>
-      <p>سجّلي دخولك للمتابعة</p>
+      <p>اختاري نوع الدخول</p>
     </div>
 
-    {% if form.non_field_errors %}
-      <div class="error">{{ form.non_field_errors }}</div>
+    {% if error %}
+      <div class="error">{{ error }}</div>
     {% endif %}
 
-    <form method="POST">
-      {% csrf_token %}
-      <div class="form-group">
-        <label>اسم المستخدم</label>
-        <input type="text" name="username" class="form-input" placeholder="اسم المستخدم" autofocus>
-      </div>
-      <div class="form-group">
-        <label>كلمة المرور</label>
-        <input type="password" name="password" class="form-input" placeholder="كلمة المرور">
-      </div>
-      <button type="submit" class="btn-login">دخول ←</button>
-    </form>
+    <!-- تبويبات -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('admin')">🏫 المديرة</button>
+      <button class="tab" onclick="switchTab('id')">👩‍🏫 معلمة / طالبة</button>
+    </div>
+
+    <!-- دخول المديرة -->
+    <div class="form-section active" id="form-admin">
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="login_type" value="admin">
+        <div class="form-group">
+          <label>اسم المستخدم</label>
+          <input type="text" name="username" class="form-input" placeholder="اسم المستخدم" autofocus>
+        </div>
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" name="password" class="form-input" placeholder="كلمة المرور">
+        </div>
+        <button type="submit" class="btn-login">دخول ←</button>
+      </form>
+    </div>
+
+    <!-- دخول المعلمة / الطالبة -->
+    <div class="form-section" id="form-id">
+      <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="login_type" value="id">
+        <div class="form-group">
+          <label>رقم الهوية</label>
+          <input type="text" name="national_id" class="form-input" placeholder="أدخلي رقم هويتك">
+        </div>
+        <button type="submit" class="btn-login">دخول ←</button>
+      </form>
+    </div>
   </div>
+
+  <script>
+    function switchTab(type) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.form-section').forEach(f => f.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('form-' + type).classList.add('active');
+    }
+  </script>
 </body>
 </html>
