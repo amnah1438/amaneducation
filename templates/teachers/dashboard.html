@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>داشبورد المعلمة</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #f8f9ff; }
+        .top-bar {
+            background: linear-gradient(135deg, #0d5c35, #1a4a8a);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-bar a { color: white; text-decoration: none; font-weight: 700; }
+        .top-bar span { color: white; font-weight: 700; }
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            border-bottom: 5px solid;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+        .stat-num { font-size: 2rem; font-weight: 900; }
+        .stat-label { color: #666; font-size: 0.9rem; margin-top: 4px; }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #1a4a8a;
+            margin: 24px 0 12px;
+            padding-right: 12px;
+            border-right: 4px solid #1a7a4a;
+        }
+        .chart-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <a href="{% url 'logout' %}">تسجيل الخروج 🚪</a>
+        <span>👩‍🏫 أهلاً، {{ user.username }}</span>
+        <a href="{% url 'home' %}">الرئيسية 🏠</a>
+    </div>
+
+    <div class="container py-4">
+        <h4 class="fw-bold mb-4">📊 داشبورد المعلمة</h4>
+
+        <!-- إحصاءات سريعة -->
+        <div class="row g-3 mb-2">
+            <div class="col-6 col-md-3">
+                <div class="stat-card" style="border-color:#1a7a4a">
+                    <div class="stat-num" style="color:#1a7a4a">{{ total_students }}</div>
+                    <div class="stat-label">عدد الطالبات 👩‍🎓</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card" style="border-color:#1a4a8a">
+                    <div class="stat-num" style="color:#1a4a8a">{{ total_skills }}</div>
+                    <div class="stat-label">المهارات المدرّسة 📚</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card" style="border-color:#e07b2a">
+                    <div class="stat-num" style="color:#e07b2a">{{ total_assessments }}</div>
+                    <div class="stat-label">الاختبارات المفعّلة 📝</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card" style="border-color:#7c6fcd">
+                    <div class="stat-num" style="color:#7c6fcd">{{ avg_score }}%</div>
+                    <div class="stat-label">متوسط النجاح 📈</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- رسوم بيانية -->
+        <div class="section-title">📈 الرسوم البيانية</div>
+        <div class="row g-3 mb-2">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h6 class="fw-bold mb-3">توزيع مستويات الطالبات</h6>
+                    <canvas id="levelChart" height="200"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h6 class="fw-bold mb-3">مقارنة القبلي والبعدي</h6>
+                    <canvas id="prePostChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- قائمة الطالبات -->
+        <div class="section-title">👩‍🎓 قائمة الطالبات</div>
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead style="background:#f5f7fa">
+                        <tr>
+                            <th>#</th>
+                            <th>اسم الطالبة</th>
+                            <th>الفصل</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ student.name }}</td>
+                            <td>{{ student.classroom }}</td>
+                            <td><span class="badge bg-success">نشطة</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">
+                                لا يوجد طالبات بعد
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- المهارات الضعيفة -->
+        <div class="section-title">⚠️ المهارات الضعيفة</div>
+        <div class="card border-0 shadow-sm rounded-4 p-3">
+            <p class="text-muted text-center py-3">ستظهر المهارات الضعيفة بعد إجراء الاختبارات</p>
+        </div>
+
+    </div>
+
+    <script>
+        // توزيع المستويات
+        new Chart(document.getElementById('levelChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['ممتازة', 'جيدة', 'متوسطة', 'ضعيفة'],
+                datasets: [{ 
+                    data: [4, 7, 9, 3],
+                    backgroundColor: ['#1a7a4a','#1a4a8a','#f0a500','#e74c3c'],
+                    borderWidth: 0 
+                }]
+            },
+            options: { 
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+
+        // مقارنة قبلي وبعدي
+        new Chart(document.getElementById('prePostChart'), {
+            type: 'bar',
+            data: {
+                labels: ['الكسور', 'النسبة', 'الأعداد', 'الضرب'],
+                datasets: [
+                    { label: 'قبلي', data: [42, 40, 45, 35], backgroundColor: 'rgba(26,74,138,0.6)', borderRadius: 6 },
+                    { label: 'بعدي', data: [69, 66, 65, 58], backgroundColor: 'rgba(26,122,74,0.8)', borderRadius: 6 }
+                ]
+            },
+            options: { 
+                responsive: true,
+                scales: { y: { min: 0, max: 100 } }
+            }
+        });
+    </script>
+
+</body>
+</html>
