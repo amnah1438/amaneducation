@@ -1,181 +1,1578 @@
-{% load static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>داشبورد المعلمة</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-    <style>
-        body { font-family: 'Tajawal', sans-serif; background: #f8f9ff; }
-        .top-bar {
-            background: linear-gradient(135deg, #0d5c35, #1a4a8a);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .top-bar a { color: white; text-decoration: none; font-weight: 700; }
-        .top-bar span { color: white; font-weight: 700; }
-        .stat-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            text-align: center;
-            border-bottom: 5px solid;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-        }
-        .stat-num { font-size: 2rem; font-weight: 900; }
-        .stat-label { color: #666; font-size: 0.9rem; margin-top: 4px; }
-        .section-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: #1a4a8a;
-            margin: 24px 0 12px;
-            padding-right: 12px;
-            border-right: 4px solid #1a7a4a;
-        }
-        .chart-card {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد المعلمة — منصة آمنة التعليمية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #0a0d14;
+  --bg2: #0f1320;
+  --bg3: #141928;
+  --card: #111827;
+  --card2: #1a2235;
+  --border: #1e2a3d;
+  --border2: #263245;
+  --green: #10b981;
+  --green2: #065f46;
+  --green3: #d1fae5;
+  --blue: #3b82f6;
+  --blue2: #1e3a5f;
+  --purple: #8b5cf6;
+  --purple2: #4c1d95;
+  --orange: #f59e0b;
+  --orange2: #78350f;
+  --red: #ef4444;
+  --red2: #7f1d1d;
+  --teal: #14b8a6;
+  --text: #f1f5f9;
+  --text2: #94a3b8;
+  --text3: #475569;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Tajawal', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════
+   TOPBAR
+═══════════════════════════════ */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  backdrop-filter: blur(10px);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 200px;
+}
+
+.logo-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--green), var(--blue));
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.logo-text { font-size: 13px; font-weight: 700; color: var(--text); }
+.logo-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+
+.nav {
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  flex: 1;
+  justify-content: center;
+  padding: 0 10px;
+}
+
+.nav::-webkit-scrollbar { display: none; }
+
+.nb {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.nb:hover { background: var(--bg3); color: var(--text2); }
+
+.nb.on {
+  background: rgba(59,130,246,0.1);
+  color: var(--blue);
+  border: 1px solid rgba(59,130,246,0.2);
+}
+
+.nb .notif {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  width: 6px;
+  height: 6px;
+  background: var(--red);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+.topright {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 200px;
+  justify-content: flex-end;
+}
+
+.clock {
+  text-align: left;
+  font-size: 10px;
+}
+
+.clock-date { color: var(--blue); font-weight: 500; }
+.clock-time { color: var(--text3); margin-top: 1px; font-variant-numeric: tabular-nums; }
+
+.user-badge {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 10px;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.user-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+
+.print-btn {
+  background: linear-gradient(135deg, var(--green2), var(--blue2));
+  border: 1px solid var(--green);
+  color: white;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 10px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.print-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+/* ═══════════════════════════════
+   PAGES
+═══════════════════════════════ */
+.pg { display: none; padding: 14px 18px; animation: fadeIn 0.3s ease; }
+.pg.on { display: block; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ═══════════════════════════════
+   FILTERS
+═══════════════════════════════ */
+.frow {
+  display: flex;
+  gap: 7px;
+  margin-bottom: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.fsel {
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  color: var(--text2);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 10px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.fsel:focus { border-color: var(--blue); }
+.fsel.fon { background: rgba(16,185,129,0.08); border-color: var(--green); color: var(--green); }
+
+.rbtn {
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 10px;
+  padding: 5px 9px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: auto;
+}
+
+.rbtn:hover { color: var(--text2); border-color: var(--border2); }
+.lupd { font-size: 9px; color: var(--text3); }
+
+/* ═══════════════════════════════
+   KPI GRID
+═══════════════════════════════ */
+.kg {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.kc {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+  cursor: default;
+}
+
+.kc::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.kc.g::before { background: linear-gradient(90deg, var(--green), transparent); }
+.kc.b::before { background: linear-gradient(90deg, var(--blue), transparent); }
+.kc.p::before { background: linear-gradient(90deg, var(--purple), transparent); }
+.kc.o::before { background: linear-gradient(90deg, var(--orange), transparent); }
+.kc.r::before { background: linear-gradient(90deg, var(--red), transparent); }
+.kc.t::before { background: linear-gradient(90deg, var(--teal), transparent); }
+
+.kc:hover { transform: translateY(-2px); border-color: var(--border2); }
+
+.kl { font-size: 9px; color: var(--text3); margin-bottom: 5px; }
+.kv { font-size: 22px; font-weight: 700; line-height: 1; }
+.kch { font-size: 9px; margin-top: 4px; }
+.up { color: var(--green); }
+.dn { color: var(--red); }
+.nu { color: var(--text3); }
+
+/* ═══════════════════════════════
+   CARDS
+═══════════════════════════════ */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+  transition: border-color 0.2s;
+}
+
+.card:hover { border-color: var(--border2); }
+
+.ch {
+  padding: 9px 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.ct { font-size: 11px; font-weight: 600; color: var(--text2); }
+.ca { display: flex; gap: 4px; align-items: center; }
+
+.cab {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  font-size: 9px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Tajawal', sans-serif;
+  transition: all 0.2s;
+}
+
+.cab:hover { color: var(--text2); border-color: var(--border2); }
+.cab.on { color: var(--blue); border-color: rgba(59,130,246,0.4); background: rgba(59,130,246,0.08); }
+
+.cb { padding: 11px 13px; }
+
+/* ═══════════════════════════════
+   GRIDS
+═══════════════════════════════ */
+.g2 { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; margin-bottom: 10px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.g2e { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.g3q { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-bottom: 10px; }
+
+/* ═══════════════════════════════
+   PROGRESS BARS
+═══════════════════════════════ */
+.pr { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; }
+.plb { font-size: 10px; min-width: 115px; color: var(--text3); }
+.pb { flex: 1; height: 5px; background: var(--bg3); border-radius: 8px; overflow: hidden; }
+.pf { height: 100%; border-radius: 8px; transition: width 0.8s ease; }
+.pv { font-size: 10px; font-weight: 600; min-width: 30px; text-align: left; }
+
+/* ═══════════════════════════════
+   SPARKLINES
+═══════════════════════════════ */
+.sr {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sr:hover { background: var(--bg3); }
+.sn { font-size: 10px; color: var(--text2); min-width: 90px; }
+.sv { font-size: 10px; font-weight: 600; min-width: 32px; text-align: left; }
+.sc { font-size: 9px; min-width: 26px; text-align: left; }
+
+/* ═══════════════════════════════
+   HEATMAP
+═══════════════════════════════ */
+.hm { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.hd { height: 12px; border-radius: 2px; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
+.hd:hover { transform: scale(1.4); opacity: 0.9; }
+.hlb { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; margin-bottom: 4px; }
+.hlbi { font-size: 8px; color: var(--text3); text-align: center; }
+
+/* ═══════════════════════════════
+   TIMELINE
+═══════════════════════════════ */
+.tl { padding-right: 14px; position: relative; }
+.tl::before { content: ''; position: absolute; right: 3px; top: 0; bottom: 0; width: 1px; background: var(--border); }
+.tli { display: flex; gap: 9px; margin-bottom: 10px; }
+.tld { width: 7px; height: 7px; border-radius: 50%; margin-top: 3px; flex-shrink: 0; z-index: 1; position: relative; }
+.tlt { font-size: 10px; color: var(--text2); font-weight: 500; }
+.tltm { font-size: 9px; color: var(--text3); margin-top: 2px; }
+.tlb { display: inline-block; padding: 1px 6px; border-radius: 8px; font-size: 8px; margin-top: 3px; font-weight: 500; }
+
+/* ═══════════════════════════════
+   STATUS GRID
+═══════════════════════════════ */
+.stg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.sti { background: var(--card2); border-radius: 7px; padding: 9px; border: 1px solid var(--border); }
+.stt { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.stn { font-size: 9px; color: var(--text3); }
+.stv { font-size: 17px; font-weight: 700; }
+.stb { height: 2px; border-radius: 2px; background: var(--bg3); overflow: hidden; margin-top: 5px; }
+.stf { height: 100%; border-radius: 2px; }
+.slive { width: 6px; height: 6px; border-radius: 50%; animation: pulse 1.5s infinite; }
+
+/* ═══════════════════════════════
+   TABLES
+═══════════════════════════════ */
+.tb { width: 100%; border-collapse: collapse; font-size: 10px; }
+.tb th {
+  color: var(--text3);
+  font-weight: 500;
+  padding: 6px 8px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  font-size: 9px;
+  background: var(--bg3);
+  white-space: nowrap;
+}
+.tb td { padding: 6px 8px; border-bottom: 1px solid rgba(30,42,61,0.5); color: var(--text2); }
+.tb tr:last-child td { border-bottom: none; }
+.tb tr:hover td { background: var(--card2); cursor: pointer; }
+
+/* ═══════════════════════════════
+   BADGES
+═══════════════════════════════ */
+.bd { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 9px; font-weight: 600; }
+.bp { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+.bm { background: rgba(245,158,11,0.12); color: var(--orange); border: 1px solid rgba(245,158,11,0.2); }
+.bf { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+.be { background: rgba(139,92,246,0.12); color: var(--purple); border: 1px solid rgba(139,92,246,0.2); }
+.bt { background: rgba(20,184,166,0.12); color: var(--teal); border: 1px solid rgba(20,184,166,0.2); }
+.bb { background: rgba(59,130,246,0.12); color: var(--blue); border: 1px solid rgba(59,130,246,0.2); }
+
+/* ═══════════════════════════════
+   QUANT STATS
+═══════════════════════════════ */
+.qi {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  transition: all 0.2s;
+}
+
+.qi:hover { border-color: var(--border2); transform: translateY(-1px); }
+.qn { font-size: 10px; font-weight: 600; color: var(--text2); }
+.qen { font-size: 8px; color: var(--text3); margin-right: 4px; }
+.qv { font-size: 18px; font-weight: 700; margin-top: 4px; }
+.qd { font-size: 9px; color: var(--text3); margin-top: 3px; line-height: 1.5; }
+
+/* ═══════════════════════════════
+   HIGHLIGHT BOXES
+═══════════════════════════════ */
+.hb { border-radius: 7px; padding: 8px 10px; margin-bottom: 7px; border-right: 3px solid; font-size: 10px; line-height: 1.8; }
+.hg { background: rgba(16,185,129,0.06); border-color: var(--green); color: #6ee7a0; }
+.ho { background: rgba(245,158,11,0.06); border-color: var(--orange); color: #fcd34d; }
+.hr { background: rgba(239,68,68,0.06); border-color: var(--red); color: #fca5a5; }
+.hbl { background: rgba(59,130,246,0.06); border-color: var(--blue); color: #93c5fd; }
+
+/* ═══════════════════════════════
+   LEVEL ROWS
+═══════════════════════════════ */
+.lr { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid rgba(30,42,61,0.5); }
+.lr:last-child { border-bottom: none; }
+.ln { font-size: 10px; color: var(--text3); }
+.lb { flex: 1; margin: 0 7px; height: 5px; background: var(--bg3); border-radius: 8px; overflow: hidden; }
+.lf { height: 100%; border-radius: 8px; transition: width 0.8s ease; }
+.lc { font-size: 10px; font-weight: 600; min-width: 16px; text-align: center; }
+.lp { font-size: 9px; color: var(--text3); min-width: 28px; text-align: left; }
+
+/* ═══════════════════════════════
+   ALERT GRID
+═══════════════════════════════ */
+.alg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.ali { border-radius: 9px; padding: 11px; border-right: 3px solid; }
+.alr { background: rgba(239,68,68,0.06); border-color: var(--red); }
+.alo { background: rgba(245,158,11,0.06); border-color: var(--orange); }
+.albl { background: rgba(59,130,246,0.06); border-color: var(--blue); }
+.alg2 { background: rgba(16,185,129,0.06); border-color: var(--green); }
+.alt { font-size: 11px; font-weight: 700; margin-bottom: 6px; }
+.alr .alt { color: var(--red); }
+.alo .alt { color: var(--orange); }
+.albl .alt { color: var(--blue); }
+.alg2 .alt { color: var(--green); }
+.allist { list-style: none; font-size: 10px; line-height: 2; }
+.alr .allist { color: #fca5a5; }
+.alo .allist { color: #fcd34d; }
+.albl .allist { color: #93c5fd; }
+.alg2 .allist { color: #6ee7a0; }
+
+/* ═══════════════════════════════
+   PREDICTION
+═══════════════════════════════ */
+.predg { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 10px; }
+.predi {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.2s;
+}
+.predi:hover { border-color: var(--border2); transform: translateY(-2px); }
+.predn { font-size: 20px; font-weight: 700; }
+.predl { font-size: 10px; color: var(--text3); margin-top: 4px; }
+.predc { font-size: 9px; margin-top: 3px; }
+
+/* ═══════════════════════════════
+   ACHIEVEMENTS
+═══════════════════════════════ */
+.achg { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 10px; }
+.achi {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.achi::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+}
+.achi:hover { border-color: var(--green); transform: translateY(-2px); }
+.achi.locked { opacity: 0.35; filter: grayscale(1); }
+.achio { font-size: 24px; margin-bottom: 5px; }
+.achn { font-size: 10px; color: var(--text2); font-weight: 600; }
+.achd { font-size: 9px; color: var(--text3); margin-top: 3px; }
+
+/* ═══════════════════════════════
+   MODAL
+═══════════════════════════════ */
+.mbg {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 999;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.mbg.on { display: flex; }
+
+.mdl {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 14px;
+  padding: 18px;
+  width: 92%;
+  max-width: 580px;
+  max-height: 88vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.mh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+.mt { font-size: 14px; font-weight: 700; color: var(--text); }
+.mx { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; transition: color 0.2s; }
+.mx:hover { color: var(--text); }
+
+.mtbs { display: flex; gap: 5px; margin-bottom: 12px; }
+.mtb { padding: 5px 12px; border-radius: 16px; border: 1px solid var(--border2); background: none; font-family: 'Tajawal', sans-serif; font-size: 10px; cursor: pointer; color: var(--text3); transition: all 0.2s; }
+.mtb.on { background: rgba(16,185,129,0.1); color: var(--green); border-color: rgba(16,185,129,0.3); }
+.mp { display: none; }
+.mp.on { display: block; }
+
+.mmeta { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 12px; }
+.mmi { background: var(--card2); border-radius: 7px; padding: 8px 10px; border: 1px solid var(--border); }
+.mml { font-size: 9px; color: var(--text3); margin-bottom: 2px; }
+.mmv { font-size: 12px; font-weight: 600; color: var(--text2); }
+
+.sbox { border-radius: 9px; padding: 14px; text-align: center; margin-bottom: 12px; }
+.spass { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
+.sfail { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); }
+.smid { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+.stit { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+.snum { font-size: 11px; color: var(--text3); }
+
+.mss { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-bottom: 12px; }
+.msi { background: var(--card2); border-radius: 7px; padding: 9px; text-align: center; border: 1px solid var(--border); }
+.msv { font-size: 16px; font-weight: 700; }
+.msl { font-size: 9px; color: var(--text3); margin-top: 3px; }
+
+.skr { display: flex; align-items: center; gap: 7px; padding: 5px 0; border-bottom: 1px solid rgba(30,42,61,0.5); }
+.skr:last-child { border-bottom: none; }
+.skn { font-size: 10px; min-width: 115px; color: var(--text2); }
+.skb { flex: 1; height: 5px; background: var(--bg3); border-radius: 8px; overflow: hidden; }
+.skf { height: 100%; border-radius: 8px; }
+.skv { font-size: 9px; font-weight: 600; min-width: 28px; text-align: left; }
+.skc { font-size: 9px; min-width: 30px; text-align: left; }
+
+.rec { background: var(--card2); border-radius: 7px; padding: 10px 12px; font-size: 10px; line-height: 1.9; color: var(--text2); border-right: 3px solid var(--orange); }
+
+.mbtns { margin-top: 14px; display: flex; gap: 8px; justify-content: flex-end; }
+.gbtn { background: var(--card2); color: var(--text3); border: 1px solid var(--border2); border-radius: 6px; padding: 6px 13px; font-size: 10px; font-family: 'Tajawal', sans-serif; cursor: pointer; }
+.pbtn2 { background: linear-gradient(135deg, var(--green2), var(--blue2)); color: white; border: none; border-radius: 6px; padding: 6px 13px; font-size: 10px; font-family: 'Tajawal', sans-serif; cursor: pointer; }
+
+/* ═══════════════════════════════
+   COMPARISON SECTION
+═══════════════════════════════ */
+.comp-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 7px; margin-bottom: 12px; }
+.comp-item { background: var(--card2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+.comp-label { font-size: 9px; color: var(--text3); margin-bottom: 4px; }
+.comp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.comp-sub { font-size: 9px; color: var(--text3); }
+.comp-vals { display: flex; gap: 6px; align-items: center; }
+.comp-pre { font-size: 11px; color: var(--blue); font-weight: 600; }
+.comp-post { font-size: 11px; color: var(--green); font-weight: 600; }
+.comp-arr { font-size: 9px; color: var(--text3); }
+.comp-diff { font-size: 10px; font-weight: 700; }
+
+/* ═══════════════════════════════
+   PRINT STYLES
+═══════════════════════════════ */
+@media print {
+  body { background: white !important; color: black !important; }
+  .topbar, .frow { display: none !important; }
+  .pg { display: block !important; }
+  .card, .kc, .qi, .ali, .predi, .achi { background: white !important; border: 1px solid #ddd !important; color: black !important; }
+  .ct, .kl, .sn, .plb, .tlt, .qn { color: #333 !important; }
+  .kv, .sv, .pv, .qv { color: black !important; }
+  .up { color: #065f46 !important; }
+  .dn { color: #7f1d1d !important; }
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+</style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <a href="{% url 'logout' %}">تسجيل الخروج 🚪</a>
-        <span>👩‍🏫 أهلاً، {{ user.username }}</span>
-        <a href="{% url 'home' %}">الرئيسية 🏠</a>
+<!-- ═══════════════════════════════════════════════
+     TOPBAR
+═══════════════════════════════════════════════ -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">🎓</div>
+    <div>
+      <div class="logo-text">منصة آمنة التعليمية</div>
+      <div class="logo-sub">مدرسة النور — ريم أحمد — ث١٢</div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nb on" onclick="gp('ov',this)">نظرة عامة</button>
+    <button class="nb" onclick="gp('st',this)">الطالبات</button>
+    <button class="nb" onclick="gp('sk',this)">المهارات</button>
+    <button class="nb" onclick="gp('ex',this)">الاختبارات</button>
+    <button class="nb" onclick="gp('an',this)">الإحصاءات</button>
+    <button class="nb" onclick="gp('al',this)">التنبيهات<span class="notif"></span></button>
+    <button class="nb" onclick="gp('pr',this)">التنبؤ 🔮</button>
+    <button class="nb" onclick="gp('ac',this)">الإنجازات 🏆</button>
+    <button class="nb" onclick="gp('lg',this)">السجل</button>
+  </div>
+
+  <div class="topright">
+    <div class="clock">
+      <div class="clock-date" id="dv"></div>
+      <div class="clock-time" id="tv"></div>
+    </div>
+    <div class="user-badge"><div class="user-dot"></div>ريم أحمد</div>
+    <button class="print-btn" onclick="window.print()">🖨️ طباعة PDF</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     صفحة: نظرة عامة
+═══════════════════════════════════════════════ -->
+<div class="pg on" id="pg-ov">
+  <div class="frow">
+    <span style="font-size:10px;color:var(--text3)">فلتر:</span>
+    <select class="fsel fon"><option>الفصل الثاني ١٤٤٧</option><option>الفصل الأول ١٤٤٧</option></select>
+    <select class="fsel"><option>جميع المهارات</option><option>القدرات</option><option>التحصيلي</option></select>
+    <select class="fsel"><option>جميع الطالبات</option><option>الممتازات</option><option>يحتجن دعم</option></select>
+    <button class="rbtn">↻ تحديث</button>
+    <span class="lupd">آخر تحديث: منذ ٣ دقائق</span>
+  </div>
+
+  <!-- KPI -->
+  <div class="kg">
+    <div class="kc g"><div class="kl">إجمالي الطالبات</div><div class="kv" style="color:var(--green)">28</div><div class="kch up">↑ 3 هذا الشهر</div></div>
+    <div class="kc b"><div class="kl">مهارات مدرّسة</div><div class="kv" style="color:var(--blue)">12</div><div class="kch up">↑ 2 هذا الأسبوع</div></div>
+    <div class="kc p"><div class="kl">متوسط النجاح</div><div class="kv" style="color:var(--purple)">64%</div><div class="kch up">↑ 8% عن الشهر</div></div>
+    <div class="kc o"><div class="kl">اختبارات مفعّلة</div><div class="kv" style="color:var(--orange)">48</div><div class="kch nu">— لا تغيير</div></div>
+    <div class="kc t"><div class="kl">أكملن كل المهارات</div><div class="kv" style="color:var(--teal)">4</div><div class="kch up">↑ 1 هذا الأسبوع</div></div>
+    <div class="kc r"><div class="kl">يحتجن دعم عاجل</div><div class="kv" style="color:var(--red)">3</div><div class="kch dn">↓ تنبيه</div></div>
+  </div>
+
+  <div class="g2">
+    <!-- الرسم البياني الرئيسي -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct">تقدم الفصل الزمني — أداء شهري مقارن</span>
+        <div class="ca">
+          <button class="cab">أسبوعي</button>
+          <button class="cab on">شهري</button>
+          <button class="cab">فصلي</button>
+        </div>
+      </div>
+      <div class="cb">
+        <div style="position:relative;height:170px"><canvas id="mainC" role="img" aria-label="تقدم الفصل">منحنى التقدم الزمني للفصل</canvas></div>
+      </div>
     </div>
 
-    <div class="container py-4">
-        <h4 class="fw-bold mb-4">📊 داشبورد المعلمة</h4>
-
-        <!-- إحصاءات سريعة -->
-        <div class="row g-3 mb-2">
-            <div class="col-6 col-md-3">
-                <div class="stat-card" style="border-color:#1a7a4a">
-                    <div class="stat-num" style="color:#1a7a4a">{{ total_students }}</div>
-                    <div class="stat-label">عدد الطالبات 👩‍🎓</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card" style="border-color:#1a4a8a">
-                    <div class="stat-num" style="color:#1a4a8a">{{ total_skills }}</div>
-                    <div class="stat-label">المهارات المدرّسة 📚</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card" style="border-color:#e07b2a">
-                    <div class="stat-num" style="color:#e07b2a">{{ total_assessments }}</div>
-                    <div class="stat-label">الاختبارات المفعّلة 📝</div>
-                </div>
-            </div>
-            <div class="col-6 col-md-3">
-                <div class="stat-card" style="border-color:#7c6fcd">
-                    <div class="stat-num" style="color:#7c6fcd">{{ avg_score }}%</div>
-                    <div class="stat-label">متوسط النجاح 📈</div>
-                </div>
-            </div>
+    <!-- الجانب الأيمن -->
+    <div>
+      <!-- Gauge -->
+      <div class="card" style="margin-bottom:9px">
+        <div class="ch"><span class="ct">مؤشر أداء الفصل</span></div>
+        <div class="cb" style="text-align:center;padding:10px 8px">
+          <svg width="140" height="78" viewBox="0 0 140 78">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#10b981"/>
+                <stop offset="100%" style="stop-color:#3b82f6"/>
+              </linearGradient>
+            </defs>
+            <path d="M18 68 A52 52 0 0 1 122 68" fill="none" stroke="#1e2a3d" stroke-width="10" stroke-linecap="round"/>
+            <path d="M18 68 A52 52 0 0 1 122 68" fill="none" stroke="url(#gaugeGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="59"/>
+            <text x="70" y="65" text-anchor="middle" font-family="Tajawal" font-size="18" font-weight="700" fill="#10b981">64%</text>
+            <text x="70" y="75" text-anchor="middle" font-family="Tajawal" font-size="8" fill="#475569">الهدف: 75%</text>
+          </svg>
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text3);padding:0 10px;margin-top:-8px">
+            <span>0%</span><span style="color:var(--green)">●</span><span>100%</span>
+          </div>
         </div>
+      </div>
 
-        <!-- رسوم بيانية -->
-        <div class="section-title">📈 الرسوم البيانية</div>
-        <div class="row g-3 mb-2">
-            <div class="col-md-6">
-                <div class="chart-card">
-                    <h6 class="fw-bold mb-3">توزيع مستويات الطالبات</h6>
-                    <canvas id="levelChart" height="200"></canvas>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="chart-card">
-                    <h6 class="fw-bold mb-3">مقارنة القبلي والبعدي</h6>
-                    <canvas id="prePostChart" height="200"></canvas>
-                </div>
-            </div>
+      <!-- Heatmap -->
+      <div class="card">
+        <div class="ch"><span class="ct">نشاط الاختبارات — آخر ٢٨ يوم</span></div>
+        <div class="cb" style="padding:9px">
+          <div class="hlb"><div class="hlbi">ح</div><div class="hlbi">ن</div><div class="hlbi">ث</div><div class="hlbi">ر</div><div class="hlbi">خ</div><div class="hlbi">ج</div><div class="hlbi">س</div></div>
+          <div class="hm" id="hmap"></div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:6px;font-size:9px;color:var(--text3)">
+            <span>أقل</span>
+            <div style="width:9px;height:9px;border-radius:2px;background:var(--bg3)"></div>
+            <div style="width:9px;height:9px;border-radius:2px;background:#065f46"></div>
+            <div style="width:9px;height:9px;border-radius:2px;background:var(--green)"></div>
+            <span>أكثر</span>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- قائمة الطالبات -->
-        <div class="section-title">👩‍🎓 قائمة الطالبات</div>
-        <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-body p-0">
-                <table class="table mb-0">
-                    <thead style="background:#f5f7fa">
-                        <tr>
-                            <th>#</th>
-                            <th>اسم الطالبة</th>
-                            <th>الفصل</th>
-                            <th>الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for student in students %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ student.name }}</td>
-                            <td>{{ student.classroom }}</td>
-                            <td><span class="badge bg-success">نشطة</span></td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center text-muted py-4">
-                                لا يوجد طالبات بعد
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- المهارات الضعيفة -->
-        <div class="section-title">⚠️ المهارات الضعيفة</div>
-        <div class="card border-0 shadow-sm rounded-4 p-3">
-            <p class="text-muted text-center py-3">ستظهر المهارات الضعيفة بعد إجراء الاختبارات</p>
-        </div>
-
+  <div class="g3">
+    <!-- أداء المهارات Sparklines -->
+    <div class="card">
+      <div class="ch"><span class="ct">أداء المهارات</span><span class="bd bp">↑ تحسن عام</span></div>
+      <div class="cb" style="padding:7px">
+        <div class="sr"><span class="sn">الكسور الاعتيادية</span><svg style="flex:1" height="18" viewBox="0 0 70 18" role="img" aria-label="اتجاه الكسور"><polyline points="0,15 12,12 24,10 36,8 48,5 60,4 70,2" fill="none" stroke="var(--green)" stroke-width="1.5"/></svg><span class="sv" style="color:var(--green)">69%</span><span class="sc up">↑12</span></div>
+        <div class="sr"><span class="sn">النسبة والتناسب</span><svg style="flex:1" height="18" viewBox="0 0 70 18" role="img" aria-label="اتجاه النسبة"><polyline points="0,16 12,14 24,13 36,11 48,9 60,8 70,6" fill="none" stroke="var(--blue)" stroke-width="1.5"/></svg><span class="sv" style="color:var(--blue)">66%</span><span class="sc up">↑9</span></div>
+        <div class="sr"><span class="sn">الأعداد الصحيحة</span><svg style="flex:1" height="18" viewBox="0 0 70 18" role="img" aria-label="اتجاه الأعداد"><polyline points="0,16 12,15 24,14 36,12 48,11 60,10 70,8" fill="none" stroke="var(--purple)" stroke-width="1.5"/></svg><span class="sv" style="color:var(--purple)">65%</span><span class="sc up">↑7</span></div>
+        <div class="sr"><span class="sn">ضرب الكسور</span><svg style="flex:1" height="18" viewBox="0 0 70 18" role="img" aria-label="اتجاه الضرب"><polyline points="0,17 12,17 24,16 36,16 48,15 60,14 70,13" fill="none" stroke="var(--orange)" stroke-width="1.5"/></svg><span class="sv" style="color:var(--orange)">58%</span><span class="sc up">↑5</span></div>
+        <div class="sr"><span class="sn">القسمة على الكسور</span><svg style="flex:1" height="18" viewBox="0 0 70 18" role="img" aria-label="اتجاه القسمة"><polyline points="0,17 12,17 24,17 36,16 48,16 60,15 70,14" fill="none" stroke="var(--red)" stroke-width="1.5"/></svg><span class="sv" style="color:var(--red)">53%</span><span class="sc up">↑3</span></div>
+      </div>
     </div>
 
-    <script>
-        // توزيع المستويات
-        new Chart(document.getElementById('levelChart'), {
-            type: 'doughnut',
-            data: {
-                labels: ['ممتازة', 'جيدة', 'متوسطة', 'ضعيفة'],
-                datasets: [{ 
-                    data: [4, 7, 9, 3],
-                    backgroundColor: ['#1a7a4a','#1a4a8a','#f0a500','#e74c3c'],
-                    borderWidth: 0 
-                }]
-            },
-            options: { 
-                responsive: true,
-                plugins: { legend: { position: 'bottom' } }
-            }
-        });
+    <!-- Timeline -->
+    <div class="card">
+      <div class="ch"><span class="ct">سجل الأنشطة اليومي</span><span style="font-size:9px;color:var(--text3)" id="td"></span></div>
+      <div class="cb" style="padding:9px 12px">
+        <div class="tl">
+          <div class="tli"><div class="tld" style="background:var(--green)"></div><div><div class="tlt">اختبار بعدي — الكسور الاعتيادية</div><div class="tltm">اليوم، ١٠:٣٠ ص — ٢٨ طالبة</div><span class="tlb" style="background:rgba(16,185,129,0.1);color:var(--green)">مكتمل</span></div></div>
+          <div class="tli"><div class="tld" style="background:var(--blue)"></div><div><div class="tlt">شرح درس — النسبة والتناسب</div><div class="tltm">أمس، ٩:٠٠ ص — ٢٦ طالبة</div><span class="tlb" style="background:rgba(59,130,246,0.1);color:var(--blue)">شرح</span></div></div>
+          <div class="tli"><div class="tld" style="background:var(--orange)"></div><div><div class="tlt">تدريبات — الأعداد الصحيحة</div><div class="tltm">١٤ أبريل، ١١:٠٠ ص — ٢٧ طالبة</div><span class="tlb" style="background:rgba(245,158,11,0.1);color:var(--orange)">تدريب</span></div></div>
+          <div class="tli"><div class="tld" style="background:var(--red)"></div><div><div class="tlt">تنبيه — ٣ طالبات يحتجن دعماً</div><div class="tltm">١٣ أبريل — تنبيه تلقائي</div><span class="tlb" style="background:rgba(239,68,68,0.1);color:var(--red)">تنبيه</span></div></div>
+          <div class="tli"><div class="tld" style="background:var(--purple)"></div><div><div class="tlt">اختبار قبلي — ضرب الكسور</div><div class="tltm">١٢ أبريل، ١٠:٠٠ ص — ٢٨ طالبة</div><span class="tlb" style="background:rgba(139,92,246,0.1);color:var(--purple)">مكتمل</span></div></div>
+        </div>
+      </div>
+    </div>
 
-        // مقارنة قبلي وبعدي
-        new Chart(document.getElementById('prePostChart'), {
-            type: 'bar',
-            data: {
-                labels: ['الكسور', 'النسبة', 'الأعداد', 'الضرب'],
-                datasets: [
-                    { label: 'قبلي', data: [42, 40, 45, 35], backgroundColor: 'rgba(26,74,138,0.6)', borderRadius: 6 },
-                    { label: 'بعدي', data: [69, 66, 65, 58], backgroundColor: 'rgba(26,122,74,0.8)', borderRadius: 6 }
-                ]
-            },
-            options: { 
-                responsive: true,
-                scales: { y: { min: 0, max: 100 } }
-            }
-        });
-    </script>
+    <!-- حالة الطالبات -->
+    <div class="card">
+      <div class="ch"><span class="ct">حالة الطالبات المباشرة</span><div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--green)"><div class="slive" style="background:var(--green)"></div>مباشر</div></div>
+      <div class="cb" style="padding:9px">
+        <div class="stg">
+          <div class="sti"><div class="stt"><span class="stn">ممتازات</span><div class="slive" style="background:var(--green)"></div></div><div class="stv" style="color:var(--green)">4</div><div class="stb"><div class="stf" style="width:14%;background:var(--green)"></div></div></div>
+          <div class="sti"><div class="stt"><span class="stn">جيدات</span></div><div class="stv" style="color:var(--blue)">16</div><div class="stb"><div class="stf" style="width:57%;background:var(--blue)"></div></div></div>
+          <div class="sti"><div class="stt"><span class="stn">متوسطات</span></div><div class="stv" style="color:var(--purple)">5</div><div class="stb"><div class="stf" style="width:18%;background:var(--purple)"></div></div></div>
+          <div class="sti"><div class="stt"><span class="stn">يحتجن دعم</span><div class="slive" style="background:var(--red)"></div></div><div class="stv" style="color:var(--red)">3</div><div class="stb"><div class="stf" style="width:11%;background:var(--red)"></div></div></div>
+        </div>
+        <div style="margin-top:9px;padding-top:8px;border-top:1px solid var(--border)">
+          <div style="font-size:9px;color:var(--text3);margin-bottom:6px">🏆 أعلى الطالبات أداءً</div>
+          <table class="tb"><tbody>
+            <tr><td style="color:var(--orange)">🥇</td><td>سارة العتيبي</td><td style="color:var(--green);text-align:left;font-weight:600">91%</td></tr>
+            <tr><td style="color:#94a3b8">🥈</td><td>لمى القرني</td><td style="color:var(--blue);text-align:left;font-weight:600">88%</td></tr>
+            <tr><td style="color:#b45309">🥉</td><td>نورة الشمري</td><td style="color:var(--purple);text-align:left;font-weight:600">74%</td></tr>
+          </tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- ═══════════════════════════════════════════════
+     صفحة: الطالبات
+═══════════════════════════════════════════════ -->
+<div class="pg" id="pg-st">
+  <div class="g2e">
+    <div class="card">
+      <div class="ch"><span class="ct" style="color:var(--green)">الطالبات الممتازات (90%+)</span><span class="bd be">4 طالبات</span></div>
+      <div class="cb" style="padding:0">
+        <table class="tb">
+          <thead><tr><th>الاسم</th><th>المتوسط</th><th>أقوى مهارة</th><th>مكتملة</th><th>تقرير</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:600">سارة العتيبي</td><td style="color:var(--green);font-weight:600">91%</td><td style="color:var(--text3)">الكسور الاعتيادية</td><td>8/12</td><td><button onclick="oR('سارة العتيبي',91,'exc')" style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
+            <tr><td style="font-weight:600">لمى القرني</td><td style="color:var(--green);font-weight:600">88%</td><td style="color:var(--text3)">النسبة والتناسب</td><td>7/12</td><td><button onclick="oR('لمى القرني',88,'pass')" style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
+            <tr><td style="font-weight:600">نورة الشمري</td><td style="color:var(--blue);font-weight:600">74%</td><td style="color:var(--text3)">الأعداد الصحيحة</td><td>6/12</td><td><button onclick="oR('نورة الشمري',74,'pass')" style="background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct" style="color:var(--orange)">المتوسطات (50-74%)</span><span class="bd bm">14 طالبة</span></div>
+      <div class="cb" style="padding:0">
+        <table class="tb">
+          <thead><tr><th>الاسم</th><th>المتوسط</th><th>ضعف في</th><th>تقرير</th></tr></thead>
+          <tbody>
+            <tr><td>هنوف العنزي</td><td style="color:var(--orange)">62%</td><td style="color:var(--text3);font-size:9px">ضرب، قسمة</td><td><button onclick="oR('هنوف العنزي',62,'mid')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
+            <tr><td>دانة الحربي</td><td style="color:var(--orange)">58%</td><td style="color:var(--text3);font-size:9px">كسور غير اعتيادية</td><td><button onclick="oR('دانة الحربي',58,'mid')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
+            <tr><td>ريم السبيعي</td><td style="color:var(--orange)">55%</td><td style="color:var(--text3);font-size:9px">نسبة، ضرب</td><td><button onclick="oR('ريم السبيعي',55,'mid')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct" style="color:var(--red)">يحتجن دعم عاجل (&lt;50%)</span><span class="bd bf">3 طالبات</span></div>
+    <div class="cb" style="padding:0">
+      <table class="tb">
+        <thead><tr><th>الاسم</th><th>المتوسط</th><th>المهارات المحتاجة</th><th>الغيابات</th><th>الأولوية</th><th>تقرير</th><th>تقرير لولي الأمر</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-weight:600;color:var(--red)">ملاك محمد</td>
+            <td style="color:var(--orange)">40%</td>
+            <td style="color:var(--text3);font-size:9px">كسور، ضرب، قسمة</td>
+            <td>3</td>
+            <td><span class="bd bm">متوسطة</span></td>
+            <td><button onclick="oR('ملاك محمد',40,'fail')" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
+            <td><button onclick="alert('طباعة تقرير ولي أمر ملاك محمد...')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">🖨️ PDF</button></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;color:var(--red)">ليلى القحطاني</td>
+            <td style="color:var(--red)">30%</td>
+            <td style="color:var(--text3);font-size:9px">كسور، نسبة، أعداد، ضرب</td>
+            <td>5</td>
+            <td><span class="bd bf">عاجلة</span></td>
+            <td><button onclick="oR('ليلى القحطاني',30,'fail')" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
+            <td><button onclick="alert('طباعة تقرير ولي أمر ليلى القحطاني...')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">🖨️ PDF</button></td>
+          </tr>
+          <tr>
+            <td style="font-weight:600;color:var(--red)">نوف الرشيدي</td>
+            <td style="color:var(--red)">25%</td>
+            <td style="color:var(--text3);font-size:9px">جميع المهارات</td>
+            <td>8</td>
+            <td><span class="bd bf">عاجلة جداً</span></td>
+            <td><button onclick="oR('نوف الرشيدي',25,'fail')" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
+            <td><button onclick="alert('طباعة تقرير ولي أمر نوف الرشيدي...')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">🖨️ PDF</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="g2e">
+    <div class="card">
+      <div class="ch"><span class="ct">المهارات الأكثر صعوبة على الفصل</span></div>
+      <div class="cb">
+        <div class="pr"><span class="plb">الكسور غير الاعتيادية</span><div class="pb"><div class="pf" style="width:35%;background:var(--red)"></div></div><span class="pv" style="color:var(--red)">35%</span><span class="bd bf" style="margin-right:6px">إعادة شرح</span></div>
+        <div class="pr"><span class="plb">القسمة على الكسور</span><div class="pb"><div class="pf" style="width:38%;background:var(--red)"></div></div><span class="pv" style="color:var(--red)">38%</span><span class="bd bf" style="margin-right:6px">إعادة شرح</span></div>
+        <div class="pr"><span class="plb">ضرب الكسور</span><div class="pb"><div class="pf" style="width:42%;background:var(--orange)"></div></div><span class="pv" style="color:var(--orange)">42%</span><span class="bd bm" style="margin-right:6px">تدريب إضافي</span></div>
+        <div class="pr"><span class="plb">النسبة المئوية</span><div class="pb"><div class="pf" style="width:55%;background:var(--orange)"></div></div><span class="pv" style="color:var(--orange)">55%</span><span class="bd bm" style="margin-right:6px">مراجعة</span></div>
+        <div class="pr"><span class="plb">الكسور الاعتيادية</span><div class="pb"><div class="pf" style="width:69%;background:var(--green)"></div></div><span class="pv" style="color:var(--green)">69%</span><span class="bd bp" style="margin-right:6px">جيد</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">خريطة التقدم الفردي — Radar</span></div>
+      <div class="cb"><div style="position:relative;height:180px"><canvas id="radarC" role="img" aria-label="خريطة التقدم الفردي">رادار</canvas></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     صفحة: المهارات
+═══════════════════════════════════════════════ -->
+<div class="pg" id="pg-sk">
+  <div class="g2e">
+    <div class="card">
+      <div class="ch"><span class="ct">مقارنة القبلي والبعدي — كل المهارات</span></div>
+      <div class="cb"><div style="position:relative;height:190px"><canvas id="ppC" role="img" aria-label="مقارنة القبلي والبعدي">بار مقارن</canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">توزيع الدرجات — Histogram</span></div>
+      <div class="cb"><div style="position:relative;height:190px"><canvas id="histC" role="img" aria-label="توزيع الدرجات">هيستوغرام</canvas></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch">
+      <span class="ct">سجل درجات الطالبات — كل المهارات</span>
+      <div class="ca">
+        <button class="cab" onclick="alert('تصدير Excel قيد التطوير...')">تصدير Excel</button>
+        <button class="cab" onclick="window.print()">طباعة PDF</button>
+      </div>
+    </div>
+    <div class="cb" style="padding:0;overflow-x:auto">
+      <table class="tb">
+        <thead><tr><th>#</th><th>اسم الطالبة</th><th>الكسور الاعتيادية</th><th>النسبة والتناسب</th><th>الأعداد الصحيحة</th><th>ضرب الكسور</th><th>القسمة على الكسور</th><th>المتوسط العام</th><th>المستوى</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td style="font-weight:600">سارة العتيبي</td><td style="color:var(--green)">100</td><td style="color:var(--green)">90</td><td style="color:var(--green)">85</td><td style="color:var(--green)">80</td><td style="color:var(--green)">75</td><td style="color:var(--purple);font-weight:700">86</td><td><span class="bd be">ممتازة</span></td></tr>
+          <tr><td>2</td><td style="font-weight:600">نورة الشمري</td><td style="color:var(--green)">85</td><td style="color:var(--green)">80</td><td style="color:var(--blue)">78</td><td style="color:var(--orange)">65</td><td style="color:var(--orange)">60</td><td style="color:var(--blue);font-weight:700">73.6</td><td><span class="bd bp">جيدة جداً</span></td></tr>
+          <tr><td>3</td><td>هنوف العنزي</td><td style="color:var(--blue)">70</td><td style="color:var(--blue)">70</td><td style="color:var(--orange)">65</td><td style="color:var(--orange)">55</td><td style="color:var(--red)">50</td><td style="color:var(--blue);font-weight:700">62</td><td><span class="bd bp">جيدة</span></td></tr>
+          <tr><td>4</td><td>دانة الحربي</td><td style="color:var(--blue)">65</td><td style="color:var(--orange)">60</td><td style="color:var(--orange)">55</td><td style="color:var(--orange)">50</td><td style="color:var(--red)">42</td><td style="color:var(--orange);font-weight:700">54.4</td><td><span class="bd bm">متوسطة</span></td></tr>
+          <tr><td>5</td><td style="color:var(--red)">ملاك محمد</td><td style="color:var(--red)">40</td><td style="color:var(--red)">45</td><td style="color:var(--orange)">50</td><td style="color:var(--red)">35</td><td style="color:var(--red)">30</td><td style="color:var(--orange);font-weight:700">40</td><td><span class="bd bm">متوسطة</span></td></tr>
+          <tr><td>6</td><td style="color:var(--red)">ليلى القحطاني</td><td style="color:var(--red)">35</td><td style="color:var(--red)">30</td><td style="color:var(--red)">40</td><td style="color:var(--red)">25</td><td style="color:var(--red)">20</td><td style="color:var(--red);font-weight:700">30</td><td><span class="bd bf">تحتاج دعم</span></td></tr>
+          <tr style="background:rgba(30,42,61,0.3)"><td colspan="2" style="font-weight:700;color:var(--green)">📊 متوسط المهارة</td><td style="color:var(--green);font-weight:600">69</td><td style="color:var(--blue);font-weight:600">66</td><td style="color:var(--blue);font-weight:600">65</td><td style="color:var(--orange);font-weight:600">58</td><td style="color:var(--orange);font-weight:600">53</td><td style="color:var(--purple);font-weight:700">64.3</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     صفحة: الاختبارات
+═══════════════════════════════════════════════ -->
+<div class="pg" id="pg-ex">
+  <div class="kg">
+    <div class="kc g"><div class="kl">اختبارات قبلية</div><div class="kv" style="color:var(--green)">24</div><div class="kch up">مكتملة</div></div>
+    <div class="kc b"><div class="kl">اختبارات بعدية</div><div class="kv" style="color:var(--blue)">24</div><div class="kch up">مكتملة</div></div>
+    <div class="kc p"><div class="kl">بنك الأسئلة</div><div class="kv" style="color:var(--purple)">240</div><div class="kch up">سؤال متاح</div></div>
+    <div class="kc o"><div class="kl">اختبارات محاكية</div><div class="kv" style="color:var(--orange)">16</div><div class="kch nu">هذا الفصل</div></div>
+    <div class="kc t"><div class="kl">متوسط وقت الاختبار</div><div class="kv" style="color:var(--teal)">٤د</div><div class="kch nu">لكل اختبار</div></div>
+    <div class="kc r"><div class="kl">معدل الفشل</div><div class="kv" style="color:var(--red)">32%</div><div class="kch dn">يحتاج تدخل</div></div>
+  </div>
+
+  <div class="g2e">
+    <div class="card">
+      <div class="ch"><span class="ct">نتائج بنك الأسئلة حسب المهارة</span></div>
+      <div class="cb"><div style="position:relative;height:190px"><canvas id="bankC" role="img" aria-label="بنك الأسئلة">بار</canvas></div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">توزيع نتائج الاختبارات</span></div>
+      <div class="cb"><div style="position:relative;height:190px"><canvas id="exLvlC" role="img" aria-label="توزيع النتائج">دائري</canvas></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">سجل الاختبارات المفعّلة</span><button class="cab" onclick="window.print()">طباعة PDF</button></div>
+    <div class="cb" style="padding:0">
+      <table class="tb">
+        <thead><tr><th>التاريخ</th><th>اليوم</th><th>المهارة</th><th>النوع</th><th>المشاركات</th><th>متوسط الدرجة</th><th>نسبة النجاح</th><th>الوقت المستغرق</th><th>الحالة</th></tr></thead>
+        <tbody>
+          <tr><td>١٦ أبريل ٢٠٢٦</td><td>الأربعاء</td><td>الكسور الاعتيادية</td><td><span class="bd bb">بعدي</span></td><td>28</td><td style="color:var(--green)">69%</td><td style="color:var(--green)">71%</td><td>٤ د ٢٠ ث</td><td><span class="bd bp">مكتمل</span></td></tr>
+          <tr><td>١٣ أبريل ٢٠٢٦</td><td>الأحد</td><td>الكسور الاعتيادية</td><td><span class="bd bt">قبلي</span></td><td>28</td><td style="color:var(--orange)">42%</td><td style="color:var(--red)">39%</td><td>٥ د ١٠ ث</td><td><span class="bd bp">مكتمل</span></td></tr>
+          <tr><td>١٠ أبريل ٢٠٢٦</td><td>الخميس</td><td>النسبة والتناسب</td><td><span class="bd bb">بعدي</span></td><td>26</td><td style="color:var(--blue)">66%</td><td style="color:var(--blue)">65%</td><td>٤ د ٤٥ ث</td><td><span class="bd bp">مكتمل</span></td></tr>
+          <tr><td>٧ أبريل ٢٠٢٦</td><td>الاثنين</td><td>النسبة والتناسب</td><td><span class="bd bt">قبلي</span></td><td>27</td><td style="color:var(--orange)">40%</td><td style="color:var(--red)">38%</td><td>٥ د ٠٠ ث</td><td><span class="bd bp">مكتمل</span></td></tr>
+          <tr><td>٣ أبريل ٢٠٢٦</td><td>الخميس</td><td>الأعداد الصحيحة</td><td><span class="bd bb">بعدي</span></td><td>27</td><td style="color:var(--blue)">65%</td><td style="color:var(--blue)">67%</td><td>٣ د ٥٥ ث</td><td><span class="bd bp">مكتمل</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     صفحة: الإحصاءات
+═══════════════════════════════════════════════ -->
+<div class="pg" id="pg-an">
+  <div style="font-size:10px;color:var(--text3);margin-bottom:10px">التحليل الإحصائي الشامل — مهارة الكسور الاعتيادية — الفصل ث١٢</div>
+
+  <!-- الإحصاءات الكمية -->
+  <div class="g3q">
+    <div class="qi"><div class="qn">المتوسط الحسابي <span class="qen">Mean</span></div><div class="qv" style="color:var(--green)">64.3</div><div class="qd">مجموع الدرجات ÷ عدد الطالبات (٢٨)</div></div>
+    <div class="qi"><div class="qn">الوسيط <span class="qen">Median</span></div><div class="qv" style="color:var(--blue)">67.5</div><div class="qd">القيمة الوسطى بعد الترتيب التصاعدي</div></div>
+    <div class="qi"><div class="qn">المنوال <span class="qen">Mode</span></div><div class="qv" style="color:var(--purple)">70</div><div class="qd">الدرجة الأكثر تكراراً — ٥ طالبات</div></div>
+    <div class="qi"><div class="qn">الانحراف المعياري <span class="qen">Std Dev</span></div><div class="qv" style="color:var(--orange)">18.4</div><div class="qd">مدى تشتت الدرجات عن المتوسط</div></div>
+    <div class="qi"><div class="qn">التباين <span class="qen">Variance</span></div><div class="qv" style="color:var(--orange)">338.6</div><div class="qd">مربع الانحراف المعياري σ²</div></div>
+    <div class="qi"><div class="qn">المدى <span class="qen">Range</span></div><div class="qv" style="color:var(--red)">80</div><div class="qd">أعلى درجة (100) − أدنى درجة (20)</div></div>
+    <div class="qi"><div class="qn">الربيع الأول <span class="qen">Q1</span></div><div class="qv" style="color:var(--blue)">52.5</div><div class="qd">25% من الطالبات أقل من هذه القيمة</div></div>
+    <div class="qi"><div class="qn">الربيع الثالث <span class="qen">Q3</span></div><div class="qv" style="color:var(--blue)">77.5</div><div class="qd">75% من الطالبات أقل من هذه القيمة</div></div>
+    <div class="qi"><div class="qn">المدى الربيعي <span class="qen">IQR</span></div><div class="qv" style="color:var(--purple)">25</div><div class="qd">Q3 − Q1 — مدى النصف الأوسط</div></div>
+    <div class="qi"><div class="qn">معامل الالتواء <span class="qen">Skewness</span></div><div class="qv" style="color:var(--teal)">-0.32</div><div class="qd">التواء سالب خفيف — الوسيط أعلى من المتوسط</div></div>
+    <div class="qi"><div class="qn">أعلى درجة <span class="qen">Maximum</span></div><div class="qv" style="color:var(--green)">100</div><div class="qd">سارة العتيبي — اختبار بعدي</div></div>
+    <div class="qi"><div class="qn">أدنى درجة <span class="qen">Minimum</span></div><div class="qv" style="color:var(--red)">20</div><div class="qd">نوف الرشيدي — تحتاج دعم عاجل</div></div>
+  </div>
+
+  <div class="g2e">
+    <!-- الوصفية النوعية -->
+    <div class="card">
+      <div class="ch"><span class="ct">الإحصاءات الوصفية النوعية — توزيع المستويات</span></div>
+      <div class="cb">
+        <div class="lr"><span class="ln">ممتازة (90-100)</span><div class="lb"><div class="lf" style="width:14%;background:var(--purple)"></div></div><span class="lc" style="color:var(--purple)">4</span><span class="lp">14%</span></div>
+        <div class="lr"><span class="ln">جيدة جداً (75-89)</span><div class="lb"><div class="lf" style="width:25%;background:var(--green)"></div></div><span class="lc" style="color:var(--green)">7</span><span class="lp">25%</span></div>
+        <div class="lr"><span class="ln">جيدة (60-74)</span><div class="lb"><div class="lf" style="width:32%;background:var(--blue)"></div></div><span class="lc" style="color:var(--blue)">9</span><span class="lp">32%</span></div>
+        <div class="lr"><span class="ln">متوسطة (50-59)</span><div class="lb"><div class="lf" style="width:18%;background:var(--orange)"></div></div><span class="lc" style="color:var(--orange)">5</span><span class="lp">18%</span></div>
+        <div class="lr"><span class="ln">تحتاج دعم (&lt;50)</span><div class="lb"><div class="lf" style="width:11%;background:var(--red)"></div></div><span class="lc" style="color:var(--red)">3</span><span class="lp">11%</span></div>
+      </div>
+    </div>
+
+    <!-- التفسير الوصفي -->
+    <div class="card">
+      <div class="ch"><span class="ct">التفسير الوصفي للنتائج</span></div>
+      <div class="cb">
+        <div class="hb hg">المستوى العام للفصل <strong>متوسط</strong> — المتوسط الحسابي 64.3 يشير لحاجة تعزيز إضافي في مهارة الكسور.</div>
+        <div class="hb ho">الانحراف المعياري 18.4 يدل على <strong>تفاوت كبير</strong> بين الطالبات — فارق واضح بين الممتازات ومن يحتجن دعماً.</div>
+        <div class="hb hr">٣ طالبات (11%) حصلن على أقل من 50% — يُنصح بجلسات مراجعة <strong>مكثفة وفورية</strong> لهن.</div>
+        <div class="hb hbl">الوسيط (67.5) أعلى من المتوسط (64.3) — يدل على <strong>التواء سالب خفيف</strong> — معظم الطالبات فوق المتوسط.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Box Plot -->
+  <div class="card">
+    <div class="ch"><span class="ct">مخطط الصندوق — Box Plot — المدى الربيعي</span></div>
+    <div class="cb" style="padding:16px 20px">
+      <div style="position:relative;height:60px;margin-bottom:8px">
+        <div style="position:absolute;top:50%;left:8%;right:8%;height:1px;background:var(--border2);transform:translateY(-50%)"></div>
+        <div style="position:absolute;top:15%;bottom:15%;left:30%;right:20%;background:rgba(139,92,246,0.1);border:1px solid var(--purple);border-radius:3px"></div>
+        <div style="position:absolute;top:10%;bottom:10%;left:calc(52% - 1px);width:2px;background:var(--green)"></div>
+        <!-- Whiskers -->
+        <div style="position:absolute;top:35%;bottom:35%;left:8%;width:1px;background:var(--text3)"></div>
+        <div style="position:absolute;top:35%;bottom:35%;right:8%;width:1px;background:var(--text3)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:0 8%;font-size:10px">
+        <div style="text-align:center"><div style="color:var(--red);font-weight:700">20</div><div style="color:var(--text3);font-size:8px">Min</div></div>
+        <div style="text-align:center"><div style="color:var(--blue);font-weight:700">52.5</div><div style="color:var(--text3);font-size:8px">Q1</div></div>
+        <div style="text-align:center"><div style="color:var(--green);font-weight:700">67.5</div><div style="color:var(--text3);font-size:8px">Median</div></div>
+        <div style="text-align:center"><div style="color:var(--blue);font-weight:700">77.5</div><div style="color:var(--text3);font-size:8px">Q3</div></div>
+        <div style="text-align:center"><div style="color:var(--green);font-weight:700">100</div><div style="color:var(--text3);font-size:8px">Max</div></div>
+      </div>
+      <div style="margin-top:10px;padding:8px 10px;background:var(--card2);border-radius:7px;font-size:10px;color:var(--text3)">
+        50% من الطالبات درجاتهن بين <strong style="color:var(--blue)">52.5</strong> و <strong style="color:var(--blue)">77.5</strong> — المدى الربيعي IQR = <strong style="color:var(--purple)">25</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- مقارنة إحصائية -->
+  <div class="card">
+    <div class="ch"><span class="ct">المقارنة الإحصائية — القبلي vs البعدي</span></div>
+    <div class="cb" style="padding:0;overflow-x:auto">
+      <table class="tb">
+        <thead><tr><th>المقياس الإحصائي</th><th>الاختبار القبلي</th><th>الاختبار البعدي</th><th>التغيير</th><th>دلالة التحسن</th></tr></thead>
+        <tbody>
+          <tr><td>المتوسط الحسابي</td><td style="color:var(--blue)">42.1</td><td style="color:var(--green)">64.3</td><td><span class="bd bp">↑ +22.2</span></td><td style="color:var(--text3)">تحسن ممتاز وملحوظ</td></tr>
+          <tr><td>الوسيط</td><td style="color:var(--blue)">40</td><td style="color:var(--green)">67.5</td><td><span class="bd bp">↑ +27.5</span></td><td style="color:var(--text3)">تحسن كبير في القيمة الوسطى</td></tr>
+          <tr><td>الانحراف المعياري</td><td style="color:var(--orange)">22.1</td><td style="color:var(--orange)">18.4</td><td><span class="bd bp">↓ أقل تشتتاً</span></td><td style="color:var(--text3)">الفصل أصبح أكثر تجانساً</td></tr>
+          <tr><td>أعلى درجة</td><td style="color:var(--green)">90</td><td style="color:var(--green)">100</td><td><span class="bd be">↑ +10</span></td><td style="color:var(--text3)">تحسن الطالبة الأولى</td></tr>
+          <tr><td>أدنى درجة</td><td style="color:var(--red)">10</td><td style="color:var(--red)">20</td><td><span class="bd bm">↑ +10</span></td><td style="color:var(--text3)">تحسن بسيط للأضعف</td></tr>
+          <tr><td>نسبة النجاح</td><td style="color:var(--red)">39%</td><td style="color:var(--green)">69%</td><td><span class="bd be">↑ +30%</span></td><td style="color:var(--text3)">قفزة كبيرة جداً — نتيجة ممتازة</td></tr>
+          <tr><td>المدى الربيعي IQR</td><td style="color:var(--text2)">30</td><td style="color:var(--text2)">25</td><td><span class="bd bp">↓ أقل</span></td><td style="color:var(--text3)">النصف الأوسط أكثر تجانساً</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     صفحة: التنبيهات
+═══════════════════════════════════════════════ -->
+<div class="pg" id="pg-al">
+  <div class="alg">
+    <div class="ali alr">
+      <div class="alt">🚨 تنبيهات عاجلة — تحتاج تدخل فوري</div>
+      <ul class="allist">
+        <li>• نوف الرشيدي — ٨ غيابات متتالية هذا الأسبوع</li>
+        <li>• ليلى القحطاني — تراجع 15% خلال ٧ أيام</li>
+        <li>• ٣ طالبات أقل من 30% في الاختبار البعدي</li>
+        <li>• الكسور غير الاعتيادية — نسبة فشل 65% هذا الأسبوع</li>
+      </ul>
+    </div>
+    <div class="ali alo">
+      <div class="alt">⚠️ تنبيهات تحذيرية — تحتاج متابعة</div>
+      <ul class="allist">
+        <li>• الكسور غير الاعتيادية — 35% متوسط الفصل</li>
+        <li>• القسمة على الكسور — 62% ضعف في الفصل</li>
+        <li>• ملاك محمد — لم تكمل ٤ مهارات بعد</li>
+        <li>• ٥ طالبات لم يؤدين الاختبار البعدي</li>
+      </ul>
+    </div>
+    <div class="ali albl">
+      <div class="alt">ℹ️ تنبيهات للمعلومة</div>
+      <ul class="allist">
+        <li>• موعد الاختبار الشامل بعد أسبوعين</li>
+        <li>• ٢ طالبة تقتربان من إكمال جميع المهارات</li>
+        <li>• بنك الأسئلة يحتاج ٢٠ سؤال جديد</li>
+        <li>• تقارير الفصل الثاني تستحق المراجعة</li>
+      </ul>
+    </div>
+    <div class="ali alg2">
+      <div class="alt">✅ أخبار إيجابية</div>
+      <ul class="allist">
+        <li>• سارة العتيبي أكملت جميع المهارات</li>
+        <li>• تحسن الفصل ٨% هذا الشهر</li>
+        <li>• ٤ طالبات جديدات في مستوى ممتاز</li>
+        <li>• نسبة النجاح ارتفعت من 39% إلى 69%</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">تقارير ولي الأمر — جاهزة للطباعة</span></div>
+    <div class="cb">
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+        <div style="background:var(--card2);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='var(--red)'" onmouseout="this.style.borderColor='rgba(239,68,68,0.2)'">
+          <div style="font-size:18px;margin-bottom:4px">📄</div>
+          <div style="font-size:10px;color:var(--text2);font-weight:600">ملاك محمد</div>
+          <div style="font-size:9px;color:var(--red);margin-top:2px">يحتاج دعم</div>
+          <button onclick="alert('سيتم فتح PDF تقرير ولي أمر ملاك محمد')" style="margin-top:6px;background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:Tajawal;width:100%">طباعة لولي الأمر</button>
+        </div>
+        <div style="background:var(--card2);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all 0.2s">
+          <div style="font-size:18px;margin-bottom:4px">📄</div>
+          <div style="font-size:10px;color:var(--text2);font-weight:600">ليلى القحطاني</div>
+          <div style="font-size:9px;color:var(--red);margin-top:2px">يحتاج دعم</div>
+          <button onclick="alert('سيتم فتح PDF تقرير ولي أمر ليلى القحطاني')" style="margin-top:6px;background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:Tajawal;width:100%">طباعة لولي الأمر</button>
+        </div>
+        <div style="background:var(--card2);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all 0.2s">
+          <div style="font-size:18px;margin-bottom:4px">📄</div>
+          <div style="font-size:10px;color:var(--text2);font-weight:600">نوف الرشيدي</div>
+          <div style="font-size:9px;color:var(--red);margin-top:2px">عاجل جداً</div>
+          <button onclick="alert('سيتم فتح PDF تقرير ولي أمر نوف الرشيدي')" style="margin-top:6px;background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:Tajawal;width:100%">طباعة لولي الأمر</button>
+        </div>
+        <div style="background:var(--card2);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all 0.2s">
+          <div style="font-size:18px;margin-bottom:4px">📄</div>
+          <div style="font-size:10px;color:var(--text2);font-weight:600">سارة العتيبي</div>
+          <div style="font-size:9px;color:var(--green);margin-top:2px">ممتازة 🌟</div>
+          <button onclick="alert('سيتم فتح PDF تقرير ولي أمر سارة العتيبي')" style="margin-top:6px;background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:Tajawal;width:100%">طباعة لولي الأمر</button>
+        </div>
+        <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all 0.2s" onclick="window.print()">
+          <div style="font-size:18px;margin-bottom:4px">🖨️</div>
+          <div style="font-size:10px;color:var(--green);font-weight:600">طباعة الكل</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:2px">جميع التقارير</div>
+          <button onclick="window.print()" style="margin-top:6px;background:var(--green2);color:white;border:none;border-radius:4px;padding:3px 8px;font-size:9px;cursor:pointer;font-family:Tajawal;width:100%">PDF شامل</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     صفحة: التنبؤ
+═══════════════════════════════════════════════ -->
+<div class="pg" id="pg-pr">
+  <div style="font-size:10px;color:var(--text3);margin-bottom:10px">🔮 التنبؤ بالأداء بناءً على المسار الحالي لكل طالبة — تحديث تلقائي</div>
+
+  <div class="predg">
+    <div class="predi"><div class="predn" style="color:var(--green)">88%</div><div class="predl">سارة العتيبي — متوقع</div><div class="predc up">↑ مستمرة في التحسن</div></div>
+    <div class="predi"><div class="predn" style="color:var(--blue)">76%</div><div class="predl">نورة الشمري — متوقع</div><div class="predc up">↑ تقدم ثابت ومستقر</div></div>
+    <div class="predi"><div class="predn" style="color:var(--orange)">45%</div><div class="predl">ملاك محمد — متوقع</div><div class="predc dn">↓ تحتاج تدخل سريع</div></div>
+    <div class="predi"><div class="predn" style="color:var(--red)">28%</div><div class="predl">ليلى القحطاني — متوقع</div><div class="predc dn">↓ تدخل عاجل جداً</div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">منحنى التنبؤ — الأشهر الثلاثة القادمة</span></div>
+    <div class="cb"><div style="position:relative;height:200px"><canvas id="predC" role="img" aria-label="منحنى التنبؤ">منحنى تنبؤي</canvas></div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">جدول التدخل المبكر — توصيات مبنية على البيانات</span></div>
+    <div class="cb" style="padding:0">
+      <table class="tb">
+        <thead><tr><th>الطالبة</th><th>الأداء الحالي</th><th>المتوقع بدون تدخل</th><th>المتوقع مع تدخل</th><th>نوع التدخل المقترح</th><th>الأولوية</th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:600">ملاك محمد</td><td style="color:var(--orange)">40%</td><td style="color:var(--red)">35%</td><td style="color:var(--green)">60%</td><td style="color:var(--text3)">جلسات مراجعة أسبوعية + واجبات منزلية</td><td><span class="bd bm">متوسطة</span></td></tr>
+          <tr><td style="font-weight:600">ليلى القحطاني</td><td style="color:var(--red)">30%</td><td style="color:var(--red)">22%</td><td style="color:var(--orange)">48%</td><td style="color:var(--text3)">تدريس خصوصي + تواصل فوري مع ولي الأمر</td><td><span class="bd bf">عاجلة</span></td></tr>
+          <tr><td style="font-weight:600">نوف الرشيدي</td><td style="color:var(--red)">25%</td><td style="color:var(--red)">18%</td><td style="color:var(--orange)">42%</td><td style="color:var(--text3)">إشراك الإدارة والإرشاد الطلابي + أسرة</td><td><span class="bd bf">عاجلة جداً</span></td></tr>
+          <tr><td>هنوف العنزي</td><td style="color:var(--orange)">62%</td><td style="color:var(--orange)">60%</td><td style="color:var(--blue)">72%</td><td style="color:var(--text3)">تدريبات إضافية على المهارات الضعيفة</td><td><span class="bd bb">منخفضة</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     صفحة: الإنجازات
+═══════════════════════════════════════════════ -->
+<div class="pg" id="pg-ac">
+  <div style="font-size:10px;color:var(--text3);margin-bottom:10px">🏆 إنجازات الفصل — نظام تحفيز الطالبات بالنجوم والشارات</div>
+
+  <div class="achg">
+    <div class="achi"><div class="achio">🌟</div><div class="achn">الطالبة المثالية</div><div class="achd">سارة العتيبي — 91%</div></div>
+    <div class="achi"><div class="achio">🚀</div><div class="achn">أسرع تحسن</div><div class="achd">↑30% في شهر واحد</div></div>
+    <div class="achi"><div class="achio">💯</div><div class="achn">علامة كاملة</div><div class="achd">الكسور الاعتيادية — 100%</div></div>
+    <div class="achi"><div class="achio">🎯</div><div class="achn">مكتملة المهارات</div><div class="achd">٤ طالبات أكملن الكل</div></div>
+    <div class="achi"><div class="achio">📈</div><div class="achn">تحسن مستمر</div><div class="achd">٦ أشهر متتالية للفصل</div></div>
+    <div class="achi"><div class="achio">🔥</div><div class="achn">اختبارات متتالية</div><div class="achd">٥ اختبارات بدون فشل</div></div>
+    <div class="achi locked"><div class="achio">🔒</div><div class="achn">بطلة الفصل</div><div class="achd">تحتاج 95% أو أكثر</div></div>
+    <div class="achi locked"><div class="achio">🔒</div><div class="achn">صفر غيابات</div><div class="achd">لم تتحقق بعد</div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">🏅 لوحة الشرف — ترتيب الطالبات</span><span class="bd bp">محدثة تلقائياً</span></div>
+    <div class="cb" style="padding:0">
+      <table class="tb">
+        <thead><tr><th>المركز</th><th>اسم الطالبة</th><th>المتوسط العام</th><th>الإنجازات المحققة</th><th>التحسن عن الشهر</th><th>الهدف القادم</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--orange);font-size:14px">🥇</td><td style="font-weight:700;color:var(--green)">سارة العتيبي</td><td style="color:var(--green);font-weight:700">91%</td><td>🌟🎯💯🚀</td><td class="up">↑ 21%</td><td style="color:var(--text3);font-size:9px">الحفاظ على المستوى</td></tr>
+          <tr><td style="color:#9ca3af;font-size:14px">🥈</td><td style="font-weight:700;color:var(--blue)">لمى القرني</td><td style="color:var(--blue);font-weight:700">88%</td><td>🌟🎯📈</td><td class="up">↑ 28%</td><td style="color:var(--text3);font-size:9px">الوصول لـ 90%</td></tr>
+          <tr><td style="color:#b45309;font-size:14px">🥉</td><td style="font-weight:700;color:var(--purple)">نورة الشمري</td><td style="color:var(--purple);font-weight:700">74%</td><td>🚀📈</td><td class="up">↑ 18%</td><td style="color:var(--text3);font-size:9px">الوصول لـ 80%</td></tr>
+          <tr><td>4</td><td>هنوف العنزي</td><td style="color:var(--blue)">62%</td><td>📈</td><td class="up">↑ 22%</td><td style="color:var(--text3);font-size:9px">تجاوز 70%</td></tr>
+          <tr><td>5</td><td>دانة الحربي</td><td style="color:var(--orange)">54%</td><td>—</td><td class="up">↑ 14%</td><td style="color:var(--text3);font-size:9px">تجاوز 60%</td></tr>
+          <tr><td>6</td><td style="color:var(--orange)">ملاك محمد</td><td style="color:var(--orange)">40%</td><td>—</td><td class="up">↑ 10%</td><td style="color:var(--text3);font-size:9px">تجاوز 50%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     صفحة: السجل
+═══════════════════════════════════════════════ -->
+<div class="pg" id="pg-lg">
+  <div class="g2e">
+    <div class="card">
+      <div class="ch">
+        <span class="ct">سجل الحصص الكامل — بالتاريخ واليوم والوقت</span>
+        <div class="ca">
+          <button class="cab" onclick="window.print()">طباعة PDF</button>
+          <button class="cab" onclick="alert('تصدير Excel قيد التطوير')">Excel</button>
+        </div>
+      </div>
+      <div class="cb" style="padding:0">
+        <table class="tb">
+          <thead><tr><th>التاريخ</th><th>اليوم</th><th>الوقت</th><th>المهارة</th><th>النشاط</th><th>الطالبات</th><th>الحضور</th><th>الحالة</th></tr></thead>
+          <tbody>
+            <tr><td>١٦ أبريل ٢٠٢٦</td><td>الأربعاء</td><td>١٠:٣٠</td><td>الكسور الاعتيادية</td><td>اختبار بعدي</td><td>28</td><td style="color:var(--green)">28/28</td><td><span class="bd bp">مكتمل</span></td></tr>
+            <tr><td>١٥ أبريل ٢٠٢٦</td><td>الثلاثاء</td><td>٩:٠٠</td><td>النسبة والتناسب</td><td>شرح الدرس</td><td>27</td><td style="color:var(--green)">26/27</td><td><span class="bd bp">مكتمل</span></td></tr>
+            <tr><td>١٤ أبريل ٢٠٢٦</td><td>الاثنين</td><td>١١:٠٠</td><td>الأعداد الصحيحة</td><td>تدريبات وتمارين</td><td>28</td><td style="color:var(--orange)">25/28</td><td><span class="bd bp">مكتمل</span></td></tr>
+            <tr><td>١٣ أبريل ٢٠٢٦</td><td>الأحد</td><td>١٠:٠٠</td><td>ضرب الكسور</td><td>اختبار قبلي</td><td>28</td><td style="color:var(--green)">28/28</td><td><span class="bd bp">مكتمل</span></td></tr>
+            <tr><td>١٠ أبريل ٢٠٢٦</td><td>الخميس</td><td>٩:٣٠</td><td>القسمة على الكسور</td><td>شرح الدرس</td><td>27</td><td style="color:var(--orange)">24/27</td><td><span class="bd bp">مكتمل</span></td></tr>
+            <tr><td>٩ أبريل ٢٠٢٦</td><td>الأربعاء</td><td>١١:٠٠</td><td>الكسور الاعتيادية</td><td>اختبار قبلي</td><td>28</td><td style="color:var(--green)">28/28</td><td><span class="bd bp">مكتمل</span></td></tr>
+            <tr><td>٧ أبريل ٢٠٢٦</td><td>الاثنين</td><td>١٠:٠٠</td><td>النسبة والتناسب</td><td>اختبار قبلي</td><td>28</td><td style="color:var(--orange)">26/28</td><td><span class="bd bp">مكتمل</span></td></tr>
+            <tr><td>٣ أبريل ٢٠٢٦</td><td>الخميس</td><td>٩:٠٠</td><td>الأعداد الصحيحة</td><td>اختبار بعدي</td><td>28</td><td style="color:var(--green)">27/28</td><td><span class="bd bp">مكتمل</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <!-- إحصاءات الحصص -->
+      <div class="card" style="margin-bottom:9px">
+        <div class="ch"><span class="ct">إحصاءات الحصص والأنشطة</span></div>
+        <div class="cb">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px">
+            <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:9px;text-align:center">
+              <div style="font-size:18px;font-weight:700;color:var(--green)">34</div>
+              <div style="font-size:9px;color:var(--text3)">إجمالي الحصص</div>
+            </div>
+            <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:9px;text-align:center">
+              <div style="font-size:18px;font-weight:700;color:var(--blue)">95%</div>
+              <div style="font-size:9px;color:var(--text3)">نسبة الحضور</div>
+            </div>
+            <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:9px;text-align:center">
+              <div style="font-size:18px;font-weight:700;color:var(--orange)">48</div>
+              <div style="font-size:9px;color:var(--text3)">اختبار نُفّذ</div>
+            </div>
+          </div>
+          <div class="pr"><span class="plb">اختبارات قبلية</span><div class="pb"><div class="pf" style="width:50%;background:var(--blue)"></div></div><span class="pv" style="color:var(--blue)">24</span></div>
+          <div class="pr"><span class="plb">اختبارات بعدية</span><div class="pb"><div class="pf" style="width:50%;background:var(--green)"></div></div><span class="pv" style="color:var(--green)">24</span></div>
+          <div class="pr"><span class="plb">جلسات الشرح</span><div class="pb"><div class="pf" style="width:50%;background:var(--purple)"></div></div><span class="pv" style="color:var(--purple)">17</span></div>
+          <div class="pr"><span class="plb">جلسات التدريب</span><div class="pb"><div class="pf" style="width:20%;background:var(--orange)"></div></div><span class="pv" style="color:var(--orange)">7</span></div>
+        </div>
+      </div>
+
+      <!-- توزيع الأنشطة الأسبوعية -->
+      <div class="card">
+        <div class="ch"><span class="ct">توزيع الأنشطة الأسبوعية</span></div>
+        <div class="cb"><div style="position:relative;height:130px"><canvas id="actC" role="img" aria-label="توزيع الأنشطة الأسبوعية">أعمدة أسبوعية</canvas></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MODAL — تقرير الطالبة المفصّل
+═══════════════════════════════════════════════ -->
+<div class="mbg" id="rModal">
+  <div class="mdl">
+    <div class="mh">
+      <div class="mt" id="mTitle">تقرير الطالبة</div>
+      <button class="mx" onclick="cR()">✕</button>
+    </div>
+    <div class="mtbs">
+      <button class="mtb on" onclick="mT('ov')">نظرة عامة</button>
+      <button class="mtb" onclick="mT('sk')">تحليل المهارات</button>
+      <button class="mtb" onclick="mT('ts')">سجل الاختبارات</button>
+      <button class="mtb" onclick="mT('map')">خريطة التقدم</button>
+      <button class="mtb" onclick="mT('rc')">التوصيات</button>
+    </div>
+
+    <!-- نظرة عامة -->
+    <div class="mp on" id="mp-ov">
+      <div class="mmeta">
+        <div class="mmi"><div class="mml">اسم الطالبة</div><div class="mmv" id="mName">-</div></div>
+        <div class="mmi"><div class="mml">الفصل الدراسي</div><div class="mmv">ث١٢</div></div>
+        <div class="mmi"><div class="mml">المعلمة المسؤولة</div><div class="mmv">ريم أحمد</div></div>
+        <div class="mmi"><div class="mml">تاريخ التقرير</div><div class="mmv" id="mDate">-</div></div>
+      </div>
+      <div class="sbox" id="mSB">
+        <div class="stit" id="mST">-</div>
+        <div class="snum" id="mSN">-</div>
+      </div>
+      <div class="mss">
+        <div class="msi"><div class="msv" id="mAvg">-</div><div class="msl">المتوسط العام</div></div>
+        <div class="msi"><div class="msv" style="color:var(--blue)">8</div><div class="msl">اختبارات أُديت</div></div>
+        <div class="msi"><div class="msv" style="color:var(--purple)">4</div><div class="msl">مهارات مكتملة</div></div>
+      </div>
+    </div>
+
+    <!-- تحليل المهارات -->
+    <div class="mp" id="mp-sk">
+      <div id="skBody"></div>
+    </div>
+
+    <!-- سجل الاختبارات -->
+    <div class="mp" id="mp-ts">
+      <table class="tb">
+        <thead><tr><th>#</th><th>المهارة</th><th>القبلي</th><th>البعدي</th><th>التحسن</th><th>التقييم</th></tr></thead>
+        <tbody id="tsBody"></tbody>
+      </table>
+    </div>
+
+    <!-- خريطة التقدم -->
+    <div class="mp" id="mp-map">
+      <div style="position:relative;height:220px;margin-bottom:10px">
+        <canvas id="mRadar" role="img" aria-label="خريطة التقدم">رادار</canvas>
+      </div>
+    </div>
+
+    <!-- التوصيات -->
+    <div class="mp" id="mp-rc">
+      <div class="rec" id="recText">-</div>
+      <div style="margin-top:10px;padding:9px 11px;background:var(--card2);border-radius:7px;font-size:10px;color:var(--text3);line-height:1.8" id="recExtra">-</div>
+    </div>
+
+    <div class="mbtns">
+      <button class="gbtn" onclick="cR()">إغلاق</button>
+      <button class="pbtn2" onclick="window.print()">🖨️ طباعة PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════ -->
+<script>
+// ── الوقت والتاريخ ──
+const days=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+function upTime(){
+  const n=new Date();
+  const h=String(n.getHours()).padStart(2,'0');
+  const m=String(n.getMinutes()).padStart(2,'0');
+  const s=String(n.getSeconds()).padStart(2,'0');
+  document.getElementById('tv').textContent=h+':'+m+':'+s;
+}
+setInterval(upTime,1000);upTime();
+
+const now=new Date();
+document.getElementById('dv').textContent=days[now.getDay()]+' '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+document.getElementById('td').textContent=now.getDate()+' '+months[now.getMonth()];
+document.getElementById('mDate').textContent=now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+
+// ── التنقل ──
+function gp(name,btn){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+name).classList.add('on');
+  btn.classList.add('on');
+}
+
+// ── Heatmap ──
+const hm=document.getElementById('hmap');
+for(let i=0;i<28;i++){
+  const d=document.createElement('div');
+  d.className='hd';
+  const r=Math.random();
+  d.style.background=r<0.25?'var(--bg3)':r<0.5?'rgba(16,185,129,0.2)':r<0.75?'rgba(16,185,129,0.5)':'var(--green)';
+  d.title='يوم '+(i+1)+' — '+(r<0.25?'لا نشاط':r<0.5?'نشاط منخفض':r<0.75?'نشاط متوسط':'نشاط عالٍ');
+  hm.appendChild(d);
+}
+
+// ── إعدادات Charts ──
+const cf={font:{family:'Tajawal',size:10},color:'#475569'};
+const gc={color:'rgba(30,42,61,0.5)'};
+const tt={backgroundColor:'#111827',borderColor:'#1e2a3d',borderWidth:1,titleColor:'#f1f5f9',bodyColor:'#94a3b8',titleFont:{family:'Tajawal',size:11},bodyFont:{family:'Tajawal',size:10}};
+const ax={ticks:cf,grid:gc,border:{color:'#1e2a3d'}};
+
+Chart.defaults.color='#475569';
+
+// ── منحنى تقدم الفصل ──
+new Chart(document.getElementById('mainC'),{
+  type:'line',
+  data:{
+    labels:['يناير','فبراير','مارس','أبريل','مايو','يونيو'],
+    datasets:[
+      {label:'متوسط الفصل',data:[42,50,55,58,62,64],borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.05)',borderWidth:2.5,tension:0.4,fill:true,pointBackgroundColor:'#10b981',pointRadius:4,pointHoverRadius:6},
+      {label:'خط الهدف (75%)',data:[75,75,75,75,75,75],borderColor:'#1e2a3d',borderWidth:1.5,borderDash:[5,5],pointRadius:0,tension:0},
+      {label:'الطالبات الممتازات',data:[78,82,85,87,89,91],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.03)',borderWidth:1.5,tension:0.4,fill:true,pointRadius:2,pointHoverRadius:4}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:12,usePointStyle:true},position:'top'},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax}}}
+});
+
+// ── Radar خريطة التقدم الفردي ──
+new Chart(document.getElementById('radarC'),{
+  type:'radar',
+  data:{
+    labels:['الكسور\nالاعتيادية','النسبة\nوالتناسب','الأعداد\nالصحيحة','ضرب\nالكسور','القسمة\nعلى الكسور'],
+    datasets:[
+      {label:'سارة العتيبي',data:[100,90,85,80,75],borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.1)',borderWidth:2,pointBackgroundColor:'#10b981',pointRadius:3},
+      {label:'متوسط الفصل',data:[69,66,65,58,53],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.08)',borderWidth:1.5,pointBackgroundColor:'#3b82f6',pointRadius:3,borderDash:[4,4]},
+      {label:'ملاك محمد',data:[40,45,50,35,30],borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.08)',borderWidth:1.5,pointBackgroundColor:'#ef4444',pointRadius:3}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},scales:{r:{angleLines:{color:'#1e2a3d'},grid:{color:'#1e2a3d'},pointLabels:{color:'#475569',font:{family:'Tajawal',size:9}},ticks:{color:'#475569',backdropColor:'transparent',font:{family:'Tajawal',size:9}},min:0,max:100}}}
+});
+
+// ── قبلي وبعدي ──
+new Chart(document.getElementById('ppC'),{
+  type:'bar',
+  data:{
+    labels:['الكسور','النسبة','الأعداد','الضرب','القسمة'],
+    datasets:[
+      {label:'القبلي',data:[42,40,45,35,30],backgroundColor:'rgba(59,130,246,0.5)',borderRadius:5,borderSkipped:false},
+      {label:'البعدي',data:[69,66,65,58,53],backgroundColor:'rgba(16,185,129,0.7)',borderRadius:5,borderSkipped:false}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
+});
+
+// ── Histogram ──
+new Chart(document.getElementById('histC'),{
+  type:'bar',
+  data:{
+    labels:['20-29','30-39','40-49','50-59','60-69','70-79','80-89','90-100'],
+    datasets:[{
+      label:'عدد الطالبات',
+      data:[2,1,3,5,9,5,2,1],
+      backgroundColor:['rgba(239,68,68,0.7)','rgba(239,68,68,0.7)','rgba(245,158,11,0.7)','rgba(245,158,11,0.5)','rgba(139,92,246,0.7)','rgba(59,130,246,0.7)','rgba(16,185,129,0.7)','rgba(16,185,129,0.9)'],
+      borderRadius:5,borderSkipped:false
+    }]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:{y:{...ax,ticks:{...cf,stepSize:2}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
+});
+
+// ── بنك الأسئلة ──
+new Chart(document.getElementById('bankC'),{
+  type:'bar',
+  data:{
+    labels:['الكسور','النسبة','الأعداد','الضرب','القسمة'],
+    datasets:[
+      {label:'عدد الأسئلة',data:[60,50,45,45,40],backgroundColor:'rgba(139,92,246,0.5)',borderRadius:5,borderSkipped:false},
+      {label:'معدل النجاح%',data:[69,66,65,58,53],backgroundColor:'rgba(16,185,129,0.6)',borderRadius:5,borderSkipped:false}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
+});
+
+// ── توزيع نتائج الاختبارات ──
+new Chart(document.getElementById('exLvlC'),{
+  type:'doughnut',
+  data:{
+    labels:['ممتازة','جيدة جداً','جيدة','متوسطة','تحتاج دعم'],
+    datasets:[{data:[4,7,9,5,3],backgroundColor:['#8b5cf6','#10b981','#3b82f6','#f59e0b','#ef4444'],borderWidth:0,hoverBorderWidth:2,hoverBorderColor:'#fff'}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},cutout:'62%'}
+});
+
+// ── منحنى التنبؤ ──
+new Chart(document.getElementById('predC'),{
+  type:'line',
+  data:{
+    labels:['أبريل','مايو','يونيو','يوليو','أغسطس'],
+    datasets:[
+      {label:'سارة (متوقع)',data:[91,null,null,88,null],borderColor:'#10b981',borderDash:[5,5],borderWidth:1.5,pointBackgroundColor:'#10b981',pointRadius:3,tension:0.4,spanGaps:true},
+      {label:'ملاك (بدون تدخل)',data:[40,38,36,35,33],borderColor:'rgba(239,68,68,0.5)',borderDash:[5,5],borderWidth:1.5,pointRadius:2,tension:0.4},
+      {label:'ملاك (مع تدخل)',data:[40,45,50,55,60],borderColor:'#f59e0b',borderWidth:2,pointBackgroundColor:'#f59e0b',pointRadius:3,tension:0.4},
+      {label:'ليلى (بدون تدخل)',data:[30,27,25,23,22],borderColor:'rgba(239,68,68,0.3)',borderDash:[3,3],borderWidth:1.5,pointRadius:2,tension:0.4},
+      {label:'ليلى (مع تدخل)',data:[30,35,40,44,48],borderColor:'#14b8a6',borderWidth:2,pointBackgroundColor:'#14b8a6',pointRadius:3,tension:0.4}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:9},boxWidth:10},position:'top'},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax}}}
+});
+
+// ── أنشطة أسبوعية ──
+new Chart(document.getElementById('actC'),{
+  type:'bar',
+  data:{
+    labels:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'],
+    datasets:[
+      {label:'حصص شرح',data:[1,2,1,1,1],backgroundColor:'rgba(59,130,246,0.6)',borderRadius:4},
+      {label:'اختبارات',data:[1,0,1,2,1],backgroundColor:'rgba(16,185,129,0.6)',borderRadius:4},
+      {label:'تدريبات',data:[0,1,1,0,1],backgroundColor:'rgba(245,158,11,0.6)',borderRadius:4}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:9},boxWidth:8}},tooltip:tt},scales:{y:{...ax,ticks:{...cf,stepSize:1}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
+});
+
+// ── بيانات الطالبات ──
+const rData={
+  'سارة العتيبي':{score:91,type:'exc',skills:[100,90,85,80,75],pre:[70,65,60,55,50],rec:'الطالبة سارة ممتازة في جميع المهارات وأكملت المنهج بالكامل.',extra:'يُنصح بتشجيعها على المشاركة في مسابقات الرياضيات ومنحها مواد إثرائية متقدمة. هي نموذج يُحتذى به للزميلات.'},
+  'لمى القرني':{score:88,type:'pass',skills:[85,88,80,75,70],pre:[60,62,55,50,45],rec:'الطالبة لمى متميزة وتُبدي تقدماً ملحوظاً في معظم المهارات.',extra:'تحتاج تعزيزاً بسيطاً في القسمة على الكسور. يُنصح بالاستمرار في المتابعة الأسبوعية للوصول لـ 90%.'},
+  'نورة الشمري':{score:74,type:'pass',skills:[78,75,80,65,60],pre:[55,52,58,45,40],rec:'الطالبة نورة في مستوى جيد جداً مع تحسن مستمر.',extra:'تحتاج دعماً إضافياً في ضرب الكسور والقسمة. يُنصح بإعطائها تمارين إضافية على هاتين المهارتين.'},
+  'هنوف العنزي':{score:62,type:'mid',skills:[70,65,60,55,50],pre:[45,42,40,35,30],rec:'الطالبة هنوف في المستوى المتوسط وتحتاج دعماً إضافياً.',extra:'ضعف واضح في ضرب الكسور والقسمة. يُنصح بجلسات مراجعة أسبوعية والتواصل مع ولي الأمر لمتابعة الواجبات.'},
+  'دانة الحربي':{score:58,type:'mid',skills:[65,60,55,50,42],pre:[40,38,35,32,28],rec:'الطالبة دانة متوسطة وتحتاج تركيزاً على مهارات محددة.',extra:'الكسور غير الاعتيادية هي أكبر نقطة ضعف. يُنصح بإعطائها تدريبات إضافية منزلية وجلسة مراجعة خاصة.'},
+  'ريم السبيعي':{score:55,type:'mid',skills:[60,55,50,45,40],pre:[38,35,32,28,25],rec:'الطالبة ريم بحاجة لمتابعة مستمرة ودعم منتظم.',extra:'ضعف في النسبة المئوية والضرب. يُنصح بالتواصل مع ولي الأمر وإعطاؤها خطة دراسية واضحة.'},
+  'ملاك محمد':{score:40,type:'fail',skills:[40,45,50,35,30],pre:[25,28,30,20,18],rec:'الطالبة ملاك تحتاج دعماً مكثفاً وتدخلاً سريعاً.',extra:'ضعف في معظم المهارات. يُنصح بجلسات تدريس خصوصي، والتواصل العاجل مع ولي الأمر، ووضع خطة علاجية فردية خلال أسبوعين.'},
+  'ليلى القحطاني':{score:30,type:'fail',skills:[35,30,40,25,20],pre:[20,18,22,15,12],rec:'الطالبة ليلى بحاجة لتدخل عاجل من جميع الأطراف.',extra:'غياب متكرر وضعف شامل في جميع المهارات. يجب إشراك الإرشاد الطلابي وولي الأمر والإدارة فوراً ووضع برنامج دعم مكثف.'},
+  'نوف الرشيدي':{score:25,type:'fail',skills:[25,22,28,20,15],pre:[15,12,18,10,8],rec:'الطالبة نوف في وضع حرج جداً يستدعي تدخلاً فورياً.',extra:'غياب مفرط (٨ أيام) وضعف في جميع المهارات. الإجراء العاجل: اجتماع فوري مع الإدارة والإرشاد الطلابي وولي الأمر. تحذير رسمي مطلوب.'}
+};
+const sNames=['الكسور الاعتيادية','النسبة والتناسب','الأعداد الصحيحة','ضرب الكسور','القسمة على الكسور'];
+let mRadarChart=null;
+
+function oR(name,score,type){
+  const d=rData[name]||{score,type,skills:[score,score-5,score+5,score-10,score-15],pre:[score-20,score-18,score-15,score-22,score-25],rec:'لا توجد تفاصيل إضافية.',extra:'يُنصح بالمتابعة المستمرة مع هذه الطالبة.'};
+  document.getElementById('mTitle').textContent='📋 تقرير مفصّل — '+name;
+  document.getElementById('mName').textContent=name;
+  const c=type==='exc'?'var(--purple)':type==='pass'?'var(--green)':type==='mid'?'var(--orange)':'var(--red)';
+  document.getElementById('mAvg').textContent=d.score+'%';
+  document.getElementById('mAvg').style.color=c;
+  const sb=document.getElementById('mSB');
+  sb.className='sbox '+(type==='exc'||type==='pass'?'spass':type==='mid'?'smid':'sfail');
+  const titles={exc:'ممتازة 🌟',pass:'جيدة ✅',mid:'متوسطة — تحتاج تعزيز ⚠️',fail:'تحتاج دعم عاجل 🚨'};
+  document.getElementById('mST').textContent=titles[type]||'-';
+  document.getElementById('mST').style.color=c;
+  document.getElementById('mSN').textContent='المتوسط العام: '+d.score+'%';
+
+  // تحليل المهارات
+  let skHtml='';
+  d.skills.forEach((v,i)=>{
+    const col=v>=70?'var(--green)':v>=50?'var(--orange)':'var(--red)';
+    const diff=v-d.pre[i];
+    skHtml+=`<div class="skr"><span class="skn">${sNames[i]}</span><div class="skb"><div class="skf" style="width:${v}%;background:${col}"></div></div><span class="skv" style="color:${col}">${v}%</span><span class="skc" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'↑':'↓'}${Math.abs(diff)}</span></div>`;
+  });
+  document.getElementById('skBody').innerHTML=skHtml;
+
+  // سجل الاختبارات
+  let tsHtml='';
+  d.skills.forEach((v,i)=>{
+    const diff=v-d.pre[i];
+    const lvl=v>=90?'ممتازة':v>=75?'جيدة جداً':v>=60?'جيدة':v>=50?'متوسطة':'تحتاج دعم';
+    const cls=v>=75?'bp':v>=50?'bm':'bf';
+    tsHtml+=`<tr><td>${i+1}</td><td>${sNames[i]}</td><td style="color:var(--blue)">${d.pre[i]}%</td><td style="color:var(--green)">${v}%</td><td style="color:${diff>=0?'var(--green)':'var(--red)'};font-weight:600">${diff>=0?'↑':'↓'}${Math.abs(diff)}</td><td><span class="bd ${cls}">${lvl}</span></td></tr>`;
+  });
+  document.getElementById('tsBody').innerHTML=tsHtml;
+
+  // التوصيات
+  document.getElementById('recText').textContent=d.rec;
+  document.getElementById('recExtra').textContent=d.extra;
+
+  document.getElementById('rModal').classList.add('on');
+  mT('ov');
+
+  // Radar Chart في Modal
+  setTimeout(()=>{
+    if(mRadarChart) mRadarChart.destroy();
+    mRadarChart=new Chart(document.getElementById('mRadar'),{
+      type:'radar',
+      data:{
+        labels:sNames.map(n=>n.substring(0,6)),
+        datasets:[
+          {label:'البعدي',data:d.skills,borderColor:type==='exc'?'#10b981':type==='pass'?'#3b82f6':type==='mid'?'#f59e0b':'#ef4444',backgroundColor:type==='exc'?'rgba(16,185,129,0.15)':type==='pass'?'rgba(59,130,246,0.15)':type==='mid'?'rgba(245,158,11,0.15)':'rgba(239,68,68,0.15)',borderWidth:2,pointRadius:3},
+          {label:'القبلي',data:d.pre,borderColor:'rgba(148,163,184,0.5)',backgroundColor:'rgba(148,163,184,0.05)',borderWidth:1.5,borderDash:[4,4],pointRadius:2}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},scales:{r:{angleLines:{color:'#1e2a3d'},grid:{color:'#1e2a3d'},pointLabels:{color:'#475569',font:{family:'Tajawal',size:9}},ticks:{color:'#475569',backdropColor:'transparent',font:{family:'Tajawal',size:8}},min:0,max:100}}}
+    });
+  },200);
+}
+
+function cR(){
+  document.getElementById('rModal').classList.remove('on');
+  if(mRadarChart){mRadarChart.destroy();mRadarChart=null;}
+}
+
+function mT(t){
+  const tabs=['ov','sk','ts','map','rc'];
+  document.querySelectorAll('.mtb').forEach((b,i)=>b.classList.toggle('on',tabs[i]===t));
+  document.querySelectorAll('.mp').forEach(p=>p.classList.remove('on'));
+  document.getElementById('mp-'+t).classList.add('on');
+}
+</script>
 </body>
 </html>
