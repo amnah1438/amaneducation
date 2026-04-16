@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from .forms import LoginForm
+from core.models import Profile
 
 
 def login_view(request):
@@ -9,22 +8,33 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect_by_role(request.user)
 
-    form = LoginForm()
+    error = None
 
     if request.method == 'POST':
-        form = LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            password = form.cleaned_data['password']
-            user = authenticate(request, username=username, password=password)
+        login_type = request.POST.get('login_type')
 
-            if user is not None:
+        # دخول المديرة
+        if login_type == 'admin':
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user and hasattr(user, 'core_profile') and user.core_profile.role == 'ADMIN':
                 login(request, user)
                 return redirect_by_role(user)
             else:
-                form.add_error(None, 'اسم المستخدم أو كلمة المرور غلط')
+                error = 'اسم المستخدم أو كلمة المرور غلط'
 
-    return render(request, 'accounts/login.html', {'form': form})
+        # دخول المعلمة أو الطالبة برقم الهوية
+        elif login_type == 'id':
+            national_id = request.POST.get('national_id')
+            try:
+                profile = Profile.objects.get(national_id=national_id)
+                login(request, profile.user)
+                return redirect_by_role(profile.user)
+            except Profile.DoesNotExist:
+                error = 'رقم الهوية غير موجود'
+
+    return render(request, 'accounts/login.html', {'error': error})
 
 
 def logout_view(request):
@@ -40,8 +50,8 @@ def redirect_by_role(user):
         if role == 'ADMIN':
             return redirect('home')
         elif role == 'TEACHER':
-            return redirect('home')
+            return redirect('teacher_dashboard')
         elif role == 'STUDENT':
-            return redirect('home')
+            return redirect('student_dashboard')
     except:
         return redirect('home')
