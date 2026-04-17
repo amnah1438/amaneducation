@@ -41,3 +41,6 @@ def teacher_dashboard(request):
     }
 
     return render(request, 'teachers/dashboard.html', context)
+@login_required
+def skill_manager(request):
+    return render(request, 'teachers/skill_manager.html')
