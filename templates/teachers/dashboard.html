@@ -668,16 +668,16 @@ body {
     <span class="lupd">آخر تحديث: منذ ٣ دقائق</span>
   </div>
 
-  <!-- KPI -->
+<!-- KPI -->
   <div class="kg">
-    <div class="kc g"><div class="kl">إجمالي الطالبات</div><div class="kv" style="color:var(--green)">28</div><div class="kch up">↑ 3 هذا الشهر</div></div>
-    <div class="kc b"><div class="kl">مهارات مدرّسة</div><div class="kv" style="color:var(--blue)">12</div><div class="kch up">↑ 2 هذا الأسبوع</div></div>
-    <div class="kc p"><div class="kl">متوسط النجاح</div><div class="kv" style="color:var(--purple)">64%</div><div class="kch up">↑ 8% عن الشهر</div></div>
-    <div class="kc o"><div class="kl">اختبارات مفعّلة</div><div class="kv" style="color:var(--orange)">48</div><div class="kch nu">— لا تغيير</div></div>
-    <div class="kc t"><div class="kl">أكملن كل المهارات</div><div class="kv" style="color:var(--teal)">4</div><div class="kch up">↑ 1 هذا الأسبوع</div></div>
-    <div class="kc r"><div class="kl">يحتجن دعم عاجل</div><div class="kv" style="color:var(--red)">3</div><div class="kch dn">↓ تنبيه</div></div>
+    <div class="kc g"><div class="kl">إجمالي الطالبات</div><div class="kv" style="color:var(--green)">{{ total_students }}</div><div class="kch up">هذا الفصل</div></div>
+    <div class="kc b"><div class="kl">مهاراتي ودروسي</div><div class="kv" style="color:var(--blue)">{{ total_skills }}</div><div class="kch up">مضافة</div></div>
+    <div class="kc p"><div class="kl">متوسط النجاح</div><div class="kv" style="color:var(--purple)">{{ avg_score }}%</div><div class="kch up">هذا الفصل</div></div>
+    <div class="kc o"><div class="kl">اختبارات مفعّلة</div><div class="kv" style="color:var(--orange)">{{ active_exams }}</div><div class="kch nu">هذا الفصل</div></div>
+    <div class="kc t"><div class="kl">حصص القدرات</div><div class="kv" style="color:var(--teal)">{{ qodrat_sessions }}</div><div class="kch nu">مفعّلة</div></div>
+    <div class="kc r"><div class="kl">حصص التحصيلي</div><div class="kv" style="color:var(--red)">{{ tahsili_sessions }}</div><div class="kch nu">مفعّلة</div></div>
   </div>
-
+  
   <div class="g2">
     <!-- الرسم البياني الرئيسي -->
     <div class="card">
