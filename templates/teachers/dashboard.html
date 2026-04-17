@@ -628,7 +628,7 @@ body {
     <div class="logo-icon">🎓</div>
     <div>
       <div class="logo-text">منصة آمنة التعليمية</div>
-      <div class="logo-sub">مدرسة النور — ريم أحمد — ث١٢</div>
+      <div class="logo-sub">مدرسة النور — {{ teacher.full_name|default:user.username }} — ث١٢</div>
     </div>
   </div>
 
@@ -650,7 +650,7 @@ body {
       <div class="clock-date" id="dv"></div>
       <div class="clock-time" id="tv"></div>
     </div>
-    <div class="user-badge"><div class="user-dot"></div>ريم أحمد</div>
+    <div class="user-badge"><div class="user-dot"></div>{{ teacher.full_name|default:user.username }}</div>
     <button class="print-btn" onclick="window.print()">🖨️ طباعة PDF</button>
   </div>
 </div>
