@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from core.models import Profile
 from ckeditor_uploader.fields import RichTextUploadingField
 
 
@@ -20,12 +19,14 @@ class Teacher(models.Model):
         return self.full_name
 
 
-# ═══════════════════════════════════════
-# المهارة (قدرات) والدرس (تحصيلي)
-# ═══════════════════════════════════════
+class TeacherSkill(models.Model):
+    """مهارة أو درس أو بنك أسئلة أنشأته المعلمة"""
 
-class Skill(models.Model):
-    """مهارة قدرات — فيها قبلي + شرح + بعدي"""
+    CONTENT_TYPE = [
+        ('skill', 'مهارة قدرات'),
+        ('lesson', 'درس تحصيلي'),
+        ('bank', 'بنك أسئلة'),
+    ]
 
     TYPE_CHOICES = [
         ('qodrat_kamy', 'قدرات — كمي'),
@@ -39,16 +40,9 @@ class Skill(models.Model):
         ('phys', 'تحصيلي — فيزياء'),
     ]
 
-    CONTENT_TYPE = [
-        ('skill', 'مهارة قدرات'),
-        ('lesson', 'درس تحصيلي'),
-        ('bank', 'بنك أسئلة'),
-    ]
-
-    # المعلومات الأساسية
     content_type = models.CharField(
-        max_length=10, choices=CONTENT_TYPE, default='skill',
-        verbose_name="نوع المحتوى"
+        max_length=10, choices=CONTENT_TYPE,
+        default='skill', verbose_name="نوع المحتوى"
     )
     title = models.CharField(max_length=200, verbose_name="العنوان")
     skill_type = models.CharField(
@@ -61,25 +55,18 @@ class Skill(models.Model):
     )
     description = models.TextField(blank=True, verbose_name="وصف مختصر")
 
-    # المعلمة المنشئة
     created_by = models.ForeignKey(
         Teacher, on_delete=models.CASCADE,
-        related_name="skills", verbose_name="المعلمة المنشئة"
+        related_name="teacher_skills", verbose_name="المعلمة المنشئة"
     )
 
-    # الفصول المستهدفة
     target_classes = models.CharField(
         max_length=100, blank=True,
         verbose_name="الفصول المستهدفة",
         help_text="مثال: ث١٢,ث١١"
     )
 
-    # المشاركة مع المعلمات
-    is_shared = models.BooleanField(
-        default=True, verbose_name="مشاركة مع المعلمات"
-    )
-
-    # الحالة
+    is_shared = models.BooleanField(default=True, verbose_name="مشاركة مع المعلمات")
     is_active = models.BooleanField(default=False, verbose_name="مفعّلة")
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -94,19 +81,15 @@ class Skill(models.Model):
         return f"{self.get_content_type_display()} — {self.title}"
 
 
-# ═══════════════════════════════════════
-# محتوى الشرح
-# ═══════════════════════════════════════
-
-class SkillContent(models.Model):
+class TeacherSkillContent(models.Model):
     """محتوى شرح المهارة أو الدرس"""
 
     skill = models.OneToOneField(
-        Skill, on_delete=models.CASCADE,
+        TeacherSkill, on_delete=models.CASCADE,
         related_name="content", verbose_name="المهارة/الدرس"
     )
 
-    # للكمي والرياضيات والفيزياء والكيمياء والأحياء — محرر علمي كامل
+    # للكمي والتحصيلي — محرر علمي كامل
     text_content = RichTextUploadingField(
         config_name='scientific_editor',
         blank=True, null=True,
@@ -114,15 +97,12 @@ class SkillContent(models.Model):
     )
 
     # للفظي — نص عادي وصورة فقط
-    plain_text = models.TextField(
-        blank=True, verbose_name="شرح نصي بسيط (للفظي)"
-    )
+    plain_text = models.TextField(blank=True, verbose_name="شرح نصي بسيط")
     plain_image = models.ImageField(
         upload_to='skill_content/', blank=True, null=True,
-        verbose_name="صورة توضيحية (للفظي)"
+        verbose_name="صورة توضيحية"
     )
 
-    # مشترك
     video_url = models.URLField(blank=True, verbose_name="رابط فيديو")
     pdf_file = models.FileField(
         upload_to='skill_pdfs/', blank=True, null=True,
@@ -136,11 +116,7 @@ class SkillContent(models.Model):
         return f"شرح — {self.skill.title}"
 
 
-# ═══════════════════════════════════════
-# الاختبار (قبلي / بعدي / تحصيلي / بنك)
-# ═══════════════════════════════════════
-
-class Exam(models.Model):
+class TeacherExam(models.Model):
     """اختبار مرتبط بمهارة أو درس"""
 
     EXAM_TYPE = [
@@ -163,14 +139,14 @@ class Exam(models.Model):
     ]
 
     skill = models.ForeignKey(
-        Skill, on_delete=models.CASCADE,
+        TeacherSkill, on_delete=models.CASCADE,
         related_name="exams", verbose_name="المهارة/الدرس"
     )
     exam_type = models.CharField(
-        max_length=10, choices=EXAM_TYPE, verbose_name="نوع الاختبار"
+        max_length=10, choices=EXAM_TYPE,
+        verbose_name="نوع الاختبار"
     )
 
-    # إعدادات الاختبار
     questions_count = models.PositiveIntegerField(
         default=10, verbose_name="عدد الأسئلة"
     )
@@ -181,15 +157,9 @@ class Exam(models.Model):
         default=60, verbose_name="درجة النجاح %"
     )
 
-    # التواريخ
-    start_date = models.DateField(
-        blank=True, null=True, verbose_name="تاريخ البدء"
-    )
-    end_date = models.DateField(
-        blank=True, null=True, verbose_name="تاريخ الانتهاء"
-    )
+    start_date = models.DateField(blank=True, null=True, verbose_name="تاريخ البدء")
+    end_date = models.DateField(blank=True, null=True, verbose_name="تاريخ الانتهاء")
 
-    # طريقة التسليم والتصحيح
     delivery = models.CharField(
         max_length=15, choices=DELIVERY_TYPE,
         default='both', verbose_name="طريقة التسليم"
@@ -201,7 +171,7 @@ class Exam(models.Model):
 
     is_active = models.BooleanField(default=False, verbose_name="مفعّل")
     shuffle_questions = models.BooleanField(
-        default=True, verbose_name="ترتيب عشوائي للأسئلة"
+        default=True, verbose_name="ترتيب عشوائي"
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -214,11 +184,7 @@ class Exam(models.Model):
         return f"{self.get_exam_type_display()} — {self.skill.title}"
 
 
-# ═══════════════════════════════════════
-# الأسئلة
-# ═══════════════════════════════════════
-
-class Question(models.Model):
+class TeacherQuestion(models.Model):
     """سؤال في اختبار أو بنك أسئلة"""
 
     CORRECT_CHOICES = [
@@ -226,21 +192,18 @@ class Question(models.Model):
     ]
 
     exam = models.ForeignKey(
-        Exam, on_delete=models.CASCADE,
+        TeacherExam, on_delete=models.CASCADE,
         related_name="questions", verbose_name="الاختبار"
     )
 
-    # المهارة المستهدفة من هذا السؤال (للبنك)
     target_skill_name = models.CharField(
         max_length=200, blank=True,
-        verbose_name="المهارة المستهدفة",
-        help_text="للبنك فقط — اسم المهارة أو الدرس"
+        verbose_name="المهارة المستهدفة"
     )
 
     order = models.PositiveIntegerField(default=0, verbose_name="الترتيب")
 
-    # نص السؤال
-    # للكمي والتحصيلي — محرر علمي كامل
+    # للكمي والتحصيلي — محرر علمي
     question_text = RichTextUploadingField(
         config_name='scientific_editor',
         blank=True, null=True,
@@ -249,14 +212,14 @@ class Question(models.Model):
 
     # للفظي — نص عادي وصورة
     question_plain = models.TextField(
-        blank=True, verbose_name="نص السؤال البسيط (للفظي)"
+        blank=True, verbose_name="نص السؤال البسيط"
     )
     question_image = models.ImageField(
         upload_to='questions/', blank=True, null=True,
         verbose_name="صورة السؤال"
     )
 
-    # الخيارات — محرر علمي للكمي والتحصيلي
+    # خيارات للكمي والتحصيلي — محرر علمي
     option_a = RichTextUploadingField(
         config_name='scientific_editor',
         blank=True, null=True, verbose_name="خيار أ"
@@ -274,7 +237,7 @@ class Question(models.Model):
         blank=True, null=True, verbose_name="خيار د"
     )
 
-    # خيارات نصية بسيطة للفظي
+    # خيارات للفظي — نص بسيط
     option_a_plain = models.CharField(max_length=500, blank=True, verbose_name="خيار أ (نص)")
     option_b_plain = models.CharField(max_length=500, blank=True, verbose_name="خيار ب (نص)")
     option_c_plain = models.CharField(max_length=500, blank=True, verbose_name="خيار ج (نص)")
@@ -292,7 +255,7 @@ class Question(models.Model):
         verbose_name="تغذية راجعة"
     )
     feedback_plain = models.TextField(
-        blank=True, verbose_name="تغذية راجعة بسيطة (للفظي)"
+        blank=True, verbose_name="تغذية راجعة بسيطة"
     )
 
     class Meta:
@@ -306,33 +269,27 @@ class Question(models.Model):
         return f"س{self.order} — {text[:50]}"
 
 
-# ═══════════════════════════════════════
-# نتائج الطالبات
-# ═══════════════════════════════════════
-
 class ExamResult(models.Model):
     """نتيجة اختبار طالبة"""
 
     exam = models.ForeignKey(
-        Exam, on_delete=models.CASCADE,
+        TeacherExam, on_delete=models.CASCADE,
         related_name="results", verbose_name="الاختبار"
     )
     student = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name="exam_results", verbose_name="الطالبة"
+        related_name="teacher_exam_results", verbose_name="الطالبة"
     )
 
     score = models.FloatField(default=0, verbose_name="الدرجة")
     total = models.PositiveIntegerField(default=10, verbose_name="الدرجة الكاملة")
-    percentage = models.FloatField(default=0, verbose_name="النسبة المئوية %")
+    percentage = models.FloatField(default=0, verbose_name="النسبة %")
     passed = models.BooleanField(default=False, verbose_name="ناجحة")
 
-    # وقت الاختبار
     time_taken_seconds = models.PositiveIntegerField(
         default=0, verbose_name="الوقت المستغرق (ثانية)"
     )
 
-    # التصحيح اليدوي
     manually_corrected = models.BooleanField(
         default=False, verbose_name="صُحّح يدوياً"
     )
@@ -355,19 +312,17 @@ class ExamResult(models.Model):
 
 
 class StudentAnswer(models.Model):
-    """إجابة طالبة على سؤال معين"""
+    """إجابة طالبة على سؤال"""
 
     result = models.ForeignKey(
         ExamResult, on_delete=models.CASCADE,
         related_name="answers", verbose_name="النتيجة"
     )
     question = models.ForeignKey(
-        Question, on_delete=models.CASCADE,
+        TeacherQuestion, on_delete=models.CASCADE,
         verbose_name="السؤال"
     )
-    chosen_answer = models.CharField(
-        max_length=1, verbose_name="الإجابة المختارة"
-    )
+    chosen_answer = models.CharField(max_length=1, verbose_name="الإجابة المختارة")
     is_correct = models.BooleanField(default=False, verbose_name="صحيحة")
 
     class Meta:
@@ -377,10 +332,6 @@ class StudentAnswer(models.Model):
     def __str__(self):
         return f"{self.result.student.username} — س{self.question.order} — {'✓' if self.is_correct else '✗'}"
 
-
-# ═══════════════════════════════════════
-# سجل الحصص
-# ═══════════════════════════════════════
 
 class ClassSession(models.Model):
     """سجل حصة مفعّلة"""
@@ -396,11 +347,11 @@ class ClassSession(models.Model):
         related_name="sessions", verbose_name="المعلمة"
     )
     skill = models.ForeignKey(
-        Skill, on_delete=models.CASCADE,
+        TeacherSkill, on_delete=models.CASCADE,
         related_name="sessions", verbose_name="المهارة/الدرس"
     )
     exam = models.ForeignKey(
-        Exam, on_delete=models.SET_NULL,
+        TeacherExam, on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name="sessions", verbose_name="الاختبار المفعّل"
     )
@@ -409,9 +360,7 @@ class ClassSession(models.Model):
         max_length=10, choices=SESSION_TYPE,
         default='qodrat', verbose_name="نوع الحصة"
     )
-    target_class = models.CharField(
-        max_length=50, verbose_name="الفصل المستهدف"
-    )
+    target_class = models.CharField(max_length=50, verbose_name="الفصل المستهدف")
     session_date = models.DateField(verbose_name="تاريخ الحصة")
     session_time = models.TimeField(verbose_name="وقت الحصة")
     notes = models.TextField(blank=True, verbose_name="ملاحظات")
