@@ -1,1318 +1,1119 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>إدارة المهارات والأسئلة — منصة آمنة</title>
+<title>إدارة المهارات — منصة آمنة</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$']], processEscapes:true },
+  options: { skipHtmlTags:['script','noscript','style','textarea'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 <style>
-:root {
-  --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;
-  --border:#1a2236;--border2:#223050;
-  --green:#0fba81;--green2:#065442;--green3:#d1fae5;
-  --blue:#4f8ef7;--blue2:#1a3060;
-  --purple:#9b72f5;--purple2:#3d1d80;
-  --orange:#f5a623;--orange2:#6b3f0a;
-  --red:#f05252;--red2:#6b1111;
-  --teal:#2dd4bf;--teal2:#0d4a44;
+:root{
+  --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;
+  --card:#0f1424;--card2:#161d30;--card3:#1c243d;
+  --border:#1a2236;--border2:#223050;--border3:#2d3f60;
+  --green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;
+  --purple:#9b72f5;--purple2:#3d1d80;--orange:#f5a623;--orange2:#6b3f0a;
+  --red:#f05252;--teal:#2dd4bf;--gold:#fbbf24;
   --text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;
-  --gold:#fbbf24;
 }
-
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-/* ═══ TOPBAR ═══ */
-.topbar{
-  background:linear-gradient(180deg,var(--bg2) 0%,rgba(12,15,26,0.95) 100%);
-  border-bottom:1px solid var(--border);
-  padding:0 20px;
-  display:flex;align-items:center;justify-content:space-between;
-  height:54px;position:sticky;top:0;z-index:200;
-  backdrop-filter:blur(12px);
-}
-.logo{display:flex;align-items:center;gap:10px}
-.logo-mark{
-  width:34px;height:34px;
-  background:linear-gradient(135deg,var(--green),var(--blue));
-  border-radius:9px;display:flex;align-items:center;justify-content:center;
-  font-size:15px;box-shadow:0 0 14px rgba(15,186,129,0.3);
-}
-.logo-name{font-size:13px;font-weight:800;color:var(--text)}
-.logo-sub{font-size:9px;color:var(--text3);margin-top:1px}
+/* TOPBAR */
+.topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,0.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:300;backdrop-filter:blur(12px)}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.logo-name{font-size:12px;font-weight:800}
+.logo-sub{font-size:9px;color:var(--text3)}
+.tnav{display:flex;gap:3px}
+.tnb{background:none;border:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;padding:5px 10px;border-radius:6px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:4px;transition:all 0.2s;white-space:nowrap}
+.tnb:hover{background:var(--bg3);color:var(--text2)}
+.tnb.on{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
 
-.nav{display:flex;gap:2px;overflow-x:auto}
-.nav::-webkit-scrollbar{display:none}
-.nb{
-  background:none;border:none;color:var(--text3);
-  font-family:'Tajawal',sans-serif;font-size:11px;
-  padding:6px 12px;border-radius:7px;cursor:pointer;
-  transition:all 0.2s;white-space:nowrap;
-  display:flex;align-items:center;gap:5px;
-}
-.nb:hover{background:var(--bg3);color:var(--text2)}
-.nb.on{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
+/* MAIN LAYOUT */
+.wrap{display:grid;grid-template-columns:280px 1fr;gap:0;min-height:calc(100vh - 52px)}
 
-.topright{display:flex;align-items:center;gap:8px}
-.avatar{
-  width:30px;height:30px;
-  background:linear-gradient(135deg,var(--green),var(--blue));
-  border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:700;
-}
+/* SIDEBAR */
+.sidebar{background:var(--bg2);border-left:1px solid var(--border);padding:14px 12px;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto}
+.sidebar::-webkit-scrollbar{width:3px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
-/* ═══ PAGES ═══ */
-.pg{display:none;padding:16px 20px;animation:fadeIn 0.25s ease}
-.pg.on{display:block}
-@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.sb-title{font-size:10px;font-weight:700;color:var(--text3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
 
-/* ═══ SECTION HEADER ═══ */
-.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.sh-title{font-size:16px;font-weight:800;color:var(--text)}
-.sh-sub{font-size:10px;color:var(--text3);margin-top:2px}
+/* SKILL ITEMS IN SIDEBAR */
+.sk-item{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:7px;cursor:pointer;transition:all 0.2s;position:relative}
+.sk-item:hover{border-color:var(--border2);transform:translateX(-2px)}
+.sk-item.active{border-color:var(--blue);background:rgba(79,142,247,0.06)}
+.sk-item.active::before{content:'';position:absolute;right:-1px;top:20%;bottom:20%;width:2px;background:var(--blue);border-radius:2px}
+.sk-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px}
+.sk-meta{font-size:9px;color:var(--text3);display:flex;gap:6px;flex-wrap:wrap}
+.sk-progress{margin-top:7px;display:flex;gap:3px}
+.sk-step{flex:1;height:3px;border-radius:2px;background:var(--border)}
+.sk-step.done{background:var(--green)}
+.sk-step.partial{background:var(--orange)}
 
-/* ═══ CARDS ═══ */
-.card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:11px;overflow:hidden;margin-bottom:10px;
-  transition:border-color 0.2s;
-}
+.add-skill-btn{width:100%;padding:8px;border-radius:8px;border:1px dashed var(--border2);background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:10px}
+.add-skill-btn:hover{border-color:var(--green);color:var(--green);background:rgba(15,186,129,0.04)}
+
+/* CONTENT */
+.content{padding:18px 20px;overflow-y:auto}
+
+/* STEP WIZARD */
+.wizard{display:flex;gap:0;margin-bottom:20px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+.wz-step{flex:1;padding:10px 8px;text-align:center;cursor:pointer;transition:all 0.2s;border-left:1px solid var(--border);position:relative;background:var(--card)}
+.wz-step:last-child{border-left:none}
+.wz-step.on{background:rgba(79,142,247,0.08);color:var(--blue)}
+.wz-step.done{background:rgba(15,186,129,0.06);color:var(--green)}
+.wz-step.locked{opacity:0.4;cursor:not-allowed}
+.wz-num{font-size:16px;font-weight:800;line-height:1;margin-bottom:3px}
+.wz-label{font-size:9px;font-weight:600}
+.wz-icon{font-size:14px;margin-bottom:3px}
+
+/* PANELS */
+.panel{display:none;animation:fi 0.25s ease}
+.panel.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:10px;transition:border-color 0.2s}
 .card:hover{border-color:var(--border2)}
-.ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.ch{padding:9px 13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)}
 .ct{font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px}
-.ca{display:flex;gap:5px;align-items:center}
-.cb{padding:14px}
+.ct-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.cb{padding:13px}
 
-/* ═══ GRIDS ═══ */
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
-.g2e{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-/* ═══ FORMS ═══ */
-.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
-.fl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:0.3px}
-.fi{
-  background:var(--card2);border:1px solid var(--border2);
-  color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;
-  padding:9px 11px;border-radius:8px;outline:none;
-  transition:border-color 0.2s,box-shadow 0.2s;width:100%;
-}
+/* FORMS */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.fl{font-size:9px;color:var(--text3);font-weight:600;letter-spacing:0.3px}
+.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;padding:8px 10px;border-radius:7px;outline:none;transition:all 0.2s;width:100%}
 .fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,0.08)}
 .fi::placeholder{color:var(--text3)}
-select.fi option{background:var(--card2);color:var(--text)}
-textarea.fi{resize:vertical;min-height:80px;line-height:1.8}
+select.fi option{background:var(--card2)}
+textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 
-/* ═══ BUTTONS ═══ */
-.btn{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:8px 16px;border-radius:8px;border:none;
-  font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;
-  cursor:pointer;transition:all 0.2s;white-space:nowrap;
-}
+/* QUESTION EDITOR */
+.q-editor{background:var(--bg3);border:1px solid var(--border2);border-radius:9px;overflow:hidden;margin-bottom:8px;transition:border-color 0.2s}
+.q-editor:focus-within{border-color:var(--blue)}
+.q-toolbar{background:var(--card2);border-bottom:1px solid var(--border);padding:5px 8px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.q-tb-btn{background:none;border:none;color:var(--text3);font-size:11px;padding:3px 6px;border-radius:4px;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all 0.15s;white-space:nowrap}
+.q-tb-btn:hover{background:var(--card3);color:var(--text)}
+.q-tb-btn.math{color:var(--purple);font-weight:700}
+.q-tb-btn.math:hover{background:rgba(155,114,245,0.1)}
+.q-tb-sep{width:1px;height:16px;background:var(--border2);margin:0 2px}
+.q-area{min-height:60px;padding:9px 11px;font-size:12px;line-height:1.9;outline:none;color:var(--text);direction:rtl;word-break:break-word}
+.q-area[placeholder]:empty::before{content:attr(placeholder);color:var(--text3)}
+
+/* SYMBOLS BAR */
+.sym-bar{display:flex;flex-wrap:wrap;gap:3px;padding:5px 8px;background:var(--card3);border-bottom:1px solid var(--border)}
+.sym-b{background:none;border:1px solid var(--border2);color:var(--text2);font-size:12px;width:28px;height:24px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.sym-b:hover{background:var(--card2);color:var(--purple);border-color:rgba(155,114,245,0.3);transform:scale(1.1)}
+.sym-b.ar{color:var(--teal);font-weight:700}
+
+/* MATH INLINE */
+.math-inline{display:flex;gap:7px;padding:8px;background:var(--bg2);border-top:1px solid var(--border);align-items:center}
+.math-inp{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:5px 8px;border-radius:5px;outline:none;flex:1;transition:border-color 0.2s}
+.math-inp:focus{border-color:var(--purple)}
+.math-prev{font-size:13px;min-width:60px;text-align:center;color:var(--text2)}
+.ins-btn{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.3);font-family:'Tajawal',sans-serif;font-size:9px;padding:5px 10px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.ins-btn:hover{background:rgba(155,114,245,0.2)}
+
+/* OPTIONS */
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
+.opt-box{background:var(--card2);border:1px solid var(--border2);border-radius:8px;overflow:hidden;transition:border-color 0.2s}
+.opt-box.correct{border-color:rgba(15,186,129,0.4);background:rgba(15,186,129,0.04)}
+.opt-head{display:flex;align-items:center;gap:6px;padding:6px 9px;border-bottom:1px solid var(--border)}
+.opt-letter{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text2);flex-shrink:0;transition:all 0.2s}
+.opt-letter.c{background:rgba(15,186,129,0.15);border-color:var(--green);color:var(--green)}
+.opt-name{font-size:9px;color:var(--text3);flex:1}
+.opt-set-btn{font-size:8px;padding:2px 6px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:'Tajawal',sans-serif;transition:all 0.2s}
+.opt-set-btn.c{background:rgba(15,186,129,0.1);color:var(--green);border-color:rgba(15,186,129,0.3)}
+.opt-area{min-height:38px;padding:7px 9px;font-size:11px;outline:none;color:var(--text);direction:rtl;word-break:break-word;line-height:1.7}
+.opt-area[placeholder]:empty::before{content:attr(placeholder);color:var(--text3);font-size:10px}
+
+/* QUESTION ITEM */
+.qi{background:var(--card2);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden;transition:all 0.2s}
+.qi:hover{border-color:var(--border2)}
+.qi-head{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer}
+.qi-num{width:22px;height:22px;border-radius:50%;background:var(--blue2);color:var(--blue);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qi-text{font-size:11px;color:var(--text2);flex:1;line-height:1.5}
+.qi-correct{font-size:9px;color:var(--green);background:rgba(15,186,129,0.1);padding:2px 7px;border-radius:8px;border:1px solid rgba(15,186,129,0.2)}
+.qi-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px;transition:all 0.2s}
+.qi-del:hover{color:var(--red);background:rgba(240,82,82,0.1)}
+
+/* EXCEL UPLOAD */
+.excel-zone{border:2px dashed var(--border2);border-radius:9px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--bg3)}
+.excel-zone:hover{border-color:var(--green);background:rgba(15,186,129,0.03)}
+.excel-zone.active{border-color:var(--green);background:rgba(15,186,129,0.05)}
+
+/* BADGES */
+.bd{display:inline-flex;align-items:center;padding:2px 7px;border-radius:8px;font-size:9px;font-weight:700}
+.bp{background:rgba(15,186,129,0.1);color:var(--green);border:1px solid rgba(15,186,129,0.2)}
+.bb{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
+.be{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.2)}
+.bo{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.2)}
+.br{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.2)}
+.bt{background:rgba(45,212,191,0.1);color:var(--teal);border:1px solid rgba(45,212,191,0.2)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:7px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap}
 .btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
 .btn-g:hover{opacity:0.85;transform:translateY(-1px);box-shadow:0 4px 12px rgba(15,186,129,0.2)}
 .btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
 .btn-b:hover{background:rgba(79,142,247,0.18)}
+.btn-p{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.25)}
+.btn-p:hover{background:rgba(155,114,245,0.18)}
 .btn-o{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.25)}
 .btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
-.btn-p{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.25)}
-.btn-t{background:rgba(45,212,191,0.1);color:var(--teal);border:1px solid rgba(45,212,191,0.25)}
-.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn-sm{padding:5px 10px;font-size:10px}
+.btn-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
 
-/* ═══ TABS ═══ */
-.tabs{display:flex;gap:4px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:0}
-.tab{
-  background:none;border:none;color:var(--text3);
-  font-family:'Tajawal',sans-serif;font-size:11px;font-weight:600;
-  padding:8px 14px;border-radius:7px 7px 0 0;cursor:pointer;
-  transition:all 0.2s;position:relative;bottom:-1px;
-  border:1px solid transparent;border-bottom:none;
-}
-.tab.on{
-  background:var(--card);color:var(--blue);
-  border-color:var(--border);border-bottom-color:var(--card);
-}
-.tab:hover:not(.on){color:var(--text2)}
-.tc{display:none}.tc.on{display:block}
+/* MYSC LINK */
+.mysc{display:flex;align-items:center;gap:8px;background:rgba(155,114,245,0.05);border:1px solid rgba(155,114,245,0.15);border-radius:7px;padding:7px 10px;text-decoration:none;transition:all 0.2s;margin-bottom:8px}
+.mysc:hover{background:rgba(155,114,245,0.1)}
 
-/* ═══ SKILL ITEMS ═══ */
-.ski{
-  background:var(--card2);border:1px solid var(--border);
-  border-radius:10px;padding:12px 14px;margin-bottom:8px;
-  display:flex;justify-content:space-between;align-items:center;
-  transition:all 0.2s;
-}
-.ski:hover{border-color:var(--border2);transform:translateX(-2px)}
-.ski-name{font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px}
-.ski-meta{font-size:10px;color:var(--text3);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.ski-status{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
-.ski-act{display:flex;gap:5px;flex-shrink:0}
+/* STATUS INDICATOR */
+.status-row{display:flex;gap:6px;align-items:center;padding:8px 10px;background:var(--bg3);border-radius:7px;font-size:10px;color:var(--text3);margin-bottom:10px}
+.status-dot{width:7px;height:7px;border-radius:50%}
 
-/* ═══ QUESTION ITEMS ═══ */
-.qi{
-  background:var(--bg3);border:1px solid var(--border);
-  border-radius:9px;padding:12px 14px;margin-bottom:8px;
-  position:relative;transition:border-color 0.2s;
-}
-.qi:hover{border-color:var(--border2)}
-.qi-num{font-size:9px;color:var(--text3);font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between}
-.qi-text{font-size:11px;color:var(--text2);line-height:1.8;margin-bottom:9px;font-weight:500}
-.qi-opts{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.qo{font-size:10px;padding:6px 10px;border-radius:6px;display:flex;align-items:center;gap:6px;border:1px solid}
-.qo.c{background:rgba(15,186,129,0.08);color:var(--green);border-color:rgba(15,186,129,0.2)}
-.qo.n{background:var(--card2);color:var(--text2);border-color:var(--border)}
-.qo-letter{width:18px;height:18px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+/* TABS */
+.tabs-row{display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:0}
+.tab{background:none;border:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;padding:7px 13px;border-radius:7px 7px 0 0;cursor:pointer;transition:all 0.2s;position:relative;bottom:-1px;border:1px solid transparent;border-bottom:none}
+.tab.on{background:var(--card);color:var(--blue);border-color:var(--border);border-bottom-color:var(--card)}
+.tab-content{display:none}.tab-content.on{display:block}
 
-/* ═══ BADGES ═══ */
-.bd{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700}
-.bp{background:rgba(15,186,129,0.1);color:var(--green);border:1px solid rgba(15,186,129,0.2)}
-.bb{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
-.bm{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.2)}
-.bf{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.2)}
-.be{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.2)}
-.bt{background:rgba(45,212,191,0.1);color:var(--teal);border:1px solid rgba(45,212,191,0.2)}
+/* PREVIEW */
+.prev-box{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 13px;font-size:12px;line-height:2;color:var(--text2);min-height:40px;direction:rtl}
 
-/* ═══ ADD QUESTION FORM ═══ */
-.aq-form{
-  background:var(--bg3);border:1px solid var(--border2);
-  border-radius:10px;padding:14px;margin-bottom:10px;
-  border-right:3px solid var(--blue);
-}
-.opt-row{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;margin-bottom:7px}
-.opt-label{font-size:11px;font-weight:700;width:24px;height:24px;border-radius:50%;background:var(--card2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0}
-.opt-label.correct{background:rgba(15,186,129,0.15);border-color:var(--green);color:var(--green)}
-.correct-btn{font-size:9px;padding:3px 7px;border-radius:5px;border:1px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:Tajawal;white-space:nowrap;transition:all 0.2s}
-.correct-btn.selected{background:rgba(15,186,129,0.1);color:var(--green);border-color:rgba(15,186,129,0.3)}
-
-/* ═══ PRINT STYLES ═══ */
-@media print {
-  body{background:white!important;color:#000!important}
-  .topbar,.nav,.no-print{display:none!important}
-  .pg{display:block!important;padding:0!important}
-  .print-doc{display:block!important}
-  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-}
-
-/* ═══ PRINT DOCUMENT ═══ */
-.print-doc{
-  background:white;color:#1e293b;
-  max-width:800px;margin:0 auto;
-  font-family:'Tajawal',sans-serif;
-  border:1px solid #e2e8f0;border-radius:12px;
-  overflow:hidden;
-}
-
-/* الديباجة الرسمية */
-.print-header{
-  background:linear-gradient(135deg,#0d4f35 0%,#1a3a6b 100%);
-  padding:18px 24px;color:white;
-}
-.ph-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.ph-logo{
-  width:55px;height:55px;background:rgba(255,255,255,0.12);
-  border:1px solid rgba(255,255,255,0.25);border-radius:10px;
-  display:flex;align-items:center;justify-content:center;font-size:26px;
-}
-.ph-center{text-align:center;flex:1;padding:0 16px}
-.ph-ministry{font-size:10px;opacity:0.75;margin-bottom:3px}
-.ph-ministry2{font-size:10px;opacity:0.75;margin-bottom:3px}
-.ph-region{font-size:10px;opacity:0.75;margin-bottom:5px}
-.ph-school{font-size:15px;font-weight:800;letter-spacing:0.3px}
-.ph-principal{font-size:10px;opacity:0.75;margin-top:3px}
-.ph-divider{height:1px;background:rgba(255,255,255,0.2);margin:12px 0}
-.ph-test-title{text-align:center;font-size:16px;font-weight:800;margin-bottom:10px}
-.ph-info-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-.ph-info-item{text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:6px 4px}
-.ph-info-label{font-size:8px;opacity:0.65;margin-bottom:3px}
-.ph-info-val{font-size:11px;font-weight:700}
-
-/* جسم الاختبار */
-.print-body{padding:18px 24px;background:white}
-.student-info-box{
-  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;
-  margin-bottom:14px;padding:11px 14px;
-  border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;
-}
-.sib-field{font-size:9px;color:#64748b;font-weight:600;margin-bottom:4px}
-.sib-line{border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;font-size:11px;color:#1e293b;min-height:20px}
-
-.instructions-box{
-  background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;
-  padding:9px 12px;margin-bottom:14px;
-  font-size:10px;color:#1e40af;line-height:1.9;
-  border-right:3px solid #3b82f6;
-}
-
-/* الأسئلة في الطباعة */
-.pq{margin-bottom:14px;padding:11px 14px;border:1px solid #e2e8f0;border-radius:8px;background:#fff}
-.pq-num{
-  font-size:9px;color:#64748b;font-weight:700;margin-bottom:5px;
-  display:flex;justify-content:space-between;align-items:center;
-}
-.pq-num-badge{
-  background:#1e3a6b;color:white;
-  width:22px;height:22px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:10px;font-weight:800;
-}
-.pq-text{font-size:12px;color:#1e293b;line-height:1.9;font-weight:600;margin-bottom:10px}
-.pq-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.pq-opt{
-  display:flex;align-items:center;gap:8px;
-  padding:7px 10px;border:1px solid #e2e8f0;border-radius:6px;
-  font-size:11px;color:#334155;
-}
-.pq-bubble{
-  width:20px;height:20px;border-radius:50%;
-  border:1.5px solid #94a3b8;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  font-size:9px;font-weight:700;color:#64748b;
-}
-
-/* الفوتر */
-.print-footer{
-  background:#f8fafc;border-top:2px solid #e2e8f0;
-  padding:10px 24px;display:flex;justify-content:space-between;align-items:center;
-}
-.pf-text{font-size:9px;color:#64748b}
-.pf-sig{font-size:9px;color:#64748b;text-align:center}
-.pf-platform{font-size:9px;color:#94a3b8;text-align:left}
-
-/* ═══ RESULT REPORT ═══ */
-.result-doc{
-  background:white;color:#1e293b;
-  max-width:800px;margin:0 auto;
-  font-family:'Tajawal',sans-serif;
-  border:1px solid #e2e8f0;border-radius:12px;
-  overflow:hidden;
-}
-
-.rr-header{
-  background:linear-gradient(135deg,#0d4f35 0%,#1a3a6b 100%);
-  padding:18px 24px;color:white;
-}
-.rr-title{text-align:center;font-size:17px;font-weight:900;margin-bottom:14px;letter-spacing:0.5px}
-.rr-student-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px;font-size:10px;opacity:0.85}
-.rr-divider{height:1px;background:rgba(255,255,255,0.2);margin:10px 0}
-
-.rr-score-banner{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:12px 24px;
-}
-.rr-score-fail{background:#fef2f2;border-bottom:2px solid #fecaca}
-.rr-score-pass{background:#f0fdf4;border-bottom:2px solid #bbf7d0}
-.rr-score-great{background:#eff6ff;border-bottom:2px solid #bfdbfe}
-.rr-score-main{font-size:28px;font-weight:900;line-height:1}
-.rr-score-sub{font-size:11px;margin-top:4px;font-weight:600}
-.rr-score-fail .rr-score-main,.rr-score-fail .rr-score-sub{color:#dc2626}
-.rr-score-pass .rr-score-main,.rr-score-pass .rr-score-sub{color:#16a34a}
-.rr-score-great .rr-score-main,.rr-score-great .rr-score-sub{color:#2563eb}
-.rr-stats{display:flex;gap:16px}
-.rr-stat{text-align:center;padding:6px 10px;border-radius:7px}
-.rr-stat.correct{background:rgba(22,163,74,0.08);border:1px solid rgba(22,163,74,0.2)}
-.rr-stat.wrong{background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2)}
-.rr-stat.time{background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.2)}
-.rr-stat-val{font-size:17px;font-weight:800}
-.rr-stat.correct .rr-stat-val{color:#16a34a}
-.rr-stat.wrong .rr-stat-val{color:#dc2626}
-.rr-stat.time .rr-stat-val{color:#2563eb}
-.rr-stat-label{font-size:9px;color:#64748b;margin-top:2px}
-
-/* جدول الإجابات */
-.rr-body{padding:18px 24px;background:white}
-.rr-table-title{font-size:13px;font-weight:800;color:#1e293b;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.rr-table-title::before{content:'';width:4px;height:16px;background:linear-gradient(180deg,#0d4f35,#1a3a6b);border-radius:2px}
-
-table.rr-tbl{width:100%;border-collapse:collapse;font-size:11px}
-table.rr-tbl thead tr{background:linear-gradient(135deg,#0d4f35,#1a3a6b);color:white}
-table.rr-tbl th{padding:9px 12px;text-align:right;font-weight:700;font-size:10px;border:1px solid rgba(255,255,255,0.1)}
-table.rr-tbl td{padding:8px 12px;border:1px solid #e2e8f0;vertical-align:middle}
-table.rr-tbl tr.correct td{background:#f0fdf4}
-table.rr-tbl tr.wrong td{background:#fef2f2}
-table.rr-tbl tr:nth-child(even).correct td{background:#dcfce7}
-table.rr-tbl tr:nth-child(even).wrong td{background:#fee2e2}
-
-.result-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin:0 auto}
-.result-icon.c{background:#dcfce7;color:#16a34a;border:1.5px solid #16a34a}
-.result-icon.w{background:#fee2e2;color:#dc2626;border:1.5px solid #dc2626}
-
-.rr-footer{background:#f8fafc;border-top:2px solid #e2e8f0;padding:12px 24px}
-.rr-footer-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:9px;color:#64748b}
-.rr-sig-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
-.rr-sig{text-align:center;padding-top:30px;border-top:1px solid #cbd5e1;font-size:9px;color:#64748b}
-
-/* ═══ SCROLLBAR ═══ */
 ::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:var(--bg2)}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty-icon{font-size:40px;margin-bottom:10px}
+.empty-text{font-size:12px;margin-bottom:5px;color:var(--text2)}
+.empty-sub{font-size:10px}
+
+/* MESSAGES */
+.msg{padding:9px 12px;border-radius:7px;font-size:10px;margin-bottom:10px;border-right:3px solid;display:flex;align-items:center;gap:7px}
+.msg-s{background:rgba(15,186,129,0.08);border-color:var(--green);color:#6ee7a0}
+.msg-e{background:rgba(240,82,82,0.08);border-color:var(--red);color:#fca5a5}
+
+/* TYPE SELECTOR */
+.type-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.type-card{background:var(--card2);border:2px solid var(--border2);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all 0.2s}
+.type-card:hover{border-color:var(--border3)}
+.type-card.on{border-color:var(--blue);background:rgba(79,142,247,0.06)}
+.type-card .tc-icon{font-size:20px;margin-bottom:5px}
+.type-card .tc-name{font-size:11px;font-weight:700;margin-bottom:3px}
+.type-card .tc-desc{font-size:9px;color:var(--text3);line-height:1.5}
 </style>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════
-     TOPBAR
-════════════════════════════════════════ -->
+<!-- TOPBAR -->
 <div class="topbar">
   <div class="logo">
     <div class="logo-mark">🎓</div>
     <div>
       <div class="logo-name">منصة آمنة التعليمية</div>
-      <div class="logo-sub">ريم أحمد — الرياضيات — ث١٢</div>
+      <div class="logo-sub">{{ teacher.full_name|default:"المعلمة" }} — إدارة المهارات</div>
     </div>
   </div>
-  <div class="nav">
-    <button class="nb on" onclick="gp('skills',this)">📚 مهاراتي</button>
-    <button class="nb" onclick="gp('add-skill',this)">➕ إضافة مهارة / درس</button>
-    <button class="nb" onclick="gp('questions',this)">❓ بنك الأسئلة</button>
-    <button class="nb" onclick="gp('add-q',this)">✏️ إضافة أسئلة</button>
-    <button class="nb" onclick="gp('print-preview',this)">🖨️ معاينة الطباعة</button>
-    <button class="nb" onclick="gp('result-report',this)">📊 تقرير النتيجة</button>
+  <div class="tnav">
+    <a href="/teachers/dashboard/" class="tnb">📊 الداشبورد</a>
+    <span class="tnb on">📚 المهارات</span>
+    <a href="/teachers/skills/import/" class="tnb">📤 رفع Excel</a>
   </div>
-  <div class="topright">
-    <div style="text-align:left;font-size:10px;color:var(--text3)" id="clk"></div>
-    <div class="avatar">ر</div>
-  </div>
+  <div style="font-size:10px;color:var(--text3)" id="clk"></div>
 </div>
 
-<!-- ════════════════════════════════════════
-     صفحة: مهاراتي ودروسي
-════════════════════════════════════════ -->
-<div class="pg on" id="pg-skills">
-  <div class="sh">
-    <div>
-      <div class="sh-title">📚 مهاراتي ودروسي</div>
-      <div class="sh-sub">إجمالي ٧ مهارات/دروس — ٥ مفعّلة</div>
-    </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-g" onclick="gp('add-skill',document.querySelectorAll('.nb')[1])">➕ إضافة جديدة</button>
-      <button class="btn btn-b" onclick="document.getElementById('excelModal').style.display='flex'">📤 رفع Excel</button>
-    </div>
-  </div>
+<div class="wrap">
 
-  <!-- فلاتر -->
-  <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
-    <select class="fi" style="width:auto">
-      <option>الكل</option><option>قدرات — كمي</option><option>قدرات — لفظي</option>
-      <option>تحصيلي — رياضيات</option><option>تحصيلي — أحياء</option><option>تحصيلي — كيمياء</option><option>تحصيلي — فيزياء</option>
-    </select>
-    <select class="fi" style="width:auto">
-      <option>كل الفصول</option><option>ث١٢</option><option>ث١١</option><option>ث١٠</option>
-    </select>
-    <select class="fi" style="width:auto">
-      <option>كل الحالات</option><option>مفعّلة</option><option>قيد الإعداد</option>
-    </select>
-  </div>
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <div class="sidebar">
 
-  <!-- قدرات -->
-  <div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:8px;padding-right:4px;border-right:2px solid var(--blue)">قسم القدرات — مهارات بقبلي + شرح + بعدي</div>
-
-  <div class="ski">
-    <div style="flex:1">
-      <div class="ski-name">الكسور الاعتيادية</div>
-      <div class="ski-meta">
-        <span class="bd bb">قدرات — كمي</span>
-        <span>🎓 ث١٢</span><span>📅 ٩ أبريل ٢٠٢٦</span>
-        <span>👩‍🏫 ريم أحمد</span>
-        <span class="bd bp">✅ مفعّلة</span>
-      </div>
-      <div class="ski-status">
-        <span class="bd bp">قبلي ✅ — متوسط ٤٢%</span>
-        <span class="bd bt">شرح ✅</span>
-        <span class="bd bp">بعدي ✅ — متوسط ٦٩%</span>
-        <span style="font-size:9px;color:var(--green);font-weight:700">↑ تحسن ٢٧%</span>
-        <span style="font-size:9px;color:var(--text3)">| ٢٨ طالبة أدّين</span>
-      </div>
-    </div>
-    <div class="ski-act">
-      <button class="btn btn-t" style="font-size:9px;padding:5px 9px" onclick="gp('print-preview',document.querySelectorAll('.nb')[4])">🖨️ طباعة</button>
-      <button class="btn btn-b" style="font-size:9px;padding:5px 9px" onclick="gp('result-report',document.querySelectorAll('.nb')[5])">📊 النتائج</button>
-      <button class="btn btn-o" style="font-size:9px;padding:5px 9px">✏️ تعديل</button>
-      <button class="btn btn-p" style="font-size:9px;padding:5px 9px">🤝 مشاركة</button>
-    </div>
-  </div>
-
-  <div class="ski">
-    <div style="flex:1">
-      <div class="ski-name">النسبة والتناسب</div>
-      <div class="ski-meta">
-        <span class="bd bb">قدرات — كمي</span>
-        <span>🎓 ث١٢</span><span>📅 ١٥ أبريل ٢٠٢٦</span>
-        <span>👩‍🏫 ريم أحمد</span>
-        <span class="bd bp">✅ مفعّلة</span>
-      </div>
-      <div class="ski-status">
-        <span class="bd bp">قبلي ✅ — متوسط ٤٠%</span>
-        <span class="bd bt">شرح ✅</span>
-        <span class="bd bm">بعدي ⏳ لم يُفعّل بعد</span>
-      </div>
-    </div>
-    <div class="ski-act">
-      <button class="btn btn-t" style="font-size:9px;padding:5px 9px">🖨️ طباعة</button>
-      <button class="btn btn-b" style="font-size:9px;padding:5px 9px">📊 النتائج</button>
-      <button class="btn btn-g" style="font-size:9px;padding:5px 9px">🔔 تفعيل البعدي</button>
-    </div>
-  </div>
-
-  <!-- تحصيلي -->
-  <div style="font-size:10px;font-weight:700;color:var(--orange);margin:14px 0 8px;padding-right:4px;border-right:2px solid var(--orange)">قسم التحصيلي — دروس بشرح + اختبار (بدون قبلي)</div>
-
-  <div class="ski">
-    <div style="flex:1">
-      <div class="ski-name">المعادلات التربيعية — رياضيات</div>
-      <div class="ski-meta">
-        <span class="bd bm">تحصيلي — رياضيات</span>
-        <span>🎓 ث١٢</span><span>📅 ١٢ أبريل ٢٠٢٦</span>
-        <span>👩‍🏫 ريم أحمد</span>
-        <span class="bd bp">✅ مفعّلة</span>
-      </div>
-      <div class="ski-status">
-        <span class="bd bt">شرح ✅</span>
-        <span class="bd bp">اختبار ✅ — متوسط ٧١%</span>
-        <span style="font-size:9px;color:var(--text3)">| ٢٥ طالبة أدّين</span>
-      </div>
-    </div>
-    <div class="ski-act">
-      <button class="btn btn-t" style="font-size:9px;padding:5px 9px">🖨️ طباعة</button>
-      <button class="btn btn-b" style="font-size:9px;padding:5px 9px">📊 النتائج</button>
-      <button class="btn btn-o" style="font-size:9px;padding:5px 9px">✏️ تعديل</button>
-    </div>
-  </div>
-
-  <!-- بنك الأسئلة -->
-  <div style="font-size:10px;font-weight:700;color:var(--purple);margin:14px 0 8px;padding-right:4px;border-right:2px solid var(--purple)">بنك الأسئلة — أسئلة من أعوام سابقة</div>
-
-  <div class="ski" style="border-color:rgba(155,114,245,0.2)">
-    <div style="flex:1">
-      <div class="ski-name">بنك القدرات — قسم الكمي</div>
-      <div class="ski-meta">
-        <span class="bd be">بنك أسئلة</span>
-        <span class="bd bb">قدرات — كمي</span>
-        <span>🎓 ث١٢ + ث١١</span>
-        <span>❓ ١٢٠ سؤال</span>
-        <span class="bd bp">✅ نشط</span>
-      </div>
-      <div class="ski-status">
-        <span style="font-size:9px;color:var(--text3)">مهارات مغطاة: الكسور — النسبة — الأعداد — الضرب — القسمة</span>
-      </div>
-    </div>
-    <div class="ski-act">
-      <button class="btn btn-t" style="font-size:9px;padding:5px 9px">🖨️ طباعة اختبار</button>
-      <button class="btn btn-p" style="font-size:9px;padding:5px 9px">➕ إضافة أسئلة</button>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════
-     صفحة: إضافة مهارة / درس
-════════════════════════════════════════ -->
-<div class="pg" id="pg-add-skill">
-  <div class="sh">
-    <div>
-      <div class="sh-title">➕ إضافة مهارة / درس</div>
-      <div class="sh-sub">حدّدي النوع أولاً ثم أكملي البيانات</div>
-    </div>
-  </div>
-
-  <!-- اختيار النوع -->
-  <div class="card" style="margin-bottom:12px">
-    <div class="cb">
-      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">اختاري نوع المحتوى الذي تريدين إضافته:</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div onclick="setType('qodrat')" id="type-qodrat" style="background:var(--card2);border:2px solid var(--border2);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all 0.2s">
-          <div style="font-size:22px;margin-bottom:6px">🧮</div>
-          <div style="font-size:11px;font-weight:700;color:var(--blue)">مهارة قدرات</div>
-          <div style="font-size:9px;color:var(--text3);margin-top:3px">كمي أو لفظي<br>قبلي + شرح + بعدي</div>
+    <!-- Django messages -->
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="msg {% if 'error' in msg.tags %}msg-e{% else %}msg-s{% endif %}">
+          {% if 'error' in msg.tags %}❌{% else %}✅{% endif %} {{ msg }}
         </div>
-        <div onclick="setType('tahsili')" id="type-tahsili" style="background:var(--card2);border:2px solid var(--border2);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all 0.2s">
-          <div style="font-size:22px;margin-bottom:6px">📖</div>
-          <div style="font-size:11px;font-weight:700;color:var(--orange)">درس تحصيلي</div>
-          <div style="font-size:9px;color:var(--text3);margin-top:3px">رياضيات/أحياء/كيمياء/فيزياء<br>شرح + اختبار فقط</div>
+      {% endfor %}
+    {% endif %}
+
+    <div class="sb-title">
+      <span>📚 مهاراتي ({{ my_skills|length }})</span>
+      <span style="font-size:8px">{{ teacher.full_name|default:"" }}</span>
+    </div>
+
+    <!-- زر إضافة جديدة -->
+    <button class="add-skill-btn" onclick="showNewSkill()">➕ إضافة مهارة / درس / بنك</button>
+
+    <!-- قائمة المهارات -->
+    {% if my_skills %}
+      {% for skill in my_skills %}
+      <div class="sk-item {% if forloop.first %}active{% endif %}" onclick="selectSkill({{ skill.id }}, this)">
+        <div class="sk-name">{{ skill.title }}</div>
+        <div class="sk-meta">
+          <span>{{ skill.get_content_type_display }}</span>
+          <span>{{ skill.target_classes }}</span>
+          {% if skill.is_active %}<span style="color:var(--green)">✅ مفعّلة</span>{% else %}<span style="color:var(--text3)">⚙️ مسودة</span>{% endif %}
         </div>
-        <div onclick="setType('bank')" id="type-bank" style="background:var(--card2);border:2px solid var(--border2);border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all 0.2s">
-          <div style="font-size:22px;margin-bottom:6px">🗃️</div>
-          <div style="font-size:11px;font-weight:700;color:var(--purple)">بنك أسئلة</div>
-          <div style="font-size:9px;color:var(--text3);margin-top:3px">أسئلة أعوام سابقة<br>بدون شرح — اختبار فقط</div>
+        <div class="sk-progress">
+          {% with exams=skill.exams.all %}
+          <div class="sk-step {% if skill.content %}done{% endif %}" title="الشرح"></div>
+          <div class="sk-step {% for e in exams %}{% if e.exam_type == 'pre' %}done{% endif %}{% endfor %}" title="القبلي"></div>
+          <div class="sk-step {% for e in exams %}{% if e.exam_type == 'post' %}done{% endif %}{% endfor %}" title="البعدي"></div>
+          {% endwith %}
         </div>
       </div>
+      {% endfor %}
+    {% else %}
+      <div style="text-align:center;padding:20px 10px;color:var(--text3);font-size:10px">
+        <div style="font-size:24px;margin-bottom:8px">📭</div>
+        لا توجد مهارات بعد<br>اضغطي ➕ لإضافة أولى مهاراتك
+      </div>
+    {% endif %}
+
+    <!-- فاصل -->
+    <div style="height:1px;background:var(--border);margin:12px 0"></div>
+
+    <!-- مهارات مشتركة -->
+    <div class="sb-title">🤝 من زميلاتك ({{ shared_skills|length }})</div>
+    {% for skill in shared_skills %}
+    <div class="sk-item" style="border-color:rgba(155,114,245,0.2)">
+      <div class="sk-name" style="font-size:10px">{{ skill.title }}</div>
+      <div class="sk-meta">
+        <span>{{ skill.created_by.full_name }}</span>
+        <span>{{ skill.get_content_type_display }}</span>
+      </div>
+      <button onclick="useSharedSkill({{ skill.id }})" style="margin-top:6px;width:100%;padding:3px;border-radius:5px;border:1px solid rgba(155,114,245,0.3);background:rgba(155,114,245,0.08);color:var(--purple);font-family:Tajawal;font-size:9px;cursor:pointer">➕ استخدام لفصلي</button>
     </div>
+    {% endfor %}
   </div>
 
-  <!-- نموذج القدرات -->
-  <div id="form-qodrat" style="display:none">
-    <div class="tabs">
-      <button class="tab on" onclick="swT('q1',this,'qodrat')">١ — المعلومات</button>
-      <button class="tab" onclick="swT('q2',this,'qodrat')">٢ — الشرح</button>
-      <button class="tab" onclick="swT('q3',this,'qodrat')">٣ — الاختبار القبلي</button>
-      <button class="tab" onclick="swT('q4',this,'qodrat')">٤ — الاختبار البعدي</button>
-      <button class="tab" onclick="swT('q5',this,'qodrat')">٥ — التفعيل</button>
-    </div>
+  <!-- ══════════════ CONTENT ══════════════ -->
+  <div class="content">
 
-    <div class="tc on" id="q1">
-      <div class="card"><div class="cb">
-        <div class="g2">
-          <div class="fg"><label class="fl">عنوان المهارة *</label><input class="fi" placeholder="مثال: الكسور الاعتيادية" value="الكسور الاعتيادية"></div>
-          <div class="fg"><label class="fl">القسم *</label>
-            <select class="fi"><option>قدرات — كمي</option><option>قدرات — لفظي</option></select>
+    <!-- ══════ إضافة مهارة جديدة ══════ -->
+    <div id="panel-new" class="panel on">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">➕ إضافة محتوى جديد</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:16px">اختاري النوع أولاً ثم أكملي البيانات خطوة بخطوة</div>
+
+      <!-- اختيار النوع -->
+      <div class="type-grid">
+        <div class="type-card on" id="type-skill" onclick="setType('skill')">
+          <div class="tc-icon">🧮</div>
+          <div class="tc-name" style="color:var(--blue)">مهارة قدرات</div>
+          <div class="tc-desc">كمي أو لفظي<br>قبلي + شرح + بعدي</div>
+        </div>
+        <div class="type-card" id="type-lesson" onclick="setType('lesson')">
+          <div class="tc-icon">📖</div>
+          <div class="tc-name" style="color:var(--orange)">درس تحصيلي</div>
+          <div class="tc-desc">رياضيات / أحياء / كيمياء / فيزياء<br>شرح + اختبار</div>
+        </div>
+        <div class="type-card" id="type-bank" onclick="setType('bank')">
+          <div class="tc-icon">🗃️</div>
+          <div class="tc-name" style="color:var(--purple)">بنك أسئلة</div>
+          <div class="tc-desc">أسئلة أعوام سابقة<br>مرتبة حسب المهارة</div>
+        </div>
+      </div>
+
+      <!-- Wizard Steps -->
+      <div class="wizard" id="wizard">
+        <div class="wz-step on" onclick="goStep(1)" id="wz1">
+          <div class="wz-icon">📋</div>
+          <div class="wz-num">١</div>
+          <div class="wz-label">المعلومات</div>
+        </div>
+        <div class="wz-step locked" onclick="goStep(2)" id="wz2">
+          <div class="wz-icon">📹</div>
+          <div class="wz-num">٢</div>
+          <div class="wz-label">الشرح</div>
+        </div>
+        <div class="wz-step locked" onclick="goStep(3)" id="wz3">
+          <div class="wz-icon">📝</div>
+          <div class="wz-num">٣</div>
+          <div class="wz-label">الاختبار القبلي</div>
+        </div>
+        <div class="wz-step locked" onclick="goStep(4)" id="wz4">
+          <div class="wz-icon">📝</div>
+          <div class="wz-num">٤</div>
+          <div class="wz-label">الاختبار البعدي</div>
+        </div>
+        <div class="wz-step locked" onclick="goStep(5)" id="wz5">
+          <div class="wz-icon">🚀</div>
+          <div class="wz-num">٥</div>
+          <div class="wz-label">التفعيل</div>
+        </div>
+      </div>
+
+      <!-- ═══ الخطوة ١: المعلومات ═══ -->
+      <div class="panel on" id="step1">
+        <form method="post" action="/teachers/skills/add/" id="skillForm">
+          {% csrf_token %}
+          <input type="hidden" name="content_type" id="content_type_input" value="skill">
+          <div class="card">
+            <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--blue)"></span>معلومات المهارة الأساسية</span></div>
+            <div class="cb">
+              <div class="g2">
+                <div class="fg">
+                  <label class="fl">عنوان المهارة / الدرس *</label>
+                  <input class="fi" name="title" placeholder="مثال: الكسور الاعتيادية" required>
+                </div>
+                <div class="fg" id="skill-type-group">
+                  <label class="fl">القسم *</label>
+                  <select class="fi" name="skill_type" id="skillTypeSelect">
+                    <option value="qodrat_kamy">قدرات — كمي</option>
+                    <option value="qodrat_lafzy">قدرات — لفظي</option>
+                  </select>
+                </div>
+                <div class="fg" id="subject-group" style="display:none">
+                  <label class="fl">المادة *</label>
+                  <select class="fi" name="subject">
+                    <option value="math">رياضيات</option>
+                    <option value="bio">أحياء</option>
+                    <option value="chem">كيمياء</option>
+                    <option value="phys">فيزياء</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="fl">الفصل المستهدف *</label>
+                  <select class="fi" name="target_classes">
+                    <option value="ث١٢">ث١٢</option>
+                    <option value="ث١١">ث١١</option>
+                    <option value="ث١٠">ث١٠</option>
+                    <option value="ث١٢,ث١١">ث١٢ + ث١١</option>
+                    <option value="جميع الفصول">جميع الفصول</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <label class="fl">نوع الحصة</label>
+                  <select class="fi" name="session_type">
+                    <option value="qodrat">قدرات</option>
+                    <option value="tahsili">تحصيلي</option>
+                    <option value="both">قدرات + تحصيلي</option>
+                  </select>
+                </div>
+              </div>
+              <div class="fg">
+                <label class="fl">وصف مختصر</label>
+                <textarea class="fi" name="description" placeholder="وصف مختصر للمهارة أو الدرس..."></textarea>
+              </div>
+              <div class="fg">
+                <label style="display:flex;align-items:center;gap:7px;font-size:10px;color:var(--text2);cursor:pointer">
+                  <input type="checkbox" name="is_shared" checked style="accent-color:var(--green)">
+                  مشاركة مع المعلمات الأخريات — سيُذكر اسمك دائماً ✅
+                </label>
+              </div>
+              <div class="btn-row" style="justify-content:flex-end">
+                <button type="button" class="btn btn-b" onclick="goStep(2)">التالي — الشرح ←</button>
+              </div>
+            </div>
           </div>
-          <div class="fg"><label class="fl">الفصل المستهدف *</label>
-            <select class="fi"><option>ث١٢</option><option>ث١١</option><option>ث١٠</option><option>ث١٢ + ث١١</option><option>جميع الفصول</option></select>
+        </form>
+      </div>
+
+      <!-- ═══ الخطوة ٢: الشرح ═══ -->
+      <div class="panel" id="step2">
+        <div class="card">
+          <div class="ch">
+            <span class="ct"><span class="ct-dot" style="background:var(--orange)"></span>محتوى الشرح</span>
+            <span class="bd bo">يظهر للطالبة بعد القبلي</span>
           </div>
-          <div class="fg"><label class="fl">نوع الحصة</label>
-            <select class="fi"><option>قدرات</option><option>قدرات + تحصيلي</option></select>
-          </div>
-        </div>
-        <div class="fg"><label class="fl">وصف مختصر</label>
-          <textarea class="fi" placeholder="اكتبي وصفاً مختصراً للمهارة...">فهم مفهوم الكسور الاعتيادية وعملياتها الأساسية</textarea>
-        </div>
-        <div style="padding:10px 12px;background:rgba(15,186,129,0.06);border-radius:8px;border-right:3px solid var(--green);font-size:10px;color:#6ee7a0;margin-top:8px">
-          ✅ ستُحفظ هذه المهارة باسمك <strong>ريم أحمد</strong> — وعند مشاركتها مع زميلاتك يُذكر اسمك دائماً
-        </div>
-        <div class="btn-row"><button class="btn btn-b" onclick="swT('q2',document.querySelectorAll('#form-qodrat .tab')[1],'qodrat')">التالي ←</button></div>
-      </div></div>
-    </div>
-
-    <div class="tc" id="q2">
-      <div class="card"><div class="ch"><span class="ct">📹 محتوى الشرح — يظهر للطالبة بعد الاختبار القبلي</span></div><div class="cb">
-        <div class="g2">
-          <div class="fg"><label class="fl">رابط فيديو الشرح</label><input class="fi" placeholder="https://youtube.com/..."></div>
-          <div class="fg"><label class="fl">ملف PDF للشرح</label><input class="fi" type="file"></div>
-        </div>
-        <div class="fg"><label class="fl">شرح نصي</label>
-          <textarea class="fi" style="min-height:100px" placeholder="اكتبي شرح المهارة هنا...">الكسر الاعتيادي يُكتب على الصورة أ/ب حيث أ البسط وب المقام...</textarea>
-        </div>
-        <div class="fg"><label class="fl">صورة توضيحية</label><input class="fi" type="file"></div>
-        <div class="btn-row">
-          <button class="btn btn-b" onclick="swT('q1',document.querySelectorAll('#form-qodrat .tab')[0],'qodrat')">→ السابق</button>
-          <button class="btn btn-b" onclick="swT('q3',document.querySelectorAll('#form-qodrat .tab')[2],'qodrat')">التالي ←</button>
-        </div>
-      </div></div>
-    </div>
-
-    <div class="tc" id="q3">
-      <div class="card"><div class="ch"><span class="ct">📝 الاختبار القبلي</span><span class="bd bm">قبل الشرح</span></div><div class="cb">
-        <div class="g3">
-          <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" value="10" min="5" max="30"></div>
-          <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" value="15"></div>
-          <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" value="60"></div>
-          <div class="fg"><label class="fl">تاريخ البدء</label><input class="fi" type="date" value="2026-04-20"></div>
-          <div class="fg"><label class="fl">تاريخ الانتهاء</label><input class="fi" type="date" value="2026-04-22"></div>
-          <div class="fg"><label class="fl">طريقة التسليم</label>
-            <select class="fi"><option>إلكتروني + ورقي</option><option>إلكتروني فقط</option><option>ورقي فقط</option></select>
-          </div>
-        </div>
-
-        <div style="font-size:11px;font-weight:700;color:var(--text2);margin:12px 0 8px;display:flex;align-items:center;gap:6px">
-          <span style="width:3px;height:14px;background:var(--blue);border-radius:2px;display:inline-block"></span>
-          أسئلة الاختبار القبلي
-        </div>
-
-        <div class="qi">
-          <div class="qi-num"><span>سؤال ١ من ١٠</span><span class="bd bb">قدرات — كمي</span></div>
-          <div class="qi-text">ما قيمة الكسر ٣/٤ على شكل عشري؟</div>
-          <div class="qi-opts">
-            <div class="qo c"><div class="qo-letter">أ</div>0.75 ✓</div>
-            <div class="qo n"><div class="qo-letter">ب</div>0.34</div>
-            <div class="qo n"><div class="qo-letter">ج</div>0.43</div>
-            <div class="qo n"><div class="qo-letter">د</div>0.7</div>
+          <div class="cb">
+            <div class="g2">
+              <div class="fg">
+                <label class="fl">رابط فيديو الشرح (YouTube / Drive)</label>
+                <input class="fi" name="video_url" placeholder="https://youtube.com/...">
+              </div>
+              <div class="fg">
+                <label class="fl">ملف PDF</label>
+                <input class="fi" type="file" accept=".pdf" style="padding:6px">
+              </div>
+            </div>
+            <div class="fg">
+              <label class="fl">شرح نصي</label>
+              <div class="q-editor">
+                <div class="sym-bar">
+                  {% for sym in "س,ص,ع,م,ن,×,÷,±,≠,≤,≥,√,²,³,½,π,∞,∠,°,Δ" %}
+                  <button type="button" class="sym-b {% if forloop.counter <= 5 %}ar{% endif %}" onclick="iSym('{{ sym }}','explain-area')">{{ sym }}</button>
+                  {% endfor %}
+                </div>
+                <div class="q-area" id="explain-area" contenteditable="true" placeholder="اكتبي شرح المهارة أو الدرس هنا... يمكنك إدراج رموز رياضية ومعادلات"></div>
+              </div>
+              <input type="hidden" name="plain_text" id="explain-hidden">
+            </div>
+            <div class="fg">
+              <label class="fl">صورة توضيحية</label>
+              <input class="fi" type="file" accept="image/*" style="padding:6px">
+            </div>
+            <div class="btn-row" style="justify-content:space-between">
+              <button type="button" class="btn btn-b btn-sm" onclick="goStep(1)">→ السابق</button>
+              <button type="button" class="btn btn-b" onclick="goStep(3)">التالي — الاختبار القبلي ←</button>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div class="qi">
-          <div class="qi-num"><span>سؤال ٢ من ١٠</span><span class="bd bb">قدرات — كمي</span></div>
-          <div class="qi-text">ما حاصل جمع ١/٢ + ١/٣؟</div>
-          <div class="qi-opts">
-            <div class="qo n"><div class="qo-letter">أ</div>٢/٥</div>
-            <div class="qo c"><div class="qo-letter">ب</div>٥/٦ ✓</div>
-            <div class="qo n"><div class="qo-letter">ج</div>٢/٦</div>
-            <div class="qo n"><div class="qo-letter">د</div>١/٦</div>
+      <!-- ═══ الخطوة ٣: القبلي ═══ -->
+      <div class="panel" id="step3">
+        <div class="card">
+          <div class="ch">
+            <span class="ct"><span class="ct-dot" style="background:var(--orange)"></span>الاختبار القبلي</span>
+            <span class="bd bo">قبل الشرح</span>
+          </div>
+          <div class="cb">
+            <div class="g3">
+              <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" name="pre_count" value="10" min="5" max="30"></div>
+              <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" name="pre_time" value="15"></div>
+              <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" name="pre_pass" value="60"></div>
+              <div class="fg"><label class="fl">تاريخ البدء</label><input class="fi" type="date" name="pre_start"></div>
+              <div class="fg"><label class="fl">تاريخ الانتهاء</label><input class="fi" type="date" name="pre_end"></div>
+              <div class="fg"><label class="fl">التسليم</label>
+                <select class="fi" name="pre_delivery">
+                  <option value="both">إلكتروني + ورقي</option>
+                  <option value="electronic">إلكتروني فقط</option>
+                  <option value="paper">ورقي فقط</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="btn-row">
-          <button class="btn btn-g">➕ إضافة سؤال</button>
-          <button class="btn btn-b">📤 رفع من Excel</button>
-          <button class="btn btn-o">🔀 ترتيب عشوائي</button>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-b" onclick="swT('q2',document.querySelectorAll('#form-qodrat .tab')[1],'qodrat')">→ السابق</button>
-          <button class="btn btn-b" onclick="swT('q4',document.querySelectorAll('#form-qodrat .tab')[3],'qodrat')">التالي ←</button>
-        </div>
-      </div></div>
-    </div>
+        <!-- أسئلة القبلي -->
+        <div class="card">
+          <div class="ch">
+            <span class="ct"><span class="ct-dot" style="background:var(--purple)"></span>أسئلة الاختبار القبلي</span>
+            <div style="display:flex;gap:5px">
+              <span class="bd be" id="pre-q-count">٠ أسئلة</span>
+            </div>
+          </div>
+          <div class="cb">
+            <!-- تبويبات الإضافة -->
+            <div class="tabs-row">
+              <button class="tab on" onclick="swQTab('pre','manual',this)">✏️ إضافة يدوية</button>
+              <button class="tab" onclick="swQTab('pre','excel',this)">📤 رفع Excel</button>
+              <button class="tab" onclick="swQTab('pre','mysc',this)">✍️ MyScript</button>
+            </div>
 
-    <div class="tc" id="q4">
-      <div class="card"><div class="ch"><span class="ct">📝 الاختبار البعدي</span><span class="bd bp">بعد الشرح</span></div><div class="cb">
-        <div class="g3">
-          <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" value="10"></div>
-          <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" value="15"></div>
-          <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" value="70"></div>
-          <div class="fg"><label class="fl">تاريخ البدء</label><input class="fi" type="date" value="2026-04-25"></div>
-          <div class="fg"><label class="fl">تاريخ الانتهاء</label><input class="fi" type="date" value="2026-04-27"></div>
-          <div class="fg"><label class="fl">الأسئلة مقارنة بالقبلي</label>
-            <select class="fi"><option>مختلفة كلياً</option><option>٥٠% مختلفة</option><option>نفس الأسئلة</option></select>
+            <!-- يدوي -->
+            <div class="tab-content on" id="pre-manual">
+              <div id="pre-q-form">
+                <!-- نص السؤال -->
+                <div class="fg">
+                  <label class="fl">نص السؤال</label>
+                  <a href="https://webdemo.myscript.com/views/math/index.html#" target="_blank" class="mysc">
+                    <span>✍️</span>
+                    <div style="font-size:9px"><strong>MyScript</strong> — ارسمي المعادلة يدوياً وانسخي LaTeX</div>
+                    <span style="margin-right:auto;font-size:9px;opacity:0.5">↗</span>
+                  </a>
+                  <div class="q-editor">
+                    <div class="q-toolbar">
+                      <button type="button" class="q-tb-btn math" onclick="toggleMathBar('pre-math')">∑ معادلة</button>
+                      <div class="q-tb-sep"></div>
+                      {% for sym in "س,ص,ع,م,ن" %}
+                      <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('{{ sym }}','pre-q-area')">{{ sym }}</button>
+                      {% endfor %}
+                      <div class="q-tb-sep"></div>
+                      {% for sym in "×,÷,±,≠,≤,≥,√,²,³,½,π,∞" %}
+                      <button type="button" class="q-tb-btn" onclick="iSym('{{ sym }}','pre-q-area')">{{ sym }}</button>
+                      {% endfor %}
+                      <div class="q-tb-sep"></div>
+                      {% for sym in "∠,°,△,⊥,∥,α,β,θ,Δ,Σ" %}
+                      <button type="button" class="q-tb-btn" onclick="iSym('{{ sym }}','pre-q-area')">{{ sym }}</button>
+                      {% endfor %}
+                    </div>
+                    <!-- Math bar -->
+                    <div class="math-inline" id="pre-math" style="display:none">
+                      <input type="text" class="math-inp" id="pre-math-inp" placeholder="\frac{3}{4} أو x^2+5x=0" oninput="prevMath('pre-math-prev','pre-math-inp')">
+                      <div class="math-prev" id="pre-math-prev"></div>
+                      <button type="button" class="ins-btn" onclick="insMath('pre-math-inp','pre-q-area')">إدراج ←</button>
+                    </div>
+                    <div class="q-area" id="pre-q-area" contenteditable="true" placeholder="اكتبي نص السؤال... يمكنك إدراج رموز ومعادلات مباشرة"></div>
+                  </div>
+                  <!-- معاينة -->
+                  <div style="font-size:9px;color:var(--text3);margin-top:5px">معاينة:</div>
+                  <div class="prev-box" id="pre-q-prev"></div>
+                </div>
+
+                <!-- الخيارات -->
+                <div class="opts-grid" id="pre-opts">
+                  <div class="opt-box" id="pre-opt-A">
+                    <div class="opt-head">
+                      <div class="opt-letter" id="pre-letter-A">أ</div>
+                      <span class="opt-name">الخيار أ</span>
+                      <button type="button" class="opt-set-btn" id="pre-setbtn-A" onclick="setAns('pre','A')">✓ صحيح</button>
+                    </div>
+                    <div class="opt-area" id="pre-opt-area-A" contenteditable="true" placeholder="الخيار أ..."></div>
+                  </div>
+                  <div class="opt-box" id="pre-opt-B">
+                    <div class="opt-head">
+                      <div class="opt-letter" id="pre-letter-B">ب</div>
+                      <span class="opt-name">الخيار ب</span>
+                      <button type="button" class="opt-set-btn" id="pre-setbtn-B" onclick="setAns('pre','B')">✓ صحيح</button>
+                    </div>
+                    <div class="opt-area" id="pre-opt-area-B" contenteditable="true" placeholder="الخيار ب..."></div>
+                  </div>
+                  <div class="opt-box" id="pre-opt-C">
+                    <div class="opt-head">
+                      <div class="opt-letter" id="pre-letter-C">ج</div>
+                      <span class="opt-name">الخيار ج</span>
+                      <button type="button" class="opt-set-btn" id="pre-setbtn-C" onclick="setAns('pre','C')">✓ صحيح</button>
+                    </div>
+                    <div class="opt-area" id="pre-opt-area-C" contenteditable="true" placeholder="الخيار ج..."></div>
+                  </div>
+                  <div class="opt-box" id="pre-opt-D">
+                    <div class="opt-head">
+                      <div class="opt-letter" id="pre-letter-D">د</div>
+                      <span class="opt-name">الخيار د</span>
+                      <button type="button" class="opt-set-btn" id="pre-setbtn-D" onclick="setAns('pre','D')">✓ صحيح</button>
+                    </div>
+                    <div class="opt-area" id="pre-opt-area-D" contenteditable="true" placeholder="الخيار د..."></div>
+                  </div>
+                </div>
+
+                <div class="fg">
+                  <label class="fl">تغذية راجعة (اختياري)</label>
+                  <input class="fi" id="pre-feedback" placeholder="شرح الإجابة الصحيحة...">
+                </div>
+
+                <div style="display:flex;gap:7px;margin-top:8px">
+                  <button type="button" class="btn btn-g btn-sm" onclick="addQ('pre')">➕ إضافة السؤال للقائمة</button>
+                  <button type="button" class="btn btn-b btn-sm" onclick="clearQForm('pre')">🔄 مسح</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Excel -->
+            <div class="tab-content" id="pre-excel">
+              <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:10px;font-size:10px;color:var(--text3);line-height:2">
+                <strong style="color:var(--green)">شكل ملف Excel:</strong><br>
+                A: نص السؤال | B: خيار أ | C: خيار ب | D: خيار ج | E: خيار د<br>
+                F: الإجابة الصحيحة (A/B/C/D) | G: المهارة | H: التغذية الراجعة
+              </div>
+              <div class="excel-zone" onclick="document.getElementById('pre-excel-file').click()">
+                <div style="font-size:24px;margin-bottom:6px">📊</div>
+                <div style="font-size:11px;color:var(--text2);font-weight:600">اضغطي لرفع ملف Excel</div>
+                <div style="font-size:9px;color:var(--text3);margin-top:3px">.xlsx أو .xls</div>
+                <input type="file" id="pre-excel-file" name="excel_pre" accept=".xlsx,.xls" style="display:none" onchange="loadExcel('pre',this)">
+              </div>
+              <div id="pre-excel-preview" style="margin-top:8px"></div>
+            </div>
+
+            <!-- MyScript -->
+            <div class="tab-content" id="pre-mysc">
+              <div style="background:rgba(155,114,245,0.06);border:1px solid rgba(155,114,245,0.2);border-radius:8px;padding:12px;text-align:center">
+                <div style="font-size:20px;margin-bottom:6px">✍️</div>
+                <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:4px">رسم المعادلات يدوياً</div>
+                <div style="font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.8">
+                  ١ — افتحي MyScript في نافذة جديدة<br>
+                  ٢ — ارسمي المعادلة يدوياً<br>
+                  ٣ — انسخي كود LaTeX<br>
+                  ٤ — الصقيه في حقل المعادلة في التبويب اليدوي
+                </div>
+                <a href="https://webdemo.myscript.com/views/math/index.html#" target="_blank" class="btn btn-p" style="display:inline-flex">✍️ فتح MyScript</a>
+              </div>
+            </div>
+
+            <!-- قائمة الأسئلة المضافة -->
+            <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+              <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:7px">الأسئلة المضافة:</div>
+              <div id="pre-q-list">
+                <div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد — أضيفي سؤالاً أعلاه</div>
+              </div>
+            </div>
           </div>
         </div>
-        <div style="font-size:11px;font-weight:700;color:var(--text2);margin:12px 0 8px;display:flex;align-items:center;gap:6px">
-          <span style="width:3px;height:14px;background:var(--green);border-radius:2px;display:inline-block"></span>
-          أسئلة الاختبار البعدي
+
+        <div class="btn-row" style="justify-content:space-between">
+          <button type="button" class="btn btn-b btn-sm" onclick="goStep(2)">→ السابق</button>
+          <button type="button" class="btn btn-b" onclick="goStep(4)">التالي — الاختبار البعدي ←</button>
         </div>
-        <div class="qi">
-          <div class="qi-num"><span>سؤال ١ من ١٠</span><span class="bd bb">قدرات — كمي</span></div>
-          <div class="qi-text">أيٌّ من الكسور التالية يساوي ٠.٦٢٥؟</div>
-          <div class="qi-opts">
-            <div class="qo n"><div class="qo-letter">أ</div>٣/٥</div>
-            <div class="qo n"><div class="qo-letter">ب</div>٢/٣</div>
-            <div class="qo c"><div class="qo-letter">ج</div>٥/٨ ✓</div>
-            <div class="qo n"><div class="qo-letter">د</div>٣/٤</div>
+      </div>
+
+      <!-- ═══ الخطوة ٤: البعدي ═══ -->
+      <div class="panel" id="step4">
+        <div class="card">
+          <div class="ch">
+            <span class="ct"><span class="ct-dot" style="background:var(--green)"></span>الاختبار البعدي</span>
+            <span class="bd bp">بعد الشرح</span>
+          </div>
+          <div class="cb">
+            <div class="g3">
+              <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" name="post_count" value="10"></div>
+              <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" name="post_time" value="15"></div>
+              <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" name="post_pass" value="70"></div>
+              <div class="fg"><label class="fl">تاريخ البدء</label><input class="fi" type="date" name="post_start"></div>
+              <div class="fg"><label class="fl">تاريخ الانتهاء</label><input class="fi" type="date" name="post_end"></div>
+              <div class="fg"><label class="fl">الأسئلة مقارنة بالقبلي</label>
+                <select class="fi" name="post_diff">
+                  <option value="different">مختلفة كلياً</option>
+                  <option value="half">٥٠% مختلفة</option>
+                  <option value="same">نفس الأسئلة</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="btn-row">
-          <button class="btn btn-g">➕ إضافة سؤال</button>
-          <button class="btn btn-b">📤 رفع من Excel</button>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-b" onclick="swT('q3',document.querySelectorAll('#form-qodrat .tab')[2],'qodrat')">→ السابق</button>
-          <button class="btn btn-b" onclick="swT('q5',document.querySelectorAll('#form-qodrat .tab')[4],'qodrat')">التالي ←</button>
-        </div>
-      </div></div>
-    </div>
 
-    <div class="tc" id="q5">
-      <div class="card"><div class="ch"><span class="ct">⚙️ إعدادات التفعيل والمشاركة</span></div><div class="cb">
-        <div class="g2">
-          <div class="fg"><label class="fl">حالة المهارة</label>
-            <select class="fi"><option>مفعّلة — تظهر للطالبات</option><option>مسودة</option></select>
+        <!-- أسئلة البعدي -->
+        <div class="card">
+          <div class="ch">
+            <span class="ct"><span class="ct-dot" style="background:var(--green)"></span>أسئلة الاختبار البعدي</span>
+            <span class="bd bp" id="post-q-count">٠ أسئلة</span>
           </div>
-          <div class="fg"><label class="fl">مشاركة مع المعلمات</label>
-            <select class="fi"><option>نعم — مع ذكر اسمي</option><option>لا — خاص بفصلي</option></select>
-          </div>
-        </div>
-        <div style="padding:12px;background:rgba(15,186,129,0.05);border-radius:8px;border:1px solid rgba(15,186,129,0.15);margin:10px 0">
-          <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:8px">✅ ملخص المهارة</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px;color:var(--text2)">
-            <div>📚 المهارة: <strong>الكسور الاعتيادية</strong></div>
-            <div>🏷️ النوع: <strong>قدرات — كمي</strong></div>
-            <div>🎓 الفصل: <strong>ث١٢</strong></div>
-            <div>👩‍🏫 المنشئة: <strong style="color:var(--green)">ريم أحمد</strong></div>
-            <div>📝 القبلي: <strong>١٠ أسئلة / ١٥ دقيقة / ٢٠-٢٢ أبريل</strong></div>
-            <div>📝 البعدي: <strong>١٠ أسئلة / ١٥ دقيقة / ٢٥-٢٧ أبريل</strong></div>
-          </div>
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-g" onclick="alert('✅ تم حفظ المهارة بنجاح!\nسيتم إشعار طالبات ث١٢')">💾 حفظ وتفعيل</button>
-          <button class="btn btn-t" onclick="gp('print-preview',document.querySelectorAll('.nb')[4])">🖨️ معاينة الطباعة</button>
-          <button class="btn btn-o">💾 حفظ كمسودة</button>
-        </div>
-      </div></div>
-    </div>
-  </div>
+          <div class="cb">
+            <div class="tabs-row">
+              <button class="tab on" onclick="swQTab('post','manual',this)">✏️ إضافة يدوية</button>
+              <button class="tab" onclick="swQTab('post','excel',this)">📤 رفع Excel</button>
+              <button class="tab" onclick="swQTab('post','mysc',this)">✍️ MyScript</button>
+            </div>
 
-  <!-- نموذج التحصيلي -->
-  <div id="form-tahsili" style="display:none">
-    <div class="card"><div class="ch"><span class="ct">📖 إضافة درس تحصيلي — شرح + اختبار</span><span class="bd bm">بدون اختبار قبلي</span></div><div class="cb">
-      <div class="g2">
-        <div class="fg"><label class="fl">عنوان الدرس *</label><input class="fi" placeholder="مثال: المعادلات التربيعية" value="المعادلات التربيعية"></div>
-        <div class="fg"><label class="fl">المادة *</label>
-          <select class="fi"><option>رياضيات</option><option>أحياء</option><option>كيمياء</option><option>فيزياء</option></select>
-        </div>
-        <div class="fg"><label class="fl">الفصل المستهدف</label>
-          <select class="fi"><option>ث١٢</option><option>ث١١</option><option>ث١٠</option><option>جميع الفصول</option></select>
-        </div>
-        <div class="fg"><label class="fl">الوحدة الدراسية</label><input class="fi" placeholder="مثال: الوحدة الثالثة — الجبر"></div>
-        <div class="fg"><label class="fl">رابط فيديو الشرح</label><input class="fi" placeholder="https://youtube.com/..."></div>
-        <div class="fg"><label class="fl">ملف PDF للشرح</label><input class="fi" type="file"></div>
-      </div>
-      <div class="fg"><label class="fl">شرح نصي للدرس</label>
-        <textarea class="fi" style="min-height:80px" placeholder="اكتبي شرح الدرس...">المعادلة التربيعية هي معادلة من الدرجة الثانية تأخذ الشكل ax² + bx + c = 0...</textarea>
-      </div>
-      <div style="height:1px;background:var(--border);margin:12px 0"></div>
-      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:6px">
-        <span style="width:3px;height:14px;background:var(--orange);border-radius:2px;display:inline-block"></span>
-        أسئلة الاختبار — كل سؤال يُحدد درسه
-      </div>
-      <div class="qi">
-        <div class="qi-num">
-          <span>سؤال ١</span>
-          <select style="background:var(--card);border:1px solid var(--border2);color:var(--text2);font-family:Tajawal;font-size:9px;padding:2px 6px;border-radius:5px;outline:none">
-            <option>📖 المعادلات التربيعية</option><option>📖 المتتاليات الحسابية</option><option>📖 الدوال والمقرونات</option>
-          </select>
-        </div>
-        <div class="qi-text">حل المعادلة: x² - 5x + 6 = 0</div>
-        <div class="qi-opts">
-          <div class="qo n"><div class="qo-letter">أ</div>x = 1، x = 6</div>
-          <div class="qo c"><div class="qo-letter">ب</div>x = 2، x = 3 ✓</div>
-          <div class="qo n"><div class="qo-letter">ج</div>x = -2، x = -3</div>
-          <div class="qo n"><div class="qo-letter">د</div>x = 1، x = -6</div>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-g">➕ إضافة سؤال</button>
-        <button class="btn btn-b">📤 رفع من Excel</button>
-        <button class="btn btn-g" onclick="alert('✅ تم حفظ الدرس!')">💾 حفظ الدرس</button>
-      </div>
-    </div></div>
-  </div>
+            <div class="tab-content on" id="post-manual">
+              <div class="q-editor">
+                <div class="q-toolbar">
+                  <button type="button" class="q-tb-btn math" onclick="toggleMathBar('post-math')">∑ معادلة</button>
+                  <div class="q-tb-sep"></div>
+                  {% for sym in "س,ص,ع,م,ن,×,÷,±,≠,≤,≥,√,²,³,½,π,∞,∠,°,Δ" %}
+                  <button type="button" class="q-tb-btn {% if forloop.counter <= 5 %}" style="color:var(--teal){% endif %}" onclick="iSym('{{ sym }}','post-q-area')">{{ sym }}</button>
+                  {% endfor %}
+                </div>
+                <div class="math-inline" id="post-math" style="display:none">
+                  <input type="text" class="math-inp" id="post-math-inp" placeholder="\frac{3}{4}" oninput="prevMath('post-math-prev','post-math-inp')">
+                  <div class="math-prev" id="post-math-prev"></div>
+                  <button type="button" class="ins-btn" onclick="insMath('post-math-inp','post-q-area')">إدراج ←</button>
+                </div>
+                <div class="q-area" id="post-q-area" contenteditable="true" placeholder="نص السؤال البعدي..."></div>
+              </div>
+              <div class="prev-box" id="post-q-prev" style="margin-top:5px"></div>
 
-  <!-- نموذج بنك الأسئلة -->
-  <div id="form-bank" style="display:none">
-    <div class="card"><div class="ch"><span class="ct">🗃️ إضافة بنك أسئلة — كل سؤال يُحدد مهارته</span><span class="bd be">أسئلة أعوام سابقة</span></div><div class="cb">
-      <div class="g2">
-        <div class="fg"><label class="fl">اسم البنك *</label><input class="fi" placeholder="مثال: بنك القدرات الكمي ٢٠٢٦" value="بنك القدرات الكمي"></div>
-        <div class="fg"><label class="fl">القسم *</label>
-          <select class="fi"><option>قدرات — كمي</option><option>قدرات — لفظي</option><option>تحصيلي — رياضيات</option><option>تحصيلي — أحياء</option><option>تحصيلي — كيمياء</option><option>تحصيلي — فيزياء</option></select>
-        </div>
-        <div class="fg"><label class="fl">الفصل المستهدف</label>
-          <select class="fi"><option>ث١٢ + ث١١</option><option>ث١٢</option><option>ث١١</option><option>جميع الفصول</option></select>
-        </div>
-        <div class="fg"><label class="fl">متاح للطالبات المتقدمات</label>
-          <select class="fi"><option>نعم — للمتقدمات وبدون تأسيس</option><option>بعد إكمال المهارات فقط</option></select>
-        </div>
-      </div>
+              <div class="opts-grid" style="margin-top:8px">
+                {% for letter, name in "A,أ|B,ب|C,ج|D,د"|make_list %}
+                {% endfor %}
+                <div class="opt-box" id="post-opt-A"><div class="opt-head"><div class="opt-letter" id="post-letter-A">أ</div><button type="button" class="opt-set-btn" id="post-setbtn-A" onclick="setAns('post','A')">✓</button></div><div class="opt-area" id="post-opt-area-A" contenteditable="true" placeholder="أ..."></div></div>
+                <div class="opt-box" id="post-opt-B"><div class="opt-head"><div class="opt-letter" id="post-letter-B">ب</div><button type="button" class="opt-set-btn" id="post-setbtn-B" onclick="setAns('post','B')">✓</button></div><div class="opt-area" id="post-opt-area-B" contenteditable="true" placeholder="ب..."></div></div>
+                <div class="opt-box" id="post-opt-C"><div class="opt-head"><div class="opt-letter" id="post-letter-C">ج</div><button type="button" class="opt-set-btn" id="post-setbtn-C" onclick="setAns('post','C')">✓</button></div><div class="opt-area" id="post-opt-area-C" contenteditable="true" placeholder="ج..."></div></div>
+                <div class="opt-box" id="post-opt-D"><div class="opt-head"><div class="opt-letter" id="post-letter-D">د</div><button type="button" class="opt-set-btn" id="post-setbtn-D" onclick="setAns('post','D')">✓</button></div><div class="opt-area" id="post-opt-area-D" contenteditable="true" placeholder="د..."></div></div>
+              </div>
 
-      <div style="height:1px;background:var(--border);margin:12px 0"></div>
-      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:10px">أسئلة البنك — حدّدي مهارة كل سؤال</div>
+              <div style="display:flex;gap:7px;margin-top:8px">
+                <button type="button" class="btn btn-g btn-sm" onclick="addQ('post')">➕ إضافة للقائمة</button>
+                <button type="button" class="btn btn-b btn-sm" onclick="clearQForm('post')">🔄 مسح</button>
+              </div>
+            </div>
 
-      <div class="qi">
-        <div class="qi-num">
-          <span>سؤال ١ من البنك</span>
-          <div style="display:flex;gap:5px;align-items:center">
-            <span style="font-size:9px;color:var(--text3)">المهارة:</span>
-            <select style="background:var(--card);border:1px solid var(--border2);color:var(--green);font-family:Tajawal;font-size:9px;padding:2px 7px;border-radius:5px;outline:none">
-              <option>الكسور الاعتيادية</option>
-              <option>النسبة والتناسب</option>
-              <option>الأعداد الصحيحة</option>
-              <option>ضرب الكسور</option>
-              <option>تأسيس عام</option>
-              <option>+ إضافة مهارة جديدة</option>
-            </select>
+            <div class="tab-content" id="post-excel">
+              <div class="excel-zone" onclick="document.getElementById('post-excel-file').click()">
+                <div style="font-size:24px;margin-bottom:6px">📊</div>
+                <div style="font-size:11px;color:var(--text2);font-weight:600">رفع أسئلة البعدي من Excel</div>
+                <input type="file" id="post-excel-file" accept=".xlsx,.xls" style="display:none" onchange="loadExcel('post',this)">
+              </div>
+              <div id="post-excel-preview" style="margin-top:8px"></div>
+            </div>
+
+            <div class="tab-content" id="post-mysc">
+              <div style="text-align:center;padding:14px">
+                <a href="https://webdemo.myscript.com/views/math/index.html#" target="_blank" class="btn btn-p" style="display:inline-flex">✍️ فتح MyScript</a>
+              </div>
+            </div>
+
+            <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
+              <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:6px">الأسئلة المضافة:</div>
+              <div id="post-q-list">
+                <div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد</div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="qi-text">إذا كان الكسر ٣/٤ يمثل نسبة الطالبات الناجحات في فصل، وعدد الطالبات ٢٨، فكم عدد الناجحات؟</div>
-        <div class="qi-opts">
-          <div class="qo n"><div class="qo-letter">أ</div>١٨</div>
-          <div class="qo c"><div class="qo-letter">ب</div>٢١ ✓</div>
-          <div class="qo n"><div class="qo-letter">ج</div>١٤</div>
-          <div class="qo n"><div class="qo-letter">د</div>٢٤</div>
+
+        <div class="btn-row" style="justify-content:space-between">
+          <button type="button" class="btn btn-b btn-sm" onclick="goStep(3)">→ السابق</button>
+          <button type="button" class="btn btn-b" onclick="goStep(5)">التالي — التفعيل ←</button>
         </div>
       </div>
 
-      <div class="btn-row">
-        <button class="btn btn-g">➕ إضافة سؤال للبنك</button>
-        <button class="btn btn-b">📤 رفع من Excel (مع عمود المهارة)</button>
-        <button class="btn btn-g" onclick="alert('✅ تم حفظ البنك!')">💾 حفظ البنك</button>
-      </div>
-    </div></div>
-  </div>
-</div>
+      <!-- ═══ الخطوة ٥: التفعيل ═══ -->
+      <div class="panel" id="step5">
+        <div class="card">
+          <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--green)"></span>ملخص وتفعيل</span></div>
+          <div class="cb">
+            <div class="g2">
+              <div class="fg">
+                <label class="fl">حالة المهارة</label>
+                <select class="fi" name="is_active">
+                  <option value="true">مفعّلة — تظهر للطالبات</option>
+                  <option value="false">مسودة — لا تظهر بعد</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label class="fl">مشاركة مع المعلمات</label>
+                <select class="fi" name="is_shared_final">
+                  <option value="true">نعم — مع ذكر اسمي</option>
+                  <option value="false">لا — خاص بفصلي</option>
+                </select>
+              </div>
+            </div>
 
-<!-- ════════════════════════════════════════
-     صفحة: بنك الأسئلة
-════════════════════════════════════════ -->
-<div class="pg" id="pg-questions">
-  <div class="sh">
-    <div><div class="sh-title">❓ بنك الأسئلة</div><div class="sh-sub">١٢٠ سؤال — قدرات كمي | ٨٠ سؤال — تحصيلي رياضيات</div></div>
-    <button class="btn btn-g" onclick="gp('add-q',document.querySelectorAll('.nb')[3])">✏️ إضافة أسئلة</button>
-  </div>
+            <!-- ملخص -->
+            <div style="background:rgba(15,186,129,0.05);border:1px solid rgba(15,186,129,0.15);border-radius:9px;padding:12px;margin-top:8px">
+              <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:8px">✅ ملخص المهارة</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px;color:var(--text2)">
+                <div>👩‍🏫 المعلمة: <strong style="color:var(--green)">{{ teacher.full_name|default:"أنتِ" }}</strong></div>
+                <div id="summary-type">🏷️ النوع: —</div>
+                <div id="summary-class">🎓 الفصل: —</div>
+                <div id="summary-pre">📝 القبلي: <span id="pre-count-summary">٠</span> سؤال</div>
+                <div id="summary-post">📝 البعدي: <span id="post-count-summary">٠</span> سؤال</div>
+                <div>📅 التاريخ: {{ today|default:"اليوم" }}</div>
+              </div>
+            </div>
 
-  <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
-    <select class="fi" style="width:auto"><option>كل الأقسام</option><option>قدرات — كمي</option><option>قدرات — لفظي</option><option>تحصيلي — رياضيات</option></select>
-    <select class="fi" style="width:auto"><option>كل المهارات</option><option>الكسور الاعتيادية</option><option>النسبة والتناسب</option><option>الأعداد الصحيحة</option></select>
-    <input class="fi" style="width:200px" placeholder="🔍 بحث في الأسئلة...">
-  </div>
-
-  <div class="card">
-    <div class="ch"><span class="ct">قدرات — كمي | ١٢٠ سؤال</span><div class="ca"><button class="btn btn-t" style="font-size:9px;padding:4px 9px" onclick="gp('print-preview',document.querySelectorAll('.nb')[4])">🖨️ طباعة اختبار</button></div></div>
-    <div class="cb" style="padding:10px">
-      <div class="qi">
-        <div class="qi-num"><span>س١ | <span class="bd bp">الكسور الاعتيادية</span></span><div style="display:flex;gap:4px"><button class="btn btn-o" style="font-size:8px;padding:2px 6px">✏️</button><button class="btn btn-r" style="font-size:8px;padding:2px 6px">🗑️</button></div></div>
-        <div class="qi-text">ما قيمة الكسر ٣/٤ على شكل عشري؟</div>
-        <div class="qi-opts">
-          <div class="qo c"><div class="qo-letter">أ</div>0.75 ✓</div>
-          <div class="qo n"><div class="qo-letter">ب</div>0.34</div>
-          <div class="qo n"><div class="qo-letter">ج</div>0.43</div>
-          <div class="qo n"><div class="qo-letter">د</div>0.7</div>
-        </div>
-      </div>
-      <div class="qi">
-        <div class="qi-num"><span>س٢ | <span class="bd bb">النسبة والتناسب</span></span><div style="display:flex;gap:4px"><button class="btn btn-o" style="font-size:8px;padding:2px 6px">✏️</button><button class="btn btn-r" style="font-size:8px;padding:2px 6px">🗑️</button></div></div>
-        <div class="qi-text">إذا كان ٣:٤ = ٩:س، فما قيمة س؟</div>
-        <div class="qi-opts">
-          <div class="qo n"><div class="qo-letter">أ</div>١٠</div>
-          <div class="qo c"><div class="qo-letter">ب</div>١٢ ✓</div>
-          <div class="qo n"><div class="qo-letter">ج</div>١٦</div>
-          <div class="qo n"><div class="qo-letter">د</div>٨</div>
-        </div>
-      </div>
-      <div style="text-align:center;padding:10px;color:var(--text3);font-size:10px">... ١١٨ سؤال إضافي في البنك ...</div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════
-     صفحة: إضافة أسئلة سريعة
-════════════════════════════════════════ -->
-<div class="pg" id="pg-add-q">
-  <div class="sh"><div><div class="sh-title">✏️ إضافة سؤال جديد</div></div></div>
-
-  <div class="card"><div class="cb">
-    <div class="g2">
-      <div class="fg"><label class="fl">القسم *</label>
-        <select class="fi"><option>قدرات — كمي</option><option>قدرات — لفظي</option><option>تحصيلي — رياضيات</option><option>تحصيلي — أحياء</option></select>
-      </div>
-      <div class="fg"><label class="fl">المهارة / الدرس *</label>
-        <select class="fi">
-          <option>الكسور الاعتيادية</option><option>النسبة والتناسب</option>
-          <option>الأعداد الصحيحة</option><option>تأسيس عام</option>
-          <option>+ إضافة مهارة جديدة</option>
-        </select>
-      </div>
-    </div>
-    <div class="fg"><label class="fl">نص السؤال *</label>
-      <textarea class="fi" style="min-height:70px" id="qtext" placeholder="اكتبي نص السؤال هنا..."></textarea>
-    </div>
-    <div style="font-size:10px;font-weight:700;color:var(--text3);margin-bottom:8px">الخيارات — حدّدي الإجابة الصحيحة ✓</div>
-    <div class="aq-form">
-      <div class="opt-row">
-        <div class="opt-label" id="lbl-a">أ</div>
-        <input class="fi" placeholder="الخيار أ...">
-        <button class="correct-btn" id="cb-a" onclick="setCorrect('a')">تحديد كصحيح ✓</button>
-      </div>
-      <div class="opt-row">
-        <div class="opt-label" id="lbl-b">ب</div>
-        <input class="fi" placeholder="الخيار ب...">
-        <button class="correct-btn" id="cb-b" onclick="setCorrect('b')">تحديد كصحيح ✓</button>
-      </div>
-      <div class="opt-row">
-        <div class="opt-label" id="lbl-c">ج</div>
-        <input class="fi" placeholder="الخيار ج...">
-        <button class="correct-btn" id="cb-c" onclick="setCorrect('c')">تحديد كصحيح ✓</button>
-      </div>
-      <div class="opt-row">
-        <div class="opt-label" id="lbl-d">د</div>
-        <input class="fi" placeholder="الخيار د...">
-        <button class="correct-btn" id="cb-d" onclick="setCorrect('d')">تحديد كصحيح ✓</button>
-      </div>
-    </div>
-    <div class="fg"><label class="fl">تغذية راجعة (اختياري)</label>
-      <input class="fi" placeholder="اكتبي شرح الإجابة الصحيحة...">
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-g" onclick="alert('✅ تم حفظ السؤال في البنك!')">💾 حفظ وإضافة للبنك</button>
-      <button class="btn btn-b" onclick="alert('✅ تم الحفظ — أضيفي سؤالاً آخر')">💾 حفظ وإضافة سؤال آخر</button>
-      <button class="btn btn-b" onclick="gp('questions',document.querySelectorAll('.nb')[2])">← عودة للبنك</button>
-    </div>
-  </div></div>
-</div>
-
-<!-- ════════════════════════════════════════
-     صفحة: معاينة الطباعة الاحترافية
-════════════════════════════════════════ -->
-<div class="pg" id="pg-print-preview">
-  <div class="sh no-print">
-    <div><div class="sh-title">🖨️ معاينة الطباعة — اختبار احترافي</div></div>
-    <div style="display:flex;gap:8px">
-      <select class="fi" style="width:auto">
-        <option>الاختبار القبلي — الكسور الاعتيادية</option>
-        <option>الاختبار البعدي — الكسور الاعتيادية</option>
-        <option>اختبار التحصيلي — المعادلات التربيعية</option>
-        <option>اختبار بنك القدرات</option>
-      </select>
-      <button class="btn btn-g" onclick="window.print()">🖨️ طباعة الآن</button>
-    </div>
-  </div>
-
-  <div class="print-doc">
-    <!-- الديباجة الرسمية الكاملة -->
-    <div class="print-header">
-      <div class="ph-top">
-        <div class="ph-logo">🏛️</div>
-        <div class="ph-center">
-          <div class="ph-ministry">المملكة العربية السعودية</div>
-          <div class="ph-ministry2">وزارة التعليم</div>
-          <div class="ph-region">الإدارة العامة للتعليم بمنطقة الحدود الشمالية</div>
-          <div class="ph-school">الثانوية الثالثة عشر بعرعر</div>
-          <div class="ph-principal">مديرة المدرسة: مفيضة بنت سليمان الشمري</div>
-        </div>
-        <div class="ph-logo">📚</div>
-      </div>
-      <div class="ph-divider"></div>
-      <div class="ph-test-title">اختبار قبلي — مهارة الكسور الاعتيادية</div>
-      <div class="ph-info-grid">
-        <div class="ph-info-item"><div class="ph-info-label">القسم</div><div class="ph-info-val">قدرات — كمي</div></div>
-        <div class="ph-info-item"><div class="ph-info-label">نوع الاختبار</div><div class="ph-info-val">قبلي 📝</div></div>
-        <div class="ph-info-item"><div class="ph-info-label">عدد الأسئلة</div><div class="ph-info-val">١٠ أسئلة</div></div>
-        <div class="ph-info-item"><div class="ph-info-label">الزمن</div><div class="ph-info-val">١٥ دقيقة ⏱️</div></div>
-        <div class="ph-info-item"><div class="ph-info-label">درجة النجاح</div><div class="ph-info-val">٦٠% فأكثر</div></div>
-        <div class="ph-info-item"><div class="ph-info-label">المعلمة المعدّة</div><div class="ph-info-val">ريم أحمد</div></div>
-      </div>
-    </div>
-
-    <div class="print-body">
-      <!-- بيانات الطالبة -->
-      <div class="student-info-box">
-        <div><div class="sib-field">اسم الطالبة</div><div class="sib-line"></div></div>
-        <div><div class="sib-field">الفصل</div><div class="sib-line">ث١٢</div></div>
-        <div><div class="sib-field">التاريخ</div><div class="sib-line"></div></div>
-        <div><div class="sib-field">الدرجة</div><div class="sib-line">......... / ١٠</div></div>
-      </div>
-
-      <!-- التعليمات -->
-      <div class="instructions-box">
-        <strong>تعليمات الاختبار:</strong> اقرئي كل سؤال بعناية واختاري الإجابة الصحيحة. الدرجة الكاملة للاختبار ١٠ درجات. وقت الاختبار ١٥ دقيقة. لا يُسمح باستخدام الآلة الحاسبة.
-      </div>
-
-      <!-- السؤال ١ -->
-      <div class="pq">
-        <div class="pq-num"><div style="display:flex;align-items:center;gap:8px"><div class="pq-num-badge">١</div><span>السؤال الأول</span></div><span style="color:#94a3b8">درجة واحدة</span></div>
-        <div class="pq-text">ما قيمة الكسر ٣/٤ على شكل عشري؟</div>
-        <div class="pq-opts">
-          <div class="pq-opt"><div class="pq-bubble">أ</div>0.75</div>
-          <div class="pq-opt"><div class="pq-bubble">ب</div>0.34</div>
-          <div class="pq-opt"><div class="pq-bubble">ج</div>0.43</div>
-          <div class="pq-opt"><div class="pq-bubble">د</div>0.7</div>
-        </div>
-      </div>
-
-      <!-- السؤال ٢ -->
-      <div class="pq">
-        <div class="pq-num"><div style="display:flex;align-items:center;gap:8px"><div class="pq-num-badge">٢</div><span>السؤال الثاني</span></div><span style="color:#94a3b8">درجة واحدة</span></div>
-        <div class="pq-text">ما حاصل جمع ١/٢ + ١/٣؟</div>
-        <div class="pq-opts">
-          <div class="pq-opt"><div class="pq-bubble">أ</div>٢/٥</div>
-          <div class="pq-opt"><div class="pq-bubble">ب</div>٥/٦</div>
-          <div class="pq-opt"><div class="pq-bubble">ج</div>٢/٦</div>
-          <div class="pq-opt"><div class="pq-bubble">د</div>١/٦</div>
-        </div>
-      </div>
-
-      <!-- السؤال ٣ -->
-      <div class="pq">
-        <div class="pq-num"><div style="display:flex;align-items:center;gap:8px"><div class="pq-num-badge">٣</div><span>السؤال الثالث</span></div><span style="color:#94a3b8">درجة واحدة</span></div>
-        <div class="pq-text">أيٌّ من الكسور التالية أكبر قيمةً؟</div>
-        <div class="pq-opts">
-          <div class="pq-opt"><div class="pq-bubble">أ</div>٢/٣</div>
-          <div class="pq-opt"><div class="pq-bubble">ب</div>٣/٥</div>
-          <div class="pq-opt"><div class="pq-bubble">ج</div>٣/٤</div>
-          <div class="pq-opt"><div class="pq-bubble">د</div>٥/٨</div>
-        </div>
-      </div>
-
-      <div style="text-align:center;padding:12px;color:#94a3b8;font-size:10px;border:1px dashed #e2e8f0;border-radius:6px;margin-top:8px">
-        ... تكمل الأسئلة من ٤ إلى ١٠ في الورقة الكاملة ...
-      </div>
-    </div>
-
-    <!-- الفوتر -->
-    <div class="print-footer">
-      <div class="pf-text">منصة آمنة التعليمية</div>
-      <div class="pf-sig">
-        توقيع المعلمة: ________________________<br>
-        <span style="font-size:8px">ريم أحمد — الرياضيات</span>
-      </div>
-      <div class="pf-platform">الفصل الدراسي الثاني ١٤٤٧هـ<br>تاريخ الطباعة: ١٦ أبريل ٢٠٢٦</div>
-    </div>
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════
-     صفحة: تقرير نتيجة الطالبة (احترافي)
-════════════════════════════════════════ -->
-<div class="pg" id="pg-result-report">
-  <div class="sh no-print">
-    <div><div class="sh-title">📊 تقرير نتيجة الاختبار</div></div>
-    <div style="display:flex;gap:8px">
-      <select class="fi" style="width:auto">
-        <option>ملاك محمد — القبلي</option>
-        <option>سارة العتيبي — القبلي</option>
-        <option>ليلى القحطاني — البعدي</option>
-      </select>
-      <button class="btn btn-g" onclick="window.print()">🖨️ طباعة التقرير</button>
-    </div>
-  </div>
-
-  <div class="result-doc">
-    <!-- الهيدر الرسمي -->
-    <div class="rr-header">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <div style="width:50px;height:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:24px">🏛️</div>
-        <div style="text-align:center;flex:1;padding:0 16px">
-          <div style="font-size:10px;opacity:0.7;margin-bottom:2px">المملكة العربية السعودية — وزارة التعليم</div>
-          <div style="font-size:10px;opacity:0.7;margin-bottom:4px">الإدارة العامة للتعليم بمنطقة الحدود الشمالية</div>
-          <div style="font-size:14px;font-weight:800">الثانوية الثالثة عشر بعرعر</div>
-          <div style="font-size:10px;opacity:0.7;margin-top:2px">مديرة المدرسة: مفيضة بنت سليمان الشمري</div>
-        </div>
-        <div style="width:50px;height:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:24px">📚</div>
-      </div>
-      <div style="height:1px;background:rgba(255,255,255,0.15);margin:10px 0"></div>
-      <div class="rr-title">تقرير نتيجة الاختبار</div>
-      <div class="rr-student-row">
-        <span><strong>الطالب/ة:</strong> ملاك محمد</span>
-        <span><strong>المدرسة:</strong> ث١٢</span>
-        <span><strong>المعلم/ة:</strong> ريم أحمد</span>
-        <span><strong>الوحدة:</strong> الكسور الاعتيادية</span>
-        <span><strong>الوقت:</strong> ٠ دقيقة و ٣٧ ثانية</span>
-      </div>
-    </div>
-
-    <!-- بانر النتيجة -->
-    <div class="rr-score-banner rr-score-fail">
-      <div>
-        <div class="rr-score-main">للأسف لم تنجح</div>
-        <div class="rr-score-sub">الدرجة: ٤ من ١٠ (٤٠٪)</div>
-      </div>
-      <div class="rr-stats">
-        <div class="rr-stat correct">
-          <div class="rr-stat-val">٤</div>
-          <div class="rr-stat-label">إجابات صحيحة ✓</div>
-        </div>
-        <div class="rr-stat wrong">
-          <div class="rr-stat-val">٦</div>
-          <div class="rr-stat-label">إجابات خاطئة ✗</div>
-        </div>
-        <div class="rr-stat time">
-          <div class="rr-stat-val">٠:٣٧</div>
-          <div class="rr-stat-label">وقت الإجابة</div>
+            <div class="btn-row" style="justify-content:space-between">
+              <button type="button" class="btn btn-b btn-sm" onclick="goStep(4)">→ السابق</button>
+              <div style="display:flex;gap:7px">
+                <button type="button" class="btn btn-o" onclick="saveSkill(false)">💾 حفظ كمسودة</button>
+                <button type="button" class="btn btn-g" onclick="saveSkill(true)">🚀 حفظ وتفعيل</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- جدول تفاصيل الإجابات -->
-    <div class="rr-body">
-      <div class="rr-table-title">تفاصيل الإجابات</div>
-      <table class="rr-tbl">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>السؤال</th>
-            <th>إجابة الطالب/ة</th>
-            <th>الإجابة الصحيحة</th>
-            <th>النتيجة</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="correct">
-            <td style="text-align:center;font-weight:700">١</td>
-            <td>أي الكسور التالية أكبر؟</td>
-            <td style="color:#16a34a;font-weight:600">٤/٥</td>
-            <td style="color:#16a34a;font-weight:600">٤/٥</td>
-            <td style="text-align:center"><div class="result-icon c">✓</div></td>
-          </tr>
-          <tr class="wrong">
-            <td style="text-align:center;font-weight:700">٢</td>
-            <td>ما ناتج: ١/٣ + ٢/٣؟</td>
-            <td style="color:#dc2626;font-weight:600;text-decoration:line-through">٢/٦</td>
-            <td style="color:#16a34a;font-weight:600">٢/٣</td>
-            <td style="text-align:center"><div class="result-icon w">✗</div></td>
-          </tr>
-          <tr class="wrong">
-            <td style="text-align:center;font-weight:700">٣</td>
-            <td>أي كسر يقع بين ١/٤ و٣/٤؟</td>
-            <td style="color:#dc2626;font-weight:600;text-decoration:line-through">١/٨</td>
-            <td style="color:#16a34a;font-weight:600">١/٢</td>
-            <td style="text-align:center"><div class="result-icon w">✗</div></td>
-          </tr>
-          <tr class="correct">
-            <td style="text-align:center;font-weight:700">٤</td>
-            <td>ما هي أبسط صورة للكسر ١٢/١٦؟</td>
-            <td style="color:#16a34a;font-weight:600">٣/٤</td>
-            <td style="color:#16a34a;font-weight:600">٣/٤</td>
-            <td style="text-align:center"><div class="result-icon c">✓</div></td>
-          </tr>
-          <tr class="wrong">
-            <td style="text-align:center;font-weight:700">٥</td>
-            <td>حوّل العدد الكسري ٢ ٣/٥ إلى كسر غير فعلي:</td>
-            <td style="color:#dc2626;font-weight:600;text-decoration:line-through">١٠/٥</td>
-            <td style="color:#16a34a;font-weight:600">١٣/٥</td>
-            <td style="text-align:center"><div class="result-icon w">✗</div></td>
-          </tr>
-          <tr class="wrong">
-            <td style="text-align:center;font-weight:700">٦</td>
-            <td>أي من الكسور التالية كسر فعلي؟</td>
-            <td style="color:#dc2626;font-weight:600;text-decoration:line-through">٧/٥</td>
-            <td style="color:#16a34a;font-weight:600">٣/٨</td>
-            <td style="text-align:center"><div class="result-icon w">✗</div></td>
-          </tr>
-          <tr class="correct">
-            <td style="text-align:center;font-weight:700">٧</td>
-            <td>حوّل الكسر غير الفعلي ١٣/٤ إلى عدد كسري:</td>
-            <td style="color:#16a34a;font-weight:600">٣ ١/٤</td>
-            <td style="color:#16a34a;font-weight:600">٣ ١/٤</td>
-            <td style="text-align:center"><div class="result-icon c">✓</div></td>
-          </tr>
-          <tr class="wrong">
-            <td style="text-align:center;font-weight:700">٨</td>
-            <td>ما مقام الكسر المكافئ لـ ٢/٥ إذا كان البسط ٦؟</td>
-            <td style="color:#dc2626;font-weight:600;text-decoration:line-through">١٠</td>
-            <td style="color:#16a34a;font-weight:600">١٥</td>
-            <td style="text-align:center"><div class="result-icon w">✗</div></td>
-          </tr>
-          <tr class="wrong">
-            <td style="text-align:center;font-weight:700">٩</td>
-            <td>أي الكسور التالية يساوي ٢/٢؟</td>
-            <td style="color:#dc2626;font-weight:600;text-decoration:line-through">٢/٦</td>
-            <td style="color:#16a34a;font-weight:600">٣/٦</td>
-            <td style="text-align:center"><div class="result-icon w">✗</div></td>
-          </tr>
-          <tr class="correct">
-            <td style="text-align:center;font-weight:700">١٠</td>
-            <td>ما قيمة س في: س/٨ = ٧/٣ × ٣/٤؟</td>
-            <td style="color:#16a34a;font-weight:600">٦</td>
-            <td style="color:#16a34a;font-weight:600">٦</td>
-            <td style="text-align:center"><div class="result-icon c">✓</div></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- توصية المعلمة -->
-      <div style="margin-top:16px;padding:12px 14px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;border-right:4px solid #f59e0b">
-        <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:5px">📝 توصية المعلمة:</div>
-        <div style="font-size:10px;color:#78350f;line-height:1.9">
-          الطالبة ملاك تحتاج تعزيزاً في مفاهيم الكسور المكافئة وتحويل الكسور غير الفعلية. يُنصح بمراجعة شرح الدرس مرة أخرى والتركيز على الأسئلة ٢، ٣، ٥، ٦، ٨، ٩ قبل الاختبار البعدي.
-        </div>
+    <!-- ══════ عرض مهارة موجودة ══════ -->
+    <div id="panel-view" class="panel">
+      <div class="empty">
+        <div class="empty-icon">📚</div>
+        <div class="empty-text">اختاري مهارة من القائمة</div>
+        <div class="empty-sub">أو أضيفي مهارة جديدة بالضغط على ➕</div>
       </div>
     </div>
 
-    <!-- فوتر التقرير -->
-    <div class="rr-footer">
-      <div class="rr-footer-row">
-        <span>تم إنشاء التقرير في: ٥ رجب ١٤٤٧ هـ</span>
-        <span>منصة آمنة التعليمية</span>
-      </div>
-      <div class="rr-sig-row">
-        <div class="rr-sig">توقيع المعلمة<br>ريم أحمد</div>
-        <div class="rr-sig">اطلعت عليه الطالبة<br>ملاك محمد</div>
-        <div class="rr-sig">توقيع ولي الأمر<br>........................</div>
-      </div>
-    </div>
-  </div>
-</div>
+  </div><!-- end content -->
+</div><!-- end wrap -->
 
 <script>
-// Clock
-function upClock(){
+// ═══════════════════
+// CLOCK
+// ═══════════════════
+function upClk(){
   const n=new Date();
-  const days=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
-  const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-  const h=String(n.getHours()).padStart(2,'0');
-  const m=String(n.getMinutes()).padStart(2,'0');
-  const s=String(n.getSeconds()).padStart(2,'0');
-  document.getElementById('clk').textContent=days[n.getDay()]+' '+n.getDate()+' '+months[n.getMonth()]+'\n'+h+':'+m+':'+s;
+  document.getElementById('clk').textContent=
+    String(n.getHours()).padStart(2,'0')+':'+
+    String(n.getMinutes()).padStart(2,'0')+':'+
+    String(n.getSeconds()).padStart(2,'0');
 }
-setInterval(upClock,1000);upClock();
+setInterval(upClk,1000);upClk();
 
-// Navigation
-function gp(name,btn){
-  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  document.getElementById('pg-'+name).classList.add('on');
-  if(btn) btn.classList.add('on');
-}
-
-// Type selection for add-skill
+// ═══════════════════
+// TYPE SELECTOR
+// ═══════════════════
+let currentType = 'skill';
 function setType(t){
-  ['qodrat','tahsili','bank'].forEach(x=>{
-    document.getElementById('type-'+x).style.borderColor='var(--border2)';
-    document.getElementById('type-'+x).style.background='var(--card2)';
-    document.getElementById('form-'+x).style.display='none';
+  currentType = t;
+  ['skill','lesson','bank'].forEach(x=>{
+    document.getElementById('type-'+x).classList.toggle('on', x===t);
   });
-  const colors={qodrat:'var(--blue)',tahsili:'var(--orange)',bank:'var(--purple)'};
-  document.getElementById('type-'+t).style.borderColor=colors[t];
-  document.getElementById('type-'+t).style.background='rgba(79,142,247,0.05)';
-  document.getElementById('form-'+t).style.display='block';
-}
+  document.getElementById('content_type_input').value = t;
 
-// Tab switching
-function swT(id,btn,form){
-  const f=document.getElementById('form-'+form);
-  f.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));
-  f.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-  if(btn) btn.classList.add('on');
-}
+  // إظهار/إخفاء الحقول المناسبة
+  const isLesson = t==='lesson';
+  const isSkill = t==='skill';
+  document.getElementById('skill-type-group').style.display = isSkill ? 'block' : 'none';
+  document.getElementById('subject-group').style.display = isLesson ? 'block' : 'none';
 
-// Correct answer
-function setCorrect(opt){
-  ['a','b','c','d'].forEach(x=>{
-    document.getElementById('cb-'+x).classList.remove('selected');
-    document.getElementById('lbl-'+x).classList.remove('correct');
-  });
-  document.getElementById('cb-'+opt).classList.add('selected');
-  document.getElementById('lbl-'+opt).classList.add('correct');
-}
-
-function swEx(tab){
-  document.getElementById('ex-skills-form').style.display = tab==='skills' ? 'block' : 'none';
-  document.getElementById('ex-questions-form').style.display = tab==='questions' ? 'block' : 'none';
-  document.getElementById('ex-skills').style.borderColor = tab==='skills' ? 'var(--green)' : 'var(--border2)';
-  document.getElementById('ex-skills').style.color = tab==='skills' ? 'var(--green)' : 'var(--text3)';
-  document.getElementById('ex-skills').style.background = tab==='skills' ? 'rgba(15,186,129,0.1)' : 'none';
-  document.getElementById('ex-questions').style.borderColor = tab==='questions' ? 'var(--blue)' : 'var(--border2)';
-  document.getElementById('ex-questions').style.color = tab==='questions' ? 'var(--blue)' : 'var(--text3)';
-  document.getElementById('ex-questions').style.background = tab==='questions' ? 'rgba(79,142,247,0.1)' : 'none';
-  if(tab==='questions'){
-    const examId = document.getElementById('examSelect').value;
-    if(examId) document.getElementById('questionsImportForm').action = `/teachers/exam/${examId}/import/`;
+  // تحديث wizard للبنك
+  if(t==='bank'){
+    document.getElementById('wz2').style.display='none';
+    document.getElementById('wz3').innerHTML='<div class="wz-icon">❓</div><div class="wz-num">٣</div><div class="wz-label">الأسئلة</div>';
+    document.getElementById('wz4').style.display='none';
+  } else if(t==='lesson'){
+    document.getElementById('wz2').style.display='';
+    document.getElementById('wz3').innerHTML='<div class="wz-icon">📝</div><div class="wz-num">٣</div><div class="wz-label">الاختبار</div>';
+    document.getElementById('wz4').style.display='none';
+  } else {
+    document.getElementById('wz2').style.display='';
+    document.getElementById('wz3').innerHTML='<div class="wz-icon">📝</div><div class="wz-num">٣</div><div class="wz-label">الاختبار القبلي</div>';
+    document.getElementById('wz4').style.display='';
   }
 }
+
+// ═══════════════════
+// WIZARD STEPS
+// ═══════════════════
+let currentStep = 1;
+function goStep(n){
+  // تحديث wizard
+  for(let i=1;i<=5;i++){
+    const wz = document.getElementById('wz'+i);
+    if(!wz) continue;
+    wz.classList.remove('on','done','locked');
+    if(i < n) wz.classList.add('done');
+    else if(i === n) wz.classList.add('on');
+    else wz.classList.add('locked');
+  }
+  // إظهار الخطوة
+  for(let i=1;i<=5;i++){
+    const s = document.getElementById('step'+i);
+    if(s) s.classList.toggle('on', i===n);
+  }
+  currentStep = n;
+  // تحديث الملخص
+  if(n===5) updateSummary();
+}
+
+function updateSummary(){
+  const type = document.getElementById('type-'+currentType);
+  if(type) document.getElementById('summary-type').textContent='🏷️ النوع: '+type.querySelector('.tc-name').textContent;
+  document.getElementById('pre-count-summary').textContent = preQuestions.length;
+  document.getElementById('post-count-summary').textContent = postQuestions.length;
+}
+
+// ═══════════════════
+// PANELS
+// ═══════════════════
+function showNewSkill(){
+  document.getElementById('panel-new').classList.add('on');
+  document.getElementById('panel-view').classList.remove('on');
+  document.querySelectorAll('.sk-item').forEach(i=>i.classList.remove('active'));
+  goStep(1);
+}
+
+function selectSkill(id, el){
+  document.querySelectorAll('.sk-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-new').classList.remove('on');
+  document.getElementById('panel-view').classList.add('on');
+  document.getElementById('panel-view').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:11px">جاري تحميل المهارة #'+id+'...</div>';
+  // في الإنتاج: AJAX لتحميل بيانات المهارة
+}
+
+function useSharedSkill(id){
+  if(confirm('هل تريدين إضافة هذه المهارة لفصلك؟\nسيتم الاحتفاظ باسم المعلمة المنشئة.')){
+    alert('تم إضافة المهارة لفصلك! ✅');
+  }
+}
+
+// ═══════════════════
+// SYMBOLS & MATH
+// ═══════════════════
+function iSym(sym, fieldId){
+  const el = document.getElementById(fieldId);
+  if(!el) return;
+  el.focus();
+  const sel = window.getSelection();
+  if(sel && sel.rangeCount){
+    const r = sel.getRangeAt(0);
+    r.deleteContents();
+    r.insertNode(document.createTextNode(sym));
+    r.collapse(false);
+  } else {
+    el.textContent += sym;
+  }
+  triggerPreview(fieldId);
+}
+
+function toggleMathBar(id){
+  const bar = document.getElementById(id);
+  bar.style.display = bar.style.display==='none' ? 'flex' : 'none';
+}
+
+let mathTimer;
+function prevMath(prevId, inpId){
+  clearTimeout(mathTimer);
+  mathTimer = setTimeout(()=>{
+    const latex = document.getElementById(inpId).value;
+    const prev = document.getElementById(prevId);
+    if(!latex){ prev.innerHTML=''; return; }
+    prev.innerHTML = `\\(${latex}\\)`;
+    if(window.MathJax) MathJax.typesetPromise([prev]);
+  }, 400);
+}
+
+function insMath(inpId, fieldId){
+  const latex = document.getElementById(inpId).value.trim();
+  if(!latex) return;
+  iSym(` $${latex}$ `, fieldId);
+  document.getElementById(inpId).value = '';
+}
+
+// ═══════════════════
+// QUESTION PREVIEW
+// ═══════════════════
+let prevTimers = {};
+function triggerPreview(fieldId){
+  const previewId = fieldId.replace('-area','-prev').replace('-q-','-q-');
+  if(!document.getElementById(previewId)) return;
+  clearTimeout(prevTimers[fieldId]);
+  prevTimers[fieldId] = setTimeout(()=>{
+    const text = document.getElementById(fieldId).innerText || '';
+    const prev = document.getElementById(previewId);
+    prev.innerHTML = text || '<span style="color:var(--text3);font-size:10px">المعاينة...</span>';
+    if(window.MathJax) MathJax.typesetPromise([prev]);
+  }, 600);
+}
+
+document.addEventListener('input', e=>{
+  if(e.target.classList.contains('q-area')) triggerPreview(e.target.id);
+});
+
+// ═══════════════════
+// CORRECT ANSWER
+// ═══════════════════
+const answers = {pre:'A', post:'A'};
+const letters = {A:'أ', B:'ب', C:'ج', D:'د'};
+
+function setAns(exam, opt){
+  ['A','B','C','D'].forEach(o=>{
+    document.getElementById(exam+'-opt-'+o).classList.remove('correct');
+    document.getElementById(exam+'-letter-'+o).classList.remove('c');
+    document.getElementById(exam+'-setbtn-'+o).classList.remove('c');
+  });
+  document.getElementById(exam+'-opt-'+opt).classList.add('correct');
+  document.getElementById(exam+'-letter-'+opt).classList.add('c');
+  document.getElementById(exam+'-setbtn-'+opt).classList.add('c');
+  answers[exam] = opt;
+}
+setAns('pre','A');
+setAns('post','A');
+
+// ═══════════════════
+// QUESTIONS
+// ═══════════════════
+let preQuestions = [];
+let postQuestions = [];
+
+function addQ(exam){
+  const areaEl = document.getElementById(exam+'-q-area');
+  const text = areaEl ? (areaEl.innerText||'').trim() : '';
+  if(!text){ alert('يرجى كتابة نص السؤال أولاً'); return; }
+
+  const q = {
+    text,
+    a: (document.getElementById(exam+'-opt-area-A')||{}).innerText||'',
+    b: (document.getElementById(exam+'-opt-area-B')||{}).innerText||'',
+    c: (document.getElementById(exam+'-opt-area-C')||{}).innerText||'',
+    d: (document.getElementById(exam+'-opt-area-D')||{}).innerText||'',
+    correct: answers[exam],
+    feedback: (document.getElementById(exam+'-feedback')||{}).value||''
+  };
+
+  if(exam==='pre') preQuestions.push(q);
+  else postQuestions.push(q);
+
+  renderQList(exam);
+  clearQForm(exam);
+}
+
+function removeQ(exam, idx){
+  if(exam==='pre') preQuestions.splice(idx,1);
+  else postQuestions.splice(idx,1);
+  renderQList(exam);
+}
+
+function renderQList(exam){
+  const qs = exam==='pre' ? preQuestions : postQuestions;
+  const listEl = document.getElementById(exam+'-q-list');
+  const countEl = document.getElementById(exam+'-q-count');
+
+  countEl.textContent = qs.length + ' أسئلة';
+
+  if(qs.length===0){
+    listEl.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد</div>';
+    return;
+  }
+
+  listEl.innerHTML = qs.map((q,i)=>`
+    <div class="qi">
+      <div class="qi-head">
+        <div class="qi-num">${i+1}</div>
+        <div class="qi-text">${q.text.substring(0,80)}${q.text.length>80?'...':''}</div>
+        <span class="qi-correct">${letters[q.correct]} ✓</span>
+        <button class="qi-del" onclick="removeQ('${exam}',${i})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+
+  if(window.MathJax) MathJax.typesetPromise([listEl]);
+}
+
+function clearQForm(exam){
+  const area = document.getElementById(exam+'-q-area');
+  if(area) area.innerHTML='';
+  ['A','B','C','D'].forEach(o=>{
+    const a = document.getElementById(exam+'-opt-area-'+o);
+    if(a) a.innerHTML='';
+  });
+  const fb = document.getElementById(exam+'-feedback');
+  if(fb) fb.value='';
+  setAns(exam,'A');
+}
+
+// ═══════════════════
+// TAB SWITCHER
+// ═══════════════════
+function swQTab(exam, tab, btn){
+  ['manual','excel','mysc'].forEach(t=>{
+    const el = document.getElementById(exam+'-'+t);
+    if(el) el.classList.toggle('on', t===tab);
+  });
+  btn.closest('.tabs-row').querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+// ═══════════════════
+// EXCEL LOAD (Preview)
+// ═══════════════════
+function loadExcel(exam, input){
+  if(!input.files[0]) return;
+  const prev = document.getElementById(exam+'-excel-preview');
+  prev.innerHTML=`<div style="padding:8px;background:rgba(15,186,129,0.06);border-radius:6px;font-size:10px;color:var(--green)">✅ تم اختيار: ${input.files[0].name} — سيتم الاستيراد عند الحفظ</div>`;
+  const zone = input.closest('.excel-zone');
+  if(zone) zone.classList.add('active');
+}
+
+// ═══════════════════
+// SAVE
+// ═══════════════════
+function saveSkill(activate){
+  const title = document.querySelector('input[name="title"]').value.trim();
+  if(!title){ alert('يرجى إدخال عنوان المهارة أولاً'); goStep(1); return; }
+
+  // جمع البيانات وإرسالها
+  const form = document.getElementById('skillForm');
+  const isActiveInput = document.createElement('input');
+  isActiveInput.type='hidden';
+  isActiveInput.name='is_active';
+  isActiveInput.value= activate ? 'on' : '';
+  form.appendChild(isActiveInput);
+
+  // حفظ الأسئلة في hidden fields
+  const preHidden = document.createElement('input');
+  preHidden.type='hidden';
+  preHidden.name='pre_questions';
+  preHidden.value=JSON.stringify(preQuestions);
+  form.appendChild(preHidden);
+
+  const postHidden = document.createElement('input');
+  postHidden.type='hidden';
+  postHidden.name='post_questions';
+  postHidden.value=JSON.stringify(postQuestions);
+  form.appendChild(postHidden);
+
+  const explainEl = document.getElementById('explain-area');
+  if(explainEl) document.getElementById('explain-hidden').value = explainEl.innerText||'';
+
+  form.submit();
+}
 </script>
-
-<!-- مودال رفع Excel -->
-<div id="excelModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
-  <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:20px;width:92%;max-width:500px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)">
-      <div style="font-size:14px;font-weight:700">📤 استيراد من Excel</div>
-      <button onclick="document.getElementById('excelModal').style.display='none'" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer">✕</button>
-    </div>
-
-    <div style="display:flex;gap:5px;margin-bottom:14px">
-      <button onclick="swEx('skills')" id="ex-skills" style="flex:1;padding:7px;border-radius:7px;border:1px solid var(--green);background:rgba(15,186,129,0.1);color:var(--green);font-family:Tajawal;font-size:11px;cursor:pointer">📚 مهارات ودروس</button>
-      <button onclick="swEx('questions')" id="ex-questions" style="flex:1;padding:7px;border-radius:7px;border:1px solid var(--border2);background:none;color:var(--text3);font-family:Tajawal;font-size:11px;cursor:pointer">❓ أسئلة</button>
-    </div>
-
-    <div id="ex-skills-form">
-      <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:12px;font-size:10px;color:var(--text3);line-height:2">
-        <strong style="color:var(--green)">شكل ملف Excel للمهارات:</strong><br>
-        العمود A: نوع المحتوى (skill / lesson / bank)<br>
-        العمود B: العنوان<br>
-        العمود C: نوع القدرات (qodrat_kamy / qodrat_lafzy)<br>
-        العمود D: المادة (math / bio / chem / phys)<br>
-        العمود E: الفصول المستهدفة<br>
-        العمود F: الوصف
-      </div>
-      <form method="post" action="/teachers/skills/import/" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="file" name="excel_file" accept=".xlsx,.xls" required style="background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:Tajawal;font-size:11px;padding:8px;border-radius:7px;width:100%;margin-bottom:10px">
-        <button type="submit" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);font-family:Tajawal;font-size:11px;padding:9px;border-radius:7px;cursor:pointer;width:100%">📤 استيراد المهارات</button>
-      </form>
-    </div>
-
-    <div id="ex-questions-form" style="display:none">
-      <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:12px;font-size:10px;color:var(--text3);line-height:2">
-        <strong style="color:var(--blue)">شكل ملف Excel للأسئلة:</strong><br>
-        العمود A: نص السؤال | B: خيار أ | C: خيار ب | D: خيار ج | E: خيار د<br>
-        العمود F: الإجابة الصحيحة (A/B/C/D)<br>
-        العمود G: المهارة المستهدفة<br>
-        العمود H: التغذية الراجعة
-      </div>
-      <div style="margin-bottom:10px">
-        <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:5px">اختاري الاختبار المستهدف</label>
-        <select id="examSelect" onchange="document.getElementById('questionsImportForm').action='/teachers/exam/'+this.value+'/import/'" style="background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:Tajawal;font-size:11px;padding:8px;border-radius:7px;width:100%;outline:none">
-          <option value="">— اختاري اختباراً —</option>
-        </select>
-      </div>
-      <form method="post" id="questionsImportForm" action="#" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="file" name="excel_file" accept=".xlsx,.xls" required style="background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:Tajawal;font-size:11px;padding:8px;border-radius:7px;width:100%;margin-bottom:10px">
-        <button type="submit" style="background:linear-gradient(135deg,var(--blue2),var(--purple2));color:white;border:1px solid var(--blue);font-family:Tajawal;font-size:11px;padding:9px;border-radius:7px;cursor:pointer;width:100%">📤 استيراد الأسئلة</button>
-      </form>
-    </div>
-
-    <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:8px">
-      <a href="#" style="flex:1;text-align:center;padding:7px;border-radius:6px;border:1px solid var(--border2);color:var(--text3);font-size:10px;text-decoration:none">⬇️ نموذج مهارات Excel</a>
-      <a href="#" style="flex:1;text-align:center;padding:7px;border-radius:6px;border:1px solid var(--border2);color:var(--text3);font-size:10px;text-decoration:none">⬇️ نموذج أسئلة Excel</a>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
