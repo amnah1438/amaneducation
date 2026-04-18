@@ -11,6 +11,10 @@ from .models import TeacherSkill, TeacherSkillContent, TeacherExam, TeacherQuest
 logger = logging.getLogger(__name__)
 
 
+# =========================
+# 🔹 Helper Functions
+# =========================
+
 def safe_int(value, default):
     """تحويل آمن للأرقام"""
     try:
@@ -19,8 +23,32 @@ def safe_int(value, default):
         return default
 
 
+def check_teacher(request):
+    """التحقق أن المستخدم معلمة"""
+    return hasattr(request.user, 'teacher')
+
+
+def get_teacher(request):
+    """جلب حساب المعلمة"""
+    return getattr(request.user, 'teacher', None)
+
+
+# =========================
+# 🔹 Dashboard (تم إضافتها ✅)
+# =========================
+
 @login_required
-@transaction.atomic  # مهم جدًا لحماية البيانات
+def teacher_dashboard(request):
+    """صفحة لوحة تحكم المعلمة"""
+    return render(request, 'teachers/dashboard.html')
+
+
+# =========================
+# 🔹 Add Skill
+# =========================
+
+@login_required
+@transaction.atomic
 def add_skill_complete(request):
     """إضافة مهارة كاملة مع اختباراتها وأسئلتها"""
 
@@ -73,7 +101,6 @@ def add_skill_complete(request):
             # ===== مهارة (قبلي + بعدي) =====
             if content_type == 'skill':
 
-                # اختبار قبلي
                 pre_exam = TeacherExam.objects.create(
                     skill=skill,
                     exam_type='pre',
@@ -86,7 +113,6 @@ def add_skill_complete(request):
 
                 save_questions(request, pre_exam, 'pre_questions')
 
-                # اختبار بعدي
                 post_exam = TeacherExam.objects.create(
                     skill=skill,
                     exam_type='post',
@@ -125,8 +151,9 @@ def add_skill_complete(request):
 
 
 # =========================
-# 🔹 Helper Function
+# 🔹 Save Questions
 # =========================
+
 def save_questions(request, exam, field_name, with_skill=False):
     """حفظ الأسئلة بطريقة منظمة"""
 
