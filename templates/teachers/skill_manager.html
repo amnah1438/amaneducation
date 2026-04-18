@@ -684,10 +684,25 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
                 <div class="q-toolbar">
                   <button type="button" class="q-tb-btn math" onclick="toggleMathBar('post-math')">∑ معادلة</button>
                   <div class="q-tb-sep"></div>
-                  {% for sym in "س,ص,ع,م,ن,×,÷,±,≠,≤,≥,√,²,³,½,π,∞,∠,°,Δ" %}
-                  <button type="button" class="q-tb-btn {% if forloop.counter <= 5 %}" style="color:var(--teal){% endif %}" onclick="iSym('{{ sym }}','post-q-area')">{{ sym }}</button>
-                  {% endfor %}
-                </div>
+<button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('س','post-q-area')">س</button>
+<button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ص','post-q-area')">ص</button>
+<button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ع','post-q-area')">ع</button>
+<button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('م','post-q-area')">م</button>
+<button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ن','post-q-area')">ن</button>
+<button type="button" class="q-tb-btn" onclick="iSym('×','post-q-area')">×</button>
+<button type="button" class="q-tb-btn" onclick="iSym('÷','post-q-area')">÷</button>
+<button type="button" class="q-tb-btn" onclick="iSym('±','post-q-area')">±</button>
+<button type="button" class="q-tb-btn" onclick="iSym('≠','post-q-area')">≠</button>
+<button type="button" class="q-tb-btn" onclick="iSym('≤','post-q-area')">≤</button>
+<button type="button" class="q-tb-btn" onclick="iSym('≥','post-q-area')">≥</button>
+<button type="button" class="q-tb-btn" onclick="iSym('√','post-q-area')">√</button>
+<button type="button" class="q-tb-btn" onclick="iSym('²','post-q-area')">²</button>
+<button type="button" class="q-tb-btn" onclick="iSym('³','post-q-area')">³</button>
+<button type="button" class="q-tb-btn" onclick="iSym('π','post-q-area')">π</button>
+<button type="button" class="q-tb-btn" onclick="iSym('∞','post-q-area')">∞</button>
+<button type="button" class="q-tb-btn" onclick="iSym('∠','post-q-area')">∠</button>
+<button type="button" class="q-tb-btn" onclick="iSym('°','post-q-area')">°</button>
+<button type="button" class="q-tb-btn" onclick="iSym('Δ','post-q-area')">Δ</button>                </div>
                 <div class="math-inline" id="post-math" style="display:none">
                   <input type="text" class="math-inp" id="post-math-inp" placeholder="\frac{3}{4}" oninput="prevMath('post-math-prev','post-math-inp')">
                   <div class="math-prev" id="post-math-prev"></div>
