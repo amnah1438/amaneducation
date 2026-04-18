@@ -893,6 +893,68 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
         </div>
       </div>
     </div>
+    <!-- ══════ معاينة الطباعة ══════ -->
+    <div id="panel-print" class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:800">🖨️ معاينة الطباعة</div>
+        <div style="display:flex;gap:8px">
+          <select id="print-type-select" class="fi" style="width:auto" onchange="updatePrintPreview()">
+            <option value="pre">الاختبار القبلي</option>
+            <option value="post">الاختبار البعدي</option>
+          </select>
+          <button class="btn btn-g" onclick="window.print()">🖨️ طباعة الآن</button>
+          <button class="btn btn-b" onclick="document.getElementById('panel-print').classList.remove('on');document.getElementById('panel-view').classList.add('on')">← رجوع</button>
+        </div>
+      </div>
+
+      <div id="print-doc" style="background:white;color:#1e293b;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;font-family:'Tajawal',sans-serif">
+        <div style="background:linear-gradient(135deg,#0d4f35,#1a3a6b);padding:16px 22px;color:white">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="width:50px;height:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px">🏛️</div>
+            <div style="text-align:center;flex:1;padding:0 14px">
+              <div style="font-size:10px;opacity:0.75;margin-bottom:2px">المملكة العربية السعودية — وزارة التعليم</div>
+              <div style="font-size:10px;opacity:0.75;margin-bottom:4px">الإدارة العامة للتعليم بمنطقة الحدود الشمالية</div>
+              <div style="font-size:14px;font-weight:800">مدرسة النور الثانوية</div>
+              <div style="font-size:10px;opacity:0.75;margin-top:2px">مديرة المدرسة: —</div>
+            </div>
+            <div style="width:50px;height:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px">📚</div>
+          </div>
+          <div style="height:1px;background:rgba(255,255,255,0.2);margin:10px 0"></div>
+          <div style="font-size:14px;font-weight:800;text-align:center;margin-bottom:10px" id="print-title">اختبار — —</div>
+          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
+            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">القسم</div><div style="font-size:10px;font-weight:700" id="print-section">—</div></div>
+            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">نوع الاختبار</div><div style="font-size:10px;font-weight:700" id="print-exam-type">—</div></div>
+            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">عدد الأسئلة</div><div style="font-size:10px;font-weight:700" id="print-q-count">—</div></div>
+            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">الزمن</div><div style="font-size:10px;font-weight:700" id="print-time">—</div></div>
+            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">درجة النجاح</div><div style="font-size:10px;font-weight:700" id="print-pass">—</div></div>
+            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">المعلمة</div><div style="font-size:10px;font-weight:700" id="print-teacher-name">—</div></div>
+          </div>
+        </div>
+
+        <div style="padding:14px 22px;background:white">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px;padding:10px;border:1px solid #e2e8f0;border-radius:7px;background:#f8fafc">
+            <div><div style="font-size:9px;color:#64748b;font-weight:600">اسم الطالبة</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px;min-height:20px"></div></div>
+            <div><div style="font-size:9px;color:#64748b;font-weight:600">الفصل</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px;font-size:11px" id="print-class">—</div></div>
+            <div><div style="font-size:9px;color:#64748b;font-weight:600">التاريخ</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px;min-height:20px"></div></div>
+            <div><div style="font-size:9px;color:#64748b;font-weight:600">الدرجة</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px">......... / <span id="print-total">10</span></div></div>
+          </div>
+
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:#1e40af;border-right:3px solid #3b82f6">
+            <strong>تعليمات:</strong> اقرئي كل سؤال بعناية واختاري الإجابة الصحيحة. لا يُسمح باستخدام الآلة الحاسبة.
+          </div>
+
+          <div id="print-questions">
+            <div style="text-align:center;padding:20px;color:#94a3b8;font-size:11px">أسئلة الاختبار ستظهر هنا</div>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc;border-top:2px solid #e2e8f0;padding:10px 22px;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#64748b">
+          <div>منصة آمنة التعليمية</div>
+          <div style="text-align:center">توقيع المعلمة: ________________________<br><span id="print-teacher-sig">—</span></div>
+          <div id="print-date-footer">—</div>
+        </div>
+      </div>
+    </div>
   </div><!-- end content -->
 </div><!-- end wrap -->
 
