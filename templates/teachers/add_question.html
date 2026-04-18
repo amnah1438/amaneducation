@@ -1,0 +1,735 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إضافة سؤال — منصة آمنة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+<!-- MathJax -->
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['$','$'],['\\(','\\)']],
+    displayMath: [['$$','$$'],['\\[','\\]']],
+    processEscapes: true,
+    tags: 'ams'
+  },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] },
+  startup: { ready() { MathJax.startup.defaultReady(); } }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<style>
+:root {
+  --bg:#07090f; --bg2:#0c0f1a; --bg3:#111520;
+  --card:#0f1424; --card2:#161d30; --card3:#1c243d;
+  --border:#1a2236; --border2:#223050; --border3:#2d3f60;
+  --green:#0fba81; --green2:#065442; --blue:#4f8ef7; --blue2:#1a3060;
+  --purple:#9b72f5; --orange:#f5a623; --red:#f05252; --teal:#2dd4bf;
+  --text:#eef2ff; --text2:#94a3b8; --text3:#3d5070;
+  --gold:#fbbf24;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,0.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px)}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 0 12px rgba(15,186,129,0.25)}
+.logo-name{font-size:12px;font-weight:800}
+.logo-sub{font-size:9px;color:var(--text3)}
+.tnav{display:flex;gap:4px}
+.tb-btn{background:none;border:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;padding:5px 10px;border-radius:6px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:4px;transition:all 0.2s}
+.tb-btn:hover{background:var(--bg3);color:var(--text2)}
+.tb-btn.active{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
+
+/* MAIN */
+.main{max-width:1100px;margin:0 auto;padding:18px 20px}
+.page-title{font-size:18px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.page-sub{font-size:10px;color:var(--text3);margin-bottom:18px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;transition:border-color 0.2s}
+.card:hover{border-color:var(--border2)}
+.ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)}
+.ct{font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px}
+.ct-dot{width:6px;height:6px;border-radius:50%}
+.cb{padding:14px}
+
+/* FORM */
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.fl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:0.3px;display:flex;align-items:center;gap:5px}
+.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;padding:9px 11px;border-radius:8px;outline:none;transition:all 0.2s;width:100%}
+.fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,0.08)}
+.fi::placeholder{color:var(--text3)}
+select.fi option{background:var(--card2)}
+
+/* EDITOR AREA */
+.editor-wrap{position:relative;background:var(--card2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;transition:border-color 0.2s}
+.editor-wrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,0.08)}
+
+/* TOOLBAR */
+.editor-toolbar{background:var(--bg3);border-bottom:1px solid var(--border);padding:6px 8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.tb-group{display:flex;gap:2px;align-items:center}
+.tb-sep{width:1px;height:20px;background:var(--border2);margin:0 3px}
+.tb-btn-e{background:none;border:none;color:var(--text3);font-size:11px;padding:4px 7px;border-radius:5px;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all 0.15s;display:flex;align-items:center;gap:3px;white-space:nowrap;min-height:26px}
+.tb-btn-e:hover{background:var(--card3);color:var(--text)}
+.tb-btn-e.active{background:rgba(79,142,247,0.12);color:var(--blue)}
+.tb-btn-e.math-btn{color:var(--purple);font-size:12px;font-weight:700}
+.tb-btn-e.math-btn:hover{background:rgba(155,114,245,0.1)}
+.tb-btn-e.img-btn{color:var(--orange)}
+.tb-btn-e.img-btn:hover{background:rgba(245,166,35,0.1)}
+
+/* TEXT AREA */
+.editor-area{min-height:90px;padding:11px 13px;font-size:13px;line-height:2;outline:none;color:var(--text);direction:rtl;word-break:break-word}
+.editor-area[placeholder]:empty::before{content:attr(placeholder);color:var(--text3);pointer-events:none}
+
+/* PREVIEW */
+.preview-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:11px 14px;font-size:13px;line-height:2;color:var(--text2);min-height:44px;direction:rtl}
+.preview-box .math-rendered{color:var(--text)}
+
+/* MATH PANEL */
+.math-panel{display:none;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:10px;animation:slideDown 0.2s ease}
+.math-panel.show{display:block}
+@keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+
+.math-input-row{display:flex;gap:8px;margin-bottom:10px;align-items:flex-end}
+.math-input{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Courier New',monospace;font-size:12px;padding:8px 11px;border-radius:7px;outline:none;flex:1;transition:border-color 0.2s}
+.math-input:focus{border-color:var(--purple)}
+.math-preview-label{font-size:9px;color:var(--text3);margin-bottom:4px;font-weight:600}
+.math-preview{background:var(--card3);border:1px solid var(--border2);border-radius:7px;padding:10px 14px;text-align:center;font-size:16px;min-height:44px;display:flex;align-items:center;justify-content:center}
+.insert-btn{background:linear-gradient(135deg,var(--purple2),var(--blue2));color:white;border:1px solid var(--purple);font-family:'Tajawal',sans-serif;font-size:11px;padding:8px 14px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.insert-btn:hover{opacity:0.85;transform:translateY(-1px)}
+
+/* SYMBOLS */
+.sym-tabs{display:flex;gap:3px;margin-bottom:8px;flex-wrap:wrap}
+.sym-tab{background:none;border:1px solid var(--border2);color:var(--text3);font-family:'Tajawal',sans-serif;font-size:9px;padding:3px 8px;border-radius:5px;cursor:pointer;transition:all 0.2s}
+.sym-tab.on{background:rgba(155,114,245,0.1);color:var(--purple);border-color:rgba(155,114,245,0.3)}
+.sym-grid{display:flex;flex-wrap:wrap;gap:4px}
+.sym-btn{background:var(--card2);border:1px solid var(--border2);color:var(--text2);font-size:13px;width:36px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-family:'Tajawal',monospace}
+.sym-btn:hover{background:var(--card3);color:var(--purple);border-color:rgba(155,114,245,0.3);transform:scale(1.1)}
+.sym-btn.arabic{font-size:14px;font-weight:700;color:var(--teal)}
+.sym-btn.arabic:hover{color:var(--teal);border-color:rgba(45,212,191,0.3)}
+
+/* QUICK TEMPLATES */
+.tpl-grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.tpl-btn{background:var(--card2);border:1px solid var(--border2);color:var(--text3);font-family:'Tajawal',sans-serif;font-size:9px;padding:4px 9px;border-radius:5px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.tpl-btn:hover{background:rgba(155,114,245,0.08);color:var(--purple);border-color:rgba(155,114,245,0.2)}
+
+/* MYSITE LINK */
+.mysite-link{display:flex;align-items:center;gap:8px;background:rgba(155,114,245,0.06);border:1px solid rgba(155,114,245,0.2);border-radius:8px;padding:8px 12px;font-size:10px;color:var(--purple);text-decoration:none;transition:all 0.2s}
+.mysite-link:hover{background:rgba(155,114,245,0.12)}
+
+/* OPTIONS */
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.opt-item{background:var(--card2);border:1px solid var(--border2);border-radius:9px;padding:10px;transition:all 0.2s;position:relative}
+.opt-item:focus-within{border-color:var(--border3)}
+.opt-label-row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.opt-circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text2);flex-shrink:0;transition:all 0.2s;cursor:pointer}
+.opt-circle.correct-mark{background:rgba(15,186,129,0.15);border-color:var(--green);color:var(--green)}
+.opt-correct-btn{font-size:8px;padding:2px 7px;border-radius:10px;border:1px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:'Tajawal',sans-serif;margin-right:auto;transition:all 0.2s}
+.opt-correct-btn.selected{background:rgba(15,186,129,0.1);color:var(--green);border-color:rgba(15,186,129,0.3)}
+
+/* BADGES */
+.bd{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:9px;font-weight:700}
+.bp{background:rgba(15,186,129,0.1);color:var(--green);border:1px solid rgba(15,186,129,0.2)}
+.bb{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
+.be{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.2)}
+.bo{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.2)}
+
+/* BTN */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
+.btn-g:hover{opacity:0.85;transform:translateY(-1px);box-shadow:0 4px 14px rgba(15,186,129,0.2)}
+.btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
+.btn-b:hover{background:rgba(79,142,247,0.18)}
+.btn-o{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.25)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+
+/* IMAGE UPLOAD */
+.img-upload-area{border:2px dashed var(--border2);border-radius:9px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--bg3)}
+.img-upload-area:hover{border-color:var(--orange);background:rgba(245,166,35,0.04)}
+.img-upload-area.has-img{border-style:solid;border-color:var(--green)}
+.img-preview{max-width:100%;max-height:160px;border-radius:6px;margin-top:8px;display:none}
+
+/* COUNTER */
+.q-counter{background:var(--card3);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;font-size:10px;color:var(--text3);display:flex;align-items:center;gap:6px}
+.q-counter strong{color:var(--blue)}
+
+/* TYPE INDICATOR */
+.type-ind{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.type-chip{padding:4px 10px;border-radius:16px;font-size:9px;font-weight:700;border:1px solid;cursor:pointer;transition:all 0.2s}
+.type-chip.kamy{border-color:rgba(79,142,247,0.3);color:var(--blue);background:rgba(79,142,247,0.08)}
+.type-chip.lafzy{border-color:rgba(45,212,191,0.3);color:var(--teal);background:rgba(45,212,191,0.08)}
+.type-chip.math{border-color:rgba(245,166,35,0.3);color:var(--orange);background:rgba(245,166,35,0.08)}
+.type-chip.on{transform:scale(1.05)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* IMAGE MODAL */
+.img-modal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.img-modal.show{display:flex}
+.img-modal-box{background:var(--card);border:1px solid var(--border2);border-radius:13px;padding:18px;width:92%;max-width:460px}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">🎓</div>
+    <div>
+      <div class="logo-name">منصة آمنة التعليمية</div>
+      <div class="logo-sub">{{ teacher.full_name|default:"المعلمة" }} — إضافة سؤال</div>
+    </div>
+  </div>
+  <div class="tnav">
+    <a href="/teachers/dashboard/" class="tb-btn">📊 الداشبورد</a>
+    <a href="/teachers/skills/" class="tb-btn">📚 المهارات</a>
+    <span class="tb-btn active">✏️ إضافة سؤال</span>
+  </div>
+  <div style="font-size:10px;color:var(--text3)" id="clk"></div>
+</div>
+
+<div class="main">
+  <div class="page-title">✏️ إضافة سؤال جديد</div>
+  <div class="page-sub">
+    {% if exam %}
+      الاختبار: <strong style="color:var(--blue)">{{ exam.get_exam_type_display }} — {{ exam.skill.title }}</strong>
+    {% endif %}
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="qForm">
+    {% csrf_token %}
+
+    <!-- القسم والمهارة -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct"><span class="ct-dot" style="background:var(--blue)"></span>تصنيف السؤال</span>
+      </div>
+      <div class="cb">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div class="fg">
+            <label class="fl">القسم *</label>
+            <select class="fi" name="question_type" id="qType" onchange="updateType()">
+              <option value="kamy">قدرات — كمي</option>
+              <option value="lafzy">قدرات — لفظي</option>
+              <option value="math">تحصيلي — رياضيات</option>
+              <option value="phys">تحصيلي — فيزياء</option>
+              <option value="chem">تحصيلي — كيمياء</option>
+              <option value="bio">تحصيلي — أحياء</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">المهارة / الدرس *</label>
+            <select class="fi" name="target_skill_name">
+              <option value="">— اختاري —</option>
+              {% if exam.skill %}
+                <option value="{{ exam.skill.title }}" selected>{{ exam.skill.title }}</option>
+              {% endif %}
+              <option value="تأسيس عام">تأسيس عام</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">مستوى الصعوبة</label>
+            <select class="fi" name="difficulty">
+              <option value="easy">سهل</option>
+              <option value="medium" selected>متوسط</option>
+              <option value="hard">صعب</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- مؤشر النوع -->
+        <div class="type-ind" id="typeInd">
+          <span class="type-chip kamy on" id="chip-kamy">🔢 كمي — محرر علمي كامل</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- نص السؤال -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct"><span class="ct-dot" style="background:var(--purple)"></span>نص السؤال</span>
+        <div style="display:flex;gap:5px">
+          <span class="bd be" id="editorTypeBadge">محرر علمي ✦ رموز ✦ صور</span>
+        </div>
+      </div>
+      <div class="cb">
+
+        <!-- رابط MyScript -->
+        <a href="https://webdemo.myscript.com/views/math/index.html#" target="_blank" class="mysite-link" style="margin-bottom:10px;display:flex">
+          <span style="font-size:16px">✍️</span>
+          <div>
+            <div style="font-weight:700;font-size:10px">MyScript — ارسمي المعادلة يدوياً</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:1px">ارسمي ← انسخي LaTeX ← الصقيه في حقل المعادلة</div>
+          </div>
+          <span style="margin-right:auto;font-size:9px;opacity:0.6">↗ فتح</span>
+        </a>
+
+        <!-- لوحة المعادلات -->
+        <div style="margin-bottom:8px">
+          <button type="button" class="tb-btn-e math-btn" onclick="toggleMath()" id="mathToggle">
+            <span>∑</span> إدراج معادلة رياضية
+          </button>
+        </div>
+
+        <div class="math-panel" id="mathPanel">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-weight:600">اكتبي معادلة LaTeX أو الصقي من MyScript:</div>
+
+          <!-- قوالب سريعة -->
+          <div style="font-size:9px;color:var(--text3);margin-bottom:5px">قوالب سريعة:</div>
+          <div class="tpl-grid">
+            <button type="button" class="tpl-btn" onclick="setMath('\\frac{a}{b}')">كسر أ/ب</button>
+            <button type="button" class="tpl-btn" onclick="setMath('x^{2}')">أس</button>
+            <button type="button" class="tpl-btn" onclick="setMath('\\sqrt{x}')">جذر</button>
+            <button type="button" class="tpl-btn" onclick="setMath('\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}')">المعادلة التربيعية</button>
+            <button type="button" class="tpl-btn" onclick="setMath('\\sum_{i=1}^{n}')">مجموع</button>
+            <button type="button" class="tpl-btn" onclick="setMath('\\int_{a}^{b}')">تكامل</button>
+            <button type="button" class="tpl-btn" onclick="setMath('\\vec{v}')">متجه</button>
+            <button type="button" class="tpl-btn" onclick="setMath('\\angle ABC')">زاوية</button>
+            <button type="button" class="tpl-btn" onclick="setMath('\\triangle ABC')">مثلث</button>
+            <button type="button" class="tpl-btn" onclick="setMath('\\pi r^2')">مساحة دائرة</button>
+            <button type="button" class="tpl-btn" onclick="setMath('\\text{س}^2 + \\text{ص}^2')">س² + ص²</button>
+            <button type="button" class="tpl-btn" onclick="setMath('\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}')">مصفوفة</button>
+          </div>
+
+          <div class="math-input-row">
+            <div style="flex:1">
+              <div style="font-size:9px;color:var(--text3);margin-bottom:4px">كود LaTeX:</div>
+              <input type="text" id="mathInput" class="math-input" placeholder="مثال: \frac{3}{4} أو x^2+5x+6=0" oninput="previewMath()">
+            </div>
+            <button type="button" class="insert-btn" onclick="insertMath('q')">إدراج في السؤال ←</button>
+          </div>
+
+          <div class="math-preview-label">معاينة مباشرة:</div>
+          <div class="math-preview" id="mathPreview"><span style="color:var(--text3);font-size:11px">ستظهر المعادلة هنا...</span></div>
+        </div>
+
+        <!-- لوحة الرموز -->
+        <div style="margin-bottom:8px">
+          <div class="sym-tabs">
+            <button type="button" class="sym-tab on" onclick="showSymTab('arabic',this)">عربية</button>
+            <button type="button" class="sym-tab" onclick="showSymTab('operators',this)">عمليات</button>
+            <button type="button" class="sym-tab" onclick="showSymTab('greek',this)">يونانية</button>
+            <button type="button" class="sym-tab" onclick="showSymTab('geometry',this)">هندسة</button>
+            <button type="button" class="sym-tab" onclick="showSymTab('arrows',this)">علاقات</button>
+          </div>
+
+          <div id="sym-arabic" class="sym-grid">
+            <button type="button" class="sym-btn arabic" onclick="insertSym('س','q')" title="س">س</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('ص','q')" title="ص">ص</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('ع','q')" title="ع">ع</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('م','q')" title="م">م</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('ن','q')" title="ن">ن</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('ق','q')" title="ق">ق</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('ك','q')" title="ك">ك</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('أ','q')" title="أ">أ</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('ب','q')" title="ب">ب</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('ج','q')" title="ج">ج</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('د','q')" title="د">د</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('₁','q')" title="₁">₁</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('₂','q')" title="₂">₂</button>
+            <button type="button" class="sym-btn arabic" onclick="insertSym('₃','q')" title="₃">₃</button>
+          </div>
+
+          <div id="sym-operators" class="sym-grid" style="display:none">
+            <button type="button" class="sym-btn" onclick="insertSym('×','q')">×</button>
+            <button type="button" class="sym-btn" onclick="insertSym('÷','q')">÷</button>
+            <button type="button" class="sym-btn" onclick="insertSym('±','q')">±</button>
+            <button type="button" class="sym-btn" onclick="insertSym('≠','q')">≠</button>
+            <button type="button" class="sym-btn" onclick="insertSym('≤','q')">≤</button>
+            <button type="button" class="sym-btn" onclick="insertSym('≥','q')">≥</button>
+            <button type="button" class="sym-btn" onclick="insertSym('≈','q')">≈</button>
+            <button type="button" class="sym-btn" onclick="insertSym('√','q')">√</button>
+            <button type="button" class="sym-btn" onclick="insertSym('²','q')">²</button>
+            <button type="button" class="sym-btn" onclick="insertSym('³','q')">³</button>
+            <button type="button" class="sym-btn" onclick="insertSym('½','q')">½</button>
+            <button type="button" class="sym-btn" onclick="insertSym('⅓','q')">⅓</button>
+            <button type="button" class="sym-btn" onclick="insertSym('¼','q')">¼</button>
+            <button type="button" class="sym-btn" onclick="insertSym('%','q')">%</button>
+            <button type="button" class="sym-btn" onclick="insertSym('∞','q')">∞</button>
+          </div>
+
+          <div id="sym-greek" class="sym-grid" style="display:none">
+            <button type="button" class="sym-btn" onclick="insertSym('π','q')">π</button>
+            <button type="button" class="sym-btn" onclick="insertSym('α','q')">α</button>
+            <button type="button" class="sym-btn" onclick="insertSym('β','q')">β</button>
+            <button type="button" class="sym-btn" onclick="insertSym('γ','q')">γ</button>
+            <button type="button" class="sym-btn" onclick="insertSym('θ','q')">θ</button>
+            <button type="button" class="sym-btn" onclick="insertSym('λ','q')">λ</button>
+            <button type="button" class="sym-btn" onclick="insertSym('μ','q')">μ</button>
+            <button type="button" class="sym-btn" onclick="insertSym('σ','q')">σ</button>
+            <button type="button" class="sym-btn" onclick="insertSym('Σ','q')">Σ</button>
+            <button type="button" class="sym-btn" onclick="insertSym('Δ','q')">Δ</button>
+            <button type="button" class="sym-btn" onclick="insertSym('Ω','q')">Ω</button>
+            <button type="button" class="sym-btn" onclick="insertSym('φ','q')">φ</button>
+          </div>
+
+          <div id="sym-geometry" class="sym-grid" style="display:none">
+            <button type="button" class="sym-btn" onclick="insertSym('°','q')">°</button>
+            <button type="button" class="sym-btn" onclick="insertSym('∠','q')">∠</button>
+            <button type="button" class="sym-btn" onclick="insertSym('△','q')">△</button>
+            <button type="button" class="sym-btn" onclick="insertSym('□','q')">□</button>
+            <button type="button" class="sym-btn" onclick="insertSym('⊥','q')">⊥</button>
+            <button type="button" class="sym-btn" onclick="insertSym('∥','q')">∥</button>
+            <button type="button" class="sym-btn" onclick="insertSym('∼','q')">∼</button>
+            <button type="button" class="sym-btn" onclick="insertSym('≅','q')">≅</button>
+            <button type="button" class="sym-btn" onclick="insertSym('⊙','q')">⊙</button>
+            <button type="button" class="sym-btn" onclick="insertSym('∫','q')">∫</button>
+          </div>
+
+          <div id="sym-arrows" class="sym-grid" style="display:none">
+            <button type="button" class="sym-btn" onclick="insertSym('∈','q')">∈</button>
+            <button type="button" class="sym-btn" onclick="insertSym('∉','q')">∉</button>
+            <button type="button" class="sym-btn" onclick="insertSym('⊂','q')">⊂</button>
+            <button type="button" class="sym-btn" onclick="insertSym('∪','q')">∪</button>
+            <button type="button" class="sym-btn" onclick="insertSym('∩','q')">∩</button>
+            <button type="button" class="sym-btn" onclick="insertSym('→','q')">→</button>
+            <button type="button" class="sym-btn" onclick="insertSym('←','q')">←</button>
+            <button type="button" class="sym-btn" onclick="insertSym('↔','q')">↔</button>
+            <button type="button" class="sym-btn" onclick="insertSym('⇒','q')">⇒</button>
+            <button type="button" class="sym-btn" onclick="insertSym('⇔','q')">⇔</button>
+          </div>
+        </div>
+
+        <!-- حقل النص الرئيسي -->
+        <div class="fg" style="margin-bottom:8px">
+          <label class="fl">نص السؤال *</label>
+          <div class="editor-wrap">
+            <div class="editor-toolbar">
+              <div class="tb-group">
+                <button type="button" class="tb-btn-e" onclick="fmt('bold')"><strong>ع</strong></button>
+                <button type="button" class="tb-btn-e" onclick="fmt('italic')"><em>م</em></button>
+                <button type="button" class="tb-btn-e" onclick="fmt('underline')"><u>خط</u></button>
+              </div>
+              <div class="tb-sep"></div>
+              <div class="tb-group">
+                <button type="button" class="tb-btn-e" onclick="insertAtCursor('\n• ','q-text')">• قائمة</button>
+                <button type="button" class="tb-btn-e" onclick="insertAtCursor('\n','q-text')">↵</button>
+              </div>
+              <div class="tb-sep"></div>
+              <button type="button" class="tb-btn-e math-btn" onclick="toggleMath()">∑ معادلة</button>
+              <button type="button" class="tb-btn-e img-btn" onclick="document.getElementById('imgModal').classList.add('show')">🖼️ صورة</button>
+            </div>
+            <div class="editor-area" id="q-text" contenteditable="true"
+                 placeholder="اكتبي نص السؤال هنا... يمكنك كتابة نص عادي، ولصق معادلات مثل: $\frac{3}{4}$، أو إدراج رموز عربية"></div>
+          </div>
+          <input type="hidden" name="question_plain" id="q-hidden">
+        </div>
+
+        <!-- معاينة مع تفسير المعادلات -->
+        <div>
+          <div style="font-size:9px;color:var(--text3);margin-bottom:5px;font-weight:600">📐 معاينة المعادلات:</div>
+          <div class="preview-box" id="q-preview"><span style="color:var(--text3);font-size:10px">ستظهر المعادلات هنا تلقائياً...</span></div>
+        </div>
+
+        <!-- رفع صورة للسؤال -->
+        <div style="margin-top:10px">
+          <label class="fl" style="margin-bottom:5px">🖼️ صورة للسؤال (اختياري)</label>
+          <div class="img-upload-area" onclick="document.getElementById('qImgInput').click()" id="qImgArea">
+            <div style="font-size:20px;margin-bottom:5px">📸</div>
+            <div style="font-size:10px;color:var(--text3)">اضغطي لرفع صورة للسؤال</div>
+            <div style="font-size:9px;color:var(--text3);margin-top:3px">PNG, JPG, GIF — للمعادلات المعقدة والرسومات الهندسية</div>
+            <input type="file" id="qImgInput" name="question_image" accept="image/*" style="display:none" onchange="previewQImg(this)">
+            <img id="qImgPreview" class="img-preview">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- الخيارات -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct"><span class="ct-dot" style="background:var(--green)"></span>خيارات الإجابة</span>
+        <span class="bd bp">حدّدي الإجابة الصحيحة ✓</span>
+      </div>
+      <div class="cb">
+        <div class="opts-grid">
+          {% for opt in "ABCD" %}
+          <div class="opt-item" id="opt-box-{{ opt }}">
+            <div class="opt-label-row">
+              <div class="opt-circle" id="opt-circle-{{ opt }}">
+                {% if opt == "A" %}أ{% elif opt == "B" %}ب{% elif opt == "C" %}ج{% else %}د{% endif %}
+              </div>
+              <span style="font-size:10px;color:var(--text3);font-weight:600">
+                {% if opt == "A" %}الخيار أ{% elif opt == "B" %}الخيار ب{% elif opt == "C" %}الخيار ج{% else %}الخيار د{% endif %}
+              </span>
+              <button type="button" class="opt-correct-btn" id="opt-btn-{{ opt }}" onclick="setCorrect('{{ opt }}')">تحديد كصحيح ✓</button>
+            </div>
+            <div class="editor-wrap">
+              <div class="editor-toolbar" style="padding:3px 6px">
+                <button type="button" class="tb-btn-e math-btn" style="font-size:10px;padding:2px 5px" onclick="insertOptMath('{{ opt }}')">∑</button>
+                <div class="tb-sep"></div>
+                {% for sym in "×÷±≠≤≥√²³½" %}
+                <button type="button" class="tb-btn-e" style="font-size:11px;padding:2px 5px;width:24px" onclick="insertSym('{{ sym }}','opt-{{ opt }}')">{{ sym }}</button>
+                {% endfor %}
+              </div>
+              <div class="editor-area" id="opt-{{ opt }}" contenteditable="true" style="min-height:44px;padding:8px 11px;font-size:12px"
+                   placeholder="{% if opt == 'A' %}الخيار أ...{% elif opt == 'B' %}الخيار ب...{% elif opt == 'C' %}الخيار ج...{% else %}الخيار د...{% endif %}"></div>
+            </div>
+            <input type="hidden" name="option_{{ opt|lower }}_plain" id="opt-{{ opt }}-hidden">
+          </div>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="correct_answer" id="correctInput" value="A">
+
+        <div style="margin-top:10px;padding:8px 10px;background:rgba(15,186,129,0.05);border-radius:7px;font-size:10px;color:var(--text3);border-right:3px solid var(--green)" id="correctMsg">
+          ✅ الإجابة الصحيحة: <strong id="correctLabel" style="color:var(--green)">الخيار أ</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- التغذية الراجعة -->
+    <div class="card">
+      <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--orange)"></span>التغذية الراجعة (اختياري)</span></div>
+      <div class="cb">
+        <div class="editor-wrap">
+          <div class="editor-area" id="feedback-text" contenteditable="true" style="min-height:60px"
+               placeholder="اكتبي شرح الإجابة الصحيحة أو تلميح للطالبة..."></div>
+        </div>
+        <input type="hidden" name="feedback_plain" id="feedback-hidden">
+      </div>
+    </div>
+
+    <!-- أزرار الحفظ -->
+    <div class="btn-row">
+      <a href="/teachers/skills/" class="btn btn-b">← العودة</a>
+      <button type="button" class="btn btn-b" onclick="submitForm('another')">💾 حفظ وإضافة آخر</button>
+      <button type="submit" class="btn btn-g" onclick="prepareSubmit()">💾 حفظ السؤال</button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal صورة -->
+<div class="img-modal" id="imgModal">
+  <div class="img-modal-box">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700">🖼️ إدراج صورة في النص</div>
+      <button onclick="document.getElementById('imgModal').classList.remove('show')" style="background:none;border:none;color:var(--text3);font-size:17px;cursor:pointer">✕</button>
+    </div>
+    <div class="img-upload-area" onclick="document.getElementById('inlineImgInput').click()" style="margin-bottom:10px">
+      <div style="font-size:16px;margin-bottom:4px">📎</div>
+      <div style="font-size:10px;color:var(--text3)">اضغطي لاختيار صورة</div>
+      <input type="file" id="inlineImgInput" accept="image/*" style="display:none" onchange="insertInlineImg(this)">
+    </div>
+    <div style="font-size:10px;color:var(--text3);text-align:center">أو أدخلي رابط الصورة:</div>
+    <div style="display:flex;gap:7px;margin-top:7px">
+      <input type="text" id="imgUrlInput" class="fi" placeholder="https://..." style="flex:1">
+      <button type="button" class="insert-btn" onclick="insertImgUrl()">إدراج</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Clock ──
+function upClk(){
+  const n=new Date();
+  const h=String(n.getHours()).padStart(2,'0');
+  const m=String(n.getMinutes()).padStart(2,'0');
+  const s=String(n.getSeconds()).padStart(2,'0');
+  document.getElementById('clk').textContent=h+':'+m+':'+s;
+}
+setInterval(upClk,1000); upClk();
+
+// ── Active field tracker ──
+let activeField = 'q-text';
+document.querySelectorAll('[contenteditable]').forEach(el=>{
+  el.addEventListener('focus', ()=>{ activeField = el.id; });
+});
+
+// ── Format text ──
+function fmt(cmd){ document.execCommand(cmd,false,null); }
+
+// ── Insert symbol at cursor ──
+function insertSym(sym, fieldId){
+  const el = document.getElementById(fieldId);
+  if(!el) return;
+  el.focus();
+  const sel = window.getSelection();
+  if(sel.rangeCount){
+    const r = sel.getRangeAt(0);
+    r.deleteContents();
+    r.insertNode(document.createTextNode(sym));
+    r.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(r);
+  } else {
+    el.textContent += sym;
+  }
+  updatePreview();
+}
+
+function insertAtCursor(text, fieldId){
+  insertSym(text, fieldId);
+}
+
+// ── Symbol tabs ──
+function showSymTab(tab, btn){
+  ['arabic','operators','greek','geometry','arrows'].forEach(t=>{
+    document.getElementById('sym-'+t).style.display = t===tab ? 'flex' : 'none';
+  });
+  document.querySelectorAll('.sym-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
+// ── Math panel ──
+function toggleMath(){
+  const p = document.getElementById('mathPanel');
+  p.classList.toggle('show');
+  document.getElementById('mathToggle').classList.toggle('active');
+}
+
+function setMath(latex){
+  document.getElementById('mathInput').value = latex;
+  previewMath();
+}
+
+let mathPreviewTimer;
+function previewMath(){
+  clearTimeout(mathPreviewTimer);
+  mathPreviewTimer = setTimeout(()=>{
+    const latex = document.getElementById('mathInput').value;
+    const prev = document.getElementById('mathPreview');
+    if(!latex){ prev.innerHTML='<span style="color:var(--text3);font-size:11px">ستظهر المعادلة هنا...</span>'; return; }
+    prev.innerHTML = `\\(${latex}\\)`;
+    if(window.MathJax) MathJax.typesetPromise([prev]);
+  }, 400);
+}
+
+function insertMath(target){
+  const latex = document.getElementById('mathInput').value.trim();
+  if(!latex) return;
+  insertSym(` $${latex}$ `, target==='q' ? 'q-text' : 'q-text');
+  updatePreview();
+  document.getElementById('mathPanel').classList.remove('show');
+  document.getElementById('mathToggle').classList.remove('active');
+  document.getElementById('mathInput').value = '';
+}
+
+function insertOptMath(opt){
+  const latex = prompt('أدخلي كود LaTeX للمعادلة:');
+  if(latex) insertSym(` $${latex}$ `, 'opt-'+opt);
+}
+
+// ── Live preview ──
+let previewTimer;
+function updatePreview(){
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(()=>{
+    const text = document.getElementById('q-text').innerText || '';
+    const prev = document.getElementById('q-preview');
+    if(!text.trim()){ prev.innerHTML='<span style="color:var(--text3);font-size:10px">ستظهر المعادلات هنا تلقائياً...</span>'; return; }
+    prev.innerHTML = text;
+    if(window.MathJax) MathJax.typesetPromise([prev]);
+  }, 600);
+}
+
+document.getElementById('q-text').addEventListener('input', updatePreview);
+
+// ── Correct answer ──
+const labels = {A:'الخيار أ', B:'الخيار ب', C:'الخيار ج', D:'الخيار د'};
+function setCorrect(opt){
+  ['A','B','C','D'].forEach(o=>{
+    document.getElementById('opt-circle-'+o).classList.remove('correct-mark');
+    document.getElementById('opt-btn-'+o).classList.remove('selected');
+    document.getElementById('opt-box-'+o).style.borderColor = 'var(--border2)';
+  });
+  document.getElementById('opt-circle-'+opt).classList.add('correct-mark');
+  document.getElementById('opt-btn-'+opt).classList.add('selected');
+  document.getElementById('opt-box-'+opt).style.borderColor = 'rgba(15,186,129,0.3)';
+  document.getElementById('correctInput').value = opt;
+  document.getElementById('correctLabel').textContent = labels[opt];
+}
+setCorrect('A');
+
+// ── Type indicator ──
+function updateType(){
+  const type = document.getElementById('qType').value;
+  const ind = document.getElementById('typeInd');
+  const badge = document.getElementById('editorTypeBadge');
+  const chips = {
+    kamy:'🔢 كمي — محرر علمي كامل',
+    lafzy:'📝 لفظي — نص وصورة',
+    math:'📐 رياضيات — محرر علمي كامل',
+    phys:'⚗️ فيزياء — محرر علمي كامل',
+    chem:'🧪 كيمياء — محرر علمي كامل',
+    bio:'🌿 أحياء — صور ونص'
+  };
+  const colors = {kamy:'kamy',lafzy:'lafzy',math:'math',phys:'math',chem:'math',bio:'lafzy'};
+  ind.innerHTML = `<span class="type-chip ${colors[type]||'kamy'} on">${chips[type]||''}</span>`;
+  if(['lafzy','bio'].includes(type)){
+    badge.textContent = 'نص + صورة';
+    badge.className = 'bd bb';
+  } else {
+    badge.textContent = 'محرر علمي ✦ رموز ✦ صور';
+    badge.className = 'bd be';
+  }
+}
+
+// ── Image upload ──
+function previewQImg(input){
+  if(input.files && input.files[0]){
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = document.getElementById('qImgPreview');
+      img.src = e.target.result;
+      img.style.display = 'block';
+      document.getElementById('qImgArea').classList.add('has-img');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function insertInlineImg(input){
+  if(input.files && input.files[0]){
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const el = document.getElementById('q-text');
+      el.focus();
+      document.execCommand('insertImage', false, e.target.result);
+      document.getElementById('imgModal').classList.remove('show');
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function insertImgUrl(){
+  const url = document.getElementById('imgUrlInput').value.trim();
+  if(!url) return;
+  const el = document.getElementById('q-text');
+  el.focus();
+  document.execCommand('insertImage', false, url);
+  document.getElementById('imgModal').classList.remove('show');
+}
+
+// ── Prepare submit ──
+function prepareSubmit(){
+  document.getElementById('q-hidden').value = document.getElementById('q-text').innerText || '';
+  ['A','B','C','D'].forEach(o=>{
+    const el = document.getElementById('opt-'+o);
+    if(el) document.getElementById('opt-'+o+'-hidden').value = el.innerText || '';
+  });
+  const fb = document.getElementById('feedback-text');
+  if(fb) document.getElementById('feedback-hidden').value = fb.innerText || '';
+}
+
+document.getElementById('qForm').addEventListener('submit', prepareSubmit);
+
+function submitForm(mode){
+  prepareSubmit();
+  if(mode==='another'){
+    const input = document.createElement('input');
+    input.type='hidden'; input.name='add_another'; input.value='1';
+    document.getElementById('qForm').appendChild(input);
+  }
+  document.getElementById('qForm').submit();
+}
+</script>
+</body>
+</html>
