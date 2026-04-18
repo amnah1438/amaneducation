@@ -176,3 +176,27 @@ def save_questions(request, exam, field_name, with_skill=False):
 
     except json.JSONDecodeError:
         logger.warning(f"Invalid JSON in {field_name}")
+        # =========================
+# 🔹 Skill Manager (إضافة جديدة ✅)
+# =========================
+
+@login_required
+def skill_manager(request):
+    """صفحة إدارة المهارات"""
+
+    # تحقق من المعلمة
+    if not check_teacher(request):
+        return redirect('home')
+
+    teacher = get_teacher(request)
+
+    if not teacher:
+        messages.error(request, 'لا يوجد حساب معلمة')
+        return redirect('teacher_dashboard')
+
+    # جلب مهارات المعلمة فقط (أفضل من all)
+    skills = TeacherSkill.objects.filter(created_by=teacher).order_by('-id')
+
+    return render(request, 'teachers/skill_manager.html', {
+        'skills': skills
+    })
