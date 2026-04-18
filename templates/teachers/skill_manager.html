@@ -986,12 +986,49 @@ function showNewSkill(){
 function selectSkill(id, el){
   document.querySelectorAll('.sk-item').forEach(i=>i.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('panel-new').classList.remove('on');
-  document.getElementById('panel-view').classList.add('on');
-  document.getElementById('panel-view').innerHTML='<div style="text-align:center;padding:30px;color:var(--text3);font-size:11px">جاري تحميل المهارة #'+id+'...</div>';
-  // في الإنتاج: AJAX لتحميل بيانات المهارة
-}
 
+  const skillName = el.querySelector('.sk-name').textContent;
+  const teacherName = '{{ teacher.full_name|default:"المعلمة" }}';
+  const targetClass = el.querySelector('.sk-meta span:nth-child(2)')?.textContent || '';
+
+  document.getElementById('panel-new').classList.remove('on');
+  document.getElementById('panel-print').classList.remove('on');
+  document.getElementById('panel-view').classList.add('on');
+
+  document.getElementById('panel-view').innerHTML = `
+    <div style="font-size:15px;font-weight:800;margin-bottom:14px">📚 ${skillName}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="card" style="cursor:pointer" onclick="showPrintPreview(${id},'${skillName}','pre','${teacherName}','${targetClass}')">
+        <div class="cb" style="text-align:center;padding:20px">
+          <div style="font-size:28px;margin-bottom:8px">🖨️</div>
+          <div style="font-size:12px;font-weight:700;color:var(--orange)">طباعة القبلي</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">ورقة اختبار بديباجة رسمية</div>
+        </div>
+      </div>
+      <div class="card" style="cursor:pointer" onclick="showPrintPreview(${id},'${skillName}','post','${teacherName}','${targetClass}')">
+        <div class="cb" style="text-align:center;padding:20px">
+          <div style="font-size:28px;margin-bottom:8px">🖨️</div>
+          <div style="font-size:12px;font-weight:700;color:var(--green)">طباعة البعدي</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">ورقة اختبار بديباجة رسمية</div>
+        </div>
+      </div>
+      <div class="card" style="cursor:pointer" onclick="alert('قيد التطوير')">
+        <div class="cb" style="text-align:center;padding:20px">
+          <div style="font-size:28px;margin-bottom:8px">📊</div>
+          <div style="font-size:12px;font-weight:700;color:var(--blue)">نتائج الطالبات</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">تقارير الأداء والتحسن</div>
+        </div>
+      </div>
+      <div class="card" style="cursor:pointer" onclick="alert('قيد التطوير')">
+        <div class="cb" style="text-align:center;padding:20px">
+          <div style="font-size:28px;margin-bottom:8px">🔔</div>
+          <div style="font-size:12px;font-weight:700;color:var(--purple)">تفعيل الاختبار</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:4px">تحديد وقت وفصل</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
 function useSharedSkill(id){
   if(confirm('هل تريدين إضافة هذه المهارة لفصلك؟\nسيتم الاحتفاظ باسم المعلمة المنشئة.')){
     alert('تم إضافة المهارة لفصلك! ✅');
