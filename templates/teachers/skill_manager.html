@@ -359,7 +359,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 
       <!-- ═══ الخطوة ١: المعلومات ═══ -->
       <div class="panel on" id="step1">
-        <form method="post" action="/teachers/skills/add/" id="skillForm">
+        <form method="post" action="/teachers/skills/add-complete/" id="skillForm">
           {% csrf_token %}
           <input type="hidden" name="content_type" id="content_type_input" value="skill">
           <div class="card">
