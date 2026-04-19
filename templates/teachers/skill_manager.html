@@ -1103,6 +1103,52 @@ function showPrintPreview(skillId, skillTitle, examType, teacherName, targetClas
   document.getElementById('print-teacher-sig').textContent = teacherName;
   document.getElementById('print-class').textContent = targetClass;
   document.getElementById('print-date-footer').textContent = new Date().toLocaleDateString('ar-SA');
+
+  fetch(`/teachers/skill/${skillId}/questions/`)
+    .then(r => r.json())
+    .then(data => {
+      const exam = data.exams.find(e => e.type === examType);
+      if(!exam){
+        document.getElementById('print-questions').innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8">لا توجد أسئلة لهذا الاختبار</div>';
+        return;
+      }
+      document.getElementById('print-q-count').textContent = exam.count;
+      document.getElementById('print-time').textContent = exam.time + ' دقيقة';
+      document.getElementById('print-pass').textContent = exam.pass_score + '%';
+      document.getElementById('print-total').textContent = exam.count;
+
+      const letters = {A:'أ', B:'ب', C:'ج', D:'د'};
+      let html = '';
+      exam.questions.forEach((q, i) => {
+        html += `
+          <div style="margin-bottom:16px;padding:12px;border:1px solid #e2e8f0;border-radius:8px;background:white">
+            <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:8px;display:flex;gap:8px">
+              <span style="background:#1e3a6b;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${i+1}</span>
+              <span>${q.text}</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              ${['A','B','C','D'].map(opt => `
+                <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;border:1px solid #e2e8f0;font-size:10px">
+                  <span style="width:18px;height:18px;border-radius:50%;border:1.5px solid #94a3b8;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">${letters[opt]}</span>
+                  ${q[opt.toLowerCase()] || '—'}
+                </div>
+              `).join('')}
+            </div>
+          </div>`;
+      });
+      document.getElementById('print-questions').innerHTML = html;
+    })
+    .catch(() => {
+      document.getElementById('print-questions').innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444">خطأ في تحميل الأسئلة</div>';
+    });
+}
+  const typeLabel = examType==='pre' ? 'قبلي' : 'بعدي';
+  document.getElementById('print-title').textContent = `اختبار ${typeLabel} — ${skillTitle}`;
+  document.getElementById('print-exam-type').textContent = typeLabel;
+  document.getElementById('print-teacher-name').textContent = teacherName;
+  document.getElementById('print-teacher-sig').textContent = teacherName;
+  document.getElementById('print-class').textContent = targetClass;
+  document.getElementById('print-date-footer').textContent = new Date().toLocaleDateString('ar-SA');
 }
 
 function updatePrintPreview(){
