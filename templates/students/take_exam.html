@@ -1,0 +1,332 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ exam.get_exam_type_display }} — {{ exam.skill.title }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$']], processEscapes:true },
+  options: { skipHtmlTags:['script','noscript','style','textarea'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+:root{
+  --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;
+  --card:#0f1424;--card2:#161d30;
+  --border:#1a2236;--border2:#223050;
+  --green:#0fba81;--green2:#065442;
+  --blue:#4f8ef7;--blue2:#1a3060;
+  --purple:#9b72f5;--orange:#f5a623;
+  --red:#f05252;--teal:#2dd4bf;
+  --text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+.exam-header{background:linear-gradient(135deg,var(--green2),var(--blue2));padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border)}
+.exam-title{font-size:13px;font-weight:800}
+.exam-sub{font-size:10px;color:rgba(255,255,255,0.7);margin-top:2px}
+
+/* TIMER */
+.timer{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:6px 14px;text-align:center}
+.timer-num{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;color:white}
+.timer-label{font-size:8px;color:rgba(255,255,255,0.6)}
+.timer.warning .timer-num{color:var(--orange);animation:blink 1s infinite}
+.timer.danger .timer-num{color:var(--red);animation:blink 0.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* PROGRESS */
+.exam-progress{background:var(--bg2);padding:8px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.progress-bar{flex:1;height:5px;background:var(--bg3);border-radius:5px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:5px;transition:width 0.3s ease}
+.progress-text{font-size:10px;color:var(--text3);white-space:nowrap}
+
+/* MAIN */
+.main{max-width:800px;margin:0 auto;padding:20px}
+
+/* QUESTION */
+.question-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;animation:fadeIn 0.3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.q-header{background:var(--bg2);padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.q-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--green2));color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.q-answered .q-num{background:linear-gradient(135deg,var(--green2),var(--teal))}
+.q-skill{font-size:9px;color:var(--text3)}
+
+.q-body{padding:16px}
+.q-text{font-size:13px;line-height:2;color:var(--text);margin-bottom:14px;direction:rtl}
+
+/* IMAGE */
+.q-img{width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-bottom:12px;border:1px solid var(--border2)}
+
+/* OPTIONS */
+.options{display:flex;flex-direction:column;gap:8px}
+.option{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border2);border-radius:9px;cursor:pointer;transition:all 0.2s;background:var(--card2)}
+.option:hover{border-color:var(--blue);background:rgba(79,142,247,0.06)}
+.option.selected{border-color:var(--green);background:rgba(15,186,129,0.08)}
+.option input[type=radio]{display:none}
+.opt-circle{width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text2);flex-shrink:0;transition:all 0.2s}
+.option.selected .opt-circle{background:var(--green);border-color:var(--green);color:white}
+.opt-text{font-size:12px;color:var(--text2);line-height:1.7;flex:1;direction:rtl}
+.option.selected .opt-text{color:var(--text)}
+
+/* NAV BUTTONS */
+.nav-buttons{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
+.btn-b:hover{background:rgba(79,142,247,0.18)}
+.btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
+.btn-g:hover{opacity:0.85;transform:translateY(-1px)}
+.btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
+.btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+
+/* QUESTION MAP */
+.q-map{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.q-dot{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.2s;color:var(--text3)}
+.q-dot:hover{border-color:var(--blue);color:var(--blue)}
+.q-dot.answered{background:rgba(15,186,129,0.15);border-color:var(--green);color:var(--green)}
+.q-dot.current{border-color:var(--blue);background:rgba(79,142,247,0.1);color:var(--blue)}
+
+/* SUBMIT MODAL */
+.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:24px;width:92%;max-width:400px;text-align:center}
+.modal-icon{font-size:40px;margin-bottom:12px}
+.modal-title{font-size:16px;font-weight:800;margin-bottom:8px}
+.modal-sub{font-size:11px;color:var(--text3);margin-bottom:16px;line-height:1.8}
+.modal-btns{display:flex;gap:8px;justify-content:center}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="exam-header">
+  <div>
+    <div class="exam-title">{{ exam.get_exam_type_display }} — {{ exam.skill.title }}</div>
+    <div class="exam-sub">{{ questions|length }} سؤال • {{ exam.duration_minutes }} دقيقة • درجة النجاح {{ exam.pass_score }}%</div>
+  </div>
+  <div class="timer" id="timer">
+    <div class="timer-num" id="timerNum">--:--</div>
+    <div class="timer-label">الوقت المتبقي</div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="exam-progress">
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="progress-text" id="progressText">٠ / {{ questions|length }}</div>
+</div>
+
+<div class="main">
+
+  <!-- خريطة الأسئلة -->
+  <div class="q-map" id="qMap">
+    {% for q in questions %}
+    <div class="q-dot {% if forloop.first %}current{% endif %}" id="dot-{{ forloop.counter }}" onclick="goToQ({{ forloop.counter }})">{{ forloop.counter }}</div>
+    {% endfor %}
+  </div>
+
+  <!-- الفورم -->
+  <form method="post" id="examForm">
+    {% csrf_token %}
+    <input type="hidden" name="time_taken" id="timeTaken" value="0">
+
+    {% for question in questions %}
+    <div class="question-card {% if not forloop.first %}hidden{% endif %}" id="q-{{ forloop.counter }}" data-q="{{ forloop.counter }}">
+      <div class="q-header" id="qh-{{ forloop.counter }}">
+        <div class="q-num">{{ forloop.counter }}</div>
+        <div>
+          <div style="font-size:11px;font-weight:600">سؤال {{ forloop.counter }} من {{ questions|length }}</div>
+          {% if question.target_skill_name %}
+          <div class="q-skill">📎 {{ question.target_skill_name }}</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="q-body">
+        {% if question.question_image %}
+        <img src="{{ question.question_image.url }}" alt="صورة السؤال" class="q-img">
+        {% endif %}
+        <div class="q-text">{{ question.question_plain }}</div>
+        <div class="options">
+          <label class="option" id="opt-{{ forloop.counter }}-A" onclick="selectOpt({{ forloop.counter }},'A',this)">
+            <input type="radio" name="q_{{ question.id }}" value="A">
+            <div class="opt-circle">أ</div>
+            <div class="opt-text">{{ question.option_a_plain }}</div>
+          </label>
+          <label class="option" id="opt-{{ forloop.counter }}-B" onclick="selectOpt({{ forloop.counter }},'B',this)">
+            <input type="radio" name="q_{{ question.id }}" value="B">
+            <div class="opt-circle">ب</div>
+            <div class="opt-text">{{ question.option_b_plain }}</div>
+          </label>
+          <label class="option" id="opt-{{ forloop.counter }}-C" onclick="selectOpt({{ forloop.counter }},'C',this)">
+            <input type="radio" name="q_{{ question.id }}" value="C">
+            <div class="opt-circle">ج</div>
+            <div class="opt-text">{{ question.option_c_plain }}</div>
+          </label>
+          <label class="option" id="opt-{{ forloop.counter }}-D" onclick="selectOpt({{ forloop.counter }},'D',this)">
+            <input type="radio" name="q_{{ question.id }}" value="D">
+            <div class="opt-circle">د</div>
+            <div class="opt-text">{{ question.option_d_plain }}</div>
+          </label>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- أزرار التنقل -->
+    <div class="nav-buttons">
+      <button type="button" class="btn btn-b" id="prevBtn" onclick="prevQ()" disabled>→ السابق</button>
+      <button type="button" class="btn btn-b" id="nextBtn" onclick="nextQ()">التالي ←</button>
+      <button type="button" class="btn btn-g" id="submitBtn" onclick="confirmSubmit()" style="display:none">✅ تسليم الاختبار</button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal تأكيد التسليم -->
+<div class="modal-bg" id="submitModal">
+  <div class="modal">
+    <div class="modal-icon">📋</div>
+    <div class="modal-title">تأكيد التسليم</div>
+    <div class="modal-sub" id="submitModalText">
+      هل أنتِ متأكدة من تسليم الاختبار؟<br>
+      لا يمكن التراجع بعد التسليم.
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-b" onclick="document.getElementById('submitModal').classList.remove('show')">إلغاء</button>
+      <button class="btn btn-g" onclick="submitExam()">✅ تسليم الآن</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.hidden{display:none}
+</style>
+
+<script>
+const totalQ = {{ questions|length }};
+const duration = {{ duration }};
+let currentQ = 1;
+let answers = {};
+let timeLeft = duration;
+let startTime = Date.now();
+let timerInterval;
+
+// ═══════ TIMER ═══════
+function startTimer(){
+  timerInterval = setInterval(()=>{
+    timeLeft--;
+    updateTimerDisplay();
+    if(timeLeft <= 0){
+      clearInterval(timerInterval);
+      submitExam();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(){
+  const m = Math.floor(timeLeft/60);
+  const s = timeLeft % 60;
+  document.getElementById('timerNum').textContent =
+    String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+
+  const el = document.getElementById('timer');
+  el.classList.remove('warning','danger');
+  if(timeLeft <= 60) el.classList.add('danger');
+  else if(timeLeft <= 300) el.classList.add('warning');
+}
+
+startTimer();
+updateTimerDisplay();
+
+// ═══════ NAVIGATION ═══════
+function goToQ(n){
+  document.getElementById('q-'+currentQ).classList.add('hidden');
+  document.getElementById('dot-'+currentQ).classList.remove('current');
+  currentQ = n;
+  document.getElementById('q-'+currentQ).classList.remove('hidden');
+  document.getElementById('dot-'+currentQ).classList.add('current');
+  updateNav();
+  if(window.MathJax) MathJax.typesetPromise([document.getElementById('q-'+currentQ)]);
+}
+
+function nextQ(){
+  if(currentQ < totalQ) goToQ(currentQ+1);
+}
+
+function prevQ(){
+  if(currentQ > 1) goToQ(currentQ-1);
+}
+
+function updateNav(){
+  document.getElementById('prevBtn').disabled = currentQ === 1;
+  document.getElementById('nextBtn').style.display = currentQ === totalQ ? 'none' : 'inline-flex';
+  document.getElementById('submitBtn').style.display = currentQ === totalQ ? 'inline-flex' : 'none';
+
+  // تحديث شريط التقدم
+  const answered = Object.keys(answers).length;
+  const pct = (answered/totalQ*100).toFixed(0);
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressText').textContent = answered + ' / ' + totalQ;
+}
+
+// ═══════ SELECT OPTION ═══════
+function selectOpt(qNum, opt, el){
+  // إزالة التحديد السابق
+  ['A','B','C','D'].forEach(o=>{
+    const prev = document.getElementById('opt-'+qNum+'-'+o);
+    if(prev) prev.classList.remove('selected');
+  });
+
+  // تحديد الجديد
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+  answers[qNum] = opt;
+
+  // تحديث الـ dot
+  const dot = document.getElementById('dot-'+qNum);
+  if(dot) dot.classList.add('answered');
+
+  // تحديث header السؤال
+  const header = document.getElementById('qh-'+qNum);
+  if(header) header.closest('.question-card').classList.add('q-answered');
+
+  updateNav();
+}
+
+// ═══════ SUBMIT ═══════
+function confirmSubmit(){
+  const answered = Object.keys(answers).length;
+  const unanswered = totalQ - answered;
+  const modalText = document.getElementById('submitModalText');
+
+  if(unanswered > 0){
+    modalText.innerHTML = `⚠️ لم تجيبي على <strong style="color:var(--orange)">${unanswered}</strong> سؤال بعد.<br>هل تريدين التسليم الآن؟`;
+  } else {
+    modalText.innerHTML = `✅ أجبتِ على جميع الأسئلة (${totalQ}/${totalQ})<br>هل أنتِ متأكدة من التسليم؟`;
+  }
+  document.getElementById('submitModal').classList.add('show');
+}
+
+function submitExam(){
+  clearInterval(timerInterval);
+  const timeTaken = Math.floor((Date.now()-startTime)/1000);
+  document.getElementById('timeTaken').value = timeTaken;
+  document.getElementById('examForm').submit();
+}
+
+// تحديث أولي
+updateNav();
+if(window.MathJax) MathJax.typesetPromise();
+</script>
+</body>
+</html>

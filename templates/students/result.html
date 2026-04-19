@@ -1,0 +1,238 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نتيجة الاختبار — منصة آمنة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<script>
+window.MathJax = {
+  tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$']], processEscapes:true },
+  options: { skipHtmlTags:['script','noscript','style','textarea'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+:root{
+  --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;
+  --card:#0f1424;--card2:#161d30;
+  --border:#1a2236;--border2:#223050;
+  --green:#0fba81;--green2:#065442;
+  --blue:#4f8ef7;--blue2:#1a3060;
+  --purple:#9b72f5;--orange:#f5a623;
+  --red:#f05252;--teal:#2dd4bf;
+  --text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* HEADER */
+.topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,0.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px)}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.logo-name{font-size:12px;font-weight:800}
+
+/* MAIN */
+.main{max-width:800px;margin:0 auto;padding:20px}
+
+/* RESULT HERO */
+.result-hero{border-radius:16px;padding:28px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
+.result-hero.pass{background:linear-gradient(135deg,rgba(6,84,66,0.8),rgba(26,48,96,0.8));border:1px solid var(--green)}
+.result-hero.fail{background:linear-gradient(135deg,rgba(127,29,29,0.8),rgba(26,48,96,0.5));border:1px solid var(--red)}
+.result-emoji{font-size:52px;margin-bottom:10px;animation:bounce 1s ease}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.result-status{font-size:22px;font-weight:800;margin-bottom:5px}
+.result-score-big{font-size:48px;font-weight:900;line-height:1;margin-bottom:5px}
+.result-out-of{font-size:14px;opacity:0.7}
+.result-pct{font-size:16px;font-weight:700;margin-top:8px;opacity:0.9}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.stat-value{font-size:22px;font-weight:800;margin-bottom:4px}
+.stat-label{font-size:9px;color:var(--text3)}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:12px}
+.ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)}
+.ct{font-size:11px;font-weight:700;color:var(--text2)}
+.cb{padding:14px}
+
+/* ANSWERS */
+.answer-item{padding:12px 14px;border-radius:9px;margin-bottom:8px;border:1px solid;position:relative}
+.answer-item.correct{background:rgba(15,186,129,0.06);border-color:rgba(15,186,129,0.25)}
+.answer-item.wrong{background:rgba(240,82,82,0.06);border-color:rgba(240,82,82,0.25)}
+.answer-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.answer-icon{font-size:16px;flex-shrink:0;margin-top:2px}
+.q-num-badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.correct .q-num-badge{background:rgba(15,186,129,0.2);color:var(--green)}
+.wrong .q-num-badge{background:rgba(240,82,82,0.2);color:var(--red)}
+.q-text-small{font-size:11px;color:var(--text);line-height:1.7;flex:1}
+
+.answer-choices{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.choice{padding:6px 10px;border-radius:6px;font-size:10px;display:flex;align-items:center;gap:6px;border:1px solid var(--border)}
+.choice.chosen-correct{background:rgba(15,186,129,0.12);border-color:var(--green);color:var(--green)}
+.choice.chosen-wrong{background:rgba(240,82,82,0.12);border-color:var(--red);color:var(--red)}
+.choice.is-correct{background:rgba(15,186,129,0.06);border-color:rgba(15,186,129,0.3);color:var(--green)}
+.choice-letter{width:18px;height:18px;border-radius:50%;border:1.5px solid;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+
+.feedback-box{background:rgba(79,142,247,0.06);border:1px solid rgba(79,142,247,0.2);border-radius:7px;padding:8px 10px;margin-top:8px;font-size:10px;color:var(--blue);border-right:3px solid var(--blue)}
+
+/* BTN */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;text-decoration:none}
+.btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
+.btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
+
+/* CIRCLE PROGRESS */
+.circle-wrap{position:relative;width:100px;height:100px;margin:0 auto 10px}
+.circle-wrap svg{transform:rotate(-90deg)}
+.circle-bg{fill:none;stroke:var(--bg3);stroke-width:8}
+.circle-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">🎓</div>
+    <div>
+      <div class="logo-name">منصة آمنة التعليمية</div>
+    </div>
+  </div>
+  <a href="/students/dashboard/" class="btn btn-b" style="font-size:10px">← العودة للداشبورد</a>
+</div>
+
+<div class="main">
+
+  <!-- بطل النتيجة -->
+  <div class="result-hero {% if result.passed %}pass{% else %}fail{% endif %}">
+    {% if result.passed %}
+      <div class="result-emoji">🎉</div>
+      <div class="result-status" style="color:var(--green)">ممتازة! اجتزتِ الاختبار</div>
+    {% else %}
+      <div class="result-emoji">💪</div>
+      <div class="result-status" style="color:var(--orange)">لا بأس! المحاولة تُكسب الخبرة</div>
+    {% endif %}
+    <div class="result-score-big" style="color:{% if result.passed %}var(--green){% else %}var(--red){% endif %}">
+      {{ result.score }}<span style="font-size:24px;opacity:0.6">/{{ result.total }}</span>
+    </div>
+    <div class="result-pct">{{ result.percentage }}% — درجة النجاح: {{ result.exam.pass_score }}%</div>
+    <div style="font-size:11px;opacity:0.6;margin-top:6px">{{ result.exam.get_exam_type_display }} — {{ result.exam.skill.title }}</div>
+  </div>
+
+  <!-- إحصاءات -->
+  <div class="stats-grid">
+    <div class="stat">
+      <div class="stat-value" style="color:var(--green)">{{ answers|length }}</div>
+      <div class="stat-label">إجمالي الأسئلة</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color:var(--green)">
+        {% with correct=0 %}
+        {% for a in answers %}{% if a.is_correct %}{% with correct=correct|add:1 %}{% endwith %}{% endif %}{% endfor %}
+        {{ result.score }}
+        {% endwith %}
+      </div>
+      <div class="stat-label">إجابات صحيحة ✅</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color:var(--red)">{{ result.total|add:"-"|add:result.score|stringformat:"d" }}</div>
+      <div class="stat-label">إجابات خاطئة ❌</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" style="color:var(--blue)">
+        {% if result.time_taken_seconds %}
+          {% widthratio result.time_taken_seconds 60 1 %}د
+        {% else %}—{% endif %}
+      </div>
+      <div class="stat-label">الوقت المستغرق ⏱️</div>
+    </div>
+  </div>
+
+  <!-- تفاصيل الإجابات -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">📋 تفاصيل إجاباتك</span>
+      <span style="font-size:9px;color:var(--text3)">{{ answers|length }} سؤال</span>
+    </div>
+    <div class="cb">
+      {% for answer in answers %}
+      <div class="answer-item {% if answer.is_correct %}correct{% else %}wrong{% endif %}">
+        <div class="answer-header">
+          <div class="answer-icon">{% if answer.is_correct %}✅{% else %}❌{% endif %}</div>
+          <div class="q-num-badge">{{ forloop.counter }}</div>
+          <div class="q-text-small">{{ answer.question.question_plain }}</div>
+        </div>
+
+        <div class="answer-choices">
+          {% for opt, label in "A,أ|B,ب|C,ج|D,د"|split:"|" %}
+          {% endfor %}
+
+          <!-- خيار أ -->
+          <div class="choice
+            {% if answer.question.correct_answer == 'A' and answer.chosen_answer == 'A' %}chosen-correct
+            {% elif answer.chosen_answer == 'A' and answer.question.correct_answer != 'A' %}chosen-wrong
+            {% elif answer.question.correct_answer == 'A' %}is-correct
+            {% endif %}">
+            <div class="choice-letter">أ</div>
+            {{ answer.question.option_a_plain|truncatechars:40 }}
+          </div>
+
+          <!-- خيار ب -->
+          <div class="choice
+            {% if answer.question.correct_answer == 'B' and answer.chosen_answer == 'B' %}chosen-correct
+            {% elif answer.chosen_answer == 'B' and answer.question.correct_answer != 'B' %}chosen-wrong
+            {% elif answer.question.correct_answer == 'B' %}is-correct
+            {% endif %}">
+            <div class="choice-letter">ب</div>
+            {{ answer.question.option_b_plain|truncatechars:40 }}
+          </div>
+
+          <!-- خيار ج -->
+          <div class="choice
+            {% if answer.question.correct_answer == 'C' and answer.chosen_answer == 'C' %}chosen-correct
+            {% elif answer.chosen_answer == 'C' and answer.question.correct_answer != 'C' %}chosen-wrong
+            {% elif answer.question.correct_answer == 'C' %}is-correct
+            {% endif %}">
+            <div class="choice-letter">ج</div>
+            {{ answer.question.option_c_plain|truncatechars:40 }}
+          </div>
+
+          <!-- خيار د -->
+          <div class="choice
+            {% if answer.question.correct_answer == 'D' and answer.chosen_answer == 'D' %}chosen-correct
+            {% elif answer.chosen_answer == 'D' and answer.question.correct_answer != 'D' %}chosen-wrong
+            {% elif answer.question.correct_answer == 'D' %}is-correct
+            {% endif %}">
+            <div class="choice-letter">د</div>
+            {{ answer.question.option_d_plain|truncatechars:40 }}
+          </div>
+        </div>
+
+        {% if not answer.is_correct and answer.question.feedback_plain %}
+        <div class="feedback-box">
+          💡 <strong>التغذية الراجعة:</strong> {{ answer.question.feedback_plain }}
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- أزرار -->
+  <div style="display:flex;gap:10px;justify-content:center;margin-bottom:20px">
+    <a href="/students/dashboard/" class="btn btn-b">← العودة للداشبورد</a>
+    <button class="btn btn-g" onclick="window.print()">🖨️ طباعة النتيجة</button>
+  </div>
+
+</div>
+
+<script>
+if(window.MathJax) MathJax.typesetPromise();
+</script>
+</body>
+</html>
