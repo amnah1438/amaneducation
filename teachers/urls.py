@@ -18,6 +18,7 @@ urlpatterns = [
     path('skills/add-complete/', views.add_skill_complete, name='add_skill_complete'),
 
     path('skills/delete/<int:skill_id>/', views.delete_skill, name='delete_skill'),
+    path('skill/<int:skill_id>/questions/', views.get_skill_questions, name='get_skill_questions'),
 
     # =========================
     # 🔹 Exams

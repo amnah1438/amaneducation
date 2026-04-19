@@ -366,3 +366,36 @@ def add_session(request):
         return redirect('teacher_dashboard')
     my_skills = TeacherSkill.objects.filter(created_by=teacher, is_active=True) if teacher else []
     return render(request, 'teachers/add_session.html', {'teacher': teacher, 'skills': my_skills})
+from django.http import JsonResponse
+
+@login_required
+def get_skill_questions(request, skill_id):
+    """جلب أسئلة مهارة بصيغة JSON"""
+    teacher = get_teacher(request)
+    skill = get_object_or_404(TeacherSkill, id=skill_id, created_by=teacher)
+    
+    data = {'skill': skill.title, 'exams': []}
+    
+    for exam in skill.exams.all():
+        exam_data = {
+            'type': exam.exam_type,
+            'type_label': exam.get_exam_type_display(),
+            'count': exam.questions.count(),
+            'time': exam.duration_minutes,
+            'pass_score': exam.pass_score,
+            'questions': []
+        }
+        for q in exam.questions.all().order_by('order'):
+            exam_data['questions'].append({
+                'order': q.order,
+                'text': q.question_plain,
+                'a': q.option_a_plain,
+                'b': q.option_b_plain,
+                'c': q.option_c_plain,
+                'd': q.option_d_plain,
+                'correct': q.correct_answer,
+                'feedback': q.feedback_plain,
+            })
+        data['exams'].append(exam_data)
+    
+    return JsonResponse(data)
