@@ -1142,14 +1142,7 @@ function showPrintPreview(skillId, skillTitle, examType, teacherName, targetClas
       document.getElementById('print-questions').innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444">خطأ في تحميل الأسئلة</div>';
     });
 }
-  const typeLabel = examType==='pre' ? 'قبلي' : 'بعدي';
-  document.getElementById('print-title').textContent = `اختبار ${typeLabel} — ${skillTitle}`;
-  document.getElementById('print-exam-type').textContent = typeLabel;
-  document.getElementById('print-teacher-name').textContent = teacherName;
-  document.getElementById('print-teacher-sig').textContent = teacherName;
-  document.getElementById('print-class').textContent = targetClass;
-  document.getElementById('print-date-footer').textContent = new Date().toLocaleDateString('ar-SA');
-}
+  
 
 function updatePrintPreview(){
   const t = document.getElementById('print-type-select').value;
