@@ -1,0 +1,228 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>داشبورد الطالبة — منصة آمنة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;
+  --card:#0f1424;--card2:#161d30;
+  --border:#1a2236;--border2:#223050;
+  --green:#0fba81;--green2:#065442;
+  --blue:#4f8ef7;--blue2:#1a3060;
+  --purple:#9b72f5;--orange:#f5a623;
+  --red:#f05252;--teal:#2dd4bf;
+  --text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,0.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px)}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.logo-name{font-size:12px;font-weight:800}
+.logo-sub{font-size:9px;color:var(--text3)}
+.user-info{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text2)}
+.user-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.logout-btn{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.2);font-family:'Tajawal',sans-serif;font-size:10px;padding:5px 10px;border-radius:6px;cursor:pointer;text-decoration:none}
+
+/* MAIN */
+.main{max-width:1100px;margin:0 auto;padding:20px}
+
+/* WELCOME */
+.welcome{background:linear-gradient(135deg,var(--green2),var(--blue2));border:1px solid var(--green);border-radius:14px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.welcome-text{font-size:20px;font-weight:800}
+.welcome-sub{font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px}
+.welcome-emoji{font-size:40px}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.kpi.g::before{background:var(--green)}
+.kpi.b::before{background:var(--blue)}
+.kpi.p::before{background:var(--purple)}
+.kpi-label{font-size:9px;color:var(--text3);margin-bottom:5px}
+.kpi-value{font-size:24px;font-weight:800}
+.kpi-sub{font-size:9px;color:var(--text3);margin-top:3px}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:12px}
+.ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)}
+.ct{font-size:11px;font-weight:700;color:var(--text2)}
+.cb{padding:14px}
+
+/* EXAM CARDS */
+.exam-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.exam-card{background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:14px;transition:all 0.2s;position:relative;overflow:hidden}
+.exam-card:hover{border-color:var(--blue);transform:translateY(-2px)}
+.exam-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.exam-card.pre::before{background:var(--orange)}
+.exam-card.post::before{background:var(--green)}
+.exam-card.lesson::before{background:var(--blue)}
+.exam-name{font-size:12px;font-weight:700;margin-bottom:4px}
+.exam-skill{font-size:10px;color:var(--text3);margin-bottom:8px}
+.exam-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.exam-badge{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:600}
+.eb-pre{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.2)}
+.eb-post{background:rgba(15,186,129,0.1);color:var(--green);border:1px solid rgba(15,186,129,0.2)}
+.eb-lesson{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
+.exam-btn{display:block;width:100%;padding:8px;border-radius:7px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);transition:all 0.2s}
+.exam-btn:hover{opacity:0.85}
+
+/* RESULTS */
+.result-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(30,42,61,0.5)}
+.result-row:last-child{border-bottom:none}
+.result-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.rn-pass{background:rgba(15,186,129,0.15);color:var(--green)}
+.rn-fail{background:rgba(240,82,82,0.15);color:var(--red)}
+.result-info{flex:1}
+.result-name{font-size:11px;color:var(--text)}
+.result-date{font-size:9px;color:var(--text3);margin-top:2px}
+.result-score{font-size:13px;font-weight:700}
+
+/* EMPTY */
+.empty{text-align:center;padding:30px;color:var(--text3)}
+.empty-icon{font-size:32px;margin-bottom:8px}
+.empty-text{font-size:11px}
+
+/* PROGRESS */
+.progress-bar{height:6px;background:var(--bg3);border-radius:6px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:6px;transition:width 0.8s ease}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">🎓</div>
+    <div>
+      <div class="logo-name">منصة آمنة التعليمية</div>
+      <div class="logo-sub">مدرسة النور</div>
+    </div>
+  </div>
+  <div class="user-info">
+    <div class="user-dot"></div>
+    <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+  </div>
+  <a href="/accounts/logout/" class="logout-btn">تسجيل الخروج</a>
+</div>
+
+<div class="main">
+
+  <!-- ترحيب -->
+  <div class="welcome">
+    <div>
+      <div class="welcome-text">أهلاً {{ request.user.get_full_name|default:request.user.username }} 👋</div>
+      <div class="welcome-sub">مرحباً بكِ في منصة آمنة التعليمية — جاهزة للتعلم اليوم؟</div>
+    </div>
+    <div class="welcome-emoji">📚</div>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-grid">
+    <div class="kpi g">
+      <div class="kpi-label">اختبارات أدّيتِها</div>
+      <div class="kpi-value" style="color:var(--green)">{{ total_exams }}</div>
+      <div class="kpi-sub">إجمالي الاختبارات</div>
+    </div>
+    <div class="kpi b">
+      <div class="kpi-label">اختبارات ناجحة</div>
+      <div class="kpi-value" style="color:var(--blue)">{{ passed_exams }}</div>
+      <div class="kpi-sub">من {{ total_exams }} اختبار</div>
+    </div>
+    <div class="kpi p">
+      <div class="kpi-label">متوسط درجاتي</div>
+      <div class="kpi-value" style="color:var(--purple)">{{ avg_score }}%</div>
+      <div class="kpi-sub">المعدل العام</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:{{ avg_score }}%;background:var(--purple)"></div></div>
+    </div>
+  </div>
+
+  <!-- الاختبارات المتاحة -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">📝 الاختبارات المتاحة لكِ</span>
+      <span style="font-size:9px;color:var(--text3)">{{ available_exams|length }} اختبار</span>
+    </div>
+    <div class="cb">
+      {% if available_exams %}
+        <div class="exam-grid">
+          {% for exam in available_exams %}
+          <div class="exam-card {% if exam.exam_type == 'pre' %}pre{% elif exam.exam_type == 'post' %}post{% else %}lesson{% endif %}">
+            <div class="exam-name">{{ exam.get_exam_type_display }}</div>
+            <div class="exam-skill">📚 {{ exam.skill.title }}</div>
+            <div class="exam-meta">
+              <span class="exam-badge {% if exam.exam_type == 'pre' %}eb-pre{% elif exam.exam_type == 'post' %}eb-post{% else %}eb-lesson{% endif %}">
+                {{ exam.get_exam_type_display }}
+              </span>
+              <span class="exam-badge" style="background:var(--bg3);color:var(--text3)">⏱️ {{ exam.duration_minutes }} دقيقة</span>
+              <span class="exam-badge" style="background:var(--bg3);color:var(--text3)">❓ {{ exam.questions_count }} سؤال</span>
+            </div>
+            <a href="/students/exam/{{ exam.id }}/" class="exam-btn">ابدئي الاختبار ←</a>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty">
+          <div class="empty-icon">✅</div>
+          <div class="empty-text">أحسنتِ! أدّيتِ جميع الاختبارات المتاحة</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- نتائجي السابقة -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">📊 نتائجي السابقة</span>
+      <span style="font-size:9px;color:var(--text3)">آخر {{ my_results|length }} نتيجة</span>
+    </div>
+    <div class="cb">
+      {% if my_results %}
+        {% for result in my_results %}
+        <div class="result-row">
+          <div class="result-num {% if result.passed %}rn-pass{% else %}rn-fail{% endif %}">
+            {% if result.passed %}✓{% else %}✗{% endif %}
+          </div>
+          <div class="result-info">
+            <div class="result-name">{{ result.exam.get_exam_type_display }} — {{ result.exam.skill.title }}</div>
+            <div class="result-date">{{ result.submitted_at|date:"Y/m/d — H:i" }}</div>
+            <div class="progress-bar" style="margin-top:5px">
+              <div class="progress-fill" style="width:{{ result.percentage }}%;background:{% if result.passed %}var(--green){% else %}var(--red){% endif %}"></div>
+            </div>
+          </div>
+          <div class="result-score" style="color:{% if result.passed %}var(--green){% else %}var(--red){% endif %}">
+            {{ result.score }}/{{ result.total }}
+          </div>
+          <a href="/students/result/{{ result.id }}/" style="font-size:9px;color:var(--blue);text-decoration:none;padding:3px 8px;border:1px solid rgba(79,142,247,0.2);border-radius:5px;background:rgba(79,142,247,0.06)">تفاصيل</a>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">لا توجد نتائج بعد — ابدئي أول اختبار!</div>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ساعة
+function upClk(){
+  const n=new Date();
+  // يمكن إضافة ساعة لاحقاً
+}
+</script>
+</body>
+</html>
