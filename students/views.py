@@ -1,7 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.utils import timezone
 from teachers.models import (
     TeacherSkill, TeacherExam, TeacherQuestion,
     ExamResult, StudentAnswer
@@ -24,9 +23,14 @@ def check_student(request):
         return profile.role == 'STUDENT'
     except:
         return False
+
+
+# ═══════════════════════════════════════
+# استيراد الطالبات
+# ═══════════════════════════════════════
+
 @login_required
 def import_students_excel(request):
-    """استيراد الطالبات من Excel نظام نور"""
     try:
         profile = request.user.core_profile
         if profile.role not in ['ADMIN', 'TEACHER']:
@@ -39,9 +43,8 @@ def import_students_excel(request):
         from django.contrib.auth.models import User
         from core.models import Profile
 
-        excel_file = request.FILES['excel_file']
         try:
-            wb = openpyxl.load_workbook(excel_file)
+            wb = openpyxl.load_workbook(request.FILES['excel_file'])
             ws = wb.active
             count = 0
             errors = []
@@ -58,16 +61,11 @@ def import_students_excel(request):
                     continue
 
                 try:
-                    # إنشاء أو جلب الفصل
                     classroom, _ = ClassRoom.objects.get_or_create(name=classroom_name)
-
-                    # إنشاء أو جلب الطالبة
-                    student, created = Student.objects.get_or_create(
+                    Student.objects.get_or_create(
                         full_name=full_name,
                         defaults={'classroom': classroom}
                     )
-
-                    # إنشاء حساب المستخدم
                     if not User.objects.filter(username=national_id).exists():
                         user = User.objects.create_user(
                             username=national_id,
@@ -79,7 +77,6 @@ def import_students_excel(request):
                             national_id=national_id,
                         )
                         count += 1
-
                 except Exception as e:
                     errors.append(f'{full_name}: {str(e)}')
 
@@ -91,7 +88,9 @@ def import_students_excel(request):
         except Exception as e:
             messages.error(request, f'❌ خطأ في الملف: {str(e)}')
 
-    return redirect('home')
+    return render(request, 'students/import_students.html')
+
+
 # ═══════════════════════════════════════
 # داشبورد الطالبة
 # ═══════════════════════════════════════
@@ -101,17 +100,10 @@ def student_dashboard(request):
     if not check_student(request):
         return redirect('home')
 
-    # المهارات المفعّلة
-    active_skills = TeacherSkill.objects.filter(
-        is_active=True
-    ).prefetch_related('exams').order_by('-created_at')
-
-    # نتائج الطالبة
     my_results = ExamResult.objects.filter(
         student=request.user
     ).select_related('exam', 'exam__skill').order_by('-submitted_at')
 
-    # إحصاءات
     total_exams = my_results.count()
     passed_exams = my_results.filter(passed=True).count()
     avg_score = 0
@@ -120,14 +112,12 @@ def student_dashboard(request):
             sum(r.percentage for r in my_results) / total_exams, 1
         )
 
-    # الاختبارات المتاحة (لم تؤديها بعد)
     done_exam_ids = my_results.values_list('exam_id', flat=True)
     available_exams = TeacherExam.objects.filter(
         is_active=True
     ).exclude(id__in=done_exam_ids).select_related('skill')
 
     context = {
-        'active_skills': active_skills,
         'my_results': my_results[:10],
         'available_exams': available_exams,
         'total_exams': total_exams,
@@ -144,11 +134,10 @@ def student_dashboard(request):
 @login_required
 def take_exam(request, exam_id):
     if not check_student(request):
-        return render(request, 'students/import_students.html')
+        return redirect('home')
 
     exam = get_object_or_404(TeacherExam, id=exam_id, is_active=True)
 
-    # تحقق إن الطالبة ما أدّت الاختبار قبل
     if ExamResult.objects.filter(exam=exam, student=request.user).exists():
         messages.warning(request, '⚠️ لقد أدّيتِ هذا الاختبار مسبقاً')
         return redirect('student_dashboard')
@@ -163,7 +152,6 @@ def take_exam(request, exam_id):
         score = 0
         total = questions.count()
 
-        # إنشاء النتيجة
         result = ExamResult.objects.create(
             exam=exam,
             student=request.user,
@@ -174,13 +162,11 @@ def take_exam(request, exam_id):
             time_taken_seconds=int(request.POST.get('time_taken', 0)),
         )
 
-        # حفظ إجابات الطالبة
         for question in questions:
             chosen = request.POST.get(f'q_{question.id}', '')
             is_correct = chosen == question.correct_answer
             if is_correct:
                 score += 1
-
             StudentAnswer.objects.create(
                 result=result,
                 question=question,
@@ -188,7 +174,6 @@ def take_exam(request, exam_id):
                 is_correct=is_correct,
             )
 
-        # تحديث النتيجة
         percentage = round((score / total * 100), 1) if total > 0 else 0
         result.score = score
         result.percentage = percentage
@@ -201,7 +186,7 @@ def take_exam(request, exam_id):
     context = {
         'exam': exam,
         'questions': questions,
-        'duration': exam.duration_minutes * 60,  # بالثواني
+        'duration': exam.duration_minutes * 60,
     }
     return render(request, 'students/take_exam.html', context)
 
