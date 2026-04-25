@@ -144,7 +144,7 @@ def student_dashboard(request):
 @login_required
 def take_exam(request, exam_id):
     if not check_student(request):
-        return redirect('home')
+        return render(request, 'students/import_students.html')
 
     exam = get_object_or_404(TeacherExam, id=exam_id, is_active=True)
 
