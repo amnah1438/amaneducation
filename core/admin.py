@@ -43,8 +43,10 @@ admin.site.site_header = "🎓 إدارة منصة آمنة التعليمية"
 admin.site.site_title = "منصة آمنة"
 admin.site.index_title = "لوحة التحكم الرئيسية"
 
-admin.site.unregister(Group)
-
+try:
+    admin.site.unregister(Group)
+except:
+    pass
 
 @admin.register(SchoolSettings)
 class SchoolSettingsAdmin(admin.ModelAdmin):
