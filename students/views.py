@@ -61,15 +61,26 @@ def import_students_excel(request):
                     continue
 
                 try:
+                    # إنشاء أو جلب الفصل
                     classroom, _ = ClassRoom.objects.get_or_create(name=classroom_name)
+
+                    # إنشاء أو جلب الطالبة
                     Student.objects.get_or_create(
                         full_name=full_name,
                         defaults={'classroom': classroom}
                     )
+
+                    # إنشاء حساب المستخدم مع الاسم
                     if not User.objects.filter(username=national_id).exists():
+                        name_parts = full_name.strip().split()
+                        first = name_parts[0] if name_parts else full_name
+                        last = ' '.join(name_parts[1:]) if len(name_parts) > 1 else ''
+
                         user = User.objects.create_user(
                             username=national_id,
                             password=national_id,
+                            first_name=first,
+                            last_name=last,
                         )
                         Profile.objects.create(
                             user=user,
@@ -77,6 +88,7 @@ def import_students_excel(request):
                             national_id=national_id,
                         )
                         count += 1
+
                 except Exception as e:
                     errors.append(f'{full_name}: {str(e)}')
 
