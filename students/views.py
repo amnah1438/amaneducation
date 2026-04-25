@@ -24,8 +24,74 @@ def check_student(request):
         return profile.role == 'STUDENT'
     except:
         return False
+@login_required
+def import_students_excel(request):
+    """استيراد الطالبات من Excel نظام نور"""
+    try:
+        profile = request.user.core_profile
+        if profile.role not in ['ADMIN', 'TEACHER']:
+            return redirect('home')
+    except:
+        return redirect('home')
 
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        import openpyxl
+        from django.contrib.auth.models import User
+        from core.models import Profile
 
+        excel_file = request.FILES['excel_file']
+        try:
+            wb = openpyxl.load_workbook(excel_file)
+            ws = wb.active
+            count = 0
+            errors = []
+
+            for row in ws.iter_rows(min_row=2, values_only=True):
+                if not row[0]:
+                    continue
+
+                full_name = str(row[0]).strip() if row[0] else ''
+                national_id = str(row[1]).strip() if row[1] else ''
+                classroom_name = str(row[2]).strip() if len(row) > 2 and row[2] else 'ث١٢'
+
+                if not full_name or not national_id:
+                    continue
+
+                try:
+                    # إنشاء أو جلب الفصل
+                    classroom, _ = ClassRoom.objects.get_or_create(name=classroom_name)
+
+                    # إنشاء أو جلب الطالبة
+                    student, created = Student.objects.get_or_create(
+                        full_name=full_name,
+                        defaults={'classroom': classroom}
+                    )
+
+                    # إنشاء حساب المستخدم
+                    if not User.objects.filter(username=national_id).exists():
+                        user = User.objects.create_user(
+                            username=national_id,
+                            password=national_id,
+                        )
+                        Profile.objects.create(
+                            user=user,
+                            role='STUDENT',
+                            national_id=national_id,
+                        )
+                        count += 1
+
+                except Exception as e:
+                    errors.append(f'{full_name}: {str(e)}')
+
+            if errors:
+                messages.warning(request, f'✅ تم استيراد {count} طالبة مع {len(errors)} أخطاء')
+            else:
+                messages.success(request, f'✅ تم استيراد {count} طالبة بنجاح!')
+
+        except Exception as e:
+            messages.error(request, f'❌ خطأ في الملف: {str(e)}')
+
+    return redirect('home')
 # ═══════════════════════════════════════
 # داشبورد الطالبة
 # ═══════════════════════════════════════
