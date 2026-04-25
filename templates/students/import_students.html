@@ -1,0 +1,146 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>استيراد الطالبات — منصة آمنة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;
+  --card:#0f1424;--card2:#161d30;
+  --border:#1a2236;--border2:#223050;
+  --green:#0fba81;--green2:#065442;
+  --blue:#4f8ef7;--blue2:#1a3060;
+  --text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;
+  --orange:#f5a623;--red:#f05252;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,0.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.logo-name{font-size:12px;font-weight:800}
+.main{max-width:700px;margin:30px auto;padding:0 20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.ch{padding:12px 16px;border-bottom:1px solid var(--border);background:var(--bg2);font-size:12px;font-weight:700;color:var(--text2)}
+.cb{padding:20px}
+.excel-zone{border:2px dashed var(--border2);border-radius:10px;padding:30px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--bg3);margin-bottom:14px}
+.excel-zone:hover{border-color:var(--green);background:rgba(15,186,129,0.03)}
+.excel-zone.active{border-color:var(--green);background:rgba(15,186,129,0.05)}
+.excel-icon{font-size:40px;margin-bottom:10px}
+.excel-text{font-size:12px;color:var(--text2);font-weight:600;margin-bottom:4px}
+.excel-sub{font-size:10px;color:var(--text3)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);width:100%}
+.btn-g:hover{opacity:0.85}
+.btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25);text-decoration:none}
+.table-info{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}
+.table-info th{background:var(--bg3);color:var(--text3);padding:8px 10px;text-align:right;border-bottom:1px solid var(--border);font-weight:600}
+.table-info td{padding:8px 10px;border-bottom:1px solid rgba(30,42,61,0.5);color:var(--text2)}
+.msg{padding:10px 14px;border-radius:8px;font-size:11px;margin-bottom:12px;border-right:3px solid;display:flex;align-items:center;gap:8px}
+.msg-s{background:rgba(15,186,129,0.08);border-color:var(--green);color:#6ee7a0}
+.msg-e{background:rgba(240,82,82,0.08);border-color:var(--red);color:#fca5a5}
+.msg-w{background:rgba(245,166,35,0.08);border-color:var(--orange);color:#fcd34d}
+.file-name{background:rgba(15,186,129,0.06);border:1px solid rgba(15,186,129,0.2);border-radius:6px;padding:8px 12px;font-size:10px;color:var(--green);margin-bottom:10px;display:none}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">🎓</div>
+    <div><div class="logo-name">منصة آمنة التعليمية</div></div>
+  </div>
+  <a href="/" class="btn-b btn" style="font-size:10px">← الرئيسية</a>
+</div>
+
+<div class="main">
+  <div style="font-size:18px;font-weight:800;margin-bottom:4px">📥 استيراد الطالبات من Excel</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:16px">استيراد بيانات الطالبات من نظام نور أو ملف Excel</div>
+
+  {% if messages %}
+    {% for msg in messages %}
+    <div class="msg {% if 'error' in msg.tags %}msg-e{% elif 'warning' in msg.tags %}msg-w{% else %}msg-s{% endif %}">
+      {{ msg }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- فورم الرفع -->
+  <div class="card">
+    <div class="ch">📤 رفع ملف Excel</div>
+    <div class="cb">
+      <form method="post" enctype="multipart/form-data" id="importForm">
+        {% csrf_token %}
+        <div class="excel-zone" onclick="document.getElementById('excelFile').click()" id="dropZone">
+          <div class="excel-icon">📊</div>
+          <div class="excel-text">اضغطي لاختيار ملف Excel</div>
+          <div class="excel-sub">.xlsx أو .xls — من نظام نور أو ملف مخصص</div>
+          <input type="file" id="excelFile" name="excel_file" accept=".xlsx,.xls" style="display:none" onchange="fileSelected(this)" required>
+        </div>
+        <div class="file-name" id="fileName">📎 —</div>
+        <button type="submit" class="btn btn-g">📥 استيراد الطالبات الآن</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- شكل الملف المطلوب -->
+  <div class="card">
+    <div class="ch">📋 شكل ملف Excel المطلوب</div>
+    <div class="cb">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:10px">
+        الملف يجب أن يحتوي على الأعمدة التالية بالترتيب:
+      </div>
+      <table class="table-info">
+        <thead>
+          <tr>
+            <th>العمود A</th>
+            <th>العمود B</th>
+            <th>العمود C</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="color:var(--green);font-weight:700">اسم الطالبة *</td>
+            <td style="color:var(--green);font-weight:700">رقم الهوية *</td>
+            <td style="color:var(--orange)">الفصل (اختياري)</td>
+          </tr>
+          <tr>
+            <td>فاطمة محمد العنزي</td>
+            <td>1234567890</td>
+            <td>ث١٢</td>
+          </tr>
+          <tr>
+            <td>نورة أحمد الشمري</td>
+            <td>0987654321</td>
+            <td>ث١١</td>
+          </tr>
+          <tr>
+            <td>سارة علي القحطاني</td>
+            <td>1122334455</td>
+            <td>ث١٢</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px;padding:8px 12px;background:rgba(79,142,247,0.06);border-radius:7px;font-size:10px;color:var(--blue);border-right:3px solid var(--blue)">
+        <strong>ملاحظة:</strong> رقم الهوية يُستخدم كاسم مستخدم وكلمة مرور للطالبة تلقائياً.
+        إذا كانت الطالبة موجودة مسبقاً لن يتم تكرارها.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function fileSelected(input){
+  if(input.files[0]){
+    const fn = document.getElementById('fileName');
+    fn.textContent = '📎 ' + input.files[0].name;
+    fn.style.display = 'block';
+    document.getElementById('dropZone').classList.add('active');
+  }
+}
+</script>
+</body>
+</html>
