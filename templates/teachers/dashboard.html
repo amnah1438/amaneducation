@@ -652,6 +652,7 @@ body {
       <div class="clock-time" id="tv"></div>
     </div>
     <div class="user-badge"><div class="user-dot"></div>{{ teacher.full_name|default:user.username }}</div>
+    <button class="print-btn" style="background:rgba(139,92,246,0.1);border-color:var(--purple);color:var(--purple)" onclick="document.getElementById('settingsModal').classList.add('on')">🎨 الإعدادات</button>
     <button class="print-btn" onclick="window.print()">🖨️ طباعة PDF</button>
   </div>
 </div>
