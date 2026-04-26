@@ -224,3 +224,68 @@ def student_result_view(request, result_id):
         'answers': answers,
     }
     return render(request, 'students/result.html', context)
+@login_required
+def manage_students(request):
+    """إدارة الطالبات — لوحة موحدة"""
+    try:
+        profile = request.user.core_profile
+        if profile.role not in ['ADMIN', 'TEACHER']:
+            return redirect('home')
+    except:
+        return redirect('home')
+
+    from django.contrib.auth.models import User
+    from core.models import Profile
+
+    # جلب كل الطالبات مع بياناتهن
+    student_profiles = Profile.objects.filter(
+        role='STUDENT'
+    ).select_related('user').order_by('user__first_name')
+
+    students_data = []
+    for profile in student_profiles:
+        student = Student.objects.filter(
+            full_name__icontains=profile.user.first_name
+        ).first()
+        results_count = ExamResult.objects.filter(student=profile.user).count()
+        passed_count = ExamResult.objects.filter(student=profile.user, passed=True).count()
+
+        students_data.append({
+            'profile': profile,
+            'user': profile.user,
+            'student': student,
+            'classroom': student.classroom.name if student else '—',
+            'full_name': f"{profile.user.first_name} {profile.user.last_name}".strip() or profile.user.username,
+            'national_id': profile.national_id,
+            'is_active': profile.user.is_active,
+            'last_login': profile.user.last_login,
+            'results_count': results_count,
+            'passed_count': passed_count,
+        })
+
+    # حذف طالبة
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        user_id = request.POST.get('user_id')
+
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+                if action == 'delete':
+                    user.delete()
+                    messages.success(request, '🗑️ تم حذف الطالبة بنجاح')
+                elif action == 'toggle':
+                    user.is_active = not user.is_active
+                    user.save()
+                    status = 'تفعيل' if user.is_active else 'تعطيل'
+                    messages.success(request, f'✅ تم {status} حساب الطالبة')
+            except:
+                messages.error(request, '❌ حدث خطأ')
+
+        return redirect('manage_students')
+
+    context = {
+        'students_data': students_data,
+        'total': len(students_data),
+    }
+    return render(request, 'students/manage_students.html', context)
