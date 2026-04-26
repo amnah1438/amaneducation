@@ -598,7 +598,61 @@ body {
 .comp-post { font-size: 11px; color: var(--green); font-weight: 600; }
 .comp-arr { font-size: 9px; color: var(--text3); }
 .comp-diff { font-size: 10px; font-weight: 700; }
+<!-- مودال الإعدادات -->
+<div class="mbg" id="settingsModal">
+  <div class="mdl" style="max-width:480px">
+    <div class="mh">
+      <div class="mt">🎨 إعدادات العرض</div>
+      <button class="mx" onclick="document.getElementById('settingsModal').classList.remove('on')">✕</button>
+    </div>
 
+    <!-- الثيمات الجاهزة -->
+    <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-weight:600">🎨 ثيمات جاهزة</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:14px">
+      <button onclick="applyTheme('dark')" style="padding:8px;border-radius:8px;border:1px solid var(--border2);background:linear-gradient(135deg,#0a0d14,#0f1320);color:white;font-family:Tajawal;font-size:10px;cursor:pointer">🌑 داكن (افتراضي)</button>
+      <button onclick="applyTheme('blue')" style="padding:8px;border-radius:8px;border:1px solid #1e3a5f;background:linear-gradient(135deg,#0a0f1e,#0f1a35);color:white;font-family:Tajawal;font-size:10px;cursor:pointer">🔵 أزرق</button>
+      <button onclick="applyTheme('green')" style="padding:8px;border-radius:8px;border:1px solid #065f46;background:linear-gradient(135deg,#022c1a,#065f46);color:white;font-family:Tajawal;font-size:10px;cursor:pointer">🟢 أخضر</button>
+      <button onclick="applyTheme('purple')" style="padding:8px;border-radius:8px;border:1px solid #4c1d95;background:linear-gradient(135deg,#1a0a2e,#4c1d95);color:white;font-family:Tajawal;font-size:10px;cursor:pointer">🟣 بنفسجي</button>
+      <button onclick="applyTheme('rose')" style="padding:8px;border-radius:8px;border:1px solid #9f1239;background:linear-gradient(135deg,#1a0a0a,#9f1239);color:white;font-family:Tajawal;font-size:10px;cursor:pointer">🌹 وردي</button>
+      <button onclick="applyTheme('light')" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0;background:linear-gradient(135deg,#f8fafc,#e2e8f0);color:#1e293b;font-family:Tajawal;font-size:10px;cursor:pointer">☀️ فاتح</button>
+    </div>
+
+    <!-- تغيير اللون الرئيسي -->
+    <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-weight:600">🖌️ اللون الرئيسي</div>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button onclick="setPrimaryColor('#10b981')" style="width:32px;height:32px;border-radius:50%;background:#10b981;border:2px solid transparent;cursor:pointer" title="أخضر"></button>
+      <button onclick="setPrimaryColor('#3b82f6')" style="width:32px;height:32px;border-radius:50%;background:#3b82f6;border:2px solid transparent;cursor:pointer" title="أزرق"></button>
+      <button onclick="setPrimaryColor('#8b5cf6')" style="width:32px;height:32px;border-radius:50%;background:#8b5cf6;border:2px solid transparent;cursor:pointer" title="بنفسجي"></button>
+      <button onclick="setPrimaryColor('#f59e0b')" style="width:32px;height:32px;border-radius:50%;background:#f59e0b;border:2px solid transparent;cursor:pointer" title="برتقالي"></button>
+      <button onclick="setPrimaryColor('#ef4444')" style="width:32px;height:32px;border-radius:50%;background:#ef4444;border:2px solid transparent;cursor:pointer" title="أحمر"></button>
+      <button onclick="setPrimaryColor('#14b8a6')" style="width:32px;height:32px;border-radius:50%;background:#14b8a6;border:2px solid transparent;cursor:pointer" title="تيل"></button>
+      <button onclick="setPrimaryColor('#ec4899')" style="width:32px;height:32px;border-radius:50%;background:#ec4899;border:2px solid transparent;cursor:pointer" title="وردي"></button>
+      <input type="color" id="customColor" onchange="setPrimaryColor(this.value)" style="width:32px;height:32px;border-radius:50%;border:2px dashed var(--border2);cursor:pointer;background:none;padding:2px" title="لون مخصص">
+    </div>
+
+    <!-- نوع الرسم البياني -->
+    <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-weight:600">📊 نوع الرسم البياني الرئيسي</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">
+      <button onclick="changeChartType('line')" style="padding:8px;border-radius:7px;border:1px solid var(--border2);background:var(--card2);color:var(--text2);font-family:Tajawal;font-size:10px;cursor:pointer">📈 خطي</button>
+      <button onclick="changeChartType('bar')" style="padding:8px;border-radius:7px;border:1px solid var(--border2);background:var(--card2);color:var(--text2);font-family:Tajawal;font-size:10px;cursor:pointer">📊 أعمدة</button>
+      <button onclick="changeChartType('radar')" style="padding:8px;border-radius:7px;border:1px solid var(--border2);background:var(--card2);color:var(--text2);font-family:Tajawal;font-size:10px;cursor:pointer">🕸️ رادار</button>
+      <button onclick="changeChartType('doughnut')" style="padding:8px;border-radius:7px;border:1px solid var(--border2);background:var(--card2);color:var(--text2);font-family:Tajawal;font-size:10px;cursor:pointer">🍩 دائري</button>
+    </div>
+
+    <!-- حجم الخط -->
+    <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-weight:600">🔤 حجم الخط</div>
+    <div style="display:flex;gap:7px;margin-bottom:14px">
+      <button onclick="setFontSize('small')" style="padding:6px 14px;border-radius:7px;border:1px solid var(--border2);background:var(--card2);color:var(--text2);font-family:Tajawal;font-size:10px;cursor:pointer">صغير</button>
+      <button onclick="setFontSize('medium')" style="padding:6px 14px;border-radius:7px;border:1px solid var(--green);background:rgba(16,185,129,0.1);color:var(--green);font-family:Tajawal;font-size:10px;cursor:pointer">متوسط</button>
+      <button onclick="setFontSize('large')" style="padding:6px 14px;border-radius:7px;border:1px solid var(--border2);background:var(--card2);color:var(--text2);font-family:Tajawal;font-size:10px;cursor:pointer">كبير</button>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="gbtn" onclick="resetSettings()">↺ إعادة تعيين</button>
+      <button class="pbtn2" onclick="document.getElementById('settingsModal').classList.remove('on')">✅ حفظ</button>
+    </div>
+  </div>
+</div>
 /* ═══════════════════════════════
    PRINT STYLES
 ═══════════════════════════════ */
