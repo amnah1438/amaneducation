@@ -1438,8 +1438,7 @@ const ax={ticks:cf,grid:gc,border:{color:'#1e2a3d'}};
 Chart.defaults.color='#475569';
 
 // ── منحنى تقدم الفصل ──
-new Chart(document.getElementById('mainC'),{
-  type:'line',
+window.mainChart = new Chart(document.getElementById('mainC'),{  type:'line',
   data:{
     labels:['يناير','فبراير','مارس','أبريل','مايو','يونيو'],
     datasets:[
@@ -1663,11 +1662,12 @@ function changeChartType(type){
 }
 
 function setFontSize(size){
-  const sizes = { small:'12px', medium:'14px', large:'16px' };
-  document.body.style.fontSize = sizes[size] || '14px';
+  const root = document.documentElement;
+  const sizes = { small:'0.85', medium:'1', large:'1.15' };
+  root.style.setProperty('--font-scale', sizes[size] || '1');
+  document.body.style.zoom = sizes[size] || '1';
   localStorage.setItem('dashboard-font-size', size);
 }
-
 function resetSettings(){
   localStorage.removeItem('dashboard-theme');
   localStorage.removeItem('dashboard-primary-color');
