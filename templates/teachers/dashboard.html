@@ -1388,8 +1388,62 @@ body {
     </div>
   </div>
 </div>
+// ═══════════════════════════════════
+// إعدادات العرض
+// ═══════════════════════════════════
+function applyTheme(theme){
+  const root = document.documentElement;
+  const themes = {
+    dark: { '--bg':'#0a0d14','--bg2':'#0f1320','--bg3':'#141928','--card':'#111827','--card2':'#1a2235' },
+    blue: { '--bg':'#0a0f1e','--bg2':'#0f1a35','--bg3':'#142040','--card':'#111c38','--card2':'#1a2a50' },
+    green: { '--bg':'#022c1a','--bg2':'#033d24','--bg3':'#044d2e','--card':'#055c37','--card2':'#066b40' },
+    purple: { '--bg':'#1a0a2e','--bg2':'#220d3d','--bg3':'#2a1050','--card':'#32136a','--card2':'#3a1680' },
+    rose: { '--bg':'#1a0a0a','--bg2':'#220d0d','--bg3':'#2a1010','--card':'#321313','--card2':'#3a1616' },
+    light: { '--bg':'#f8fafc','--bg2':'#f1f5f9','--bg3':'#e2e8f0','--card':'#ffffff','--card2':'#f8fafc','--text':'#1e293b','--text2':'#475569','--text3':'#94a3b8','--border':'#e2e8f0','--border2':'#cbd5e1' },
+  };
+  const t = themes[theme] || themes.dark;
+  Object.entries(t).forEach(([k,v])=> root.style.setProperty(k,v));
+  localStorage.setItem('dashboard-theme', theme);
+}
 
-<!-- ═══════════════════════════════════════════════
+function setPrimaryColor(color){
+  const root = document.documentElement;
+  root.style.setProperty('--green', color);
+  root.style.setProperty('--green2', color+'33');
+  localStorage.setItem('dashboard-primary-color', color);
+}
+
+function changeChartType(type){
+  if(window.mainChart){
+    window.mainChart.config.type = type;
+    window.mainChart.update();
+  }
+  localStorage.setItem('dashboard-chart-type', type);
+}
+
+function setFontSize(size){
+  const sizes = { small:'12px', medium:'14px', large:'16px' };
+  document.body.style.fontSize = sizes[size] || '14px';
+  localStorage.setItem('dashboard-font-size', size);
+}
+
+function resetSettings(){
+  localStorage.removeItem('dashboard-theme');
+  localStorage.removeItem('dashboard-primary-color');
+  localStorage.removeItem('dashboard-chart-type');
+  localStorage.removeItem('dashboard-font-size');
+  location.reload();
+}
+
+// تحميل الإعدادات المحفوظة
+(function loadSettings(){
+  const theme = localStorage.getItem('dashboard-theme');
+  const color = localStorage.getItem('dashboard-primary-color');
+  const fontSize = localStorage.getItem('dashboard-font-size');
+  if(theme) applyTheme(theme);
+  if(color) setPrimaryColor(color);
+  if(fontSize) setFontSize(fontSize);
+})();<!-- ═══════════════════════════════════════════════
      JAVASCRIPT
 ═══════════════════════════════════════════════ -->
 <script>
