@@ -40,20 +40,19 @@ class SchoolSettingsAdmin(admin.ModelAdmin):
 
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'role', 'national_id')
+    list_display = ('get_full_name', 'role', 'national_id', 'get_last_login')
     list_filter = ('role',)
-    search_fields = ('user__username', 'national_id')
-    list_editable = ('role',)    
-    def get_urls(self):
-        from django.urls import path
-        urls = super().get_urls()
-        custom = [
-            path('import-students/', 
-                 self.admin_site.admin_view(self.import_students_view),
-                 name='import_students'),
-        ]
-        return custom + urls
-    
-    def import_students_view(self, request):
-        from django.shortcuts import redirect
-        return redirect('/students/import/')
+    search_fields = ('user__first_name', 'user__last_name', 'national_id')
+    list_editable = ('role',)
+    ordering = ('role', 'user__first_name')
+
+    def get_full_name(self, obj):
+        name = f"{obj.user.first_name} {obj.user.last_name}".strip()
+        return name or obj.user.username
+    get_full_name.short_description = 'الاسم الكامل'
+
+    def get_last_login(self, obj):
+        if obj.user.last_login:
+            return obj.user.last_login.strftime('%Y/%m/%d')
+        return '—'
+    get_last_login.short_description = 'آخر دخول'
