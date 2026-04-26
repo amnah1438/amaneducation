@@ -1,39 +1,112 @@
-from django.shortcuts import render, get_object_or_404
-from .models import SchoolSettings, Skill
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from django.utils import timezone
+from .models import SchoolSettings
+from teachers.models import (
+    TeacherSkill, TeacherExam, ExamResult, ClassSession
+)
+from students.models import ClassRoom
 
-# --- دالة الصفحة الرئيسية ---
+
 def home(request):
-    settings = SchoolSettings.objects.first()
-    all_skills = Skill.objects.all()
-    
+    settings_obj = SchoolSettings.objects.first()
+
+    # المهارات حسب النوع
+    qodrat_kamy = TeacherSkill.objects.filter(
+        is_active=True, skill_type='كمي'
+    ).order_by('-created_at')
+
+    qodrat_lafzy = TeacherSkill.objects.filter(
+        is_active=True, skill_type='لفظي'
+    ).order_by('-created_at')
+
+    tahsili = TeacherSkill.objects.filter(
+        is_active=True, content_type='lesson'
+    ).order_by('-created_at')
+
+    banks = TeacherSkill.objects.filter(
+        is_active=True, content_type='bank'
+    ).order_by('-created_at')
+
     context = {
-        'settings': settings,
-        'skills': all_skills,
+        'settings': settings_obj,
+        'qodrat_kamy': qodrat_kamy,
+        'qodrat_lafzy': qodrat_lafzy,
+        'tahsili': tahsili,
+        'banks': banks,
+        'classrooms': ClassRoom.objects.all(),
     }
     return render(request, 'core/home.html', context)
 
-# --- دالة تفاصيل المهارة (صفحة الفيديو والوصف) ---
-def skill_detail(request, skill_id):
-    settings = SchoolSettings.objects.first()
-    skill = get_object_or_404(Skill, pk=skill_id)
-    
-    context = {
-        'settings': settings,
-        'skill': skill,
-    }
-    return render(request, 'skill_detail.html', context)
 
-# --- الدالة الجديدة: دالة صفحة الاختبار (هذا ما أضفته لكِ) ---
-def take_test(request, skill_id):
-    settings = SchoolSettings.objects.first()
-    skill = get_object_or_404(Skill, pk=skill_id)
-    
-    # جلب الأسئلة القبلية (PRE) المحددة لهذه المهارة
-    questions = skill.questions.filter(test_type='PRE')
-    
+def skill_detail(request, skill_id):
+    settings_obj = SchoolSettings.objects.first()
+    skill = get_object_or_404(TeacherSkill, pk=skill_id)
+    exams = skill.exams.all()
+    pre_exam = exams.filter(exam_type='pre').first()
+    post_exam = exams.filter(exam_type='post').first()
+    classrooms = ClassRoom.objects.all()
+
     context = {
-        'settings': settings,
+        'settings': settings_obj,
         'skill': skill,
-        'questions': questions,
+        'pre_exam': pre_exam,
+        'post_exam': post_exam,
+        'classrooms': classrooms,
     }
-    return render(request, 'core/take_test.html', context)
+    return render(request, 'core/skill_detail.html', context)
+
+
+@login_required
+def activate_exam(request, exam_id):
+    """تفعيل اختبار لفصل معين وإرجاع الرابط"""
+    exam = get_object_or_404(TeacherExam, pk=exam_id)
+
+    if request.method == 'POST':
+        classroom_id = request.POST.get('classroom_id')
+        classroom = get_object_or_404(ClassRoom, pk=classroom_id)
+
+        # تفعيل الاختبار
+        exam.is_active = True
+        exam.save()
+
+        # تسجيل الحصة تلقائياً
+        try:
+            from teachers.models import Teacher
+            teacher = Teacher.objects.get(user=request.user)
+            ClassSession.objects.get_or_create(
+                teacher=teacher,
+                skill=exam.skill,
+                session_type='qodrat' if exam.skill.skill_type in ['كمي', 'لفظي'] else 'tahsili',
+                target_class=classroom.name,
+                session_date=timezone.now().date(),
+                defaults={
+                    'session_time': timezone.now().time(),
+                    'notes': f'تفعيل تلقائي — {exam.get_exam_type_display()}',
+                }
+            )
+        except:
+            pass
+
+        # رابط الاختبار
+        exam_url = request.build_absolute_uri(
+            f'/students/exam/{exam.id}/'
+        )
+
+        return JsonResponse({
+            'success': True,
+            'url': exam_url,
+            'message': f'✅ تم تفعيل {exam.get_exam_type_display()} للفصل {classroom.name}',
+        })
+
+    return JsonResponse({'success': False})
+
+
+@login_required
+def deactivate_exam(request, exam_id):
+    """إيقاف تفعيل اختبار"""
+    exam = get_object_or_404(TeacherExam, pk=exam_id)
+    exam.is_active = False
+    exam.save()
+    return JsonResponse({'success': True})
