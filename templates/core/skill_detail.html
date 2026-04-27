@@ -1,7 +1,5 @@
 {% load static %}
-
 <!DOCTYPE html>
-
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -29,7 +27,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .ct{font-size:11px;font-weight:700;color:var(--text2)}
 .cb{padding:16px}
 .exam-section{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.exam-card{border-radius:12px;padding:18px;border:1px solid}
+.exam-card{border-radius:12px;padding:18px;border:1px solid;margin-bottom:12px}
 .exam-pre{background:rgba(245,166,35,0.05);border-color:rgba(245,166,35,0.2)}
 .exam-post{background:rgba(15,186,129,0.05);border-color:rgba(15,186,129,0.2)}
 .exam-bank{background:rgba(155,114,245,0.05);border-color:rgba(155,114,245,0.2)}
@@ -80,24 +78,73 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="main">
 
+  <!-- HERO -->
   <div class="hero">
     <div>
       <div class="hero-title">📚 {{ skill.title }}</div>
       <div class="hero-sub">{{ skill.description|default:"لا يوجد وصف" }}</div>
       <div class="hero-badges">
-        {% if skill.content_type == 'skill' %}<span class="hb">🎯 مهارة قدرات</span>
-        {% elif skill.content_type == 'lesson' %}<span class="hb">📖 درس تحصيلي</span>
-        {% else %}<span class="hb">🗂️ بنك أسئلة</span>{% endif %}
+        {% if skill.content_type == "skill" %}
+          <span class="hb">🎯 مهارة قدرات</span>
+        {% elif skill.content_type == "lesson" %}
+          <span class="hb">📖 درس تحصيلي</span>
+        {% else %}
+          <span class="hb">🗂️ بنك أسئلة</span>
+        {% endif %}
         {% if skill.skill_type %}<span class="hb">{{ skill.skill_type }}</span>{% endif %}
         {% if skill.subject %}<span class="hb">{{ skill.subject }}</span>{% endif %}
         {% if skill.target_classes %}<span class="hb">📍 {{ skill.target_classes }}</span>{% endif %}
         <span class="hb">👩‍🏫 {{ skill.created_by.full_name|default:"—" }}</span>
       </div>
     </div>
-    <div style="font-size:50px">{% if skill.content_type == 'skill' %}🎯{% elif skill.content_type == 'lesson' %}📖{% else %}🗂️{% endif %}</div>
+    <div style="font-size:50px">
+      {% if skill.content_type == "skill" %}🎯
+      {% elif skill.content_type == "lesson" %}📖
+      {% else %}🗂️
+      {% endif %}
+    </div>
   </div>
 
-{% if skill.content_type != "bank" %}
+  <!-- رسائل -->
+  <div class="msg msg-s" id="successMsg"></div>
+  <div class="msg msg-e" id="errorMsg"></div>
+
+  {% if skill.content_type == "bank" %}
+
+  <!-- بنك الأسئلة -->
+  <div class="exam-card exam-bank">
+    <div class="exam-icon">🗂️</div>
+    <div class="exam-title" style="color:var(--purple)">بنك الأسئلة</div>
+    {% with exam=skill.exams.first %}
+      {% if exam %}
+        <div class="exam-meta">❓ {{ exam.questions.count }} سؤال • ⏱️ {{ exam.duration_minutes }} دقيقة • 🎯 {{ exam.pass_score }}%</div>
+        <div class="status-dot {% if exam.is_active %}status-on{% else %}status-off{% endif %}" id="bankStatus">
+          <div class="dot {% if exam.is_active %}dot-g{% else %}dot-r{% endif %}"></div>
+          {% if exam.is_active %}مفعّل{% else %}غير مفعّل{% endif %}
+        </div>
+        {% if request.user.is_authenticated %}
+        <select class="sel" id="bankClass">
+          <option value="">اختاري الفصل المستهدف</option>
+          {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
+        </select>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-p" onclick="activateExam({{ exam.id }}, 'bank')">🗂️ تفعيل بنك الأسئلة</button>
+          <button class="btn btn-b" onclick="showLinkBox('/students/exam/{{ exam.id }}/', 'bankLink', 'bankLinkText')">🔗 الرابط</button>
+        </div>
+        <div class="link-box" id="bankLink">
+          <span class="link-text" id="bankLinkText"></span>
+          <button class="copy-btn" onclick="copyText('bankLinkText')">نسخ</button>
+        </div>
+        {% endif %}
+      {% else %}
+        <div style="color:var(--text3);font-size:11px">لا توجد أسئلة بعد</div>
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  {% else %}
+
+  <!-- خطوات سير الحصة -->
   <div class="card">
     <div class="ch"><span class="ct">📋 خطوات سير الحصة</span></div>
     <div class="cb">
@@ -110,124 +157,98 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
   </div>
-  {% endif %}
 
-  <div class="msg msg-s" id="successMsg"></div>
-  <div class="msg msg-e" id="errorMsg"></div>
-
-
-  <div class="exam-bank exam-card">
-    <div class="exam-icon">🗂️</div>
-    <div class="exam-title" style="color:var(--purple)">بنك الأسئلة</div>
-    {% with exam=skill.exams.first %}
-    {% if exam %}
-    <div class="exam-meta">❓ {{ exam.questions.count }} سؤال • ⏱️ {{ exam.duration_minutes }} دقيقة • 🎯 {{ exam.pass_score }}%</div>
-    <div class="status-dot {% if exam.is_active %}status-on{% else %}status-off{% endif %}" id="bankStatus">
-      <div class="dot {% if exam.is_active %}dot-g{% else %}dot-r{% endif %}"></div>
-      {% if exam.is_active %}مفعّل{% else %}غير مفعّل{% endif %}
-    </div>
-    {% if request.user.is_authenticated %}
-    <select class="sel" id="bankClass">
-      <option value="">اختاري الفصل المستهدف</option>
-      {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
-    </select>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-p" onclick="activateExam({{ exam.id }}, 'bank')">🗂️ تفعيل بنك الأسئلة</button>
-      <button class="btn btn-b" onclick="showLinkBox('/students/exam/{{ exam.id }}/', 'bankLink', 'bankLinkText')">🔗 الرابط</button>
-    </div>
-    <div class="link-box" id="bankLink">
-      <span class="link-text" id="bankLinkText"></span>
-      <button class="copy-btn" onclick="copyText('bankLinkText')">نسخ</button>
-    </div>
-{% else %}
-    <div style="color:var(--text3);font-size:11px">لا توجد أسئلة بعد</div>
-    {% endif %}
-    {% endwith %}
-  </div>
-
-{% endif %}
-{% else %}
-
+  <!-- الاختبارات -->
   <div class="exam-section">
+
+    <!-- الاختبار القبلي -->
     <div class="exam-card exam-pre">
       <div class="exam-icon">📝</div>
       <div class="exam-title" style="color:var(--orange)">الاختبار القبلي</div>
       {% if pre_exam %}
-      <div class="exam-meta">❓ {{ pre_exam.questions.count }} سؤال • ⏱️ {{ pre_exam.duration_minutes }} دقيقة • 🎯 {{ pre_exam.pass_score }}%</div>
-      <div class="status-dot {% if pre_exam.is_active %}status-on{% else %}status-off{% endif %}" id="preStatus">
-        <div class="dot {% if pre_exam.is_active %}dot-g{% else %}dot-r{% endif %}"></div>
-        {% if pre_exam.is_active %}مفعّل{% else %}غير مفعّل{% endif %}
-      </div>
-      {% if request.user.is_authenticated %}
-      <select class="sel" id="preClass">
-        <option value="">اختاري الفصل</option>
-        {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
-      </select>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-o" onclick="activateExam({{ pre_exam.id }}, 'pre')">▶️ تفعيل القبلي</button>
-        <button class="btn btn-b" onclick="showLinkBox('/students/exam/{{ pre_exam.id }}/', 'preLink', 'preLinkText')">🔗 الرابط</button>
-        <button class="btn btn-r" onclick="deactivateExam({{ pre_exam.id }}, 'pre')">⏸️ إيقاف</button>
-      </div>
-      <div class="link-box" id="preLink">
-        <span class="link-text" id="preLinkText"></span>
-        <button class="copy-btn" onclick="copyText('preLinkText')">نسخ</button>
-      </div>
-      {% endif %}
+        <div class="exam-meta">❓ {{ pre_exam.questions.count }} سؤال • ⏱️ {{ pre_exam.duration_minutes }} دقيقة • 🎯 {{ pre_exam.pass_score }}%</div>
+        <div class="status-dot {% if pre_exam.is_active %}status-on{% else %}status-off{% endif %}" id="preStatus">
+          <div class="dot {% if pre_exam.is_active %}dot-g{% else %}dot-r{% endif %}"></div>
+          {% if pre_exam.is_active %}مفعّل{% else %}غير مفعّل{% endif %}
+        </div>
+        {% if request.user.is_authenticated %}
+        <select class="sel" id="preClass">
+          <option value="">اختاري الفصل</option>
+          {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
+        </select>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-o" onclick="activateExam({{ pre_exam.id }}, 'pre')">▶️ تفعيل القبلي</button>
+          <button class="btn btn-b" onclick="showLinkBox('/students/exam/{{ pre_exam.id }}/', 'preLink', 'preLinkText')">🔗 الرابط</button>
+          <button class="btn btn-r" onclick="deactivateExam({{ pre_exam.id }}, 'pre')">⏸️ إيقاف</button>
+        </div>
+        <div class="link-box" id="preLink">
+          <span class="link-text" id="preLinkText"></span>
+          <button class="copy-btn" onclick="copyText('preLinkText')">نسخ</button>
+        </div>
+        {% endif %}
       {% else %}
-      <div style="color:var(--text3);font-size:11px">لا يوجد اختبار قبلي</div>
+        <div style="color:var(--text3);font-size:11px">لا يوجد اختبار قبلي</div>
       {% endif %}
     </div>
 
-```
-<div class="exam-card exam-post">
-  <div class="exam-icon">✅</div>
-  <div class="exam-title" style="color:var(--green)">الاختبار البعدي</div>
-  {% if post_exam %}
-  <div class="exam-meta">❓ {{ post_exam.questions.count }} سؤال • ⏱️ {{ post_exam.duration_minutes }} دقيقة • 🎯 {{ post_exam.pass_score }}%</div>
-  <div class="status-dot {% if post_exam.is_active %}status-on{% else %}status-off{% endif %}" id="postStatus">
-    <div class="dot {% if post_exam.is_active %}dot-g{% else %}dot-r{% endif %}"></div>
-    {% if post_exam.is_active %}مفعّل{% else %}غير مفعّل{% endif %}
-  </div>
-  {% if request.user.is_authenticated %}
-  <select class="sel" id="postClass">
-    <option value="">اختاري الفصل</option>
-    {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
-  </select>
-  <div style="display:flex;gap:6px;flex-wrap:wrap">
-    <button class="btn btn-g" onclick="activateExam({{ post_exam.id }}, 'post')">▶️ تفعيل البعدي</button>
-    <button class="btn btn-b" onclick="showLinkBox('/students/exam/{{ post_exam.id }}/', 'postLink', 'postLinkText')">🔗 الرابط</button>
-    <button class="btn btn-r" onclick="deactivateExam({{ post_exam.id }}, 'post')">⏸️ إيقاف</button>
-  </div>
-  <div class="link-box" id="postLink">
-    <span class="link-text" id="postLinkText"></span>
-    <button class="copy-btn" onclick="copyText('postLinkText')">نسخ</button>
-  </div>
-  {% endif %}
-  {% else %}
-  <div style="color:var(--text3);font-size:11px">لا يوجد اختبار بعدي</div>
-  {% endif %}
-</div>
-```
-
-  </div>
-  {% endif %}
-
-{% with content=skill.contents.first %}
-{% if content and content.video_url %}
-
-  <div class="card">
-    <div class="ch"><span class="ct">🎬 محتوى الدرس</span></div>
-    <div class="cb">
-      <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:9px;overflow:hidden">
-        <iframe src="{{ content.video_url }}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen></iframe>
-      </div>
+    <!-- الاختبار البعدي -->
+    <div class="exam-card exam-post">
+      <div class="exam-icon">✅</div>
+      <div class="exam-title" style="color:var(--green)">الاختبار البعدي</div>
+      {% if post_exam %}
+        <div class="exam-meta">❓ {{ post_exam.questions.count }} سؤال • ⏱️ {{ post_exam.duration_minutes }} دقيقة • 🎯 {{ post_exam.pass_score }}%</div>
+        <div class="status-dot {% if post_exam.is_active %}status-on{% else %}status-off{% endif %}" id="postStatus">
+          <div class="dot {% if post_exam.is_active %}dot-g{% else %}dot-r{% endif %}"></div>
+          {% if post_exam.is_active %}مفعّل{% else %}غير مفعّل{% endif %}
+        </div>
+        {% if request.user.is_authenticated %}
+        <select class="sel" id="postClass">
+          <option value="">اختاري الفصل</option>
+          {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
+        </select>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-g" onclick="activateExam({{ post_exam.id }}, 'post')">▶️ تفعيل البعدي</button>
+          <button class="btn btn-b" onclick="showLinkBox('/students/exam/{{ post_exam.id }}/', 'postLink', 'postLinkText')">🔗 الرابط</button>
+          <button class="btn btn-r" onclick="deactivateExam({{ post_exam.id }}, 'post')">⏸️ إيقاف</button>
+        </div>
+        <div class="link-box" id="postLink">
+          <span class="link-text" id="postLinkText"></span>
+          <button class="copy-btn" onclick="copyText('postLinkText')">نسخ</button>
+        </div>
+        {% endif %}
+      {% else %}
+        <div style="color:var(--text3);font-size:11px">لا يوجد اختبار بعدي</div>
+      {% endif %}
     </div>
+
   </div>
+
   {% endif %}
+
+  <!-- محتوى الدرس -->
+  {% with content=skill.contents.first %}
+    {% if content %}
+      {% if content.video_url %}
+      <div class="card">
+        <div class="ch"><span class="ct">🎬 محتوى الدرس</span></div>
+        <div class="cb">
+          <div style="position:relative;padding-bottom:56.25%;height:0;border-radius:9px;overflow:hidden">
+            <iframe src="{{ content.video_url }}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none" allowfullscreen></iframe>
+          </div>
+          {% if content.plain_text %}
+          <div style="margin-top:14px;font-size:12px;color:var(--text2);line-height:2;padding:12px;background:var(--bg3);border-radius:8px">
+            {{ content.plain_text }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    {% endif %}
   {% endwith %}
 
 </div>
 
+<!-- Modal الرابط -->
 <div class="modal-bg" id="linkModal">
   <div class="modal">
     <div style="font-size:36px;margin-bottom:10px">🔗</div>
@@ -249,7 +270,6 @@ function activateExam(examId, type){
   const selMap = {pre:'preClass', post:'postClass', bank:'bankClass'};
   const classId = document.getElementById(selMap[type])?.value;
   if(!classId){ showMsg('يرجى اختيار الفصل أولاً', 'error'); return; }
-
   fetch('/activate-exam/'+examId+'/', {
     method:'POST',
     headers:{'X-CSRFToken':csrfToken,'Content-Type':'application/x-www-form-urlencoded'},
@@ -262,7 +282,10 @@ function activateExam(examId, type){
       document.getElementById('modalTitle').textContent = data.message;
       document.getElementById('modalLink').textContent = data.url;
       document.getElementById('linkModal').classList.add('show');
-      if(type==='pre'){ document.getElementById('step1').className='step done'; document.getElementById('step2').className='step active'; }
+      if(type==='pre'){
+        document.getElementById('step1').className='step done';
+        document.getElementById('step2').className='step active';
+      }
       if(type==='post'){ document.getElementById('step3').className='step done'; }
     }
   })
@@ -278,7 +301,10 @@ function deactivateExam(examId, type){
 function updateStatus(type, active){
   const idMap = {pre:'preStatus', post:'postStatus', bank:'bankStatus'};
   const el = document.getElementById(idMap[type]);
-  if(el){ el.className='status-dot '+(active?'status-on':'status-off'); el.innerHTML='<div class="dot '+(active?'dot-g':'dot-r')+'"></div>'+(active?'مفعّل':'غير مفعّل'); }
+  if(el){
+    el.className='status-dot '+(active?'status-on':'status-off');
+    el.innerHTML='<div class="dot '+(active?'dot-g':'dot-r')+'"></div>'+(active?'مفعّل':'غير مفعّل');
+  }
 }
 
 function showLinkBox(path, boxId, textId){
@@ -303,6 +329,5 @@ function showMsg(text, type){
   setTimeout(()=>el.style.display='none', 3000);
 }
 </script>
-
 </body>
 </html>
