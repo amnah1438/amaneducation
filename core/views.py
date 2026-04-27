@@ -142,3 +142,15 @@ def deactivate_exam(request, exam_id):
     exam.is_active = False
     exam.save()
     return JsonResponse({'success': True})
+
+def take_test(request, skill_id):
+    settings_obj = SchoolSettings.objects.first()
+    skill = get_object_or_404(TeacherSkill, pk=skill_id)
+    pre_exam = skill.exams.filter(exam_type='pre').first()
+    questions = pre_exam.questions.all() if pre_exam else []
+    context = {
+        'settings': settings_obj,
+        'skill': skill,
+        'questions': questions,
+    }
+    return render(request, 'core/take_test.html', context)
