@@ -97,8 +97,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
     <div style="font-size:50px">{% if skill.content_type == 'skill' %}🎯{% elif skill.content_type == 'lesson' %}📖{% else %}🗂️{% endif %}</div>
   </div>
 
-{% if skill.content_type != ‘bank’ %}
-
+{% if skill.content_type != "bank" %}
   <div class="card">
     <div class="ch"><span class="ct">📋 خطوات سير الحصة</span></div>
     <div class="cb">
