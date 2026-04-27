@@ -108,7 +108,6 @@ def add_skill(request):
         return redirect('skill_manager')
     return render(request, 'teachers/skill_manager.html', {'teacher': teacher})
 
-
 @login_required
 def add_skill_complete(request):
     if not check_teacher(request):
