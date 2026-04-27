@@ -12,7 +12,6 @@ from students.models import ClassRoom
 def home(request):
     settings_obj = SchoolSettings.objects.first()
 
-    # المهارات حسب النوع
     qodrat_kamy = TeacherSkill.objects.filter(
         is_active=True, skill_type='كمي'
     ).order_by('-created_at')
@@ -29,8 +28,8 @@ def home(request):
         is_active=True, content_type='bank'
     ).order_by('-created_at')
 
-all_skills = TeacherSkill.objects.filter(is_active=True).order_by('-created_at')
-    
+    all_skills = TeacherSkill.objects.filter(is_active=True).order_by('-created_at')
+
     context = {
         'settings': settings_obj,
         'skills': all_skills,
@@ -40,7 +39,7 @@ all_skills = TeacherSkill.objects.filter(is_active=True).order_by('-created_at')
         'banks': banks,
         'classrooms': ClassRoom.objects.all(),
     }
-def skill_detail(request, skill_id):
+    return render(request, 'core/home.html', context)def skill_detail(request, skill_id):
     settings_obj = SchoolSettings.objects.first()
     skill = get_object_or_404(TeacherSkill, pk=skill_id)
     exams = skill.exams.all()
