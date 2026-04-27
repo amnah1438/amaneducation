@@ -139,13 +139,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       <span class="link-text" id="bankLinkText"></span>
       <button class="copy-btn" onclick="copyText('bankLinkText')">نسخ</button>
     </div>
-    {% endif %}
-    {% else %}
+{% else %}
     <div style="color:var(--text3);font-size:11px">لا توجد أسئلة بعد</div>
     {% endif %}
     {% endwith %}
   </div>
 
+{% endif %}
 {% else %}
 
   <div class="exam-section">
