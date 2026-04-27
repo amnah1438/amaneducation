@@ -39,7 +39,9 @@ def home(request):
         'banks': banks,
         'classrooms': ClassRoom.objects.all(),
     }
-    return render(request, 'core/home.html', context)def skill_detail(request, skill_id):
+    return render(request, 'core/home.html', context)
+
+def skill_detail(request, skill_id):
     settings_obj = SchoolSettings.objects.first()
     skill = get_object_or_404(TeacherSkill, pk=skill_id)
     exams = skill.exams.all()
