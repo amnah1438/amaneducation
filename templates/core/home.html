@@ -207,10 +207,17 @@ function filterSkills(catCode) {
     document.getElementById('stats-area').style.display = 'none';
     document.getElementById('skills-display-area').style.display = 'block';
     document.querySelectorAll('.skill-item').forEach(function(item) {
-        console.log(item.getAttribute('data-category'), catCode);
-        item.style.display = (item.getAttribute('data-category') === catCode) ? 'block' : 'none';
+        if(catCode === 'all' || catCode === 'قدرات'){
+            item.style.display = item.getAttribute('data-type') === 'skill' ? 'block' : 'none';
+        } else if(catCode === 'تحصيلي'){
+            item.style.display = item.getAttribute('data-type') === 'lesson' ? 'block' : 'none';
+        } else if(catCode === 'بنك'){
+            item.style.display = item.getAttribute('data-type') === 'bank' ? 'block' : 'none';
+        } else {
+            item.style.display = 'block';
+        }
     });
-}
-    </script>
+}  
+  </script>
 </body>
 </html>
