@@ -148,7 +148,8 @@
             <div id="skills-display-area" class="content-area container mt-5">
                 <div class="row g-4">
 {% for skill in skills %}
-<div class="col-md-4 skill-item" data-category="{{ skill.skill_type }}" style="display: none;">
+<div class="col-md-4 skill-item" data-category="{{ skill.content_type }}" data-type="{{ skill.content_type }}"
+" style="display: none;">
     <div class="card h-100 skill-card" style="--card-color: #2D5A27;">
         <div class="card-body p-4 text-center">
             <div class="display-6 mb-3">
