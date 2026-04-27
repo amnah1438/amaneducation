@@ -138,45 +138,47 @@
                 <button type="button" class="btn btn-sub" onclick="filterSkills('لفظي')">اللفظي</button>
             </div>
 
-            <div id="tahsili-sub" class="sub-tabs-box">
-                <button type="button" class="btn btn-sub" onclick="filterSkills('رياضيات')">الرياضيات</button>
-                <button type="button" class="btn btn-sub" onclick="filterSkills('أحياء')">الأحياء</button>
-                <button type="button" class="btn btn-sub" onclick="filterSkills('كيمياء')">الكيمياء</button>
-                <button type="button" class="btn btn-sub" onclick="filterSkills('فيزياء')">الفيزياء</button>
-            </div>
-
+<div id="tahsili-sub" class="sub-tabs-box">
+    <button type="button" class="btn btn-sub" onclick="filterSkills('رياضيات')">الرياضيات</button>
+    <button type="button" class="btn btn-sub" onclick="filterSkills('أحياء')">الأحياء</button>
+    <button type="button" class="btn btn-sub" onclick="filterSkills('كيمياء')">الكيمياء</button>
+    <button type="button" class="btn btn-sub" onclick="filterSkills('فيزياء')">الفيزياء</button>
+    <button type="button" class="btn btn-sub" onclick="filterSkills('all')" style="background:#1a4a8a">الكل</button>
+</div>
             <div id="skills-display-area" class="content-area container mt-5">
                 <div class="row g-4">
-                    {% for skill in skills %}
-                    <div class="col-md-4 skill-item" data-category="{{ skill.category }}" style="display: none;">
-                        <div class="card h-100 skill-card" style="--card-color: {{ skill.card_color|default:'#4b0082' }};">
-                            <div class="card-body p-4 text-center">
-                                {% if skill.icon_image %}
-                                    <img src="{{ skill.icon_image.url }}" style="height:60px; object-fit: contain;" class="mb-3">
-                                {% else %}
-                                    <div class="display-6 mb-3">📘</div>
-                                {% endif %}
-                                <h5 class="fw-bold math-text-fix">{{ skill.title }}</h5>
-                                <p class="text-muted small math-text-fix">{{ skill.short_description }}</p>
-                                
-                                <div class="mb-3">
-                                    <small class="text-secondary d-block mb-2">المعلمات المسؤولات:</small>
-                                    <div class="d-flex justify-content-center flex-wrap">
-                                        {% for teacher in skill.teachers.all %}
-                                            <span class="teacher-badge">{{ teacher.name }}</span>
-                                        {% empty %}
-                                            <span class="text-muted small">لم يتم تحديد معلمات</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
+{% for skill in skills %}
+<div class="col-md-4 skill-item" data-category="{{ skill.skill_type }}" style="display: none;">
+    <div class="card h-100 skill-card" style="--card-color: #2D5A27;">
+        <div class="card-body p-4 text-center">
+            <div class="display-6 mb-3">
+                {% if skill.content_type == 'skill' %}🎯
+                {% elif skill.content_type == 'lesson' %}📖
+                {% else %}🗂️{% endif %}
+            </div>
+            <h5 class="fw-bold math-text-fix">{{ skill.title }}</h5>
+            <p class="text-muted small math-text-fix">{{ skill.description|default:"—" }}</p>
 
-                                <a href="{% url 'skill_detail' skill.id %}" class="btn btn-sm text-white px-4 rounded-pill btn-skill-action">
-                                    دخول الدرس
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
+            <div class="mb-3">
+                <small class="text-secondary d-block mb-2">المعلمة:</small>
+                <span class="teacher-badge">{{ skill.created_by.full_name|default:"—" }}</span>
+            </div>
+
+            {% if skill.target_classes %}
+            <div class="mb-2">
+                <span style="background:#e8f5ee;color:#0d5c35;padding:3px 10px;border-radius:10px;font-size:0.8rem">
+                    📍 {{ skill.target_classes }}
+                </span>
+            </div>
+            {% endif %}
+
+            <a href="/skill/{{ skill.id }}/" class="btn btn-sm text-white px-4 rounded-pill btn-skill-action">
+                دخول الدرس
+            </a>
+        </div>
+    </div>
+</div>
+{% endfor %}
                 </div>
             </div>
 
@@ -205,7 +207,7 @@
             document.getElementById('stats-area').style.display = 'none';
             document.getElementById('skills-display-area').style.display = 'block';
             document.querySelectorAll('.skill-item').forEach(function(item) {
-                item.style.display = (item.getAttribute('data-category') === catCode) ? 'block' : 'none';
+                item.getAttribute('data-category') === catCode || catCode === 'all' ? 'block' : 'none';
             });
         }
     </script>
