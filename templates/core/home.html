@@ -203,13 +203,14 @@
             btn.classList.add('active');
         }
 
-        function filterSkills(catCode) {
-            document.getElementById('stats-area').style.display = 'none';
-            document.getElementById('skills-display-area').style.display = 'block';
-            document.querySelectorAll('.skill-item').forEach(function(item) {
-                item.getAttribute('data-category') === catCode || catCode === 'all' ? 'block' : 'none';
-            });
-        }
+function filterSkills(catCode) {
+    document.getElementById('stats-area').style.display = 'none';
+    document.getElementById('skills-display-area').style.display = 'block';
+    document.querySelectorAll('.skill-item').forEach(function(item) {
+        console.log(item.getAttribute('data-category'), catCode);
+        item.style.display = (item.getAttribute('data-category') === catCode) ? 'block' : 'none';
+    });
+}
     </script>
 </body>
 </html>
