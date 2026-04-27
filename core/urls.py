@@ -19,6 +19,8 @@ urlpatterns = [
 path('activate-exam/<int:exam_id>/', views.activate_exam, name='activate_exam'),
 path('deactivate-exam/<int:exam_id>/', views.deactivate_exam, name='deactivate_exam'),
 path('skill/<int:skill_id>/', views.skill_detail, name='skill_detail'),
+path('activate-exam/<int:exam_id>/', views.activate_exam, name='activate_exam'),
+path('deactivate-exam/<int:exam_id>/', views.deactivate_exam, name='deactivate_exam'),
     # 3. رابط مكتبة رفع الصور (ضروري جداً لعمل المحرر ورفع صور المعلمات)
     path('ckeditor/', include('ckeditor_uploader.urls')),
 ]
