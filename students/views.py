@@ -145,54 +145,58 @@ def student_dashboard(request):
 
 @login_required
 def take_exam(request, exam_id):
-    if not check_student(request):
-        return redirect('home')
+    from django.contrib.auth import login as auth_login
+    from core.models import Profile
 
     exam = get_object_or_404(TeacherExam, id=exam_id, is_active=True)
 
+    # لو ما دخلت — نطلب رقم الهوية
+    if not request.user.is_authenticated:
+        if request.method == 'POST' and request.POST.get('national_id'):
+            national_id = request.POST.get('national_id').strip()
+            try:
+                profile = Profile.objects.get(national_id=national_id, role='STUDENT')
+                auth_login(request, profile.user,
+                    backend='django.contrib.auth.backends.ModelBackend')
+            except Profile.DoesNotExist:
+                return render(request, 'students/exam_login.html', {
+                    'exam': exam, 'error': 'رقم الهوية غير موجود — تواصلي مع المعلمة'
+                })
+        else:
+            return render(request, 'students/exam_login.html', {'exam': exam})
+
+    # تحقق من أداء الاختبار مسبقاً
     if ExamResult.objects.filter(exam=exam, student=request.user).exists():
         messages.warning(request, '⚠️ لقد أدّيتِ هذا الاختبار مسبقاً')
         return redirect('student_dashboard')
 
     questions = exam.questions.all().order_by('order')
-
     if not questions:
         messages.error(request, '❌ لا توجد أسئلة في هذا الاختبار')
         return redirect('student_dashboard')
 
-    if request.method == 'POST':
+    if request.method == 'POST' and request.POST.get('time_taken'):
         score = 0
         total = questions.count()
-
         result = ExamResult.objects.create(
-            exam=exam,
-            student=request.user,
-            total=total,
-            score=0,
-            percentage=0,
-            passed=False,
+            exam=exam, student=request.user,
+            total=total, score=0, percentage=0, passed=False,
             time_taken_seconds=int(request.POST.get('time_taken', 0)),
         )
-
         for question in questions:
             chosen = request.POST.get(f'q_{question.id}', '')
             is_correct = chosen == question.correct_answer
-            if is_correct:
-                score += 1
+            if is_correct: score += 1
             StudentAnswer.objects.create(
-                result=result,
-                question=question,
-                chosen_answer=chosen,
-                is_correct=is_correct,
+                result=result, question=question,
+                chosen_answer=chosen, is_correct=is_correct,
             )
-
         percentage = round((score / total * 100), 1) if total > 0 else 0
         result.score = score
         result.percentage = percentage
         result.passed = percentage >= exam.pass_score
         result.save()
-
-        messages.success(request, f'✅ تم تسليم الاختبار — نتيجتك: {score}/{total}')
+        messages.success(request, f'✅ تم التسليم — نتيجتك: {score}/{total}')
         return redirect('student_result_view', result_id=result.id)
 
     context = {
@@ -201,7 +205,6 @@ def take_exam(request, exam_id):
         'duration': exam.duration_minutes * 60,
     }
     return render(request, 'students/take_exam.html', context)
-
 
 # ═══════════════════════════════════════
 # نتيجة الطالبة
