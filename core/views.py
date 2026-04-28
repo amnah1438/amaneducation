@@ -276,3 +276,72 @@ def admin_return(request):
             del request.session['admin_id']
         except: pass
     return redirect('admin_dashboard')
+@login_required
+def admin_comprehensive(request):
+    try:
+        if request.user.core_profile.role != 'ADMIN':
+            return redirect('home')
+    except:
+        return redirect('home')
+
+    from teachers.models import Teacher, TeacherSkill, TeacherExam, TeacherQuestion
+    
+    comp_skills = TeacherSkill.objects.filter(
+        content_type='comprehensive'
+    ).order_by('-created_at')
+    
+    context = {
+        'comp_skills': comp_skills,
+        'classrooms': ClassRoom.objects.all(),
+    }
+    return render(request, 'core/admin_comprehensive.html', context)
+
+
+@login_required
+def admin_add_comprehensive(request):
+    try:
+        if request.user.core_profile.role != 'ADMIN':
+            return redirect('home')
+    except:
+        return redirect('home')
+
+    if request.method == 'POST':
+        from teachers.models import Teacher, TeacherSkill, TeacherExam
+        
+        title = request.POST.get('title', '').strip()
+        comp_type = request.POST.get('comp_type', '')
+        duration = int(request.POST.get('duration', 120))
+        questions_count = int(request.POST.get('questions_count', 60))
+        pass_score = int(request.POST.get('pass_score', 50))
+
+        # نحتاج teacher للمديرة
+        try:
+            teacher = request.user.teacher
+        except:
+            from teachers.models import Teacher
+            teacher, _ = Teacher.objects.get_or_create(
+                user=request.user,
+                defaults={'full_name': request.user.get_full_name() or 'المديرة'}
+            )
+
+        skill = TeacherSkill.objects.create(
+            content_type='comprehensive',
+            title=title,
+            skill_type=comp_type,
+            description=request.POST.get('description', ''),
+            created_by=teacher,
+            target_classes='جميع الفصول',
+            is_active=False,
+        )
+
+        TeacherExam.objects.create(
+            skill=skill,
+            exam_type='comprehensive_qodrat' if comp_type == 'qodrat_kamy' else 'comprehensive_tahsili',
+            questions_count=questions_count,
+            duration_minutes=duration,
+            pass_score=pass_score,
+            is_active=False,
+        )
+
+        messages.success(request, f'✅ تم إنشاء {title}')
+    return redirect('admin_comprehensive')
