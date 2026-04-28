@@ -224,3 +224,55 @@ def admin_add_classroom(request):
             ClassRoom.objects.get_or_create(name=name)
             messages.success(request, f'✅ تم إضافة الفصل {name}')
     return redirect('admin_dashboard')
+@login_required
+def admin_add_classroom(request):
+    try:
+        if request.user.core_profile.role != 'ADMIN':
+            return redirect('home')
+    except:
+        return redirect('home')
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            ClassRoom.objects.get_or_create(name=name)
+            messages.success(request, f'✅ تم إضافة الفصل {name}')
+    return redirect('admin_dashboard')
+
+
+@login_required
+def admin_view_as(request, user_id):
+    try:
+        if request.user.core_profile.role != 'ADMIN':
+            return redirect('home')
+    except:
+        return redirect('home')
+    from django.contrib.auth.models import User
+    from django.contrib.auth import login as auth_login
+    target_user = get_object_or_404(User, id=user_id)
+    request.session['admin_id'] = request.user.id
+    auth_login(request, target_user,
+        backend='django.contrib.auth.backends.ModelBackend')
+    try:
+        role = target_user.core_profile.role
+        if role == 'TEACHER':
+            return redirect('teacher_dashboard')
+        elif role == 'STUDENT':
+            return redirect('student_dashboard')
+    except:
+        pass
+    return redirect('home')
+
+
+@login_required
+def admin_return(request):
+    admin_id = request.session.get('admin_id')
+    if admin_id:
+        from django.contrib.auth.models import User
+        from django.contrib.auth import login as auth_login
+        try:
+            admin_user = User.objects.get(id=admin_id)
+            auth_login(request, admin_user,
+                backend='django.contrib.auth.backends.ModelBackend')
+            del request.session['admin_id']
+        except: pass
+    return redirect('admin_dashboard')
