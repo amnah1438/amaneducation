@@ -141,6 +141,41 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   <!-- رسائل -->
   <div class="msg msg-s" id="successMsg"></div>
   <div class="msg msg-e" id="errorMsg"></div>
+{% if skill.content_type == "comprehensive" %}
+
+  <div class="exam-card exam-bank">
+    <div class="exam-icon">🏆</div>
+    <div class="exam-title" style="color:var(--blue)">اختبار شامل</div>
+    {% with exam=skill.exams.first %}
+    {% if exam %}
+    <div class="exam-meta">❓ {{ exam.questions.count }} سؤال • ⏱️ {{ exam.duration_minutes }} دقيقة • 🎯 {{ exam.pass_score }}%</div>
+    <div class="status-dot {% if exam.is_active %}status-on{% else %}status-off{% endif %}" id="bankStatus">
+      <div class="dot {% if exam.is_active %}dot-g{% else %}dot-r{% endif %}"></div>
+      {% if exam.is_active %}مفعّل{% else %}غير مفعّل{% endif %}
+    </div>
+    {% if request.user.is_authenticated %}
+    <select class="sel" id="bankClass">
+      <option value="">اختاري الفصل</option>
+      {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
+    </select>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-b" onclick="activateExam({{ exam.id }}, 'bank')">▶️ تفعيل للفصل</button>
+      <button class="btn btn-b" onclick="showLinkBox('/students/exam/{{ exam.id }}/', 'bankLink', 'bankLinkText')">🔗 رابط</button>
+      <button class="btn btn-r" onclick="deactivateExam({{ exam.id }}, 'bank')">⏸️ إيقاف</button>
+    </div>
+    <div class="link-box" id="bankLink">
+      <span class="link-text" id="bankLinkText"></span>
+      <button class="copy-btn" onclick="copyText('bankLinkText')">نسخ</button>
+    </div>
+    {% endif %}
+    {% else %}
+    <div style="color:var(--text3);font-size:11px">لا توجد أسئلة بعد — أضيفيها من لوحة المديرة</div>
+    {% endif %}
+    {% endwith %}
+  </div>
+
+{% elif skill.content_type == "bank" %}
+
 
   {% if skill.content_type == "bank" %}
 
