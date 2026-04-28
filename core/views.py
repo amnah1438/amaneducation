@@ -7,11 +7,14 @@ from django.db.models import Avg
 from .models import SchoolSettings, Profile
 from teachers.models import TeacherSkill, TeacherExam, ExamResult, ClassSession
 from students.models import ClassRoom
-
+from django.db import models as db_models
 
 def home(request):
     settings_obj = SchoolSettings.objects.first()
-    all_skills = TeacherSkill.objects.filter(is_active=True).order_by('-created_at')
+    all_skills = TeacherSkill.objects.filter(
+    models.Q(is_active=True) | models.Q(content_type='comprehensive')
+).order_by('-created_at')
+
     context = {
         'settings': settings_obj,
         'skills': all_skills,
