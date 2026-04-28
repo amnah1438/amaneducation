@@ -183,6 +183,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             </div>
             <div style="display:flex;gap:5px">
               <button class="btn btn-g" onclick="activateComp({{ exam.id }})">▶️ تفعيل</button>
+              <button class="btn btn-r" onclick="deactivateComp({{ exam.id }})">⏸️ إيقاف</button>
               <button class="btn btn-b" onclick="showCompLink({{ exam.id }})">🔗 رابط</button>
               <a href="/skill/{{ skill.id }}/" class="btn btn-o">✏️ أسئلة</a>
               <a href="/teachers/skills/{{ skill.id }}/import-questions/" class="btn btn-o">📥 رفع أسئلة Excel</a>
@@ -234,6 +235,14 @@ function showCompLink(examId){
   const link = baseUrl + '/students/exam/' + examId + '/';
   document.getElementById('linktext-'+examId).textContent = link;
   document.getElementById('link-'+examId).style.display = 'flex';
+}
+function deactivateComp(examId){
+  fetch('/deactivate-exam/'+examId+'/', {
+    method:'POST',
+    headers:{'X-CSRFToken':csrfToken}
+  })
+  .then(r=>r.json())
+  .then(data=>{ if(data.success){ alert('⏸️ تم الإيقاف'); location.reload(); }});
 }
 
 function copyLink(textId){

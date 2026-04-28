@@ -240,12 +240,12 @@ function filterSkills(catCode, contentType) {
         var cat = item.getAttribute('data-category');
         var type = item.getAttribute('data-type');
         if(contentType === 'comprehensive'){
-            item.style.display = (type === 'comprehensive') ? 'block' : 'none';
+            item.style.display = (type === 'comprehensive' && cat === catCode) ? 'block' : 'none';
         } else {
             item.style.display = (cat === catCode && type === contentType) ? 'block' : 'none';
         }
     });
-} 
+}
 </script>
 </body>
 </html>
