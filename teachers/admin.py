@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import TeacherSkill, ExamResult, ClassSession
+from .models import ExamResult, ClassSession
 
 
 @admin.register(ExamResult)
@@ -18,6 +18,6 @@ class ClassSessionAdmin(admin.ModelAdmin):
     list_display = ('teacher', 'skill', 'session_type', 'target_class', 'session_date')
     list_filter = ('session_type', 'session_date')
     ordering = ('-session_date',)
-    readonly_fields = ('teacher', 'skill', 'session_type', 'target_class', 'session_date', 'session_time', 'notes')
+    readonly_fields = ('teacher', 'skill', 'session_type', 'target_class', 'session_date', 'session_time')
     def has_add_permission(self, request): return False
     def has_delete_permission(self, request, obj=None): return False
