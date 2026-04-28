@@ -3,18 +3,17 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils import timezone
-from django.db.models import Avg
+from django.db.models import Avg, Q
 from .models import SchoolSettings, Profile
 from teachers.models import TeacherSkill, TeacherExam, ExamResult, ClassSession
 from students.models import ClassRoom
-from django.db import models as db_models
+
 
 def home(request):
     settings_obj = SchoolSettings.objects.first()
     all_skills = TeacherSkill.objects.filter(
-    models.Q(is_active=True) | models.Q(content_type='comprehensive')
-).order_by('-created_at')
-
+        Q(is_active=True) | Q(content_type='comprehensive')
+    ).order_by('-created_at')
     context = {
         'settings': settings_obj,
         'skills': all_skills,
