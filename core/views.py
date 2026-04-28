@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -154,3 +155,4 @@ def take_test(request, skill_id):
         'questions': questions,
     }
     return render(request, 'core/take_test.html', context)
+    

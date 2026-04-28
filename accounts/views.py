@@ -44,11 +44,10 @@ def logout_view(request):
 
 
 def redirect_by_role(user):
-    """توجيه المستخدم حسب دوره"""
     try:
         role = user.core_profile.role
         if role == 'ADMIN':
-            return redirect('home')
+            return redirect('admin_dashboard')  # ← غيّري من 'home'
         elif role == 'TEACHER':
             return redirect('teacher_dashboard')
         elif role == 'STUDENT':
