@@ -158,7 +158,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               </td>
               <td>
                 <div style="display:flex;gap:4px">
-                  <a href="/teachers/dashboard/?as={{ t.user.id }}" class="btn btn-b" style="font-size:9px;padding:3px 8px">👁️ داشبوردها</a>
+                 <a href="/admin-dashboard/view-as/{{ t.user.id }}/" class="btn btn-b" style="font-size:9px;padding:3px 8px">👁️ داشبوردها</a>
                   <form method="post" action="/admin-dashboard/delete-user/{{ t.user.id }}/" style="display:inline" onsubmit="return confirm('هل أنتِ متأكدة من الحذف؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-r" style="font-size:9px;padding:3px 8px">🗑️</button>
@@ -207,7 +207,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               </td>
               <td>
                 <div style="display:flex;gap:4px">
-                  <a href="/students/dashboard/?as={{ s.user.id }}" class="btn btn-b" style="font-size:9px;padding:3px 8px">👁️ حسابها</a>
+                  <a href="/admin-dashboard/view-as/{{ s.user.id }}/" class="btn btn-b" style="font-size:9px;padding:3px 8px">👁️ حسابها</a>
                   <form method="post" action="/admin-dashboard/delete-user/{{ s.user.id }}/" style="display:inline" onsubmit="return confirm('هل أنتِ متأكدة من الحذف؟')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-r" style="font-size:9px;padding:3px 8px">🗑️</button>

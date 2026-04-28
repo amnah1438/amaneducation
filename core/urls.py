@@ -13,6 +13,7 @@ urlpatterns = [
     path("skill/<int:skill_id>/", views.skill_detail, name="skill_detail"),
     path("skill/<int:skill_id>/test/", views.take_test, name="take_test"),
     path('activate-exam/<int:exam_id>/', views.activate_exam, name='activate_exam'),
+    path('admin-dashboard/add-classroom/', views.admin_add_classroom, name='admin_add_classroom'),
     path('deactivate-exam/<int:exam_id>/', views.deactivate_exam, name='deactivate_exam'),
     path('ckeditor/', include('ckeditor_uploader.urls')),
    path('admin-dashboard/view-as/<int:user_id>/', views.admin_view_as, name='admin_view_as'),
