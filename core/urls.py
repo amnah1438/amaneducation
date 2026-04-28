@@ -15,6 +15,8 @@ urlpatterns = [
     path('activate-exam/<int:exam_id>/', views.activate_exam, name='activate_exam'),
     path('admin-dashboard/add-classroom/', views.admin_add_classroom, name='admin_add_classroom'),
     path('deactivate-exam/<int:exam_id>/', views.deactivate_exam, name='deactivate_exam'),
+    path('admin-dashboard/add-comprehensive/', views.admin_add_comprehensive, name='admin_add_comprehensive'),
+path('admin-dashboard/comprehensive/', views.admin_comprehensive, name='admin_comprehensive'),
     path('ckeditor/', include('ckeditor_uploader.urls')),
    path('admin-dashboard/view-as/<int:user_id>/', views.admin_view_as, name='admin_view_as'),
 path('admin-dashboard/return/', views.admin_return, name='admin_return'),
