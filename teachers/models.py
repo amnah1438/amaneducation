@@ -37,7 +37,7 @@ class TeacherSkill(models.Model):
         ('phys', 'تحصيلي — فيزياء'),
     ]
 
-    content_type = models.CharField(max_length=10, choices=CONTENT_TYPE, default='skill', verbose_name="نوع المحتوى")
+    content_type = models.CharField(max_length=20, choices=CONTENT_TYPE, default='skill', verbose_name="نوع المحتوى")
     title = models.CharField(max_length=200, verbose_name="العنوان")
     skill_type = models.CharField(max_length=20, choices=TYPE_CHOICES, blank=True, verbose_name="نوع القدرات")
     subject = models.CharField(max_length=10, choices=SUBJECT_CHOICES, blank=True, verbose_name="مادة التحصيلي")
@@ -95,7 +95,7 @@ class TeacherExam(models.Model):
     ]
 
     skill = models.ForeignKey(TeacherSkill, on_delete=models.CASCADE, related_name="exams", verbose_name="المهارة/الدرس")
-    exam_type = models.CharField(max_length=10, choices=EXAM_TYPE, verbose_name="نوع الاختبار")
+    exam_type = models.CharField(max_length=30, choices=EXAM_TYPE, ...), verbose_name="نوع الاختبار")
     questions_count = models.PositiveIntegerField(default=10, verbose_name="عدد الأسئلة")
     duration_minutes = models.PositiveIntegerField(default=15, verbose_name="مدة الاختبار (دقيقة)")
     pass_score = models.PositiveIntegerField(default=60, verbose_name="درجة النجاح %")
