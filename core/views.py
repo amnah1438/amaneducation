@@ -211,3 +211,16 @@ def admin_delete_user(request, user_id):
     except:
         messages.error(request, 'حدث خطأ')
     return redirect('admin_dashboard')
+@login_required
+def admin_add_classroom(request):
+    try:
+        if request.user.core_profile.role != 'ADMIN':
+            return redirect('home')
+    except:
+        return redirect('home')
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        if name:
+            ClassRoom.objects.get_or_create(name=name)
+            messages.success(request, f'✅ تم إضافة الفصل {name}')
+    return redirect('admin_dashboard')
