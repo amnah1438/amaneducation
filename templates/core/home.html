@@ -167,7 +167,7 @@
                 <div class="row g-4">
 {% for skill in skills %}
 <div class="col-md-4 skill-item" 
-     data-category="{% if skill.content_type == 'lesson' %}{{ skill.subject }}{% else %}{{ skill.skill_type }}{% endif %}" 
+     data-category="{% if skill.content_type == 'lesson' %}{{ skill.subject }}{% elif skill.content_type == 'comprehensive' %}{{ skill.content_type }}{% else %}{{ skill.skill_type }}{% endif %}" 
      data-type="{{ skill.content_type }}" 
      style="display: none;">
          <div class="card h-100 skill-card" style="--card-color: #2D5A27;">
@@ -239,8 +239,13 @@ function filterSkills(catCode, contentType) {
     document.querySelectorAll('.skill-item').forEach(function(item) {
         var cat = item.getAttribute('data-category');
         var type = item.getAttribute('data-type');
-        item.style.display = (cat === catCode && type === contentType) ? 'block' : 'none';
+        if(contentType === 'comprehensive'){
+            item.style.display = (type === 'comprehensive') ? 'block' : 'none';
+        } else {
+            item.style.display = (cat === catCode && type === contentType) ? 'block' : 'none';
+        }
     });
-} </script>
+} 
+</script>
 </body>
 </html>
