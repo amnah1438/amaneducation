@@ -1,25 +1,18 @@
 from django.contrib import admin
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import User, Group
 from .models import SchoolSettings, Profile
 
 admin.site.site_header = "🎓 إدارة منصة آمنة التعليمية"
 admin.site.site_title = "منصة آمنة"
-admin.site.index_title = "لوحة التحكم الرئيسية"
+admin.site.index_title = "لوحة التحكم"
 
+# إخفاء ما لا نحتاجه
+try:
+    admin.site.unregister(User)
+except: pass
 try:
     admin.site.unregister(Group)
-except:
-    pass
-
-try:
-    admin.site.unregister(SchoolSettings)
-except:
-    pass
-
-try:
-    admin.site.unregister(Profile)
-except:
-    pass
+except: pass
 
 
 @admin.register(SchoolSettings)
@@ -35,6 +28,9 @@ class SchoolSettingsAdmin(admin.ModelAdmin):
         ('الشعارات', {
             'fields': ('ministry_logo', 'school_logo')
         }),
+        ('الألوان', {
+            'fields': ('primary_color',)
+        }),
     )
 
 
@@ -43,16 +39,15 @@ class ProfileAdmin(admin.ModelAdmin):
     list_display = ('get_full_name', 'role', 'national_id', 'get_last_login')
     list_filter = ('role',)
     search_fields = ('user__first_name', 'user__last_name', 'national_id')
-    list_editable = ('role',)
-    ordering = ('role', 'user__first_name')
+    readonly_fields = ('user', 'role', 'national_id')
 
     def get_full_name(self, obj):
-        name = f"{obj.user.first_name} {obj.user.last_name}".strip()
-        return name or obj.user.username
-    get_full_name.short_description = 'الاسم الكامل'
+        return f"{obj.user.first_name} {obj.user.last_name}".strip() or obj.user.username
+    get_full_name.short_description = 'الاسم'
 
     def get_last_login(self, obj):
-        if obj.user.last_login:
-            return obj.user.last_login.strftime('%Y/%m/%d')
-        return '—'
+        return obj.user.last_login.strftime('%Y/%m/%d') if obj.user.last_login else '—'
     get_last_login.short_description = 'آخر دخول'
+
+    def has_add_permission(self, request): return False
+    def has_delete_permission(self, request, obj=None): return False
