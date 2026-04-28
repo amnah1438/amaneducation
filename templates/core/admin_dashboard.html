@@ -282,7 +282,20 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       </div>
 
     </div>
-
+<!-- إضافة فصل -->
+<div class="card">
+  <div class="ch"><span class="ct">🏫 إضافة فصل جديد</span></div>
+  <div class="cb">
+    <form method="post" action="/admin-dashboard/add-classroom/">
+      {% csrf_token %}
+      <div class="fg" style="margin-bottom:10px">
+        <label class="fl">اسم الفصل *</label>
+        <input class="fi" name="name" placeholder="مثال: ث١٢ أو أول ١" required>
+      </div>
+      <button type="submit" class="btn btn-g" style="width:100%">➕ إضافة فصل</button>
+    </form>
+  </div>
+</div>
     <!-- رفع Excel -->
     <div class="card">
       <div class="ch"><span class="ct">📥 استيراد الطالبات من Excel</span></div>
