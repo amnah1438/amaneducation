@@ -653,10 +653,12 @@ body {
     </div>
     <div class="user-badge"><div class="user-dot"></div>{{ teacher.full_name|default:user.username }}</div>
     <button class="print-btn" style="background:rgba(139,92,246,0.1);border-color:var(--purple);color:var(--purple)" onclick="document.getElementById('settingsModal').classList.add('on')">🎨 الإعدادات</button>
-    <button class="print-btn" onclick="window.print()">🖨️ طباعة PDF</button>
+<button class="print-btn" onclick="window.print()">🖨️ طباعة PDF</button>
+    {% if request.session.admin_id %}
+    <a href="/admin-dashboard/return/" class="print-btn" style="background:rgba(240,82,82,0.1);border-color:var(--red);color:var(--red)">← رجوع للمديرة</a>
+    {% endif %}
   </div>
 </div>
-
 <!-- ═══════════════════════════════════════════════
      صفحة: نظرة عامة
 ═══════════════════════════════════════════════ -->
