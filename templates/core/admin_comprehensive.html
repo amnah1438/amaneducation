@@ -185,6 +185,8 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               <button class="btn btn-g" onclick="activateComp({{ exam.id }})">▶️ تفعيل</button>
               <button class="btn btn-b" onclick="showCompLink({{ exam.id }})">🔗 رابط</button>
               <a href="/skill/{{ skill.id }}/" class="btn btn-o">✏️ أسئلة</a>
+              <a href="/teachers/skills/{{ skill.id }}/import-questions/" class="btn btn-o">📥 رفع أسئلة Excel</a>
+              
             </div>
             <div class="link-box" id="link-{{ exam.id }}">
               <span class="link-text" id="linktext-{{ exam.id }}"></span>
