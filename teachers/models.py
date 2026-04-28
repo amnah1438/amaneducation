@@ -24,6 +24,7 @@ class TeacherSkill(models.Model):
         ('skill', 'مهارة قدرات'),
         ('lesson', 'درس تحصيلي'),
         ('bank', 'بنك أسئلة'),
+         ('comprehensive', 'اختبار شامل'),
     ]
     TYPE_CHOICES = [
         ('qodrat_kamy', 'قدرات — كمي'),
@@ -79,6 +80,8 @@ class TeacherExam(models.Model):
         ('post', 'اختبار بعدي'),
         ('lesson', 'اختبار درس تحصيلي'),
         ('bank', 'اختبار من بنك الأسئلة'),
+        ('comprehensive_qodrat', 'اختبار شامل — قدرات'),
+        ('comprehensive_tahsili', 'اختبار شامل — تحصيلي'),
     ]
     DELIVERY_TYPE = [
         ('electronic', 'إلكتروني فقط'),
