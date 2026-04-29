@@ -1,7 +1,9 @@
+Content is user-generated and unverified.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Avg
+from django.http import JsonResponse
 from core.models import Profile
 from students.models import Student, ClassRoom
 from .models import (
@@ -24,6 +26,14 @@ def check_teacher(request):
         if profile.role != 'TEACHER':
             return False
         return True
+    except:
+        return False
+
+
+def check_teacher_or_admin(request):
+    try:
+        role = request.user.core_profile.role
+        return role in ['TEACHER', 'ADMIN']
     except:
         return False
 
@@ -104,9 +114,10 @@ def add_skill(request):
         plain_text = request.POST.get('plain_text', '')
         if video_url or plain_text:
             TeacherSkillContent.objects.create(skill=skill, video_url=video_url, plain_text=plain_text)
-        messages.success(request, f'✅ تم إضافة "{title}" بنجاح!')
+        messages.success(request, f'تم إضافة "{title}" بنجاح!')
         return redirect('skill_manager')
     return render(request, 'teachers/skill_manager.html', {'teacher': teacher})
+
 
 @login_required
 def add_skill_complete(request):
@@ -199,7 +210,7 @@ def add_skill_complete(request):
                         feedback_plain=q.get('feedback', ''),
                     )
             except: pass
-        messages.success(request, f'✅ تم حفظ "{title}" بنجاح!')
+        messages.success(request, f'تم حفظ "{title}" بنجاح!')
         return redirect('skill_manager')
     return redirect('skill_manager')
 
@@ -211,7 +222,7 @@ def delete_skill(request, skill_id):
     teacher = get_teacher(request)
     skill = get_object_or_404(TeacherSkill, id=skill_id, created_by=teacher)
     skill.delete()
-    messages.success(request, '🗑️ تم حذف المهارة')
+    messages.success(request, 'تم حذف المهارة')
     return redirect('skill_manager')
 
 
@@ -234,7 +245,7 @@ def add_question(request, exam_id):
             target_skill_name=request.POST.get('target_skill_name', ''),
             feedback_plain=request.POST.get('feedback_plain', ''),
         )
-        messages.success(request, '✅ تم إضافة السؤال')
+        messages.success(request, 'تم إضافة السؤال')
         return redirect('skill_manager')
     return render(request, 'teachers/add_question.html', {'exam': exam, 'teacher': teacher})
 
@@ -254,6 +265,7 @@ def import_questions_excel(request, exam_id):
     else:
         teacher = get_teacher(request)
         exam = get_object_or_404(TeacherExam, id=exam_id, skill__created_by=teacher)
+
     if request.method == 'POST' and request.FILES.get('excel_file'):
         import openpyxl
         try:
@@ -274,9 +286,12 @@ def import_questions_excel(request, exam_id):
                     feedback_plain=str(row[7]) if len(row)>7 and row[7] else '',
                 )
                 count += 1
-            messages.success(request, f'✅ تم استيراد {count} سؤال!')
+            messages.success(request, f'تم استيراد {count} سؤال!')
         except Exception as e:
-            messages.error(request, f'❌ خطأ: {str(e)}')
+            messages.error(request, f'خطأ: {str(e)}')
+
+    if is_admin:
+        return redirect('admin_comprehensive')
     return redirect('skill_manager')
 
 
@@ -307,9 +322,9 @@ def import_skills_excel(request):
                     created_by=teacher, is_active=True,
                 )
                 count += 1
-            messages.success(request, f'✅ تم استيراد {count} مهارة!')
+            messages.success(request, f'تم استيراد {count} مهارة!')
         except Exception as e:
-            messages.error(request, f'❌ خطأ: {str(e)}')
+            messages.error(request, f'خطأ: {str(e)}')
     return redirect('skill_manager')
 
 
@@ -322,7 +337,14 @@ def exam_results(request, exam_id):
     results = ExamResult.objects.filter(exam=exam).select_related('student').order_by('-percentage')
     avg = results.aggregate(avg=Avg('percentage'))['avg'] or 0
     passed = results.filter(passed=True).count()
-    context = {'exam': exam, 'results': results, 'avg': round(avg,1), 'passed': passed, 'failed': results.count()-passed, 'teacher': teacher}
+    context = {
+        'exam': exam,
+        'results': results,
+        'avg': round(avg, 1),
+        'passed': passed,
+        'failed': results.count()-passed,
+        'teacher': teacher,
+    }
     return render(request, 'teachers/exam_results.html', context)
 
 
@@ -350,7 +372,7 @@ def enter_manual_score(request, result_id):
         result.manually_corrected = True
         result.corrected_by = teacher
         result.save()
-        messages.success(request, f'✅ تم رصد الدرجة: {score}/{result.total}')
+        messages.success(request, f'تم رصد الدرجة: {score}/{result.total}')
         return redirect('student_result', result_id=result_id)
     return render(request, 'teachers/enter_score.html', {'result': result, 'teacher': teacher})
 
@@ -370,20 +392,17 @@ def add_session(request):
             session_time=request.POST.get('session_time'),
             notes=request.POST.get('notes', ''),
         )
-        messages.success(request, '✅ تم تسجيل الحصة')
+        messages.success(request, 'تم تسجيل الحصة')
         return redirect('teacher_dashboard')
     my_skills = TeacherSkill.objects.filter(created_by=teacher, is_active=True) if teacher else []
     return render(request, 'teachers/add_session.html', {'teacher': teacher, 'skills': my_skills})
-from django.http import JsonResponse
+
 
 @login_required
 def get_skill_questions(request, skill_id):
-    """جلب أسئلة مهارة بصيغة JSON"""
     teacher = get_teacher(request)
     skill = get_object_or_404(TeacherSkill, id=skill_id, created_by=teacher)
-    
     data = {'skill': skill.title, 'exams': []}
-    
     for exam in skill.exams.all():
         exam_data = {
             'type': exam.exam_type,
@@ -405,5 +424,4 @@ def get_skill_questions(request, skill_id):
                 'feedback': q.feedback_plain,
             })
         data['exams'].append(exam_data)
-    
     return JsonResponse(data)
