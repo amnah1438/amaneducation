@@ -245,11 +245,15 @@ def import_questions_excel(request, exam_id):
         is_admin = request.user.core_profile.role == 'ADMIN'
     except:
         is_admin = False
-    
+
     if not is_admin and not check_teacher(request):
         return redirect('home')
-    teacher = get_teacher(request)
-    exam = get_object_or_404(TeacherExam, id=exam_id, skill__created_by=teacher)
+
+    if is_admin:
+        exam = get_object_or_404(TeacherExam, id=exam_id)
+    else:
+        teacher = get_teacher(request)
+        exam = get_object_or_404(TeacherExam, id=exam_id, skill__created_by=teacher)
     if request.method == 'POST' and request.FILES.get('excel_file'):
         import openpyxl
         try:
