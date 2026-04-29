@@ -154,6 +154,68 @@ def import_students_excel(request):
 
 
 # ═══════════════════════════════════════════════════════════════
+# إضافة طالبة يدوياً (نموذج واحد)
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+@require_POST
+def add_student_manual(request):
+    """
+    إضافة طالبة واحدة يدوياً من صفحة الاستيراد.
+
+    تكامل آمن:
+    - تحقق من رقم الهوية (8-12 رقماً).
+    - رفض التكرار.
+    - إنشاء User + Profile + Student + ClassRoom دفعة واحدة.
+    - رمز PIN اختياري؛ إن لم يُدخل تستعمل الطالبة رقم هويتها.
+    """
+    if not _is_admin_or_teacher(request.user):
+        return redirect('home')
+
+    full_name = (request.POST.get('full_name') or '').strip()
+    national_id = (request.POST.get('national_id') or '').strip()
+    classroom_name = (request.POST.get('classroom_name') or 'ث١٢').strip()
+    pin_code = (request.POST.get('pin_code') or '').strip()
+
+    # ─── تحقق من المدخلات ──────────────────────────────────────
+    if not full_name:
+        messages.error(request, 'يرجى إدخال اسم الطالبة')
+        return redirect('import_students_excel')
+    if not national_id.isdigit() or not (8 <= len(national_id) <= 12):
+        messages.error(request, 'رقم الهوية يجب أن يكون 8-12 رقماً')
+        return redirect('import_students_excel')
+    if pin_code and not pin_code.isdigit():
+        messages.error(request, 'رمز PIN يجب أن يكون أرقاماً فقط')
+        return redirect('import_students_excel')
+    if User.objects.filter(username=national_id).exists():
+        messages.warning(request, f'⚠️ رقم الهوية {national_id} مسجّل مسبقاً')
+        return redirect('import_students_excel')
+
+    # ─── إنشاء البيانات ────────────────────────────────────────
+    try:
+        classroom, _ = ClassRoom.objects.get_or_create(name=classroom_name)
+        parts = full_name.split()
+        user = User.objects.create_user(
+            username=national_id,
+            password=national_id,  # كلمة مرور افتراضية = رقم الهوية
+            first_name=parts[0] if parts else full_name,
+            last_name=' '.join(parts[1:]) if len(parts) > 1 else '',
+        )
+        Profile.objects.create(
+            user=user,
+            role='STUDENT',
+            national_id=national_id,
+            pin_code=pin_code,  # فارغ يعني الـ fallback لكلمة المرور
+        )
+        Student.objects.create(full_name=full_name, classroom=classroom)
+        messages.success(request, f'✅ تم إضافة الطالبة {full_name} في فصل {classroom.name}')
+    except Exception as e:
+        messages.error(request, f'❌ تعذّر الحفظ: {e}')
+
+    return redirect('import_students_excel')
+
+
+# ═══════════════════════════════════════════════════════════════
 # داشبورد الطالبة
 # ═══════════════════════════════════════════════════════════════
 

@@ -68,21 +68,82 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
     {% endfor %}
   {% endif %}
 
-  <!-- فورم الرفع -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!--  تبويبان: إدخال يدوي + رفع Excel                           -->
+  <!-- ════════════════════════════════════════════════════════ -->
   <div class="card">
-    <div class="ch">📤 رفع ملف Excel</div>
+    <div class="ch" style="display:flex;gap:6px;padding:8px">
+      <button type="button" id="tab-manual"
+              onclick="showTab('manual')"
+              style="flex:1;padding:9px;border:none;border-radius:6px;background:linear-gradient(135deg,var(--green2),var(--blue2));color:#fff;font-family:inherit;font-weight:700;font-size:11px;cursor:pointer">
+        ✏️ إدخال يدوي
+      </button>
+      <button type="button" id="tab-excel"
+              onclick="showTab('excel')"
+              style="flex:1;padding:9px;border:none;border-radius:6px;background:transparent;color:var(--text2);font-family:inherit;font-weight:700;font-size:11px;cursor:pointer">
+        📤 رفع Excel
+      </button>
+    </div>
     <div class="cb">
-      <form method="post" enctype="multipart/form-data" id="importForm">
-        {% csrf_token %}
-        <div class="excel-zone" onclick="document.getElementById('excelFile').click()" id="dropZone">
-          <div class="excel-icon">📊</div>
-          <div class="excel-text">اضغطي لاختيار ملف Excel</div>
-          <div class="excel-sub">.xlsx أو .xls — من نظام نور أو ملف مخصص</div>
-          <input type="file" id="excelFile" name="excel_file" accept=".xlsx,.xls" style="display:none" onchange="fileSelected(this)" required>
+
+      <!-- ─── نموذج الإدخال اليدوي (للطالبة الواحدة) ─── -->
+      <div id="pane-manual">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:14px">
+          أدخلي بيانات الطالبة، ثم اضغطي "إضافة". لإضافة طالبة أخرى كرّري التعبئة.
         </div>
-        <div class="file-name" id="fileName">📎 —</div>
-        <button type="submit" class="btn btn-g">📥 استيراد الطالبات الآن</button>
-      </form>
+        <form method="post" action="{% url 'add_student_manual' %}">
+          {% csrf_token %}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px;color:var(--text2)">اسم الطالبة الكامل *</label>
+              <input type="text" name="full_name" required
+                     style="width:100%;padding:10px;border:1px solid var(--border2);border-radius:7px;background:var(--bg3);color:var(--text);font-family:inherit;font-size:12px"
+                     placeholder="فاطمة محمد العنزي">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px;color:var(--text2)">رقم الهوية *</label>
+              <input type="text" name="national_id" required
+                     pattern="[0-9]{8,12}" inputmode="numeric" maxlength="12"
+                     style="width:100%;padding:10px;border:1px solid var(--border2);border-radius:7px;background:var(--bg3);color:var(--text);font-family:inherit;font-size:12px"
+                     placeholder="1234567890">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px;color:var(--text2)">الفصل</label>
+              <input type="text" name="classroom_name" list="classroom-list"
+                     style="width:100%;padding:10px;border:1px solid var(--border2);border-radius:7px;background:var(--bg3);color:var(--text);font-family:inherit;font-size:12px"
+                     placeholder="ث١٢" value="ث١٢">
+              <datalist id="classroom-list">
+                <option value="ث١٢">
+                <option value="ث١١">
+                <option value="ث١٠">
+              </datalist>
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;margin-bottom:5px;color:var(--text2)">رمز PIN (اختياري)</label>
+              <input type="text" name="pin_code"
+                     pattern="[0-9]{0,6}" inputmode="numeric" maxlength="6"
+                     style="width:100%;padding:10px;border:1px solid var(--border2);border-radius:7px;background:var(--bg3);color:var(--text);font-family:inherit;font-size:12px"
+                     placeholder="افتراضي: رقم الهوية">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-g">➕ إضافة الطالبة</button>
+        </form>
+      </div>
+
+      <!-- ─── رفع Excel ─── -->
+      <div id="pane-excel" style="display:none">
+        <form method="post" enctype="multipart/form-data" id="importForm">
+          {% csrf_token %}
+          <div class="excel-zone" onclick="document.getElementById('excelFile').click()" id="dropZone">
+            <div class="excel-icon">📊</div>
+            <div class="excel-text">اضغطي لاختيار ملف Excel</div>
+            <div class="excel-sub">.xlsx أو .xls — من نظام نور أو ملف مخصص</div>
+            <input type="file" id="excelFile" name="excel_file" accept=".xlsx,.xls" style="display:none" onchange="fileSelected(this)">
+          </div>
+          <div class="file-name" id="fileName">📎 —</div>
+          <button type="submit" class="btn btn-g">📥 استيراد الطالبات الآن</button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -133,6 +194,21 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <script>
+// تبديل بين تبويب الإدخال اليدوي وتبويب رفع Excel
+function showTab(which) {
+  const isManual = which === 'manual';
+  document.getElementById('pane-manual').style.display = isManual ? 'block' : 'none';
+  document.getElementById('pane-excel').style.display = isManual ? 'none' : 'block';
+
+  // تنسيق الأزرار: المختار يضيء، الآخر يصبح شفافاً
+  const tManual = document.getElementById('tab-manual');
+  const tExcel  = document.getElementById('tab-excel');
+  tManual.style.background = isManual ? 'linear-gradient(135deg,var(--green2),var(--blue2))' : 'transparent';
+  tManual.style.color = isManual ? '#fff' : 'var(--text2)';
+  tExcel.style.background = !isManual ? 'linear-gradient(135deg,var(--green2),var(--blue2))' : 'transparent';
+  tExcel.style.color = !isManual ? '#fff' : 'var(--text2)';
+}
+
 function fileSelected(input){
   if(input.files[0]){
     const fn = document.getElementById('fileName');

@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Avg
+from django.db.models import Avg, Count, Q
 from django.http import JsonResponse
+from django.utils import timezone
 from core.models import Profile
 from students.models import Student, ClassRoom
 from .models import (
@@ -13,42 +14,122 @@ from .models import (
 
 
 def get_teacher(request):
+    """يرجع كائن Teacher المرتبط بالمستخدم، وإن لم يوجد ينشئه تلقائياً.
+    سابقاً كان يرجع None إن لم يوجد، فيفشل add_skill_complete صامتاً."""
     try:
         return Teacher.objects.get(user=request.user)
     except Teacher.DoesNotExist:
+        # auto-heal: إن دخلت معلمة (لها Profile.role==TEACHER) لكن بلا Teacher row،
+        # ننشئه فوراً بدل التسبب في 500 على الحفظ.
+        try:
+            profile = request.user.core_profile
+            if profile.role == 'TEACHER':
+                full_name = (
+                    f"{request.user.first_name} {request.user.last_name}".strip()
+                    or request.user.username
+                )
+                return Teacher.objects.create(user=request.user, full_name=full_name)
+        except Profile.DoesNotExist:
+            pass
         return None
 
 
 def check_teacher(request):
+    """يفحص أن المستخدم معلمة. لا نخفي الاستثناءات الفعلية."""
     try:
-        profile = request.user.core_profile
-        if profile.role != 'TEACHER':
-            return False
-        return True
-    except:
+        return request.user.core_profile.role == 'TEACHER'
+    except Profile.DoesNotExist:
         return False
 
 
 def check_teacher_or_admin(request):
     try:
         role = request.user.core_profile.role
-        return role in ['TEACHER', 'ADMIN']
-    except:
+        return role in ('TEACHER', 'ADMIN')
+    except Profile.DoesNotExist:
         return False
+
+
+def _safe_int(value, default, minimum=None, maximum=None):
+    """تحويل آمن للأرقام يمنع crash من حقول فارغة أو نص."""
+    try:
+        v = int(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+    if minimum is not None and v < minimum:
+        return minimum
+    if maximum is not None and v > maximum:
+        return maximum
+    return v
 
 
 @login_required
 def teacher_dashboard(request):
+    """
+    لوحة المعلمة الرئيسية — جميع الإحصاءات من قاعدة البيانات.
+
+    الإصلاحات:
+    - حساب excellent/mid/weak_students من ExamResult بدل البيانات المحفورة في القالب.
+    - تجميع متوسط الأداء لكل طالبة (لا نتيجة فردية)، لتعطي صورة دقيقة.
+    - إعادة sessions الأخيرة + المهارات الأخيرة بالقيم الحقيقية.
+    """
     if not check_teacher(request):
         return redirect('home')
+
     teacher = get_teacher(request)
-    my_skills = TeacherSkill.objects.filter(created_by=teacher) if teacher else TeacherSkill.objects.none()
-    my_exams = TeacherExam.objects.filter(skill__created_by=teacher) if teacher else TeacherExam.objects.none()
-    my_results = ExamResult.objects.filter(exam__skill__created_by=teacher) if teacher else ExamResult.objects.none()
+    if not teacher:
+        # auto-heal: إذا لم يوجد Teacher record نُنشئه (انظر get_teacher)
+        messages.warning(request, 'تم إنشاء حساب معلمة جديد لربطه ببياناتك.')
+        return redirect('teacher_dashboard')
+
+    my_skills = TeacherSkill.objects.filter(created_by=teacher)
+    my_exams = TeacherExam.objects.filter(skill__created_by=teacher)
+    my_results = ExamResult.objects.filter(exam__skill__created_by=teacher)
+
+    # ─── تجميع نتائج الطالبات (متوسط أداء كل طالبة) ───────────
+    # Group by student, compute avg(percentage) — يعطي صورة دقيقة للطالبة
+    # بدلاً من إظهار نتيجة فردية واحدة.
+    students_perf = (
+        my_results
+        .values('student__id', 'student__first_name', 'student__last_name', 'student__username')
+        .annotate(
+            avg_pct=Avg('percentage'),
+            results_count=Count('id'),
+            passed_count=Count('id', filter=Q(passed=True)),
+        )
+        .order_by('-avg_pct')
+    )
+    # نحوّل QuerySet إلى list مرة واحدة لتجنب تكرار الاستعلام
+    students_perf = list(students_perf)
+
+    def _name(item):
+        return (
+            f"{item['student__first_name']} {item['student__last_name']}".strip()
+            or item['student__username']
+        )
+
+    excellent_students = [
+        {'name': _name(s), 'pct': round(s['avg_pct'] or 0, 1),
+         'count': s['results_count'], 'student_id': s['student__id']}
+        for s in students_perf if (s['avg_pct'] or 0) >= 90
+    ]
+    mid_students = [
+        {'name': _name(s), 'pct': round(s['avg_pct'] or 0, 1),
+         'count': s['results_count'], 'student_id': s['student__id']}
+        for s in students_perf if 50 <= (s['avg_pct'] or 0) < 90
+    ]
+    weak_students = [
+        {'name': _name(s), 'pct': round(s['avg_pct'] or 0, 1),
+         'count': s['results_count'], 'student_id': s['student__id']}
+        for s in students_perf if (s['avg_pct'] or 0) < 50
+    ]
+
     avg_score = my_results.aggregate(avg=Avg('percentage'))['avg'] or 0
-    qodrat_sessions = ClassSession.objects.filter(teacher=teacher, session_type='qodrat').count() if teacher else 0
-    tahsili_sessions = ClassSession.objects.filter(teacher=teacher, session_type='tahsili').count() if teacher else 0
-    context = {
+
+    # ─── ترتيب أعلى 3 طالبات ──────────────────────────────────
+    top_students = (excellent_students + mid_students)[:3]
+
+    return render(request, 'teachers/dashboard.html', {
         'teacher': teacher,
         'total_skills': my_skills.filter(content_type='skill').count(),
         'total_lessons': my_skills.filter(content_type='lesson').count(),
@@ -60,13 +141,25 @@ def teacher_dashboard(request):
         'total_results': my_results.count(),
         'passed_results': my_results.filter(passed=True).count(),
         'total_students': Student.objects.count(),
-        'sessions': ClassSession.objects.filter(teacher=teacher).order_by('-session_date', '-session_time')[:10] if teacher else [],
-        'qodrat_sessions': qodrat_sessions,
-        'tahsili_sessions': tahsili_sessions,
+        'sessions': (
+            ClassSession.objects
+            .filter(teacher=teacher)
+            .select_related('skill')
+            .order_by('-session_date', '-session_time')[:10]
+        ),
+        'qodrat_sessions': ClassSession.objects.filter(teacher=teacher, session_type='qodrat').count(),
+        'tahsili_sessions': ClassSession.objects.filter(teacher=teacher, session_type='tahsili').count(),
         'recent_skills': my_skills.order_by('-created_at')[:5],
-        'weak_students': my_results.filter(passed=False).select_related('student', 'exam').order_by('percentage')[:5],
-    }
-    return render(request, 'teachers/dashboard.html', context)
+        # تصنيف الأداء — يستعمله القالب لاستبدال البيانات الوهمية
+        'excellent_students': excellent_students,
+        'mid_students': mid_students,
+        'weak_students': weak_students,
+        'top_students': top_students,
+        'students_count_excellent': len(excellent_students),
+        'students_count_mid': len(mid_students),
+        'students_count_weak': len(weak_students),
+        'has_real_data': bool(students_perf),
+    })
 
 
 @login_required
@@ -120,20 +213,41 @@ def add_skill(request):
 
 @login_required
 def add_skill_complete(request):
+    """
+    حفظ مهارة/درس/بنك أسئلة كاملة دفعة واحدة (wizard 5 خطوات).
+
+    إصلاحات حرجة:
+    - _safe_int بدل int() لمنع crash عند إرسال حقل فارغ.
+    - bulk_create للأسئلة لتقليل INSERTs من N إلى 1.
+    - رسائل خطأ واضحة بدلاً من except صامت يخفي الأخطاء.
+    - log إلى console بنوع المشكلة لتسهيل التشخيص.
+    """
+    import json
+    import logging
+    logger = logging.getLogger(__name__)
+
     if not check_teacher(request):
         return redirect('home')
+
     teacher = get_teacher(request)
     if not teacher:
-        messages.error(request, 'لا يوجد حساب معلمة')
+        messages.error(request, 'لم يُربط حسابك بسجل معلمة. تواصلي مع المديرة.')
         return redirect('teacher_dashboard')
-    if request.method == 'POST':
-        import json
-        content_type = request.POST.get('content_type', 'skill')
-        title = request.POST.get('title', '').strip()
-        if not title:
-            messages.error(request, 'يرجى إدخال عنوان المهارة')
-            return redirect('skill_manager')
-        is_active = request.POST.get('is_active') == 'on'
+
+    if request.method != 'POST':
+        return redirect('skill_manager')
+
+    content_type = request.POST.get('content_type', 'skill')
+    title = (request.POST.get('title') or '').strip()
+
+    if not title:
+        messages.error(request, 'يرجى إدخال عنوان المهارة')
+        return redirect('skill_manager')
+
+    is_active = request.POST.get('is_active') == 'on'
+
+    # ─── إنشاء المهارة الأم ────────────────────────────────────
+    try:
         skill = TeacherSkill.objects.create(
             content_type=content_type,
             title=title,
@@ -145,72 +259,90 @@ def add_skill_complete(request):
             is_shared=request.POST.get('is_shared') == 'on',
             is_active=is_active,
         )
-        video_url = request.POST.get('video_url', '')
-        plain_text = request.POST.get('plain_text', '')
-        if video_url or plain_text:
-            TeacherSkillContent.objects.create(skill=skill, video_url=video_url, plain_text=plain_text)
-        if content_type == 'skill':
-            pre_exam = TeacherExam.objects.create(
-                skill=skill, exam_type='pre',
-                questions_count=int(request.POST.get('pre_count', 10)),
-                duration_minutes=int(request.POST.get('pre_time', 15)),
-                pass_score=int(request.POST.get('pre_pass', 60)),
-                delivery=request.POST.get('pre_delivery', 'both'),
-                is_active=is_active,
-            )
-            try:
-                pre_qs = json.loads(request.POST.get('pre_questions', '[]'))
-                for i, q in enumerate(pre_qs):
-                    TeacherQuestion.objects.create(
-                        exam=pre_exam, order=i+1,
-                        question_plain=q.get('text', ''),
-                        option_a_plain=q.get('a', ''), option_b_plain=q.get('b', ''),
-                        option_c_plain=q.get('c', ''), option_d_plain=q.get('d', ''),
-                        correct_answer=q.get('correct', 'A'), feedback_plain=q.get('feedback', ''),
-                    )
-            except: pass
-            post_exam = TeacherExam.objects.create(
-                skill=skill, exam_type='post',
-                questions_count=int(request.POST.get('post_count', 10)),
-                duration_minutes=int(request.POST.get('post_time', 15)),
-                pass_score=int(request.POST.get('post_pass', 70)),
-                is_active=is_active,
-            )
-            try:
-                post_qs = json.loads(request.POST.get('post_questions', '[]'))
-                for i, q in enumerate(post_qs):
-                    TeacherQuestion.objects.create(
-                        exam=post_exam, order=i+1,
-                        question_plain=q.get('text', ''),
-                        option_a_plain=q.get('a', ''), option_b_plain=q.get('b', ''),
-                        option_c_plain=q.get('c', ''), option_d_plain=q.get('d', ''),
-                        correct_answer=q.get('correct', 'A'), feedback_plain=q.get('feedback', ''),
-                    )
-            except: pass
-        else:
-            exam = TeacherExam.objects.create(
-                skill=skill,
-                exam_type='lesson' if content_type == 'lesson' else 'bank',
-                questions_count=int(request.POST.get('pre_count', 10)),
-                duration_minutes=int(request.POST.get('pre_time', 15)),
-                pass_score=int(request.POST.get('pre_pass', 60)),
-                is_active=is_active,
-            )
-            try:
-                qs = json.loads(request.POST.get('pre_questions', '[]'))
-                for i, q in enumerate(qs):
-                    TeacherQuestion.objects.create(
-                        exam=exam, order=i+1,
-                        question_plain=q.get('text', ''),
-                        option_a_plain=q.get('a', ''), option_b_plain=q.get('b', ''),
-                        option_c_plain=q.get('c', ''), option_d_plain=q.get('d', ''),
-                        correct_answer=q.get('correct', 'A'),
-                        target_skill_name=q.get('skill', ''),
-                        feedback_plain=q.get('feedback', ''),
-                    )
-            except: pass
-        messages.success(request, f'تم حفظ "{title}" بنجاح!')
+    except Exception as e:
+        logger.exception('Failed to create TeacherSkill')
+        messages.error(request, f'تعذّر حفظ المهارة: {e}')
         return redirect('skill_manager')
+
+    # ─── محتوى الشرح (اختياري) ────────────────────────────────
+    video_url = request.POST.get('video_url', '').strip()
+    plain_text = request.POST.get('plain_text', '').strip()
+    if video_url or plain_text:
+        TeacherSkillContent.objects.create(
+            skill=skill, video_url=video_url, plain_text=plain_text,
+        )
+
+    # ─── الاختبارات والأسئلة ──────────────────────────────────
+    def _bulk_questions(exam, raw_json, key_prefix=''):
+        """يحفظ قائمة أسئلة من JSON بدون فشل صامت."""
+        try:
+            items = json.loads(raw_json or '[]')
+        except json.JSONDecodeError as exc:
+            logger.warning(f'Invalid {key_prefix} questions JSON: {exc}')
+            return 0
+        if not isinstance(items, list):
+            return 0
+        objs = []
+        for i, q in enumerate(items, start=1):
+            if not isinstance(q, dict):
+                continue
+            objs.append(TeacherQuestion(
+                exam=exam,
+                order=i,
+                question_plain=q.get('text', ''),
+                option_a_plain=q.get('a', ''),
+                option_b_plain=q.get('b', ''),
+                option_c_plain=q.get('c', ''),
+                option_d_plain=q.get('d', ''),
+                correct_answer=(q.get('correct') or 'A').upper()[:1],
+                target_skill_name=q.get('skill', ''),
+                feedback_plain=q.get('feedback', ''),
+            ))
+        if objs:
+            TeacherQuestion.objects.bulk_create(objs)
+        return len(objs)
+
+    pre_count = _safe_int(request.POST.get('pre_count'), default=10, minimum=1, maximum=100)
+    pre_time = _safe_int(request.POST.get('pre_time'), default=15, minimum=1, maximum=300)
+    pre_pass = _safe_int(request.POST.get('pre_pass'), default=60, minimum=0, maximum=100)
+    post_count = _safe_int(request.POST.get('post_count'), default=10, minimum=1, maximum=100)
+    post_time = _safe_int(request.POST.get('post_time'), default=15, minimum=1, maximum=300)
+    post_pass = _safe_int(request.POST.get('post_pass'), default=70, minimum=0, maximum=100)
+
+    qs_saved = 0
+    if content_type == 'skill':
+        # مهارة قدرات → اختباران (قبلي + بعدي)
+        pre_exam = TeacherExam.objects.create(
+            skill=skill, exam_type='pre',
+            questions_count=pre_count, duration_minutes=pre_time,
+            pass_score=pre_pass, delivery=request.POST.get('pre_delivery', 'both'),
+            is_active=is_active,
+        )
+        qs_saved += _bulk_questions(pre_exam, request.POST.get('pre_questions'), 'pre')
+
+        post_exam = TeacherExam.objects.create(
+            skill=skill, exam_type='post',
+            questions_count=post_count, duration_minutes=post_time,
+            pass_score=post_pass, is_active=is_active,
+        )
+        qs_saved += _bulk_questions(post_exam, request.POST.get('post_questions'), 'post')
+    else:
+        # درس تحصيلي / بنك → اختبار واحد
+        exam = TeacherExam.objects.create(
+            skill=skill,
+            exam_type='lesson' if content_type == 'lesson' else 'bank',
+            questions_count=pre_count, duration_minutes=pre_time,
+            pass_score=pre_pass, is_active=is_active,
+        )
+        qs_saved += _bulk_questions(exam, request.POST.get('pre_questions'), 'pre')
+
+    if qs_saved:
+        messages.success(request, f'✅ تم حفظ "{title}" بنجاح مع {qs_saved} سؤال')
+    else:
+        messages.success(
+            request,
+            f'✅ تم حفظ "{title}" — يمكنك إضافة الأسئلة لاحقاً من شاشة الأسئلة'
+        )
     return redirect('skill_manager')
 
 
