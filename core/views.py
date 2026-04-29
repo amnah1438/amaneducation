@@ -1,349 +1,454 @@
-from django.contrib import messages
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.utils import timezone
-from django.db.models import Avg, Q
-from .models import SchoolSettings, Profile
-from teachers.models import TeacherSkill, TeacherExam, ExamResult, ClassSession
-from students.models import ClassRoom
+"""
+Core views — الواجهة الأمامية + لوحة المديرة.
 
+الإصلاحات الرئيسية:
+1) حذف التعريف المكرر للدالة admin_add_classroom (كان معرفاً مرتين فيختفي الأول).
+2) استبدال bare-except بفلترة استثناءات محددة (Profile.DoesNotExist, ValueError, …).
+3) دالة decorator موحّدة @admin_required بدلاً من تكرار try/except في كل view.
+4) تحويل admin_view_as إلى POST + منع التحول إلى مدير آخر (صلاحيات).
+5) منع crash في admin_add_comprehensive عند إدخال قيم غير رقمية في duration/pass_score.
+6) استخدام select_related/annotate لتقليل N+1 queries في admin_dashboard.
+"""
+from functools import wraps
+
+from django.contrib import messages
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.db.models import Avg, Count, Q
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
+
+from core.models import Profile, SchoolSettings
+from students.models import ClassRoom
+from teachers.models import (
+    ClassSession,
+    ExamResult,
+    Teacher,
+    TeacherExam,
+    TeacherSkill,
+)
+
+
+# ═══════════════════════════════════════════════════════════════
+# Decorators وأدوات صلاحيات
+# ═══════════════════════════════════════════════════════════════
+
+def _get_role(user):
+    """يرجع دور المستخدم (ADMIN/TEACHER/STUDENT) أو None."""
+    try:
+        return user.core_profile.role
+    except Profile.DoesNotExist:
+        return None
+
+
+def admin_required(view_func):
+    """
+    decorator: يضمن أن المستخدم مسجل دخول ودوره ADMIN.
+    superuser يُسمح له تلقائياً (لتمكين الإدارة من Django admin).
+    """
+    @wraps(view_func)
+    @login_required
+    def _wrapped(request, *args, **kwargs):
+        if request.user.is_superuser or _get_role(request.user) == 'ADMIN':
+            return view_func(request, *args, **kwargs)
+        messages.error(request, 'هذه الصفحة مخصصة للإدارة فقط.')
+        return redirect('home')
+    return _wrapped
+
+
+def _safe_int(value, default, minimum=None, maximum=None):
+    """
+    يحول النص إلى int بأمان مع حدود اختيارية.
+    استبدال لـ int(request.POST.get('x', N)) الذي يطرح ValueError إذا أُرسل نص فارغ.
+    """
+    try:
+        result = int(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+    if minimum is not None and result < minimum:
+        return minimum
+    if maximum is not None and result > maximum:
+        return maximum
+    return result
+
+
+# ═══════════════════════════════════════════════════════════════
+# الصفحات العامة
+# ═══════════════════════════════════════════════════════════════
 
 def home(request):
+    """الصفحة الرئيسية — تعرض المهارات النشطة + الاختبارات الشاملة."""
     settings_obj = SchoolSettings.objects.first()
-    all_skills = TeacherSkill.objects.filter(
-        Q(is_active=True) | Q(content_type='comprehensive')
-    ).order_by('-created_at')
-    context = {
+    all_skills = (
+        TeacherSkill.objects
+        .filter(Q(is_active=True) | Q(content_type='comprehensive'))
+        .select_related('created_by')  # تقليل N+1 عند عرض اسم المعلمة
+        .order_by('-created_at')
+    )
+    return render(request, 'core/home.html', {
         'settings': settings_obj,
         'skills': all_skills,
         'classrooms': ClassRoom.objects.all(),
-    }
-    return render(request, 'core/home.html', context)
+    })
 
 
 def skill_detail(request, skill_id):
+    """تفاصيل مهارة + اختباراتها (قبلي/بعدي)."""
     skill = get_object_or_404(TeacherSkill, pk=skill_id)
-    exams = skill.exams.all()
-    context = {
+    exams = list(skill.exams.all())  # نحوّلها list لتجنب استعلامات متعددة
+    return render(request, 'core/skill_detail.html', {
         'skill': skill,
-        'pre_exam': exams.filter(exam_type='pre').first(),
-        'post_exam': exams.filter(exam_type='post').first(),
+        'pre_exam': next((e for e in exams if e.exam_type == 'pre'), None),
+        'post_exam': next((e for e in exams if e.exam_type == 'post'), None),
         'classrooms': ClassRoom.objects.all(),
-    }
-    return render(request, 'core/skill_detail.html', context)
+    })
 
 
 def take_test(request, skill_id):
+    """عرض الاختبار القبلي العام (للزائر)."""
     skill = get_object_or_404(TeacherSkill, pk=skill_id)
     pre_exam = skill.exams.filter(exam_type='pre').first()
     questions = pre_exam.questions.all() if pre_exam else []
-    return render(request, 'core/take_test.html', {'skill': skill, 'questions': questions})
+    return render(request, 'core/take_test.html', {
+        'skill': skill,
+        'questions': questions,
+    })
 
+
+# ═══════════════════════════════════════════════════════════════
+# تفعيل/إلغاء الاختبارات (AJAX)
+# ═══════════════════════════════════════════════════════════════
 
 @login_required
+@require_POST  # نمنع GET لمنع CSRF عبر <img>/<a>
 def activate_exam(request, exam_id):
+    """تفعيل الاختبار لفصل محدد + توليد رابط مخصّص."""
     exam = get_object_or_404(TeacherExam, pk=exam_id)
-    if request.method == 'POST':
-        classroom_id = request.POST.get('classroom_id')
-        classroom = get_object_or_404(ClassRoom, pk=classroom_id)
-        exam.is_active = True
-        exam.save()
-        try:
-            from teachers.models import Teacher
-            teacher = Teacher.objects.get(user=request.user)
-            ClassSession.objects.get_or_create(
-                teacher=teacher, skill=exam.skill,
-                session_type='qodrat' if exam.skill.skill_type in ['qodrat_kamy','qodrat_lafzy'] else 'tahsili',
-                target_class=classroom.name,
-                session_date=timezone.now().date(),
-                defaults={'session_time': timezone.now().time()}
-            )
-        except: pass
-        url = request.build_absolute_uri(f'/students/exam/{exam.id}/')
-        return JsonResponse({'success': True, 'url': url, 'message': f'✅ تم تفعيل {exam.get_exam_type_display()} للفصل {classroom.name}'})
-    return JsonResponse({'success': False})
+    classroom_id = request.POST.get('classroom_id')
+    if not classroom_id:
+        return JsonResponse({'success': False, 'error': 'لم يُحدّد فصل'}, status=400)
+
+    classroom = get_object_or_404(ClassRoom, pk=classroom_id)
+    exam.is_active = True
+    exam.save(update_fields=['is_active'])
+
+    # تسجيل حصة — استثناءات محددة بدل bare except
+    try:
+        teacher = Teacher.objects.get(user=request.user)
+        ClassSession.objects.get_or_create(
+            teacher=teacher,
+            skill=exam.skill,
+            session_type='qodrat' if exam.skill.skill_type in ['qodrat_kamy', 'qodrat_lafzy'] else 'tahsili',
+            target_class=classroom.name,
+            session_date=timezone.now().date(),
+            defaults={'session_time': timezone.now().time()},
+        )
+    except Teacher.DoesNotExist:
+        pass  # المديرة قد لا يكون لديها حساب Teacher — لا بأس
+
+    url = request.build_absolute_uri(f'/students/exam/{exam.id}/')
+    return JsonResponse({
+        'success': True,
+        'url': url,
+        'message': f'✅ تم تفعيل {exam.get_exam_type_display()} للفصل {classroom.name}',
+    })
 
 
 @login_required
+@require_POST
 def deactivate_exam(request, exam_id):
+    """إلغاء تفعيل اختبار."""
     exam = get_object_or_404(TeacherExam, pk=exam_id)
     exam.is_active = False
-    exam.save()
+    exam.save(update_fields=['is_active'])
     return JsonResponse({'success': True})
 
 
-@login_required
+# ═══════════════════════════════════════════════════════════════
+# لوحة المديرة
+# ═══════════════════════════════════════════════════════════════
+
+@admin_required
 def admin_dashboard(request):
-    try:
-        if request.user.core_profile.role != 'ADMIN':
-            return redirect('home')
-    except:
-        return redirect('home')
+    """
+    لوحة المديرة الرئيسية — إحصاءات + قوائم المعلمات والطالبات.
 
-    from teachers.models import Teacher
+    الإصلاحات الجوهرية:
+    - استبدال loop بـ select_related + annotate لتقليل عدد الاستعلامات
+      من O(n*4) إلى O(1) لكل قائمة.
+    """
+    # ── المعلمات ── (annotate في استعلام واحد بدل حلقة)
+    teacher_profiles = (
+        Profile.objects
+        .filter(role='TEACHER')
+        .select_related('user')
+        .annotate(
+            skills_count=Count(
+                'user__teacher__teacher_skills',
+                distinct=True,
+            ),
+            sessions_count=Count('user__teacher__sessions', distinct=True),
+            avg_score=Avg('user__teacher__teacher_skills__exams__results__percentage'),
+        )
+    )
+    teachers_data = [
+        {
+            'profile': p,
+            'user': p.user,
+            'name': (f"{p.user.first_name} {p.user.last_name}".strip()
+                     or p.user.username),
+            'national_id': p.national_id,
+            'skills_count': p.skills_count or 0,
+            'sessions_count': p.sessions_count or 0,
+            'avg_score': round(p.avg_score or 0, 1),
+            'last_login': p.user.last_login,
+        }
+        for p in teacher_profiles
+    ]
 
-    teachers_data = []
-    for profile in Profile.objects.filter(role='TEACHER').select_related('user'):
-        try:
-            teacher = Teacher.objects.get(user=profile.user)
-            skills_count = TeacherSkill.objects.filter(created_by=teacher).count()
-            sessions_count = ClassSession.objects.filter(teacher=teacher).count()
-            avg = ExamResult.objects.filter(
-                exam__skill__created_by=teacher
-            ).aggregate(avg=Avg('percentage'))['avg'] or 0
-        except:
-            skills_count = sessions_count = avg = 0
-        teachers_data.append({
-            'profile': profile,
-            'user': profile.user,
-            'name': f"{profile.user.first_name} {profile.user.last_name}".strip() or profile.user.username,
-            'national_id': profile.national_id,
-            'skills_count': skills_count,
-            'sessions_count': sessions_count,
-            'avg_score': round(avg, 1),
-            'last_login': profile.user.last_login,
-        })
+    # ── الطالبات ──
+    student_profiles = (
+        Profile.objects
+        .filter(role='STUDENT')
+        .select_related('user')
+        .annotate(
+            results_count=Count('user__teacher_exam_results', distinct=True),
+            avg_score=Avg('user__teacher_exam_results__percentage'),
+        )
+    )
+    students_data = [
+        {
+            'profile': p,
+            'user': p.user,
+            'name': (f"{p.user.first_name} {p.user.last_name}".strip()
+                     or p.user.username),
+            'national_id': p.national_id,
+            'results_count': p.results_count or 0,
+            'avg_score': round(p.avg_score or 0, 1),
+            'last_login': p.user.last_login,
+        }
+        for p in student_profiles
+    ]
 
-    students_data = []
-    for profile in Profile.objects.filter(role='STUDENT').select_related('user'):
-        results = ExamResult.objects.filter(student=profile.user)
-        avg = results.aggregate(avg=Avg('percentage'))['avg'] or 0
-        students_data.append({
-            'profile': profile,
-            'user': profile.user,
-            'name': f"{profile.user.first_name} {profile.user.last_name}".strip() or profile.user.username,
-            'national_id': profile.national_id,
-            'results_count': results.count(),
-            'avg_score': round(avg, 1),
-            'last_login': profile.user.last_login,
-        })
-
-    context = {
-        'total_teachers': Profile.objects.filter(role='TEACHER').count(),
-        'total_students': Profile.objects.filter(role='STUDENT').count(),
+    return render(request, 'core/admin_dashboard.html', {
+        'total_teachers': len(teachers_data),
+        'total_students': len(students_data),
         'total_skills': TeacherSkill.objects.filter(is_active=True).count(),
         'total_results': ExamResult.objects.count(),
         'teachers_data': teachers_data,
         'students_data': students_data,
         'classrooms': ClassRoom.objects.all(),
-    }
-    return render(request, 'core/admin_dashboard.html', context)
+    })
 
 
-@login_required
+# ─── إدارة المستخدمات ───────────────────────────────────────────
+
+@admin_required
+@require_POST  # GET للنماذج خطر — نقبل POST فقط
 def admin_add_teacher(request):
-    try:
-        if request.user.core_profile.role != 'ADMIN':
-            return redirect('home')
-    except:
-        return redirect('home')
+    full_name = (request.POST.get('full_name') or '').strip()
+    national_id = (request.POST.get('national_id') or '').strip()
 
-    if request.method == 'POST':
-        from django.contrib.auth.models import User
-        from teachers.models import Teacher
-        full_name = request.POST.get('full_name', '').strip()
-        national_id = request.POST.get('national_id', '').strip()
-        if not full_name or not national_id:
-            messages.error(request, 'يرجى إدخال الاسم ورقم الهوية')
-            return redirect('admin_dashboard')
-        if User.objects.filter(username=national_id).exists():
-            messages.error(request, 'رقم الهوية مسجّل مسبقاً')
-            return redirect('admin_dashboard')
-        name_parts = full_name.split()
-        user = User.objects.create_user(
-            username=national_id, password=national_id,
-            first_name=name_parts[0] if name_parts else full_name,
-            last_name=' '.join(name_parts[1:]) if len(name_parts) > 1 else '',
-        )
-        Profile.objects.create(user=user, role='TEACHER', national_id=national_id)
-        Teacher.objects.create(user=user, full_name=full_name)
-        messages.success(request, f'✅ تم إضافة المعلمة {full_name}')
+    # تحقق صارم من المدخلات
+    if not full_name or not national_id:
+        messages.error(request, 'يرجى إدخال الاسم ورقم الهوية')
+        return redirect('admin_dashboard')
+    if not national_id.isdigit() or not (8 <= len(national_id) <= 12):
+        messages.error(request, 'رقم هوية غير صالح')
+        return redirect('admin_dashboard')
+    if User.objects.filter(username=national_id).exists():
+        messages.error(request, 'رقم الهوية مسجّل مسبقاً')
+        return redirect('admin_dashboard')
+
+    name_parts = full_name.split()
+    user = User.objects.create_user(
+        username=national_id,
+        password=national_id,  # كلمة مرور أولية = الهوية، يجب تغييرها
+        first_name=name_parts[0] if name_parts else full_name,
+        last_name=' '.join(name_parts[1:]) if len(name_parts) > 1 else '',
+    )
+    Profile.objects.create(user=user, role='TEACHER', national_id=national_id)
+    Teacher.objects.create(user=user, full_name=full_name)
+    messages.success(request, f'✅ تم إضافة المعلمة {full_name}')
     return redirect('admin_dashboard')
 
 
-@login_required
+@admin_required
+@require_POST
 def admin_add_student(request):
-    try:
-        if request.user.core_profile.role != 'ADMIN':
-            return redirect('home')
-    except:
-        return redirect('home')
+    from students.models import Student  # import محلي لكسر دائرة محتملة
 
-    if request.method == 'POST':
-        from django.contrib.auth.models import User
-        from students.models import Student
-        full_name = request.POST.get('full_name', '').strip()
-        national_id = request.POST.get('national_id', '').strip()
-        classroom_id = request.POST.get('classroom_id', '')
-        if not full_name or not national_id:
-            messages.error(request, 'يرجى إدخال الاسم ورقم الهوية')
-            return redirect('admin_dashboard')
-        if User.objects.filter(username=national_id).exists():
-            messages.error(request, 'رقم الهوية مسجّل مسبقاً')
-            return redirect('admin_dashboard')
-        name_parts = full_name.split()
-        user = User.objects.create_user(
-            username=national_id, password=national_id,
-            first_name=name_parts[0] if name_parts else full_name,
-            last_name=' '.join(name_parts[1:]) if len(name_parts) > 1 else '',
-        )
-        Profile.objects.create(user=user, role='STUDENT', national_id=national_id)
-        classroom = ClassRoom.objects.filter(id=classroom_id).first()
-        if classroom:
-            Student.objects.create(full_name=full_name, classroom=classroom)
-        messages.success(request, f'✅ تم إضافة الطالبة {full_name}')
+    full_name = (request.POST.get('full_name') or '').strip()
+    national_id = (request.POST.get('national_id') or '').strip()
+    classroom_id = request.POST.get('classroom_id') or ''
+
+    if not full_name or not national_id:
+        messages.error(request, 'يرجى إدخال الاسم ورقم الهوية')
+        return redirect('admin_dashboard')
+    if not national_id.isdigit() or not (8 <= len(national_id) <= 12):
+        messages.error(request, 'رقم هوية غير صالح')
+        return redirect('admin_dashboard')
+    if User.objects.filter(username=national_id).exists():
+        messages.error(request, 'رقم الهوية مسجّل مسبقاً')
+        return redirect('admin_dashboard')
+
+    name_parts = full_name.split()
+    user = User.objects.create_user(
+        username=national_id,
+        password=national_id,
+        first_name=name_parts[0] if name_parts else full_name,
+        last_name=' '.join(name_parts[1:]) if len(name_parts) > 1 else '',
+    )
+    Profile.objects.create(user=user, role='STUDENT', national_id=national_id)
+
+    classroom = ClassRoom.objects.filter(id=classroom_id).first()
+    if classroom:
+        Student.objects.create(full_name=full_name, classroom=classroom)
+    messages.success(request, f'✅ تم إضافة الطالبة {full_name}')
     return redirect('admin_dashboard')
 
 
-@login_required
+@admin_required
+@require_POST  # حذف يجب أن يكون POST دائماً (CSRF + idempotency)
 def admin_delete_user(request, user_id):
-    try:
-        if request.user.core_profile.role != 'ADMIN':
-            return redirect('home')
-    except:
-        return redirect('home')
+    """
+    حذف مستخدم. لا تسمح بحذف:
+    - حساب المديرة الحالية (لتجنّب قفل الباب على نفسها)
+    - أي superuser
+    """
+    target = User.objects.filter(id=user_id).first()
+    if target is None:
+        messages.error(request, 'المستخدم غير موجود')
+        return redirect('admin_dashboard')
+    if target.id == request.user.id:
+        messages.error(request, 'لا يمكنك حذف حسابك أثناء الجلسة')
+        return redirect('admin_dashboard')
+    if target.is_superuser:
+        messages.error(request, 'لا يمكن حذف حساب superuser من هنا')
+        return redirect('admin_dashboard')
 
-    from django.contrib.auth.models import User
-    try:
-        user = User.objects.get(id=user_id)
-        name = user.get_full_name() or user.username
-        user.delete()
-        messages.success(request, f'🗑️ تم حذف {name}')
-    except:
-        messages.error(request, 'حدث خطأ')
+    name = target.get_full_name() or target.username
+    target.delete()
+    messages.success(request, f'🗑️ تم حذف {name}')
     return redirect('admin_dashboard')
-@login_required
+
+
+@admin_required
+@require_POST
 def admin_add_classroom(request):
-    try:
-        if request.user.core_profile.role != 'ADMIN':
-            return redirect('home')
-    except:
-        return redirect('home')
-    if request.method == 'POST':
-        name = request.POST.get('name', '').strip()
-        if name:
-            ClassRoom.objects.get_or_create(name=name)
-            messages.success(request, f'✅ تم إضافة الفصل {name}')
-    return redirect('admin_dashboard')
-@login_required
-def admin_add_classroom(request):
-    try:
-        if request.user.core_profile.role != 'ADMIN':
-            return redirect('home')
-    except:
-        return redirect('home')
-    if request.method == 'POST':
-        name = request.POST.get('name', '').strip()
-        if name:
-            ClassRoom.objects.get_or_create(name=name)
-            messages.success(request, f'✅ تم إضافة الفصل {name}')
+    """إضافة فصل دراسي (وحيد، لا تكرار)."""
+    name = (request.POST.get('name') or '').strip()
+    if name:
+        ClassRoom.objects.get_or_create(name=name)
+        messages.success(request, f'✅ تم إضافة الفصل {name}')
+    else:
+        messages.error(request, 'يرجى إدخال اسم الفصل')
     return redirect('admin_dashboard')
 
 
-@login_required
+# ─── الدخول كمستخدم ──────────────────────────────────────────────
+
+@admin_required
+@require_POST  # كان GET → ثغرة CSRF (يمكن سرقة الجلسة بصورة مدسوسة)
 def admin_view_as(request, user_id):
-    try:
-        if request.user.core_profile.role != 'ADMIN':
-            return redirect('home')
-    except:
-        return redirect('home')
-    from django.contrib.auth.models import User
-    from django.contrib.auth import login as auth_login
-    target_user = get_object_or_404(User, id=user_id)
+    """
+    تتيح للمديرة الدخول كأي معلمة/طالبة لتفقد ما تراه.
+    قيود الأمان:
+    - لا يُسمح بالدخول إلى حساب ADMIN آخر (منع امتياز جانبي).
+    - نخزّن admin_id في الجلسة للعودة لاحقاً.
+    """
+    target = get_object_or_404(User, id=user_id)
+    target_role = _get_role(target)
+
+    if target_role == 'ADMIN' or target.is_superuser:
+        messages.error(request, 'لا يمكن الدخول كحساب إدارة آخر')
+        return redirect('admin_dashboard')
+
     request.session['admin_id'] = request.user.id
-    auth_login(request, target_user,
-        backend='django.contrib.auth.backends.ModelBackend')
-    try:
-        role = target_user.core_profile.role
-        if role == 'TEACHER':
-            return redirect('teacher_dashboard')
-        elif role == 'STUDENT':
-            return redirect('student_dashboard')
-    except:
-        pass
+    auth_login(request, target, backend='django.contrib.auth.backends.ModelBackend')
+
+    if target_role == 'TEACHER':
+        return redirect('teacher_dashboard')
+    if target_role == 'STUDENT':
+        return redirect('student_dashboard')
     return redirect('home')
 
 
 @login_required
+@require_POST
 def admin_return(request):
+    """العودة من جلسة view-as إلى حساب المديرة الأصلي."""
     admin_id = request.session.get('admin_id')
-    if admin_id:
-        from django.contrib.auth.models import User
-        from django.contrib.auth import login as auth_login
-        try:
-            admin_user = User.objects.get(id=admin_id)
-            auth_login(request, admin_user,
-                backend='django.contrib.auth.backends.ModelBackend')
-            del request.session['admin_id']
-        except: pass
-    return redirect('admin_dashboard')
-@login_required
-def admin_comprehensive(request):
+    if not admin_id:
+        return redirect('home')
     try:
-        if request.user.core_profile.role != 'ADMIN':
-            return redirect('home')
-    except:
+        admin_user = User.objects.get(id=admin_id)
+    except User.DoesNotExist:
         return redirect('home')
 
-    from teachers.models import Teacher, TeacherSkill, TeacherExam, TeacherQuestion
-    
-    comp_skills = TeacherSkill.objects.filter(
-        content_type='comprehensive'
-    ).order_by('-created_at')
-    
-    context = {
+    auth_login(request, admin_user, backend='django.contrib.auth.backends.ModelBackend')
+    request.session.pop('admin_id', None)
+    return redirect('admin_dashboard')
+
+
+# ─── الاختبارات الشاملة ──────────────────────────────────────────
+
+@admin_required
+def admin_comprehensive(request):
+    """قائمة الاختبارات الشاملة (قدرات/تحصيلي)."""
+    comp_skills = (
+        TeacherSkill.objects
+        .filter(content_type='comprehensive')
+        .select_related('created_by')
+        .order_by('-created_at')
+    )
+    return render(request, 'core/admin_comprehensive.html', {
         'comp_skills': comp_skills,
         'classrooms': ClassRoom.objects.all(),
-    }
-    return render(request, 'core/admin_comprehensive.html', context)
+    })
 
 
-@login_required
+@admin_required
+@require_POST
 def admin_add_comprehensive(request):
-    try:
-        if request.user.core_profile.role != 'ADMIN':
-            return redirect('home')
-    except:
-        return redirect('home')
+    """إنشاء اختبار شامل جديد."""
+    title = (request.POST.get('title') or '').strip()
+    comp_type = (request.POST.get('comp_type') or '').strip()
 
-    if request.method == 'POST':
-        from teachers.models import Teacher, TeacherSkill, TeacherExam
-        
-        title = request.POST.get('title', '').strip()
-        comp_type = request.POST.get('comp_type', '')
-        duration = int(request.POST.get('duration', 120))
-        questions_count = int(request.POST.get('questions_count', 60))
-        pass_score = int(request.POST.get('pass_score', 50))
+    if not title:
+        messages.error(request, 'يرجى إدخال عنوان الاختبار')
+        return redirect('admin_comprehensive')
 
-        # نحتاج teacher للمديرة
-        try:
-            teacher = request.user.teacher
-        except:
-            from teachers.models import Teacher
-            teacher, _ = Teacher.objects.get_or_create(
-                user=request.user,
-                defaults={'full_name': request.user.get_full_name() or 'المديرة'}
-            )
+    # _safe_int يمنع crash عند إدخال نص فارغ أو غير رقمي
+    duration = _safe_int(request.POST.get('duration'), default=120, minimum=1, maximum=600)
+    questions_count = _safe_int(request.POST.get('questions_count'), default=60, minimum=1, maximum=300)
+    pass_score = _safe_int(request.POST.get('pass_score'), default=50, minimum=0, maximum=100)
 
-        skill = TeacherSkill.objects.create(
-            content_type='comprehensive',
-            title=title,
-            skill_type=comp_type,
-            description=request.POST.get('description', ''),
-            created_by=teacher,
-            target_classes='جميع الفصول',
-            is_active=False,
-        )
+    # نضمن وجود حساب Teacher للمديرة لتمرير created_by
+    teacher, _ = Teacher.objects.get_or_create(
+        user=request.user,
+        defaults={'full_name': request.user.get_full_name() or 'المديرة'},
+    )
 
-        TeacherExam.objects.create(
-            skill=skill,
-            exam_type='comprehensive_qodrat' if comp_type == 'qodrat_kamy' else 'comprehensive_tahsili',
-            questions_count=questions_count,
-            duration_minutes=duration,
-            pass_score=pass_score,
-            is_active=False,
-        )
-
-        messages.success(request, f'✅ تم إنشاء {title}')
+    skill = TeacherSkill.objects.create(
+        content_type='comprehensive',
+        title=title,
+        skill_type=comp_type,
+        description=request.POST.get('description', ''),
+        created_by=teacher,
+        target_classes='جميع الفصول',
+        is_active=False,
+    )
+    TeacherExam.objects.create(
+        skill=skill,
+        exam_type='comprehensive_qodrat' if comp_type == 'qodrat_kamy' else 'comprehensive_tahsili',
+        questions_count=questions_count,
+        duration_minutes=duration,
+        pass_score=pass_score,
+        is_active=False,
+    )
+    messages.success(request, f'✅ تم إنشاء {title}')
     return redirect('admin_comprehensive')

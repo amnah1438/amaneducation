@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>نتيجة {{ result.student.get_full_name }} — منصة آمنة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Cairo', sans-serif; background: #f4f6fa; padding: 24px; color: #222; margin: 0; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #1a7a4a, #1a4a8a); color: #fff; padding: 24px; border-radius: 14px; margin-bottom: 22px; }
+    .header h1 { margin: 0 0 6px; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat { background: #fff; padding: 16px; border-radius: 12px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .stat b { display: block; font-size: 1.6rem; color: #1a7a4a; margin-bottom: 4px; }
+    .question { background: #fff; padding: 18px; margin-bottom: 12px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .question .q-text { font-weight: 700; margin-bottom: 10px; }
+    .opt { padding: 8px 12px; border-radius: 8px; margin: 4px 0; background: #f5f7fa; font-size: 0.9rem; }
+    .opt.correct { background: #e7f6ec; color: #1a7a4a; font-weight: 700; }
+    .opt.chosen-wrong { background: #fdecec; color: #c33; font-weight: 700; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; }
+    .badge.ok { background: #e7f6ec; color: #1a7a4a; }
+    .badge.bad { background: #fdecec; color: #c33; }
+    .actions { margin-top: 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { padding: 10px 16px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 0.9rem; }
+    .btn-primary { background: #1a7a4a; color: #fff; }
+    .btn-secondary { background: #fff; color: #1a4a8a; border: 2px solid #1a4a8a; }
+    @media print { .actions, .back { display: none; } body { background: #fff; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="{% url 'exam_results' result.exam.id %}" style="color:#1a4a8a;text-decoration:none;font-weight:700">← العودة للنتائج</a>
+
+    <div class="header">
+      <h1>📋 نتيجة: {{ result.student.get_full_name|default:result.student.username }}</h1>
+      <p>{{ result.exam.skill.title }} — {{ result.exam.get_exam_type_display }}</p>
+    </div>
+
+    <div class="summary">
+      <div class="stat"><b>{{ result.score }}/{{ result.total }}</b><span>الدرجة</span></div>
+      <div class="stat"><b>{{ result.percentage }}%</b><span>النسبة</span></div>
+      <div class="stat">
+        {% if result.passed %}
+          <b style="color:#1a7a4a">ناجحة ✓</b>
+        {% else %}
+          <b style="color:#c33">متعثرة ✗</b>
+        {% endif %}
+        <span>الحالة</span>
+      </div>
+      <div class="stat"><b>{{ result.time_taken_seconds }} ث</b><span>المدة</span></div>
+    </div>
+
+    {% for ans in answers %}
+      <div class="question">
+        <div class="q-text">س{{ ans.question.order }}.
+          {# نستخدم question_plain أولاً (آمن) ثم question_text|safe (HTML من المحرّر) #}
+          {% if ans.question.question_plain %}
+            {{ ans.question.question_plain }}
+          {% else %}
+            {{ ans.question.question_text|safe }}
+          {% endif %}
+        </div>
+
+        {% for letter, label in "A,أ;B,ب;C,ج;D,د"|cut:""|slice:":1" %}{% endfor %}
+        {# نعرض الخيارات الأربعة مع تمييز الإجابة الصحيحة + اختيار الطالبة #}
+        {% with options="A,B,C,D"|stringformat:"s" %}
+        <div class="opt {% if ans.question.correct_answer == 'A' %}correct{% elif ans.chosen_answer == 'A' and not ans.is_correct %}chosen-wrong{% endif %}">
+          أ) {{ ans.question.option_a_plain|default:ans.question.option_a|safe }}
+        </div>
+        <div class="opt {% if ans.question.correct_answer == 'B' %}correct{% elif ans.chosen_answer == 'B' and not ans.is_correct %}chosen-wrong{% endif %}">
+          ب) {{ ans.question.option_b_plain|default:ans.question.option_b|safe }}
+        </div>
+        <div class="opt {% if ans.question.correct_answer == 'C' %}correct{% elif ans.chosen_answer == 'C' and not ans.is_correct %}chosen-wrong{% endif %}">
+          ج) {{ ans.question.option_c_plain|default:ans.question.option_c|safe }}
+        </div>
+        <div class="opt {% if ans.question.correct_answer == 'D' %}correct{% elif ans.chosen_answer == 'D' and not ans.is_correct %}chosen-wrong{% endif %}">
+          د) {{ ans.question.option_d_plain|default:ans.question.option_d|safe }}
+        </div>
+        {% endwith %}
+
+        <div style="margin-top:8px">
+          إجابة الطالبة: <b>{{ ans.chosen_answer|default:"—" }}</b>
+          {% if ans.is_correct %}
+            <span class="badge ok">صحيحة</span>
+          {% else %}
+            <span class="badge bad">خاطئة</span>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <p style="text-align:center;padding:30px;background:#fff;border-radius:12px;color:#888">
+        لا توجد إجابات مسجّلة.
+      </p>
+    {% endfor %}
+
+    <div class="actions">
+      <a class="btn btn-primary" href="{% url 'enter_manual_score' result.id %}">رصد درجة يدوية</a>
+      <button type="button" class="btn btn-secondary" onclick="window.print()">🖨️ طباعة</button>
+    </div>
+  </div>
+</body>
+</html>

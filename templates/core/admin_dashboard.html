@@ -159,8 +159,12 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               </td>
               <td>
                 <div style="display:flex;gap:4px">
-                 <a href="/admin-dashboard/view-as/{{ t.user.id }}/" class="btn btn-b" style="font-size:9px;padding:3px 8px">👁️ داشبوردها</a>
-                  <form method="post" action="/admin-dashboard/delete-user/{{ t.user.id }}/" style="display:inline" onsubmit="return confirm('هل أنتِ متأكدة من الحذف؟')">
+                  {# تحويل view-as إلى POST form لمنع CSRF — كان GET فأي رابط مدسوس قد يُسرّب الجلسة. #}
+                  <form method="post" action="{% url 'admin_view_as' t.user.id %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-b" style="font-size:9px;padding:3px 8px;border:none;cursor:pointer">👁️ داشبوردها</button>
+                  </form>
+                  <form method="post" action="{% url 'admin_delete_user' t.user.id %}" style="display:inline" onsubmit="return confirm('هل أنتِ متأكدة من حذف المعلمة؟ لن يمكن استرجاع البيانات.')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-r" style="font-size:9px;padding:3px 8px">🗑️</button>
                   </form>
@@ -208,8 +212,11 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               </td>
               <td>
                 <div style="display:flex;gap:4px">
-                 <a href="/admin-dashboard/view-as/{{ s.user.id }}/" class="btn btn-b" style="font-size:9px;padding:3px 8px">👁️ حسابها</a>
-                  <form method="post" action="/admin-dashboard/delete-user/{{ s.user.id }}/" style="display:inline" onsubmit="return confirm('هل أنتِ متأكدة من الحذف؟')">
+                  <form method="post" action="{% url 'admin_view_as' s.user.id %}" style="display:inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-b" style="font-size:9px;padding:3px 8px;border:none;cursor:pointer">👁️ حسابها</button>
+                  </form>
+                  <form method="post" action="{% url 'admin_delete_user' s.user.id %}" style="display:inline" onsubmit="return confirm('هل أنتِ متأكدة من حذف الطالبة؟ لن يمكن استرجاع البيانات.')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-r" style="font-size:9px;padding:3px 8px">🗑️</button>
                   </form>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>نتائج {{ exam.skill.title }} — منصة آمنة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; background: #f4f6fa; margin: 0; padding: 24px; color: #222; }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #1a7a4a, #1a4a8a); color: #fff; padding: 22px 28px; border-radius: 14px; margin-bottom: 22px; }
+    .header h1 { margin: 0 0 8px; font-size: 1.4rem; }
+    .header p { margin: 0; opacity: 0.9; }
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 22px; }
+    .kpi { background: #fff; padding: 18px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); text-align: center; }
+    .kpi b { display: block; font-size: 1.6rem; color: #1a7a4a; margin-bottom: 6px; }
+    .kpi span { font-size: 0.85rem; color: #666; }
+    table { width: 100%; background: #fff; border-collapse: collapse; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    th { background: #f0f4f8; padding: 12px; text-align: right; font-weight: 700; font-size: 0.9rem; }
+    td { padding: 12px; border-top: 1px solid #eef0f3; font-size: 0.9rem; }
+    .pass { color: #1a7a4a; font-weight: 700; }
+    .fail { color: #c33; font-weight: 700; }
+    .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; }
+    .btn-primary { background: #1a7a4a; color: #fff; }
+    .back { display: inline-block; margin-bottom: 16px; color: #1a4a8a; text-decoration: none; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="{% url 'teacher_dashboard' %}">← العودة للوحة التحكم</a>
+
+    <div class="header">
+      <h1>📊 نتائج اختبار: {{ exam.skill.title }}</h1>
+      <p>{{ exam.get_exam_type_display }} — درجة النجاح: {{ exam.pass_score }}%</p>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><b>{{ results.count }}</b><span>إجمالي المسلّمات</span></div>
+      <div class="kpi"><b>{{ avg }}%</b><span>المتوسط العام</span></div>
+      <div class="kpi"><b style="color:#1a7a4a">{{ passed }}</b><span>الناجحات</span></div>
+      <div class="kpi"><b style="color:#c33">{{ failed }}</b><span>المتعثرات</span></div>
+    </div>
+
+    {% if results %}
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الطالبة</th>
+            <th>الدرجة</th>
+            <th>النسبة</th>
+            <th>الحالة</th>
+            <th>الوقت</th>
+            <th>التفاصيل</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ r.student.get_full_name|default:r.student.username }}</td>
+              <td>{{ r.score }}/{{ r.total }}</td>
+              <td>{{ r.percentage }}%</td>
+              <td>
+                {% if r.passed %}
+                  <span class="pass">✓ ناجحة</span>
+                {% else %}
+                  <span class="fail">✗ متعثرة</span>
+                {% endif %}
+              </td>
+              <td>{{ r.time_taken_seconds }} ث</td>
+              <td><a class="btn btn-primary" href="{% url 'student_result' r.id %}">عرض</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p style="text-align:center;padding:40px;background:#fff;border-radius:12px;color:#888">
+        لا توجد نتائج بعد لهذا الاختبار.
+      </p>
+    {% endif %}
+  </div>
+</body>
+</html>

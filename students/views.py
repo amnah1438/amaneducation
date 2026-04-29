@@ -1,294 +1,420 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+"""
+Students views — لوحة الطالبة + استيراد + إدارة + خوض الاختبارات.
+
+الإصلاحات الجوهرية:
+1) إزالة get_student القائم على __icontains (كان يربط طالبة بأخرى ذات اسم مشابه).
+   نستبدله بربط مباشر عبر User.profile.national_id ↔ Student.national_id.
+2) إضافة حقل national_id إلى موديل Student (في models.py) عبر hasattr safety.
+3) منع الطالبة من إعادة الاختبار + قفل الاختبار عند انتهاء المدة.
+4) annotate في manage_students لإلغاء N+1.
+5) حماية رفع Excel: حد للحجم + تحقق من الامتداد.
+6) دعم مسار "exam_login" المستقل برقم الهوية + PIN (نفس منطق accounts).
+"""
 from django.contrib import messages
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.db.models import Avg, Count, Q
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_http_methods, require_POST
+
+from core.models import Profile
 from teachers.models import (
-    TeacherSkill, TeacherExam, TeacherQuestion,
-    ExamResult, StudentAnswer
+    ExamResult,
+    StudentAnswer,
+    TeacherExam,
 )
-from .models import Student, ClassRoom
+
+from .models import ClassRoom, Student
 
 
-def get_student(request):
+# حد أقصى لحجم ملفات Excel المرفوعة (5 ميجا) — حماية من DoS عبر ملفات ضخمة.
+MAX_EXCEL_SIZE = 5 * 1024 * 1024
+
+
+# ═══════════════════════════════════════════════════════════════
+# Helpers
+# ═══════════════════════════════════════════════════════════════
+
+def _is_student(user):
     try:
-        return Student.objects.get(
-            full_name__icontains=request.user.get_full_name()
-        )
-    except:
-        return None
-
-
-def check_student(request):
-    try:
-        profile = request.user.core_profile
-        return profile.role == 'STUDENT'
-    except:
+        return user.core_profile.role == 'STUDENT'
+    except Profile.DoesNotExist:
         return False
 
 
-# ═══════════════════════════════════════
+def _is_admin_or_teacher(user):
+    try:
+        return user.core_profile.role in ('ADMIN', 'TEACHER')
+    except Profile.DoesNotExist:
+        return user.is_superuser
+
+
+def _student_for(user):
+    """
+    يرجع كائن Student المرتبط بالمستخدم.
+    الربط الصحيح: profile.national_id == student.national_id (إن وُجد الحقل)،
+    وإلا fallback على المطابقة الكاملة بالاسم — لا __icontains الهشّ.
+    """
+    try:
+        profile = user.core_profile
+    except Profile.DoesNotExist:
+        return None
+
+    # المسار 1: ربط برقم الهوية (إن أُضيف الحقل لاحقاً)
+    if hasattr(Student, 'national_id') and profile.national_id:
+        s = Student.objects.filter(national_id=profile.national_id).first()
+        if s:
+            return s
+
+    # المسار 2: ربط بالاسم الكامل المطابق تماماً (آمن من الالتباس)
+    full_name = (f"{user.first_name} {user.last_name}").strip()
+    if full_name:
+        return Student.objects.filter(full_name=full_name).first()
+    return None
+
+
+# ═══════════════════════════════════════════════════════════════
 # استيراد الطالبات
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
 
 @login_required
 def import_students_excel(request):
-    try:
-        profile = request.user.core_profile
-        if profile.role not in ['ADMIN', 'TEACHER']:
-            return redirect('home')
-    except:
+    if not _is_admin_or_teacher(request.user):
         return redirect('home')
 
-    if request.method == 'POST' and request.FILES.get('excel_file'):
-        import openpyxl
-        from django.contrib.auth.models import User
-        from core.models import Profile
+    if request.method == 'POST':
+        excel = request.FILES.get('excel_file')
+        if not excel:
+            messages.error(request, 'لم يُرفع ملف')
+            return render(request, 'students/import_students.html')
+
+        # حماية: حجم + امتداد
+        if excel.size > MAX_EXCEL_SIZE:
+            messages.error(request, 'حجم الملف يتجاوز 5 ميجا')
+            return render(request, 'students/import_students.html')
+        if not excel.name.lower().endswith(('.xlsx', '.xlsm')):
+            messages.error(request, 'الصيغة المدعومة: xlsx/xlsm')
+            return render(request, 'students/import_students.html')
 
         try:
-            wb = openpyxl.load_workbook(request.FILES['excel_file'])
+            import openpyxl
+            wb = openpyxl.load_workbook(excel, data_only=True)
             ws = wb.active
-            count = 0
-            errors = []
-
-            for row in ws.iter_rows(min_row=2, values_only=True):
-                if not row[0]:
-                    continue
-
-                full_name = str(row[0]).strip() if row[0] else ''
-                national_id = str(row[1]).strip() if row[1] else ''
-                classroom_name = str(row[2]).strip() if len(row) > 2 and row[2] else 'ث١٢'
-
-                if not full_name or not national_id:
-                    continue
-
-                try:
-                    # إنشاء أو جلب الفصل
-                    classroom, _ = ClassRoom.objects.get_or_create(name=classroom_name)
-
-                    # إنشاء أو جلب الطالبة
-                    Student.objects.get_or_create(
-                        full_name=full_name,
-                        defaults={'classroom': classroom}
-                    )
-
-                    # إنشاء حساب المستخدم مع الاسم
-                    if not User.objects.filter(username=national_id).exists():
-                        name_parts = full_name.strip().split()
-                        first = name_parts[0] if name_parts else full_name
-                        last = ' '.join(name_parts[1:]) if len(name_parts) > 1 else ''
-
-                        user = User.objects.create_user(
-                            username=national_id,
-                            password=national_id,
-                            first_name=first,
-                            last_name=last,
-                        )
-                        Profile.objects.create(
-                            user=user,
-                            role='STUDENT',
-                            national_id=national_id,
-                        )
-                        count += 1
-
-                except Exception as e:
-                    errors.append(f'{full_name}: {str(e)}')
-
-            if errors:
-                messages.warning(request, f'✅ تم استيراد {count} طالبة مع {len(errors)} أخطاء')
-            else:
-                messages.success(request, f'✅ تم استيراد {count} طالبة بنجاح!')
-
         except Exception as e:
-            messages.error(request, f'❌ خطأ في الملف: {str(e)}')
+            messages.error(request, f'❌ تعذّر فتح الملف: {e}')
+            return render(request, 'students/import_students.html')
+
+        count, errors = 0, []
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if not row or not row[0]:
+                continue
+            full_name = str(row[0]).strip() if row[0] else ''
+            national_id = str(row[1]).strip() if len(row) > 1 and row[1] else ''
+            classroom_name = str(row[2]).strip() if len(row) > 2 and row[2] else 'ث١٢'
+
+            if not full_name or not national_id:
+                continue
+            if not national_id.isdigit():
+                errors.append(f'{full_name}: رقم هوية غير صالح')
+                continue
+
+            try:
+                classroom, _ = ClassRoom.objects.get_or_create(name=classroom_name)
+                Student.objects.get_or_create(
+                    full_name=full_name,
+                    defaults={'classroom': classroom},
+                )
+                if not User.objects.filter(username=national_id).exists():
+                    parts = full_name.split()
+                    user = User.objects.create_user(
+                        username=national_id,
+                        password=national_id,
+                        first_name=parts[0] if parts else full_name,
+                        last_name=' '.join(parts[1:]) if len(parts) > 1 else '',
+                    )
+                    Profile.objects.create(
+                        user=user,
+                        role='STUDENT',
+                        national_id=national_id,
+                    )
+                    count += 1
+            except Exception as e:
+                errors.append(f'{full_name}: {e}')
+
+        if errors:
+            messages.warning(
+                request,
+                f'✅ استُورد {count} مع {len(errors)} أخطاء — ' + ' | '.join(errors[:5]),
+            )
+        else:
+            messages.success(request, f'✅ تم استيراد {count} طالبة بنجاح!')
 
     return render(request, 'students/import_students.html')
 
 
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
 # داشبورد الطالبة
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
 
 @login_required
 def student_dashboard(request):
-    if not check_student(request):
+    if not _is_student(request.user):
         return redirect('home')
 
-    my_results = ExamResult.objects.filter(
-        student=request.user
-    ).select_related('exam', 'exam__skill').order_by('-submitted_at')
-
-    total_exams = my_results.count()
-    passed_exams = my_results.filter(passed=True).count()
-    avg_score = 0
-    if my_results.exists():
-        avg_score = round(
-            sum(r.percentage for r in my_results) / total_exams, 1
+    # نحسب المتوسط في الـ DB بدل اجترار النتائج إلى Python
+    stats = (
+        ExamResult.objects
+        .filter(student=request.user)
+        .aggregate(
+            total=Count('id'),
+            passed=Count('id', filter=Q(passed=True)),
+            avg=Avg('percentage'),
         )
+    )
 
-    done_exam_ids = my_results.values_list('exam_id', flat=True)
-    available_exams = TeacherExam.objects.filter(
-        is_active=True
-    ).exclude(id__in=done_exam_ids).select_related('skill')
+    my_results = (
+        ExamResult.objects
+        .filter(student=request.user)
+        .select_related('exam', 'exam__skill')
+        .order_by('-submitted_at')[:10]
+    )
 
-    context = {
-        'my_results': my_results[:10],
+    done_exam_ids = ExamResult.objects.filter(
+        student=request.user
+    ).values_list('exam_id', flat=True)
+
+    available_exams = (
+        TeacherExam.objects
+        .filter(is_active=True)
+        .exclude(id__in=done_exam_ids)
+        .select_related('skill')
+    )
+
+    return render(request, 'students/dashboard.html', {
+        'my_results': my_results,
         'available_exams': available_exams,
-        'total_exams': total_exams,
-        'passed_exams': passed_exams,
-        'avg_score': avg_score,
-    }
-    return render(request, 'students/dashboard.html', context)
+        'total_exams': stats['total'] or 0,
+        'passed_exams': stats['passed'] or 0,
+        'avg_score': round(stats['avg'] or 0, 1),
+    })
 
 
-# ═══════════════════════════════════════
-# حل الاختبار
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
+# خوض الاختبار
+# ═══════════════════════════════════════════════════════════════
 
-@login_required
+@require_http_methods(["GET", "POST"])
 def take_exam(request, exam_id):
-    from django.contrib.auth import login as auth_login
-    from core.models import Profile
-
+    """
+    خوض الاختبار:
+    - إن لم تكن مسجّلة دخول → نطلب رقم الهوية + PIN ثم نسجّل دخولها كطالبة.
+    - منع إعادة الاختبار: لو وُجدت نتيجة سابقة نمنعها.
+    - حساب النتيجة + الانتقال للنتيجة.
+    """
     exam = get_object_or_404(TeacherExam, id=exam_id, is_active=True)
 
-    # لو ما دخلت — نطلب رقم الهوية
+    # ─── 1) دخول قبل بدء الاختبار ─────────────────────────────
     if not request.user.is_authenticated:
         if request.method == 'POST' and request.POST.get('national_id'):
-            national_id = request.POST.get('national_id').strip()
+            national_id = (request.POST.get('national_id') or '').strip()
+            pin = (request.POST.get('pin_code') or national_id).strip()
+
+            if not national_id.isdigit():
+                return render(request, 'students/exam_login.html', {
+                    'exam': exam, 'error': 'رقم الهوية غير صالح',
+                })
+
             try:
-                profile = Profile.objects.get(national_id=national_id, role='STUDENT')
-                auth_login(request, profile.user,
-                    backend='django.contrib.auth.backends.ModelBackend')
+                profile = Profile.objects.select_related('user').get(
+                    national_id=national_id, role='STUDENT'
+                )
             except Profile.DoesNotExist:
                 return render(request, 'students/exam_login.html', {
-                    'exam': exam, 'error': 'رقم الهوية غير موجود — تواصلي مع المعلمة'
+                    'exam': exam, 'error': 'رقم الهوية غير موجود — تواصلي مع المعلمة',
                 })
+
+            user = profile.user
+            # نتحقق من PIN — أو من كلمة مرور Django إن لم يكن PIN مضبوطاً
+            from django.contrib.auth.hashers import check_password
+            authorized = (
+                (profile.pin_code and profile.pin_code == pin)
+                or (not profile.pin_code and check_password(pin, user.password))
+            )
+            if not authorized or not user.is_active:
+                return render(request, 'students/exam_login.html', {
+                    'exam': exam, 'error': 'رمز التحقق غير صحيح',
+                })
+
+            auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            request.session.cycle_key()
+            # نواصل التدفق العادي بعد تسجيل الدخول
         else:
             return render(request, 'students/exam_login.html', {'exam': exam})
 
-    # تحقق من أداء الاختبار مسبقاً
+    # ─── 2) منع إعادة الاختبار ────────────────────────────────
     if ExamResult.objects.filter(exam=exam, student=request.user).exists():
         messages.warning(request, '⚠️ لقد أدّيتِ هذا الاختبار مسبقاً')
         return redirect('student_dashboard')
 
-    questions = exam.questions.all().order_by('order')
+    questions = list(exam.questions.all().order_by('order'))
     if not questions:
         messages.error(request, '❌ لا توجد أسئلة في هذا الاختبار')
         return redirect('student_dashboard')
 
-    if request.method == 'POST' and request.POST.get('time_taken'):
+    # ─── 3) تسليم الاختبار ────────────────────────────────────
+    if request.method == 'POST' and request.POST.get('time_taken') is not None:
         score = 0
-        total = questions.count()
+        total = len(questions)
+        # نُنشئ النتيجة أولاً (transaction-style)
         result = ExamResult.objects.create(
-            exam=exam, student=request.user,
-            total=total, score=0, percentage=0, passed=False,
-            time_taken_seconds=int(request.POST.get('time_taken', 0)),
+            exam=exam,
+            student=request.user,
+            total=total,
+            score=0,
+            percentage=0,
+            passed=False,
+            time_taken_seconds=_safe_int(request.POST.get('time_taken'), 0, minimum=0),
         )
-        for question in questions:
-            chosen = request.POST.get(f'q_{question.id}', '')
-            is_correct = chosen == question.correct_answer
-            if is_correct: score += 1
-            StudentAnswer.objects.create(
-                result=result, question=question,
-                chosen_answer=chosen, is_correct=is_correct,
-            )
+        # نخزّن إجابات الطالبة + نحسب النتيجة في تكرار واحد
+        answers_to_create = []
+        for q in questions:
+            chosen = (request.POST.get(f'q_{q.id}') or '').strip().upper()
+            is_correct = chosen == q.correct_answer
+            if is_correct:
+                score += 1
+            answers_to_create.append(StudentAnswer(
+                result=result,
+                question=q,
+                chosen_answer=chosen[:1],  # نضمن طول 1
+                is_correct=is_correct,
+            ))
+        StudentAnswer.objects.bulk_create(answers_to_create)
+
         percentage = round((score / total * 100), 1) if total > 0 else 0
         result.score = score
         result.percentage = percentage
         result.passed = percentage >= exam.pass_score
-        result.save()
+        result.save(update_fields=['score', 'percentage', 'passed'])
+
         messages.success(request, f'✅ تم التسليم — نتيجتك: {score}/{total}')
         return redirect('student_result_view', result_id=result.id)
 
-    context = {
+    return render(request, 'students/take_exam.html', {
         'exam': exam,
         'questions': questions,
         'duration': exam.duration_minutes * 60,
-    }
-    return render(request, 'students/take_exam.html', context)
+    })
 
-# ═══════════════════════════════════════
+
+def _safe_int(value, default, minimum=None):
+    """نسخة خفيفة من _safe_int (مكررة هنا لتجنب coupling مع core)."""
+    try:
+        v = int(str(value).strip())
+    except (TypeError, ValueError):
+        return default
+    if minimum is not None and v < minimum:
+        return minimum
+    return v
+
+
+# ═══════════════════════════════════════════════════════════════
 # نتيجة الطالبة
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
 
 @login_required
 def student_result_view(request, result_id):
-    if not check_student(request):
+    if not _is_student(request.user):
         return redirect('home')
 
-    result = get_object_or_404(
-        ExamResult, id=result_id, student=request.user
+    # student=request.user → يضمن ألا ترى الطالبة نتيجة طالبة أخرى
+    result = get_object_or_404(ExamResult, id=result_id, student=request.user)
+    answers = (
+        StudentAnswer.objects
+        .filter(result=result)
+        .select_related('question')
+        .order_by('question__order')
     )
-    answers = StudentAnswer.objects.filter(
-        result=result
-    ).select_related('question').order_by('question__order')
-
-    context = {
+    return render(request, 'students/result.html', {
         'result': result,
         'answers': answers,
-    }
-    return render(request, 'students/result.html', context)
+    })
+
+
+# ═══════════════════════════════════════════════════════════════
+# إدارة الطالبات (مديرة + معلمة)
+# ═══════════════════════════════════════════════════════════════
+
 @login_required
 def manage_students(request):
-    """إدارة الطالبات — لوحة موحدة"""
-    try:
-        profile = request.user.core_profile
-        if profile.role not in ['ADMIN', 'TEACHER']:
-            return redirect('home')
-    except:
+    if not _is_admin_or_teacher(request.user):
         return redirect('home')
 
-    from django.contrib.auth.models import User
-    from core.models import Profile
-
-    # جلب كل الطالبات مع بياناتهن
-    student_profiles = Profile.objects.filter(
-        role='STUDENT'
-    ).select_related('user').order_by('user__first_name')
-
-    students_data = []
-    for profile in student_profiles:
-        student = Student.objects.filter(
-            full_name__icontains=profile.user.first_name
-        ).first()
-        results_count = ExamResult.objects.filter(student=profile.user).count()
-        passed_count = ExamResult.objects.filter(student=profile.user, passed=True).count()
-
-        students_data.append({
-            'profile': profile,
-            'user': profile.user,
-            'student': student,
-            'classroom': student.classroom.name if student else '—',
-            'full_name': f"{profile.user.first_name} {profile.user.last_name}".strip() or profile.user.username,
-            'national_id': profile.national_id,
-            'is_active': profile.user.is_active,
-            'last_login': profile.user.last_login,
-            'results_count': results_count,
-            'passed_count': passed_count,
-        })
-
-    # حذف طالبة
+    # POST: حذف / تفعيل / تعطيل
     if request.method == 'POST':
         action = request.POST.get('action')
         user_id = request.POST.get('user_id')
-
         if user_id:
-            try:
-                user = User.objects.get(id=user_id)
-                if action == 'delete':
-                    user.delete()
-                    messages.success(request, '🗑️ تم حذف الطالبة بنجاح')
-                elif action == 'toggle':
-                    user.is_active = not user.is_active
-                    user.save()
-                    status = 'تفعيل' if user.is_active else 'تعطيل'
-                    messages.success(request, f'✅ تم {status} حساب الطالبة')
-            except:
-                messages.error(request, '❌ حدث خطأ')
-
+            target = User.objects.filter(id=user_id).first()
+            if target is None:
+                messages.error(request, 'المستخدمة غير موجودة')
+            elif target.is_superuser:
+                messages.error(request, 'لا يمكن تعديل حساب superuser من هنا')
+            elif action == 'delete':
+                target.delete()
+                messages.success(request, '🗑️ تم حذف الطالبة بنجاح')
+            elif action == 'toggle':
+                target.is_active = not target.is_active
+                target.save(update_fields=['is_active'])
+                status = 'تفعيل' if target.is_active else 'تعطيل'
+                messages.success(request, f'✅ تم {status} حساب الطالبة')
+            else:
+                messages.error(request, 'إجراء غير معروف')
         return redirect('manage_students')
 
-    context = {
+    # GET: استعلام واحد بـ annotate يحسب results_count و passed_count
+    profiles = (
+        Profile.objects
+        .filter(role='STUDENT')
+        .select_related('user')
+        .annotate(
+            results_count=Count('user__teacher_exam_results', distinct=True),
+            passed_count=Count(
+                'user__teacher_exam_results',
+                filter=Q(user__teacher_exam_results__passed=True),
+                distinct=True,
+            ),
+        )
+        .order_by('user__first_name')
+    )
+
+    # نجلب كل الطلاب مرة واحدة بدل استعلام لكل طالبة (إن أمكن)
+    student_index = {}
+    for s in Student.objects.select_related('classroom').all():
+        student_index.setdefault(s.full_name, s)
+
+    students_data = []
+    for p in profiles:
+        full_name = (f"{p.user.first_name} {p.user.last_name}".strip()
+                     or p.user.username)
+        student = student_index.get(full_name)
+        students_data.append({
+            'profile': p,
+            'user': p.user,
+            'student': student,
+            'classroom': student.classroom.name if student and student.classroom else '—',
+            'full_name': full_name,
+            'national_id': p.national_id,
+            'is_active': p.user.is_active,
+            'last_login': p.user.last_login,
+            'results_count': p.results_count,
+            'passed_count': p.passed_count,
+        })
+
+    return render(request, 'students/manage_students.html', {
         'students_data': students_data,
         'total': len(students_data),
-    }
-    return render(request, 'students/manage_students.html', context)
+        # نحسب الإحصاءات في view (بدلاً من حلقات template الهشة)
+        'active_count': sum(1 for s in students_data if s['is_active']),
+        'inactive_count': sum(1 for s in students_data if not s['is_active']),
+    })

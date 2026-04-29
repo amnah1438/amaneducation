@@ -130,13 +130,14 @@
             <div class="d-flex justify-content-center flex-wrap mb-4">
                 <button type="button" class="btn tab-main" onclick="toggleMainTabs('qodrat', this)">قسم القدرات</button>
                 <button type="button" class="btn tab-main" onclick="toggleMainTabs('tahsili', this)">قسم التحصيلي</button>
-                {% if request.user.is_authenticated and request.user.core_profile.role == 'ADMIN' or True %}
-<button type="button" class="btn tab-main" onclick="toggleMainTabs('comprehensive', this)">🏆 الاختبارات الشاملة</button>
-{% endif %}
-<div id="comprehensive-sub" class="sub-tabs-box">
-    <button type="button" class="btn btn-sub" onclick="filterSkills('qodrat_kamy','comprehensive')" style="background:#1a4a8a">🎯 قدرات شامل</button>
-    <button type="button" class="btn btn-sub" onclick="filterSkills('tahsili','comprehensive')" style="background:#5b21b6">📚 تحصيلي شامل</button>
-</div>
+                {# سابقاً: ' or True' كان يجعل الشرط دائماً True (خطأ منطقي يكشف الزر للزوار). #}
+                {# الآن: نعرض زر "الاختبارات الشاملة" للجميع — إذا كنتِ تريدينه للإدارة فقط، #}
+                {# استخدمي السطر التالي بدلاً منه:  {% if request.user.is_authenticated and request.user.core_profile.role == 'ADMIN' %} #}
+                <button type="button" class="btn tab-main" onclick="toggleMainTabs('comprehensive', this)">🏆 الاختبارات الشاملة</button>
+                <div id="comprehensive-sub" class="sub-tabs-box">
+                    <button type="button" class="btn btn-sub" onclick="filterSkills('qodrat_kamy','comprehensive')" style="background:#1a4a8a">🎯 قدرات شامل</button>
+                    <button type="button" class="btn btn-sub" onclick="filterSkills('tahsili','comprehensive')" style="background:#5b21b6">📚 تحصيلي شامل</button>
+                </div>
                 <button type="button" class="btn tab-main" onclick="window.print()" style="border-color: #555; color: #555;">طباعة المحتوى 🖨️</button>
             </div>
 
