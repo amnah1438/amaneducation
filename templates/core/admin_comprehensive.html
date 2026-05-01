@@ -195,8 +195,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               <button class="btn btn-g" onclick="activateComp({{ exam.id }})">▶️ تفعيل</button>
               <button class="btn btn-r" onclick="deactivateComp({{ exam.id }})">⏸️ إيقاف</button>
               <button class="btn btn-b" onclick="showCompLink({{ exam.id }})">🔗 رابط</button>
-              <a href="/skill/{{ skill.id }}/" class="btn btn-o">✏️ أسئلة</a>
-              <a href="/teachers/exam/{{ exam.id }}/import/" class="btn btn-o">📥 Excel</a>
+              <a href="{% url 'admin_comp_questions' skill.id %}" class="btn btn-o">✏️ الأسئلة</a>
               <a href="{% url 'exam_print' exam.id %}" target="_blank" class="btn btn-p">🖨️ طباعة</a>
               <button class="btn btn-o" onclick="openEditComp({{ skill.id }},'{{ skill.title|escapejs }}',{{ exam.questions_count }},{{ exam.duration_minutes }},{{ exam.pass_score }},'{{ skill.description|default_if_none:''|escapejs }}')">⚙️ تعديل</button>
               <form method="post" action="{% url 'admin_delete_comprehensive' skill.id %}" style="display:inline" onsubmit="return confirm('حذف الاختبار الشامل بكل أسئلته؟ لا يمكن استرجاع البيانات.')">

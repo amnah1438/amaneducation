@@ -42,4 +42,9 @@ urlpatterns = [
     path('admin-dashboard/add-comprehensive/', views.admin_add_comprehensive, name='admin_add_comprehensive'),
     path('admin-dashboard/comprehensive/<int:skill_id>/edit/', views.admin_edit_comprehensive, name='admin_edit_comprehensive'),
     path('admin-dashboard/comprehensive/<int:skill_id>/delete/', views.admin_delete_comprehensive, name='admin_delete_comprehensive'),
+    path('admin-dashboard/comprehensive/<int:skill_id>/questions/', views.admin_comp_questions, name='admin_comp_questions'),
+    path('admin-dashboard/comprehensive/<int:skill_id>/questions/add/', views.admin_comp_add_question, name='admin_comp_add_question'),
+    path('admin-dashboard/comprehensive/<int:skill_id>/questions/import/', views.admin_comp_import_excel, name='admin_comp_import_excel'),
+    path('admin-dashboard/comprehensive/<int:skill_id>/questions/<int:q_id>/delete/', views.admin_comp_delete_question, name='admin_comp_delete_question'),
+    path('admin-dashboard/comprehensive/<int:skill_id>/questions/<int:q_id>/edit/', views.admin_comp_edit_question, name='admin_comp_edit_question'),
 ]

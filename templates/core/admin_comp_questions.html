@@ -1,0 +1,377 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أسئلة — {{ skill.title }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+
+<!-- MathJax لعرض الرموز الرياضية -->
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']]},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}}</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<style>
+:root{--bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;--purple:#9b72f5;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;text-decoration:none;white-space:nowrap}
+.btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
+.btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
+.btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
+.btn-o{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.25)}
+.btn-p{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.25)}
+.main{max-width:1100px;margin:0 auto;padding:18px}
+.head{background:linear-gradient(135deg,var(--green2),var(--blue2));border:1px solid var(--green);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.head-title{font-size:17px;font-weight:900}
+.head-sub{font-size:11px;color:rgba(255,255,255,0.75);margin-top:4px}
+.head-meta{display:flex;gap:14px;margin-top:8px;font-size:10px;color:rgba(255,255,255,0.7);flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.ch{padding:11px 16px;display:flex;justify-content:space-between;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.ct{font-size:12px;font-weight:800}
+.cb{padding:14px 16px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:11px}
+.fl{font-size:10px;color:var(--text2);font-weight:700}
+.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;padding:9px 12px;border-radius:7px;outline:none;width:100%}
+.fi:focus{border-color:var(--blue)}
+textarea.fi{min-height:60px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row4{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:780px){.row2,.row4{grid-template-columns:1fr}}
+.msg{padding:9px 12px;border-radius:8px;font-size:11px;margin-bottom:12px;border-right:3px solid}
+.msg-s{background:rgba(15,186,129,0.08);border-color:var(--green);color:#6ee7a0}
+.msg-e{background:rgba(240,82,82,0.08);border-color:var(--red);color:#fca5a5}
+.msg-w{background:rgba(245,166,35,0.08);border-color:var(--orange);color:#fbbf24}
+
+/* لوحة الرموز الرياضية */
+.symbol-bar{display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;margin-bottom:6px}
+.sym-group-title{font-size:9px;color:var(--text3);width:100%;font-weight:700;margin-top:2px}
+.sym{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Latin Modern Math','Cambria Math','Tajawal',serif;font-size:14px;padding:4px 9px;border-radius:5px;cursor:pointer;min-width:30px;text-align:center;transition:all 0.15s}
+.sym:hover{background:var(--blue);color:white;border-color:var(--blue);transform:translateY(-1px)}
+.sym-tex{font-family:'Tajawal',monospace;font-size:11px}
+
+/* قائمة الأسئلة */
+.q-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:9px}
+.q-num{display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:var(--blue);color:white;text-align:center;font-size:11px;font-weight:800;margin-left:6px}
+.q-text{font-size:13px;font-weight:700;margin-bottom:7px;line-height:1.6}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px}
+.q-opt{padding:5px 9px;border-radius:6px;background:var(--card2);border:1px solid var(--border);font-size:11px;color:var(--text2)}
+.q-opt.ok{background:rgba(15,186,129,0.1);border-color:var(--green);color:var(--green);font-weight:700}
+.q-actions{display:flex;gap:5px;margin-top:6px}
+.q-image{max-width:200px;max-height:140px;border-radius:6px;border:1px solid var(--border);margin-bottom:7px}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;align-items:flex-start;justify-content:center;backdrop-filter:blur(6px);padding:20px;overflow-y:auto}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:20px;width:100%;max-width:700px;margin:auto}
+.modal-title{font-size:14px;font-weight:800;margin-bottom:14px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="font-size:13px;font-weight:800">📝 إدارة أسئلة الاختبار الشامل</div>
+  <div style="display:flex;gap:6px">
+    <a href="{% url 'admin_comprehensive' %}" class="btn btn-b">← الاختبارات الشاملة</a>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-b">🏠 لوحة المديرة</a>
+    <a href="{% url 'exam_print' exam.id %}?answers=1" target="_blank" class="btn btn-p">🖨️ طباعة (مع إجابات)</a>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="head">
+    <div class="head-title">{% if skill.skill_type == 'qodrat_kamy' %}🎯{% else %}📚{% endif %} {{ skill.title }}</div>
+    <div class="head-sub">{{ skill.description|default:"لا يوجد وصف" }}</div>
+    <div class="head-meta">
+      <span>❓ الأسئلة المطلوبة: {{ exam.questions_count }}</span>
+      <span>✅ الأسئلة المُضافة: {{ questions|length }}</span>
+      <span>⏱️ المدة: {{ exam.duration_minutes }} دقيقة</span>
+      <span>🎯 درجة النجاح: {{ exam.pass_score }}%</span>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for msg in messages %}
+    <div class="msg msg-{% if 'error' in msg.tags %}e{% elif 'warning' in msg.tags %}w{% else %}s{% endif %}">{{ msg }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- ─── الإدخال اليدوي ─── -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">✍️ إضافة سؤال يدوياً (يدعم الرموز الرياضية)</span>
+    </div>
+    <div class="cb">
+      <form method="post" action="{% url 'admin_comp_add_question' skill.id %}" enctype="multipart/form-data" id="qform">
+        {% csrf_token %}
+
+        <!-- لوحة الرموز -->
+        <div class="fg">
+          <label class="fl">🧮 لوحة الرموز السريعة (اضغطي على الرمز لإدراجه في الحقل النشط)</label>
+          <div class="symbol-bar" id="symBar">
+            <span class="sym-group-title">رياضيات أساسية:</span>
+            <button type="button" class="sym" data-ins="±">±</button>
+            <button type="button" class="sym" data-ins="×">×</button>
+            <button type="button" class="sym" data-ins="÷">÷</button>
+            <button type="button" class="sym" data-ins="≠">≠</button>
+            <button type="button" class="sym" data-ins="≤">≤</button>
+            <button type="button" class="sym" data-ins="≥">≥</button>
+            <button type="button" class="sym" data-ins="≈">≈</button>
+            <button type="button" class="sym" data-ins="∞">∞</button>
+            <button type="button" class="sym" data-ins="√">√</button>
+            <button type="button" class="sym" data-ins="²">²</button>
+            <button type="button" class="sym" data-ins="³">³</button>
+            <button type="button" class="sym" data-ins="π">π</button>
+            <button type="button" class="sym" data-ins="θ">θ</button>
+            <button type="button" class="sym" data-ins="∑">∑</button>
+            <button type="button" class="sym" data-ins="∫">∫</button>
+            <button type="button" class="sym" data-ins="∂">∂</button>
+            <button type="button" class="sym" data-ins="°">°</button>
+            <button type="button" class="sym" data-ins="∈">∈</button>
+            <button type="button" class="sym" data-ins="⊂">⊂</button>
+            <button type="button" class="sym" data-ins="∩">∩</button>
+            <button type="button" class="sym" data-ins="∪">∪</button>
+            <button type="button" class="sym" data-ins="⇒">⇒</button>
+            <button type="button" class="sym" data-ins="⇔">⇔</button>
+            <button type="button" class="sym" data-ins="∀">∀</button>
+            <button type="button" class="sym" data-ins="∃">∃</button>
+
+            <span class="sym-group-title">صيغ LaTeX جاهزة (اكتبيها بين $...$ لتُعرض رياضياً):</span>
+            <button type="button" class="sym sym-tex" data-ins="$\\frac{a}{b}$" title="كسر">$\frac{a}{b}$</button>
+            <button type="button" class="sym sym-tex" data-ins="$x^{2}$" title="أس">$x^2$</button>
+            <button type="button" class="sym sym-tex" data-ins="$\\sqrt{x}$" title="جذر">$\sqrt{x}$</button>
+            <button type="button" class="sym sym-tex" data-ins="$\\sqrt[n]{x}$" title="جذر نوني">$\sqrt[n]{x}$</button>
+            <button type="button" class="sym sym-tex" data-ins="$\\log_{2}x$" title="لوغاريتم">$\log_2 x$</button>
+            <button type="button" class="sym sym-tex" data-ins="$\\sin(\\theta)$" title="جا">$\sin\theta$</button>
+            <button type="button" class="sym sym-tex" data-ins="$\\cos(\\theta)$" title="جتا">$\cos\theta$</button>
+            <button type="button" class="sym sym-tex" data-ins="$\\tan(\\theta)$" title="ظا">$\tan\theta$</button>
+            <button type="button" class="sym sym-tex" data-ins="$\\lim_{x\\to0}$" title="نهاية">$\lim$</button>
+            <button type="button" class="sym sym-tex" data-ins="$\\sum_{i=1}^{n}$" title="مجموع">$\sum$</button>
+            <button type="button" class="sym sym-tex" data-ins="$\\int_{a}^{b}$" title="تكامل">$\int$</button>
+
+            <span class="sym-group-title">أرقام:</span>
+            <button type="button" class="sym" data-ins="٠">٠</button>
+            <button type="button" class="sym" data-ins="١">١</button>
+            <button type="button" class="sym" data-ins="٢">٢</button>
+            <button type="button" class="sym" data-ins="٣">٣</button>
+            <button type="button" class="sym" data-ins="٤">٤</button>
+            <button type="button" class="sym" data-ins="٥">٥</button>
+            <button type="button" class="sym" data-ins="٦">٦</button>
+            <button type="button" class="sym" data-ins="٧">٧</button>
+            <button type="button" class="sym" data-ins="٨">٨</button>
+            <button type="button" class="sym" data-ins="٩">٩</button>
+          </div>
+          <div style="font-size:9px;color:var(--text3);line-height:1.7">
+            💡 الصيغ بين <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">$...$</code> تُعرض كرياضيات. مثال: <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">$x^2 + 5x = 0$</code>
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="fl">نص السؤال *</label>
+          <textarea class="fi" name="question_plain" rows="3" required
+            placeholder="مثال: ما حل المعادلة $x^2 - 4 = 0$ ؟"></textarea>
+        </div>
+
+        <div class="fg">
+          <label class="fl">صورة (اختياري)</label>
+          <input class="fi" type="file" name="question_image" accept="image/*">
+        </div>
+
+        <div class="row4">
+          <div class="fg"><label class="fl">خيار أ</label><input class="fi" name="option_a_plain" placeholder="مثلاً: 2"></div>
+          <div class="fg"><label class="fl">خيار ب</label><input class="fi" name="option_b_plain" placeholder="مثلاً: -2"></div>
+          <div class="fg"><label class="fl">خيار ج</label><input class="fi" name="option_c_plain" placeholder="مثلاً: ±2"></div>
+          <div class="fg"><label class="fl">خيار د</label><input class="fi" name="option_d_plain" placeholder="مثلاً: 4"></div>
+        </div>
+
+        <div class="row2">
+          <div class="fg">
+            <label class="fl">الإجابة الصحيحة *</label>
+            <select class="fi" name="correct_answer" required>
+              <option value="A">أ</option>
+              <option value="B">ب</option>
+              <option value="C">ج</option>
+              <option value="D">د</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="fl">المهارة المرتبطة (اختياري)</label>
+            <input class="fi" name="target_skill_name" placeholder="مثل: المعادلات التربيعية">
+          </div>
+        </div>
+
+        <div class="fg">
+          <label class="fl">تغذية راجعة (اختياري)</label>
+          <textarea class="fi" name="feedback_plain" rows="2" placeholder="شرح للطالبة بعد الحل..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-g" style="width:100%;font-size:13px;padding:11px">➕ حفظ السؤال</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ─── رفع Excel ─── -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">📥 رفع أسئلة من Excel</span>
+    </div>
+    <div class="cb">
+      <form method="post" action="{% url 'admin_comp_import_excel' skill.id %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="fg">
+          <label class="fl">ملف Excel (xlsx)</label>
+          <input class="fi" type="file" name="excel_file" accept=".xlsx,.xlsm" required>
+        </div>
+        <button type="submit" class="btn btn-o" style="width:100%">📥 رفع وإضافة الأسئلة</button>
+      </form>
+      <div style="margin-top:10px;padding:9px 12px;background:rgba(245,166,35,0.06);border-radius:7px;border-right:3px solid var(--orange);font-size:10px;color:var(--orange);line-height:1.8">
+        📋 <strong>أعمدة الملف (السطر الأول = عناوين)</strong>:<br>
+        أ. السؤال • ب. الخيار أ • ج. الخيار ب • د. الخيار ج • هـ. الخيار د •
+        و. الإجابة الصحيحة (A/B/C/D) • ز. المهارة (اختياري) • ح. تعليق (اختياري)
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── قائمة الأسئلة الموجودة ─── -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">📋 الأسئلة المُدخلة ({{ questions|length }})</span>
+    </div>
+    <div class="cb">
+      {% if questions %}
+        {% for q in questions %}
+        <div class="q-card"
+             data-qid="{{ q.id }}"
+             data-question="{{ q.question_plain|default:''|escape }}"
+             data-a="{{ q.option_a_plain|escape }}"
+             data-b="{{ q.option_b_plain|escape }}"
+             data-c="{{ q.option_c_plain|escape }}"
+             data-d="{{ q.option_d_plain|escape }}"
+             data-correct="{{ q.correct_answer }}"
+             data-target="{{ q.target_skill_name|escape }}"
+             data-feedback="{{ q.feedback_plain|escape }}">
+          <div class="q-text">
+            <span class="q-num">{{ q.order|default:forloop.counter }}</span>
+            {{ q.question_plain|default:q.question_text|striptags }}
+          </div>
+          {% if q.question_image %}<img src="{{ q.question_image.url }}" class="q-image" alt="صورة">{% endif %}
+          <div class="q-opts">
+            <div class="q-opt {% if q.correct_answer == 'A' %}ok{% endif %}"><strong>أ.</strong> {{ q.option_a_plain|default:q.option_a|striptags }}</div>
+            <div class="q-opt {% if q.correct_answer == 'B' %}ok{% endif %}"><strong>ب.</strong> {{ q.option_b_plain|default:q.option_b|striptags }}</div>
+            <div class="q-opt {% if q.correct_answer == 'C' %}ok{% endif %}"><strong>ج.</strong> {{ q.option_c_plain|default:q.option_c|striptags }}</div>
+            <div class="q-opt {% if q.correct_answer == 'D' %}ok{% endif %}"><strong>د.</strong> {{ q.option_d_plain|default:q.option_d|striptags }}</div>
+          </div>
+          {% if q.target_skill_name %}<div style="font-size:10px;color:var(--purple);margin-top:4px">🏷️ {{ q.target_skill_name }}</div>{% endif %}
+          {% if q.feedback_plain %}<div style="font-size:10px;color:var(--text3);margin-top:4px">💡 {{ q.feedback_plain }}</div>{% endif %}
+          <div class="q-actions">
+            <button type="button" class="btn btn-o" onclick="editQuestion({{ q.id }})">✏️ تعديل</button>
+            <form method="post" action="{% url 'admin_comp_delete_question' skill.id q.id %}" style="display:inline" onsubmit="return confirm('حذف السؤال؟')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-r">🗑️ حذف</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align:center;padding:30px;color:var(--text3);font-size:12px">
+          <div style="font-size:28px;margin-bottom:8px">📭</div>
+          لا توجد أسئلة بعد — أضيفي أول سؤال من الأعلى!
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal تعديل سؤال -->
+<div class="modal-bg" id="editQModal">
+  <div class="modal">
+    <div class="modal-title">✏️ تعديل سؤال</div>
+    <form id="editQForm" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="fg">
+        <label class="fl">نص السؤال *</label>
+        <textarea class="fi" name="question_plain" id="eq_text" rows="3" required></textarea>
+      </div>
+      <div class="row4">
+        <div class="fg"><label class="fl">خيار أ</label><input class="fi" name="option_a_plain" id="eq_a"></div>
+        <div class="fg"><label class="fl">خيار ب</label><input class="fi" name="option_b_plain" id="eq_b"></div>
+        <div class="fg"><label class="fl">خيار ج</label><input class="fi" name="option_c_plain" id="eq_c"></div>
+        <div class="fg"><label class="fl">خيار د</label><input class="fi" name="option_d_plain" id="eq_d"></div>
+      </div>
+      <div class="row2">
+        <div class="fg">
+          <label class="fl">الإجابة الصحيحة *</label>
+          <select class="fi" name="correct_answer" id="eq_correct">
+            <option value="A">أ</option><option value="B">ب</option>
+            <option value="C">ج</option><option value="D">د</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">المهارة المرتبطة</label>
+          <input class="fi" name="target_skill_name" id="eq_target">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">تغذية راجعة</label>
+        <textarea class="fi" name="feedback_plain" id="eq_feedback" rows="2"></textarea>
+      </div>
+      <div class="fg">
+        <label class="fl">تغيير الصورة (اختياري)</label>
+        <input class="fi" type="file" name="question_image" accept="image/*">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button type="button" class="btn btn-r" onclick="closeEditQ()">إلغاء</button>
+        <button type="submit" class="btn btn-g">💾 حفظ</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// لوحة الرموز — تُدرج في الحقل النشط الأخير (textarea أو input)
+let lastFocused = null;
+document.addEventListener('focusin', function(e){
+  const t = e.target;
+  if (t && (t.tagName === 'TEXTAREA' || t.tagName === 'INPUT') && t.type !== 'file') {
+    lastFocused = t;
+  }
+});
+document.querySelectorAll('.sym').forEach(function(b){
+  b.addEventListener('click', function(){
+    const ins = this.dataset.ins;
+    const el = lastFocused || document.querySelector('textarea[name=question_plain]');
+    if (!el) return;
+    const start = el.selectionStart || 0;
+    const end = el.selectionEnd || 0;
+    el.value = el.value.slice(0, start) + ins + el.value.slice(end);
+    const p = start + ins.length;
+    el.setSelectionRange(p, p);
+    el.focus();
+  });
+});
+
+// تعديل سؤال — يقرأ من data-* attributes في بطاقة السؤال
+function editQuestion(id){
+  const card = document.querySelector('.q-card[data-qid="' + id + '"]');
+  if (!card) return;
+  document.getElementById('eq_text').value     = card.dataset.question || '';
+  document.getElementById('eq_a').value        = card.dataset.a || '';
+  document.getElementById('eq_b').value        = card.dataset.b || '';
+  document.getElementById('eq_c').value        = card.dataset.c || '';
+  document.getElementById('eq_d').value        = card.dataset.d || '';
+  document.getElementById('eq_correct').value  = card.dataset.correct || 'A';
+  document.getElementById('eq_target').value   = card.dataset.target || '';
+  document.getElementById('eq_feedback').value = card.dataset.feedback || '';
+  document.getElementById('editQForm').action  = '/admin-dashboard/comprehensive/{{ skill.id }}/questions/' + id + '/edit/';
+  document.getElementById('editQModal').classList.add('show');
+}
+function closeEditQ(){ document.getElementById('editQModal').classList.remove('show'); }
+document.getElementById('editQModal').addEventListener('click', function(e){
+  if (e.target === this) closeEditQ();
+});
+</script>
+</body>
+</html>

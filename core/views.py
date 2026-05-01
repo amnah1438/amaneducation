@@ -75,6 +75,41 @@ def _safe_int(value, default, minimum=None, maximum=None):
     return result
 
 
+# جداول تحويل الأرقام (لا نُغيّر المُخزَّن — نحوّل فقط للمقارنة):
+# الأرقام العربية ↔ اللاتينية، لتمكين البحث المتساهل بصيغتين.
+_AR_TO_LA = str.maketrans({
+    '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+    '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
+    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+    '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+})
+_LA_TO_AR = str.maketrans({
+    '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤',
+    '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩',
+})
+
+
+def _id_variants(value):
+    """
+    يرجع كل صيغ رقم الهوية للبحث:
+    1) الصيغة كما هي (كما كتبتْها المستخدمة).
+    2) صيغة لاتينية (لمواجهة بيانات قديمة).
+    3) صيغة عربية (لمواجهة لوحات مفاتيح iPhone).
+    """
+    if not value:
+        return []
+    s = str(value).strip()
+    return list({s, s.translate(_AR_TO_LA), s.translate(_LA_TO_AR)})
+
+
+def _is_valid_id(value):
+    """تحقق من رقم الهوية بعد تطبيعه: 8-12 رقماً عددياً."""
+    if not value:
+        return False
+    latin = str(value).translate(_AR_TO_LA).strip()
+    return latin.isdigit() and 8 <= len(latin) <= 12
+
+
 # ═══════════════════════════════════════════════════════════════
 # الصفحات العامة + صلاحيات المحتوى للطالبة
 # ═══════════════════════════════════════════════════════════════
@@ -356,25 +391,30 @@ def admin_dashboard(request):
 @require_POST
 def admin_add_teacher(request):
     full_name = (request.POST.get('full_name') or '').strip()
+    # نحفظ رقم الهوية كما كتبتْه المديرة بالضبط (عربي أو لاتيني).
+    # المطابقة لاحقاً تجرّب الصيغتين معاً.
     national_id = (request.POST.get('national_id') or '').strip()
     pin_code = (request.POST.get('pin_code') or '').strip()
 
     if not full_name or not national_id:
         messages.error(request, 'يرجى إدخال الاسم ورقم الهوية')
         return redirect('admin_dashboard')
-    if not national_id.isdigit() or not (8 <= len(national_id) <= 12):
+    if not _is_valid_id(national_id):
         messages.error(request, 'رقم هوية غير صالح (8-12 رقم)')
         return redirect('admin_dashboard')
-    if pin_code and not pin_code.isdigit():
+    if pin_code and not pin_code.translate(_AR_TO_LA).isdigit():
         messages.error(request, 'رمز PIN يجب أن يكون أرقاماً')
         return redirect('admin_dashboard')
-    if User.objects.filter(username=national_id).exists():
+    # نمنع التكرار سواء أُدخلت الهوية بأرقام عربية أم لاتينية
+    variants = _id_variants(national_id)
+    if (User.objects.filter(username__in=variants).exists()
+            or Profile.objects.filter(national_id__in=variants).exists()):
         messages.error(request, 'رقم الهوية مسجّل مسبقاً')
         return redirect('admin_dashboard')
 
     name_parts = full_name.split()
     user = User.objects.create_user(
-        username=national_id,
+        username=national_id,  # نحفظ كما كُتب
         password=pin_code or national_id,
         first_name=name_parts[0] if name_parts else full_name,
         last_name=' '.join(name_parts[1:]) if len(name_parts) > 1 else '',
@@ -382,7 +422,7 @@ def admin_add_teacher(request):
     Profile.objects.create(
         user=user,
         role='TEACHER',
-        national_id=national_id,
+        national_id=national_id,  # نحفظ كما كُتب
         pin_code=pin_code,
     )
     Teacher.objects.create(user=user, full_name=full_name)
@@ -394,27 +434,30 @@ def admin_add_teacher(request):
 @require_POST
 def admin_add_student(request):
     full_name = (request.POST.get('full_name') or '').strip()
+    # نحفظ رقم الهوية كما كتبتْه المديرة (الأرقام العربية تبقى عربية).
     national_id = (request.POST.get('national_id') or '').strip()
     classroom_id = (request.POST.get('classroom_id') or '').strip()
 
     if not full_name or not national_id:
         messages.error(request, 'يرجى إدخال الاسم ورقم الهوية')
         return redirect('admin_dashboard')
-    if not national_id.isdigit() or not (8 <= len(national_id) <= 12):
+    if not _is_valid_id(national_id):
         messages.error(request, 'رقم هوية غير صالح (8-12 رقم)')
         return redirect('admin_dashboard')
-    if User.objects.filter(username=national_id).exists():
+    variants = _id_variants(national_id)
+    if (User.objects.filter(username__in=variants).exists()
+            or Profile.objects.filter(national_id__in=variants).exists()):
         messages.error(request, 'رقم الهوية مسجّل مسبقاً')
         return redirect('admin_dashboard')
 
     name_parts = full_name.split()
     user = User.objects.create_user(
-        username=national_id,
+        username=national_id,  # نحفظ كما كُتب (عربي/لاتيني)
         password=national_id,
         first_name=name_parts[0] if name_parts else full_name,
         last_name=' '.join(name_parts[1:]) if len(name_parts) > 1 else '',
     )
-    # ملاحظة: pin_code فارغ للطالبة → دخول بالهوية فقط (مطلوب).
+    # PIN فارغ للطالبة → دخول بالهوية فقط
     Profile.objects.create(
         user=user,
         role='STUDENT',
@@ -422,13 +465,15 @@ def admin_add_student(request):
         pin_code='',
     )
 
-    classroom = ClassRoom.objects.filter(id=classroom_id).first()
-    if classroom:
-        Student.objects.get_or_create(
-            full_name=full_name,
-            defaults={'classroom': classroom},
-        )
-    messages.success(request, f'✅ تم إضافة الطالبة {full_name}')
+    # classroom_id قد يكون فارغاً — نتعامل بأمان
+    if classroom_id and classroom_id.isdigit():
+        classroom = ClassRoom.objects.filter(id=classroom_id).first()
+        if classroom:
+            Student.objects.get_or_create(
+                full_name=full_name,
+                defaults={'classroom': classroom},
+            )
+    messages.success(request, f'✅ تم إضافة الطالبة {full_name} (رقم الهوية: {national_id})')
     return redirect('admin_dashboard')
 
 
@@ -575,10 +620,12 @@ def admin_import_teachers(request):
 
         if not full_name or not national_id:
             continue
-        if not national_id.isdigit() or not (8 <= len(national_id) <= 12):
+        if not _is_valid_id(national_id):
             skipped.append(f"{full_name}: هوية غير صالحة")
             continue
-        if User.objects.filter(username=national_id).exists():
+        variants = _id_variants(national_id)
+        if (User.objects.filter(username__in=variants).exists()
+                or Profile.objects.filter(national_id__in=variants).exists()):
             skipped.append(f"{full_name}: مكرّر")
             continue
 
@@ -630,10 +677,12 @@ def admin_import_students(request):
 
         if not full_name or not national_id:
             continue
-        if not national_id.isdigit() or not (8 <= len(national_id) <= 12):
+        if not _is_valid_id(national_id):
             skipped.append(f"{full_name}: هوية غير صالحة")
             continue
-        if User.objects.filter(username=national_id).exists():
+        variants = _id_variants(national_id)
+        if (User.objects.filter(username__in=variants).exists()
+                or Profile.objects.filter(national_id__in=variants).exists()):
             skipped.append(f"{full_name}: مكرّر")
             continue
 
@@ -646,7 +695,6 @@ def admin_import_students(request):
                 first_name=parts[0] if parts else full_name,
                 last_name=' '.join(parts[1:]) if len(parts) > 1 else '',
             )
-            # PIN فارغ للطالبة → دخول بالهوية فقط
             Profile.objects.create(
                 user=user, role='STUDENT',
                 national_id=national_id, pin_code='',
@@ -801,3 +849,163 @@ def admin_delete_comprehensive(request, skill_id):
     skill.delete()
     messages.success(request, f'🗑️ تم حذف "{title}"')
     return redirect('admin_comprehensive')
+
+
+# ═══════════════════════════════════════════════════════════════
+# إدارة أسئلة الاختبار الشامل (للمديرة)
+#   - عرض جميع الأسئلة في صفحة واحدة
+#   - إدخال يدوي مع لوحة رموز رياضية
+#   - رفع Excel مباشرة من نفس الصفحة
+#   - تعديل/حذف لكل سؤال
+# ═══════════════════════════════════════════════════════════════
+
+def _get_or_create_comp_exam(skill):
+    """يضمن وجود exam مرتبط بالاختبار الشامل."""
+    exam = skill.exams.first()
+    if exam:
+        return exam
+    return TeacherExam.objects.create(
+        skill=skill,
+        exam_type='comprehensive_qodrat' if skill.skill_type == 'qodrat_kamy' else 'comprehensive_tahsili',
+        questions_count=skill.exams.count() or 60,
+        duration_minutes=120,
+        pass_score=50,
+        is_active=False,
+    )
+
+
+@admin_required
+def admin_comp_questions(request, skill_id):
+    """صفحة إدارة الأسئلة الكاملة لاختبار شامل."""
+    skill = get_object_or_404(TeacherSkill, pk=skill_id, content_type='comprehensive')
+    exam = _get_or_create_comp_exam(skill)
+    questions = exam.questions.all().order_by('order')
+    return render(request, 'core/admin_comp_questions.html', {
+        'skill': skill,
+        'exam': exam,
+        'questions': questions,
+    })
+
+
+@admin_required
+@require_POST
+def admin_comp_add_question(request, skill_id):
+    """إضافة سؤال يدوياً (مع دعم الرموز الرياضية في النص)."""
+    skill = get_object_or_404(TeacherSkill, pk=skill_id, content_type='comprehensive')
+    exam = _get_or_create_comp_exam(skill)
+
+    text = (request.POST.get('question_plain') or '').strip()
+    if not text:
+        messages.error(request, 'يرجى إدخال نص السؤال')
+        return redirect('admin_comp_questions', skill_id=skill.id)
+
+    next_order = (exam.questions.count() or 0) + 1
+    q = TeacherQuestion.objects.create(
+        exam=exam,
+        order=next_order,
+        question_plain=text,
+        option_a_plain=request.POST.get('option_a_plain', '').strip(),
+        option_b_plain=request.POST.get('option_b_plain', '').strip(),
+        option_c_plain=request.POST.get('option_c_plain', '').strip(),
+        option_d_plain=request.POST.get('option_d_plain', '').strip(),
+        correct_answer=(request.POST.get('correct_answer', 'A') or 'A').upper()[:1],
+        target_skill_name=request.POST.get('target_skill_name', '').strip(),
+        feedback_plain=request.POST.get('feedback_plain', '').strip(),
+    )
+    if 'question_image' in request.FILES:
+        q.question_image = request.FILES['question_image']
+        q.save(update_fields=['question_image'])
+
+    messages.success(request, f'✅ تم إضافة السؤال رقم {next_order}')
+    return redirect('admin_comp_questions', skill_id=skill.id)
+
+
+@admin_required
+@require_POST
+def admin_comp_import_excel(request, skill_id):
+    """استيراد أسئلة الاختبار الشامل من Excel."""
+    skill = get_object_or_404(TeacherSkill, pk=skill_id, content_type='comprehensive')
+    exam = _get_or_create_comp_exam(skill)
+
+    excel = request.FILES.get('excel_file')
+    if not excel:
+        messages.error(request, 'لم يُرفع ملف')
+        return redirect('admin_comp_questions', skill_id=skill.id)
+    if excel.size > MAX_EXCEL_SIZE:
+        messages.error(request, 'حجم الملف يتجاوز 5 ميجا')
+        return redirect('admin_comp_questions', skill_id=skill.id)
+    if not excel.name.lower().endswith(('.xlsx', '.xlsm')):
+        messages.error(request, 'الصيغة المدعومة: xlsx/xlsm فقط')
+        return redirect('admin_comp_questions', skill_id=skill.id)
+
+    try:
+        import openpyxl
+        wb = openpyxl.load_workbook(excel, data_only=True)
+        ws = wb.active
+    except Exception as exc:
+        messages.error(request, f'❌ تعذّر فتح الملف: {exc}')
+        return redirect('admin_comp_questions', skill_id=skill.id)
+
+    base_order = exam.questions.count() or 0
+    new_questions = []
+    skipped = 0
+    for i, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=1):
+        if not row or not row[0]:
+            continue
+        q_text = str(row[0]).strip() if row[0] else ''
+        if not q_text:
+            skipped += 1
+            continue
+        new_questions.append(TeacherQuestion(
+            exam=exam,
+            order=base_order + i,
+            question_plain=q_text,
+            option_a_plain=str(row[1]).strip() if len(row) > 1 and row[1] else '',
+            option_b_plain=str(row[2]).strip() if len(row) > 2 and row[2] else '',
+            option_c_plain=str(row[3]).strip() if len(row) > 3 and row[3] else '',
+            option_d_plain=str(row[4]).strip() if len(row) > 4 and row[4] else '',
+            correct_answer=(str(row[5]).strip().upper()[:1] if len(row) > 5 and row[5] else 'A'),
+            target_skill_name=str(row[6]).strip() if len(row) > 6 and row[6] else '',
+            feedback_plain=str(row[7]).strip() if len(row) > 7 and row[7] else '',
+        ))
+    if new_questions:
+        TeacherQuestion.objects.bulk_create(new_questions)
+        messages.success(request, f'✅ تم استيراد {len(new_questions)} سؤال')
+    else:
+        messages.warning(request, '⚠️ لم يُستورد أي سؤال — تأكدي من تنسيق الملف')
+    return redirect('admin_comp_questions', skill_id=skill.id)
+
+
+@admin_required
+@require_POST
+def admin_comp_delete_question(request, skill_id, q_id):
+    skill = get_object_or_404(TeacherSkill, pk=skill_id, content_type='comprehensive')
+    exam = skill.exams.first()
+    if exam:
+        TeacherQuestion.objects.filter(id=q_id, exam=exam).delete()
+        messages.success(request, '🗑️ تم حذف السؤال')
+    return redirect('admin_comp_questions', skill_id=skill.id)
+
+
+@admin_required
+@require_POST
+def admin_comp_edit_question(request, skill_id, q_id):
+    skill = get_object_or_404(TeacherSkill, pk=skill_id, content_type='comprehensive')
+    exam = skill.exams.first()
+    if not exam:
+        return redirect('admin_comp_questions', skill_id=skill.id)
+    q = get_object_or_404(TeacherQuestion, pk=q_id, exam=exam)
+
+    q.question_plain = (request.POST.get('question_plain') or q.question_plain).strip()
+    q.option_a_plain = request.POST.get('option_a_plain', q.option_a_plain).strip()
+    q.option_b_plain = request.POST.get('option_b_plain', q.option_b_plain).strip()
+    q.option_c_plain = request.POST.get('option_c_plain', q.option_c_plain).strip()
+    q.option_d_plain = request.POST.get('option_d_plain', q.option_d_plain).strip()
+    q.correct_answer = (request.POST.get('correct_answer', q.correct_answer) or 'A').upper()[:1]
+    q.target_skill_name = request.POST.get('target_skill_name', q.target_skill_name).strip()
+    q.feedback_plain = request.POST.get('feedback_plain', q.feedback_plain).strip()
+    if 'question_image' in request.FILES:
+        q.question_image = request.FILES['question_image']
+    q.save()
+    messages.success(request, f'✅ تم حفظ السؤال {q.order}')
+    return redirect('admin_comp_questions', skill_id=skill.id)

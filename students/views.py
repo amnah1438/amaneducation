@@ -277,24 +277,23 @@ def take_exam(request, exam_id):
     exam = get_object_or_404(TeacherExam, id=exam_id, is_active=True)
 
     # ─── 1) دخول قبل بدء الاختبار ─────────────────────────────
-    # متوافق مع نظام الدخول الموحّد:
-    #   • طالبة بدون pin_code → رقم الهوية فقط.
-    #   • طالبة لديها pin_code → نطلب PIN أيضاً.
+    # متوافق مع نظام الدخول الموحّد. يقبل الهوية بأرقام عربية أو لاتينية.
     if not request.user.is_authenticated:
         if request.method == 'POST' and request.POST.get('national_id'):
             national_id = (request.POST.get('national_id') or '').strip()
             pin = (request.POST.get('pin_code') or '').strip()
 
-            if not national_id.isdigit() or not (8 <= len(national_id) <= 12):
+            # تحقق متساهل (يقبل الأرقام العربية)
+            from accounts.views import _is_valid_id, _id_variants
+            if not _is_valid_id(national_id):
                 return render(request, 'students/exam_login.html', {
                     'exam': exam, 'error': 'رقم الهوية غير صالح',
                 })
 
-            try:
-                profile = Profile.objects.select_related('user').get(
-                    national_id=national_id, role='STUDENT'
-                )
-            except Profile.DoesNotExist:
+            profile = Profile.objects.select_related('user').filter(
+                national_id__in=_id_variants(national_id), role='STUDENT'
+            ).first()
+            if profile is None:
                 return render(request, 'students/exam_login.html', {
                     'exam': exam, 'error': 'رقم الهوية غير موجود — تواصلي مع المعلمة',
                 })

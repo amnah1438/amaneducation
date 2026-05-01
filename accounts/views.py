@@ -26,6 +26,36 @@ from core.models import Profile
 
 GENERIC_ERROR = 'بيانات الدخول غير صحيحة'
 STUDENT_NOT_FOUND = 'رقم الهوية غير مسجّل — تواصلي مع المعلمة'
+INACTIVE_ACCOUNT = 'الحساب غير مفعّل — تواصلي مع المديرة'
+
+# نحفظ رقم الهوية كما كتبتْه المديرة (عربي/لاتيني). لكن وقت المطابقة
+# نجرّب الصيغتين كي تتمكن الطالبة من الدخول بأي صيغة كتبتْها.
+_AR_TO_LA = str.maketrans({
+    '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+    '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
+    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+    '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+})
+_LA_TO_AR = str.maketrans({
+    '0': '٠', '1': '١', '2': '٢', '3': '٣', '4': '٤',
+    '5': '٥', '6': '٦', '7': '٧', '8': '٨', '9': '٩',
+})
+
+
+def _id_variants(value):
+    """صيغ متعددة من رقم الهوية للبحث (الأصلي + لاتيني + عربي)."""
+    if not value:
+        return []
+    s = str(value).strip()
+    return list({s, s.translate(_AR_TO_LA), s.translate(_LA_TO_AR)})
+
+
+def _is_valid_id(value):
+    """8-12 رقماً سواء عربية أو لاتينية."""
+    if not value:
+        return False
+    latin = str(value).translate(_AR_TO_LA).strip()
+    return latin.isdigit() and 8 <= len(latin) <= 12
 
 
 def _redirect_by_role(user):
@@ -53,8 +83,8 @@ def _user_role(user):
 
 
 def _valid_national_id(value):
-    """تحقق من صلاحية رقم الهوية (8-12 رقماً عددياً)."""
-    return value.isdigit() and 8 <= len(value) <= 12
+    """تحقق من صلاحية رقم الهوية — يقبل العربي واللاتيني."""
+    return _is_valid_id(value)
 
 
 @never_cache
@@ -100,15 +130,14 @@ def login_view(request):
             national_id = (request.POST.get('national_id') or '').strip()
 
             if not _valid_national_id(national_id):
-                error = GENERIC_ERROR
+                error = 'رقم الهوية يجب أن يكون من 8 إلى 12 رقماً'
             else:
-                user = _authenticate_student(national_id)
-                if user is None:
-                    error = STUDENT_NOT_FOUND
-                else:
+                user, reason = _authenticate_student_verbose(national_id)
+                if user is not None:
                     login(request, user)
                     request.session.cycle_key()
                     return _redirect_by_role(user)
+                error = reason
 
         else:
             error = GENERIC_ERROR
@@ -128,51 +157,51 @@ def logout_view(request):
 # ═══════════════════════════════════════════════════════════════
 
 def _authenticate_teacher(national_id, pin):
-    """مصادقة المعلمة برقم الهوية + PIN."""
-    try:
-        profile = Profile.objects.select_related('user').get(
-            national_id=national_id,
-            role='TEACHER',
-        )
-    except Profile.DoesNotExist:
+    """مصادقة المعلمة برقم الهوية + PIN — يبحث بكلتا الصيغتين."""
+    profile = Profile.objects.select_related('user').filter(
+        national_id__in=_id_variants(national_id),
+        role='TEACHER',
+    ).first()
+    if profile is None:
         return None
 
     user = profile.user
     if not user.is_active:
         return None
 
-    # المسار 1: PIN مضبوط في Profile
+    # المسار 1: PIN مضبوط في Profile (نقبل PIN عربي/لاتيني)
     if profile.pin_code:
-        return user if profile.pin_code == pin else None
+        if profile.pin_code in _id_variants(pin):
+            return user
+        return None
 
-    # المسار 2: مرجعية تاريخية — كلمة مرور Django (national_id افتراضاً)
+    # المسار 2: كلمة مرور Django (national_id افتراضاً)
     if check_password(pin, user.password):
         return user
     return None
 
 
-def _authenticate_student(national_id):
+def _authenticate_student_verbose(national_id):
     """
-    مصادقة الطالبة برقم الهوية فقط.
-
-    منطق التوسعة المستقبلي:
-    - إن كان pin_code مضبوطاً → نرفض الدخول هنا ونطلب من الطالبة استخدام
-      تبويبة المعلمة (ID+PIN). هذا يتيح ترقية تدريجية بلا كسر.
-    - إن لم يكن pin_code مضبوطاً → الدخول بالهوية فقط.
+    مصادقة الطالبة + سبب الفشل واضح للمساعدة في التشخيص.
+    يرجع (user, error_message). user = None إن فشل.
     """
-    try:
-        profile = Profile.objects.select_related('user').get(
-            national_id=national_id,
-            role='STUDENT',
-        )
-    except Profile.DoesNotExist:
-        return None
+    profile = Profile.objects.select_related('user').filter(
+        national_id__in=_id_variants(national_id),
+        role='STUDENT',
+    ).first()
+    if profile is None:
+        return None, STUDENT_NOT_FOUND
 
     if not profile.user.is_active:
-        return None
+        return None, INACTIVE_ACCOUNT
 
-    # طالبة لها PIN → ترفض هنا، تستخدم تبويبة المعلمة (نفس الـ flow)
     if profile.pin_code:
-        return None
+        return None, 'حسابكِ يستخدم رمز PIN — اضغطي تبويبة "معلمة" وأدخلي الهوية والـ PIN'
 
-    return profile.user
+    return profile.user, ''
+
+
+def _authenticate_student(national_id):
+    user, _ = _authenticate_student_verbose(national_id)
+    return user
