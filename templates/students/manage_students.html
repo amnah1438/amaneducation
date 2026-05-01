@@ -104,7 +104,6 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   <div class="tnav">
     <a href="/teachers/dashboard/" class="tnb">📊 الداشبورد</a>
     <a href="/teachers/skills/" class="tnb">📚 المهارات</a>
-    <a href="/students/import/" class="tnb">📥 استيراد</a>
     <span class="tnb on">👩‍🎓 إدارة الطالبات</span>
   </div>
 </div>
@@ -134,9 +133,12 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       <div><div class="kpi-val" style="color:var(--purple)">{% for s in students_data %}{{ s.results_count|add:0 }}{% endfor %}</div><div class="kpi-lbl">اختبارات أُديت</div></div>
     </div>
     <div class="kpi">
-      <div class="kpi-icon">📥</div>
+      <div class="kpi-icon">🏫</div>
       <div>
-        <a href="/students/import/" class="btn btn-g" style="font-size:10px">📥 استيراد Excel</a>
+        <div class="kpi-val" style="color:var(--orange)">
+          {% regroup students_data by classroom as cls_groups %}{{ cls_groups|length }}
+        </div>
+        <div class="kpi-lbl">عدد الفصول</div>
       </div>
     </div>
   </div>
@@ -221,7 +223,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
     <div class="empty">
       <div class="empty-icon">📭</div>
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px">لا توجد طالبات بعد</div>
-      <a href="/students/import/" class="btn btn-g">📥 استيراد من Excel</a>
+      <div style="font-size:10px;color:var(--text3)">تواصلي مع المديرة لإضافة الطالبات إلى المنصة.</div>
     </div>
     {% endif %}
   </div>

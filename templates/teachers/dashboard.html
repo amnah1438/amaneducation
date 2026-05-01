@@ -643,7 +643,6 @@ body {
     <button class="nb" onclick="gp('ac',this)">الإنجازات 🏆</button>
     <button class="nb" onclick="gp('lg',this)">السجل</button>
 <a href="/teachers/skills/" style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);font-family:'Tajawal',sans-serif;font-size:11px;padding:6px 10px;border-radius:6px;text-decoration:none;white-space:nowrap">📚 إدارة المهارات</a>
-   <a href="/students/import/" style="background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2);font-family:'Tajawal',sans-serif;font-size:11px;padding:6px 10px;border-radius:6px;text-decoration:none;white-space:nowrap">📥 استيراد الطالبات</a>
   <a href="/students/manage/" style="background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.2);font-family:'Tajawal',sans-serif;font-size:11px;padding:6px 10px;border-radius:6px;text-decoration:none;white-space:nowrap">👩‍🎓 إدارة الطالبات</a>
   </div>
   <div class="topright">
@@ -704,6 +703,7 @@ body {
       <div class="card" style="margin-bottom:9px">
         <div class="ch"><span class="ct">مؤشر أداء الفصل</span></div>
         <div class="cb" style="text-align:center;padding:10px 8px">
+          {# الـ stroke-dasharray=163 يمثل القوس الكامل، نحسب dashoffset = 163*(1-pct/100) #}
           <svg width="140" height="78" viewBox="0 0 140 78">
             <defs>
               <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -712,10 +712,18 @@ body {
               </linearGradient>
             </defs>
             <path d="M18 68 A52 52 0 0 1 122 68" fill="none" stroke="#1e2a3d" stroke-width="10" stroke-linecap="round"/>
-            <path d="M18 68 A52 52 0 0 1 122 68" fill="none" stroke="url(#gaugeGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="59"/>
-            <text x="70" y="65" text-anchor="middle" font-family="Tajawal" font-size="18" font-weight="700" fill="#10b981">64%</text>
+            <path id="gaugeArc" d="M18 68 A52 52 0 0 1 122 68" fill="none" stroke="url(#gaugeGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="163"/>
+            <text x="70" y="65" text-anchor="middle" font-family="Tajawal" font-size="18" font-weight="700" fill="#10b981">{{ avg_score|floatformat:0 }}%</text>
             <text x="70" y="75" text-anchor="middle" font-family="Tajawal" font-size="8" fill="#475569">الهدف: 75%</text>
           </svg>
+          <script>
+            (function(){
+              var pct = parseFloat("{{ avg_score|default:0 }}") || 0;
+              var off = 163 * (1 - Math.min(100, Math.max(0, pct)) / 100);
+              var el = document.getElementById('gaugeArc');
+              if (el) el.setAttribute('stroke-dashoffset', off);
+            })();
+          </script>
           <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--text3);padding:0 10px;margin-top:-8px">
             <span>0%</span><span style="color:var(--green)">●</span><span>100%</span>
           </div>
@@ -741,50 +749,96 @@ body {
   </div>
 
   <div class="g3">
-    <!-- أداء المهارات Sparklines -->
+    <!-- أداء المهارات (مهاراتك الفعلية) -->
     <div class="card">
-      <div class="ch"><span class="ct">أداء المهارات</span><span class="bd bp">↑ تحسن عام</span></div>
+      <div class="ch"><span class="ct">آخر مهاراتك المُضافة</span><span class="bd bp">{{ recent_skills|length }} مهارة</span></div>
       <div class="cb" style="padding:7px">
-        <div class="sr"><span class="sn">الكسور الاعتيادية</span><svg style="flex:1" height="18" viewBox="0 0 70 18" role="img" aria-label="اتجاه الكسور"><polyline points="0,15 12,12 24,10 36,8 48,5 60,4 70,2" fill="none" stroke="var(--green)" stroke-width="1.5"/></svg><span class="sv" style="color:var(--green)">69%</span><span class="sc up">↑12</span></div>
-        <div class="sr"><span class="sn">النسبة والتناسب</span><svg style="flex:1" height="18" viewBox="0 0 70 18" role="img" aria-label="اتجاه النسبة"><polyline points="0,16 12,14 24,13 36,11 48,9 60,8 70,6" fill="none" stroke="var(--blue)" stroke-width="1.5"/></svg><span class="sv" style="color:var(--blue)">66%</span><span class="sc up">↑9</span></div>
-        <div class="sr"><span class="sn">الأعداد الصحيحة</span><svg style="flex:1" height="18" viewBox="0 0 70 18" role="img" aria-label="اتجاه الأعداد"><polyline points="0,16 12,15 24,14 36,12 48,11 60,10 70,8" fill="none" stroke="var(--purple)" stroke-width="1.5"/></svg><span class="sv" style="color:var(--purple)">65%</span><span class="sc up">↑7</span></div>
-        <div class="sr"><span class="sn">ضرب الكسور</span><svg style="flex:1" height="18" viewBox="0 0 70 18" role="img" aria-label="اتجاه الضرب"><polyline points="0,17 12,17 24,16 36,16 48,15 60,14 70,13" fill="none" stroke="var(--orange)" stroke-width="1.5"/></svg><span class="sv" style="color:var(--orange)">58%</span><span class="sc up">↑5</span></div>
-        <div class="sr"><span class="sn">القسمة على الكسور</span><svg style="flex:1" height="18" viewBox="0 0 70 18" role="img" aria-label="اتجاه القسمة"><polyline points="0,17 12,17 24,17 36,16 48,16 60,15 70,14" fill="none" stroke="var(--red)" stroke-width="1.5"/></svg><span class="sv" style="color:var(--red)">53%</span><span class="sc up">↑3</span></div>
+        {% for sk in recent_skills %}
+        <div class="sr">
+          <span class="sn">
+            {% if sk.content_type == 'skill' %}🎯{% elif sk.content_type == 'lesson' %}📖{% elif sk.content_type == 'bank' %}🗂️{% else %}🏆{% endif %}
+            {{ sk.title|truncatechars:24 }}
+          </span>
+          <span class="sv" style="color:{% if sk.is_active %}var(--green){% else %}var(--text3){% endif %}">
+            {% if sk.is_active %}✓ مفعّلة{% else %}⏸️ مسودة{% endif %}
+          </span>
+          <a href="/teachers/skills/{{ sk.id }}/view/" class="sc" style="color:var(--blue);text-decoration:none">عرض ←</a>
+        </div>
+        {% empty %}
+        <div style="text-align:center;padding:20px;color:var(--text3);font-size:10px">
+          <div style="font-size:22px;margin-bottom:5px">📭</div>
+          لم تُضيفي مهارات بعد — اضغطي «إدارة المهارات» للبدء
+        </div>
+        {% endfor %}
       </div>
     </div>
 
-    <!-- Timeline -->
+    <!-- Timeline (حصصك المسجّلة الحقيقية) -->
     <div class="card">
-      <div class="ch"><span class="ct">سجل الأنشطة اليومي</span><span style="font-size:9px;color:var(--text3)" id="td"></span></div>
+      <div class="ch"><span class="ct">سجل الحصص الفعلي</span><span style="font-size:9px;color:var(--text3)">{{ sessions|length }} حصة</span></div>
       <div class="cb" style="padding:9px 12px">
         <div class="tl">
-          <div class="tli"><div class="tld" style="background:var(--green)"></div><div><div class="tlt">اختبار بعدي — الكسور الاعتيادية</div><div class="tltm">اليوم، ١٠:٣٠ ص — ٢٨ طالبة</div><span class="tlb" style="background:rgba(16,185,129,0.1);color:var(--green)">مكتمل</span></div></div>
-          <div class="tli"><div class="tld" style="background:var(--blue)"></div><div><div class="tlt">شرح درس — النسبة والتناسب</div><div class="tltm">أمس، ٩:٠٠ ص — ٢٦ طالبة</div><span class="tlb" style="background:rgba(59,130,246,0.1);color:var(--blue)">شرح</span></div></div>
-          <div class="tli"><div class="tld" style="background:var(--orange)"></div><div><div class="tlt">تدريبات — الأعداد الصحيحة</div><div class="tltm">١٤ أبريل، ١١:٠٠ ص — ٢٧ طالبة</div><span class="tlb" style="background:rgba(245,158,11,0.1);color:var(--orange)">تدريب</span></div></div>
-          <div class="tli"><div class="tld" style="background:var(--red)"></div><div><div class="tlt">تنبيه — ٣ طالبات يحتجن دعماً</div><div class="tltm">١٣ أبريل — تنبيه تلقائي</div><span class="tlb" style="background:rgba(239,68,68,0.1);color:var(--red)">تنبيه</span></div></div>
-          <div class="tli"><div class="tld" style="background:var(--purple)"></div><div><div class="tlt">اختبار قبلي — ضرب الكسور</div><div class="tltm">١٢ أبريل، ١٠:٠٠ ص — ٢٨ طالبة</div><span class="tlb" style="background:rgba(139,92,246,0.1);color:var(--purple)">مكتمل</span></div></div>
+          {% for s in sessions %}
+          <div class="tli">
+            <div class="tld" style="background:{% if s.session_type == 'qodrat' %}var(--blue){% elif s.session_type == 'tahsili' %}var(--purple){% else %}var(--green){% endif %}"></div>
+            <div>
+              <div class="tlt">{{ s.skill.title|default:"حصة"|truncatechars:40 }}</div>
+              <div class="tltm">{{ s.session_date|date:"Y/m/d" }} — {{ s.session_time|time:"H:i" }} — {{ s.target_class }}</div>
+              <span class="tlb" style="background:{% if s.session_type == 'qodrat' %}rgba(59,130,246,0.1);color:var(--blue){% elif s.session_type == 'tahsili' %}rgba(139,92,246,0.1);color:var(--purple){% else %}rgba(16,185,129,0.1);color:var(--green){% endif %}">
+                {{ s.get_session_type_display }}
+              </span>
+            </div>
+          </div>
+          {% empty %}
+          <div style="text-align:center;padding:25px;color:var(--text3);font-size:10px">
+            <div style="font-size:22px;margin-bottom:6px">📅</div>
+            لم تُسجَّل حصص بعد — يمكنكِ تسجيل حصة عند تفعيل اختبار لفصل ما
+          </div>
+          {% endfor %}
         </div>
       </div>
     </div>
 
-    <!-- حالة الطالبات -->
+    <!-- حالة الطالبات (بيانات حقيقية من DB) -->
     <div class="card">
-      <div class="ch"><span class="ct">حالة الطالبات المباشرة</span><div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--green)"><div class="slive" style="background:var(--green)"></div>مباشر</div></div>
+      <div class="ch"><span class="ct">توزيع الطالبات حسب الأداء</span><div style="display:flex;align-items:center;gap:4px;font-size:9px;color:var(--green)"><div class="slive" style="background:var(--green)"></div>محدّث آنياً</div></div>
       <div class="cb" style="padding:9px">
+        {% if has_real_data %}
         <div class="stg">
-          <div class="sti"><div class="stt"><span class="stn">ممتازات</span><div class="slive" style="background:var(--green)"></div></div><div class="stv" style="color:var(--green)">4</div><div class="stb"><div class="stf" style="width:14%;background:var(--green)"></div></div></div>
-          <div class="sti"><div class="stt"><span class="stn">جيدات</span></div><div class="stv" style="color:var(--blue)">16</div><div class="stb"><div class="stf" style="width:57%;background:var(--blue)"></div></div></div>
-          <div class="sti"><div class="stt"><span class="stn">متوسطات</span></div><div class="stv" style="color:var(--purple)">5</div><div class="stb"><div class="stf" style="width:18%;background:var(--purple)"></div></div></div>
-          <div class="sti"><div class="stt"><span class="stn">يحتجن دعم</span><div class="slive" style="background:var(--red)"></div></div><div class="stv" style="color:var(--red)">3</div><div class="stb"><div class="stf" style="width:11%;background:var(--red)"></div></div></div>
+          {% with total=students_count_excellent|add:students_count_mid|add:students_count_weak %}
+          <div class="sti"><div class="stt"><span class="stn">متفوقات (90%+)</span></div><div class="stv" style="color:var(--green)">{{ students_count_excellent }}</div>
+            <div class="stb"><div class="stf" style="width:{% widthratio students_count_excellent total 100 %}%;background:var(--green)"></div></div>
+          </div>
+          <div class="sti"><div class="stt"><span class="stn">جيدات (50-89%)</span></div><div class="stv" style="color:var(--blue)">{{ students_count_mid }}</div>
+            <div class="stb"><div class="stf" style="width:{% widthratio students_count_mid total 100 %}%;background:var(--blue)"></div></div>
+          </div>
+          <div class="sti"><div class="stt"><span class="stn">يحتجن دعم (&lt;50%)</span><div class="slive" style="background:var(--red)"></div></div><div class="stv" style="color:var(--red)">{{ students_count_weak }}</div>
+            <div class="stb"><div class="stf" style="width:{% widthratio students_count_weak total 100 %}%;background:var(--red)"></div></div>
+          </div>
+          {% endwith %}
         </div>
         <div style="margin-top:9px;padding-top:8px;border-top:1px solid var(--border)">
           <div style="font-size:9px;color:var(--text3);margin-bottom:6px">🏆 أعلى الطالبات أداءً</div>
           <table class="tb"><tbody>
-            <tr><td style="color:var(--orange)">🥇</td><td>سارة العتيبي</td><td style="color:var(--green);text-align:left;font-weight:600">91%</td></tr>
-            <tr><td style="color:#94a3b8">🥈</td><td>لمى القرني</td><td style="color:var(--blue);text-align:left;font-weight:600">88%</td></tr>
-            <tr><td style="color:#b45309">🥉</td><td>نورة الشمري</td><td style="color:var(--purple);text-align:left;font-weight:600">74%</td></tr>
+            {% for s in top_students %}
+            <tr>
+              <td style="color:{% cycle 'var(--orange)' '#94a3b8' '#b45309' %}">
+                {% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% else %}🥉{% endif %}
+              </td>
+              <td>{{ s.name }}</td>
+              <td style="color:{% if s.pct >= 90 %}var(--green){% elif s.pct >= 70 %}var(--blue){% else %}var(--purple){% endif %};text-align:left;font-weight:600">{{ s.pct }}%</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" style="text-align:center;color:var(--text3);padding:10px">لا توجد نتائج بعد</td></tr>
+            {% endfor %}
           </tbody></table>
         </div>
+        {% else %}
+        <div style="text-align:center;padding:20px;color:var(--text3);font-size:10px">
+          <div style="font-size:24px;margin-bottom:6px">📊</div>
+          لم تُؤدَّ اختبارات بعد — البيانات ستظهر تلقائياً عند بدء الطالبات بالاختبارات
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
@@ -795,28 +849,45 @@ body {
 ═══════════════════════════════════════════════ -->
 <div class="pg" id="pg-st">
   <div class="g2e">
+    <!-- الطالبات الممتازات (بيانات حقيقية) -->
     <div class="card">
-      <div class="ch"><span class="ct" style="color:var(--green)">الطالبات الممتازات (90%+)</span><span class="bd be">4 طالبات</span></div>
+      <div class="ch"><span class="ct" style="color:var(--green)">الطالبات المتفوقات (90%+)</span><span class="bd be">{{ excellent_students|length }} طالبة</span></div>
       <div class="cb" style="padding:0">
         <table class="tb">
-          <thead><tr><th>الاسم</th><th>المتوسط</th><th>أقوى مهارة</th><th>مكتملة</th><th>تقرير</th></tr></thead>
+          <thead><tr><th>الاسم</th><th>المتوسط</th><th>عدد الاختبارات</th><th>تقرير</th></tr></thead>
           <tbody>
-            <tr><td style="font-weight:600">سارة العتيبي</td><td style="color:var(--green);font-weight:600">91%</td><td style="color:var(--text3)">الكسور الاعتيادية</td><td>8/12</td><td><button onclick="oR('سارة العتيبي',91,'exc')" style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
-            <tr><td style="font-weight:600">لمى القرني</td><td style="color:var(--green);font-weight:600">88%</td><td style="color:var(--text3)">النسبة والتناسب</td><td>7/12</td><td><button onclick="oR('لمى القرني',88,'pass')" style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
-            <tr><td style="font-weight:600">نورة الشمري</td><td style="color:var(--blue);font-weight:600">74%</td><td style="color:var(--text3)">الأعداد الصحيحة</td><td>6/12</td><td><button onclick="oR('نورة الشمري',74,'pass')" style="background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
+            {% for s in excellent_students %}
+            <tr>
+              <td style="font-weight:600">{{ s.name }}</td>
+              <td style="color:var(--green);font-weight:600">{{ s.pct }}%</td>
+              <td style="color:var(--text3)">{{ s.count }}</td>
+              <td><button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'exc')" style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px;font-size:10px">لا توجد طالبات في هذه الفئة بعد</td></tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
     </div>
+
+    <!-- الجيدات / المتوسطات -->
     <div class="card">
-      <div class="ch"><span class="ct" style="color:var(--orange)">المتوسطات (50-74%)</span><span class="bd bm">14 طالبة</span></div>
+      <div class="ch"><span class="ct" style="color:var(--orange)">الجيدات (50-89%)</span><span class="bd bm">{{ mid_students|length }} طالبة</span></div>
       <div class="cb" style="padding:0">
         <table class="tb">
-          <thead><tr><th>الاسم</th><th>المتوسط</th><th>ضعف في</th><th>تقرير</th></tr></thead>
+          <thead><tr><th>الاسم</th><th>المتوسط</th><th>عدد الاختبارات</th><th>تقرير</th></tr></thead>
           <tbody>
-            <tr><td>هنوف العنزي</td><td style="color:var(--orange)">62%</td><td style="color:var(--text3);font-size:9px">ضرب، قسمة</td><td><button onclick="oR('هنوف العنزي',62,'mid')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
-            <tr><td>دانة الحربي</td><td style="color:var(--orange)">58%</td><td style="color:var(--text3);font-size:9px">كسور غير اعتيادية</td><td><button onclick="oR('دانة الحربي',58,'mid')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
-            <tr><td>ريم السبيعي</td><td style="color:var(--orange)">55%</td><td style="color:var(--text3);font-size:9px">نسبة، ضرب</td><td><button onclick="oR('ريم السبيعي',55,'mid')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td></tr>
+            {% for s in mid_students %}
+            <tr>
+              <td>{{ s.name }}</td>
+              <td style="color:var(--orange)">{{ s.pct }}%</td>
+              <td style="color:var(--text3)">{{ s.count }}</td>
+              <td><button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'mid')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px;font-size:10px">لا توجد طالبات في هذه الفئة بعد</td></tr>
+            {% endfor %}
           </tbody>
         </table>
       </div>
@@ -824,38 +895,24 @@ body {
   </div>
 
   <div class="card">
-    <div class="ch"><span class="ct" style="color:var(--red)">يحتجن دعم عاجل (&lt;50%)</span><span class="bd bf">3 طالبات</span></div>
+    <div class="ch"><span class="ct" style="color:var(--red)">يحتجن دعم عاجل (&lt;50%)</span><span class="bd bf">{{ weak_students|length }} طالبة</span></div>
     <div class="cb" style="padding:0">
       <table class="tb">
-        <thead><tr><th>الاسم</th><th>المتوسط</th><th>المهارات المحتاجة</th><th>الغيابات</th><th>الأولوية</th><th>تقرير</th><th>تقرير لولي الأمر</th></tr></thead>
+        <thead><tr><th>الاسم</th><th>المتوسط</th><th>عدد الاختبارات</th><th>الأولوية</th><th>تقرير</th></tr></thead>
         <tbody>
+          {% for s in weak_students %}
           <tr>
-            <td style="font-weight:600;color:var(--red)">ملاك محمد</td>
-            <td style="color:var(--orange)">40%</td>
-            <td style="color:var(--text3);font-size:9px">كسور، ضرب، قسمة</td>
-            <td>3</td>
-            <td><span class="bd bm">متوسطة</span></td>
-            <td><button onclick="oR('ملاك محمد',40,'fail')" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
-            <td><button onclick="alert('طباعة تقرير ولي أمر ملاك محمد...')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">🖨️ PDF</button></td>
+            <td style="font-weight:600;color:var(--red)">{{ s.name }}</td>
+            <td style="color:{% if s.pct < 30 %}var(--red){% else %}var(--orange){% endif %}">{{ s.pct }}%</td>
+            <td>{{ s.count }}</td>
+            <td><span class="bd {% if s.pct < 30 %}bf{% else %}bm{% endif %}">{% if s.pct < 30 %}عاجلة جداً{% else %}عاجلة{% endif %}</span></td>
+            <td><button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'fail')" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
           </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--red)">ليلى القحطاني</td>
-            <td style="color:var(--red)">30%</td>
-            <td style="color:var(--text3);font-size:9px">كسور، نسبة، أعداد، ضرب</td>
-            <td>5</td>
-            <td><span class="bd bf">عاجلة</span></td>
-            <td><button onclick="oR('ليلى القحطاني',30,'fail')" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
-            <td><button onclick="alert('طباعة تقرير ولي أمر ليلى القحطاني...')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">🖨️ PDF</button></td>
-          </tr>
-          <tr>
-            <td style="font-weight:600;color:var(--red)">نوف الرشيدي</td>
-            <td style="color:var(--red)">25%</td>
-            <td style="color:var(--text3);font-size:9px">جميع المهارات</td>
-            <td>8</td>
-            <td><span class="bd bf">عاجلة جداً</span></td>
-            <td><button onclick="oR('نوف الرشيدي',25,'fail')" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
-            <td><button onclick="alert('طباعة تقرير ولي أمر نوف الرشيدي...')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">🖨️ PDF</button></td>
-          </tr>
+          {% empty %}
+          <tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px;font-size:11px">
+            🎉 لا توجد طالبات في فئة الدعم العاجل — أداء جيد للفصل!
+          </td></tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>

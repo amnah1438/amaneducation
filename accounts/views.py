@@ -50,12 +50,16 @@ def _id_variants(value):
     return list({s, s.translate(_AR_TO_LA), s.translate(_LA_TO_AR)})
 
 
-def _is_valid_id(value):
-    """8-12 رقماً سواء عربية أو لاتينية."""
+def _is_valid_id(value, exact=None):
+    """تحقق من الهوية. exact=N يفرض طولاً محدداً (مثلاً 10 للسعودية)."""
     if not value:
         return False
     latin = str(value).translate(_AR_TO_LA).strip()
-    return latin.isdigit() and 8 <= len(latin) <= 12
+    if not latin.isdigit():
+        return False
+    if exact is not None:
+        return len(latin) == exact
+    return 8 <= len(latin) <= 12
 
 
 def _redirect_by_role(user):
@@ -125,12 +129,13 @@ def login_view(request):
                     return _redirect_by_role(user)
                 error = GENERIC_ERROR
 
-        # ─── 3) دخول الطالبة (national_id فقط) ─────────────────
+        # ─── 3) دخول الطالبة (national_id فقط — 10 أرقام بالضبط) ─
         elif login_type == 'student':
             national_id = (request.POST.get('national_id') or '').strip()
 
-            if not _valid_national_id(national_id):
-                error = 'رقم الهوية يجب أن يكون من 8 إلى 12 رقماً'
+            # السعودية: الهوية الوطنية 10 أرقام بالضبط
+            if not _is_valid_id(national_id, exact=10):
+                error = 'رقم الهوية الوطنية يجب أن يكون 10 أرقام بالضبط'
             else:
                 user, reason = _authenticate_student_verbose(national_id)
                 if user is not None:

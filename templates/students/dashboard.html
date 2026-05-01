@@ -6,6 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>داشبورد الطالبة — منصة آمنة</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea']}}</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 <style>
 :root {
   --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;
@@ -206,7 +208,10 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
           <div class="result-score" style="color:{% if result.passed %}var(--green){% else %}var(--red){% endif %}">
             {{ result.score }}/{{ result.total }}
           </div>
-          <a href="/students/result/{{ result.id }}/" style="font-size:9px;color:var(--blue);text-decoration:none;padding:3px 8px;border:1px solid rgba(79,142,247,0.2);border-radius:5px;background:rgba(79,142,247,0.06)">تفاصيل</a>
+          <div style="display:flex;gap:4px">
+            <a href="{% url 'student_result_view' result.id %}" style="font-size:9px;color:var(--blue);text-decoration:none;padding:4px 10px;border:1px solid rgba(79,142,247,0.2);border-radius:5px;background:rgba(79,142,247,0.06);font-weight:700">📄 تفاصيل</a>
+            <a href="{% url 'student_result_view' result.id %}?print=1" target="_blank" style="font-size:9px;color:var(--purple);text-decoration:none;padding:4px 10px;border:1px solid rgba(155,114,245,0.2);border-radius:5px;background:rgba(155,114,245,0.06);font-weight:700">🖨️ طباعة</a>
+          </div>
         </div>
         {% endfor %}
       {% else %}

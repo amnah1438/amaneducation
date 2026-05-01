@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>نتيجة الاختبار — منصة آمنة</title>
+<title>ورقة اختباري — {{ result.exam.skill.title }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <script>
 window.MathJax = {
@@ -21,218 +21,255 @@ window.MathJax = {
   --green:#0fba81;--green2:#065442;
   --blue:#4f8ef7;--blue2:#1a3060;
   --purple:#9b72f5;--orange:#f5a623;
-  --red:#f05252;--teal:#2dd4bf;
+  --red:#f05252;
   --text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
 
-/* HEADER */
-.topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,0.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px)}
-.logo{display:flex;align-items:center;gap:9px}
-.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
-.logo-name{font-size:12px;font-weight:800}
-
-/* MAIN */
-.main{max-width:800px;margin:0 auto;padding:20px}
-
-/* RESULT HERO */
-.result-hero{border-radius:16px;padding:28px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden}
-.result-hero.pass{background:linear-gradient(135deg,rgba(6,84,66,0.8),rgba(26,48,96,0.8));border:1px solid var(--green)}
-.result-hero.fail{background:linear-gradient(135deg,rgba(127,29,29,0.8),rgba(26,48,96,0.5));border:1px solid var(--red)}
-.result-emoji{font-size:52px;margin-bottom:10px;animation:bounce 1s ease}
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-.result-status{font-size:22px;font-weight:800;margin-bottom:5px}
-.result-score-big{font-size:48px;font-weight:900;line-height:1;margin-bottom:5px}
-.result-out-of{font-size:14px;opacity:0.7}
-.result-pct{font-size:16px;font-weight:700;margin-top:8px;opacity:0.9}
-
-/* STATS */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
-.stat{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
-.stat-value{font-size:22px;font-weight:800;margin-bottom:4px}
-.stat-label{font-size:9px;color:var(--text3)}
-
-/* CARD */
-.card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:12px}
-.ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)}
-.ct{font-size:11px;font-weight:700;color:var(--text2)}
-.cb{padding:14px}
-
-/* ANSWERS */
-.answer-item{padding:12px 14px;border-radius:9px;margin-bottom:8px;border:1px solid;position:relative}
-.answer-item.correct{background:rgba(15,186,129,0.06);border-color:rgba(15,186,129,0.25)}
-.answer-item.wrong{background:rgba(240,82,82,0.06);border-color:rgba(240,82,82,0.25)}
-.answer-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
-.answer-icon{font-size:16px;flex-shrink:0;margin-top:2px}
-.q-num-badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
-.correct .q-num-badge{background:rgba(15,186,129,0.2);color:var(--green)}
-.wrong .q-num-badge{background:rgba(240,82,82,0.2);color:var(--red)}
-.q-text-small{font-size:11px;color:var(--text);line-height:1.7;flex:1}
-
-.answer-choices{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.choice{padding:6px 10px;border-radius:6px;font-size:10px;display:flex;align-items:center;gap:6px;border:1px solid var(--border)}
-.choice.chosen-correct{background:rgba(15,186,129,0.12);border-color:var(--green);color:var(--green)}
-.choice.chosen-wrong{background:rgba(240,82,82,0.12);border-color:var(--red);color:var(--red)}
-.choice.is-correct{background:rgba(15,186,129,0.06);border-color:rgba(15,186,129,0.3);color:var(--green)}
-.choice-letter{width:18px;height:18px;border-radius:50%;border:1.5px solid;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
-
-.feedback-box{background:rgba(79,142,247,0.06);border:1px solid rgba(79,142,247,0.2);border-radius:7px;padding:8px 10px;margin-top:8px;font-size:10px;color:var(--blue);border-right:3px solid var(--blue)}
-
-/* BTN */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;text-decoration:none}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;backdrop-filter:blur(10px)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none}
 .btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
 .btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
+.btn-p{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.25)}
+.btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
 
-/* CIRCLE PROGRESS */
-.circle-wrap{position:relative;width:100px;height:100px;margin:0 auto 10px}
-.circle-wrap svg{transform:rotate(-90deg)}
-.circle-bg{fill:none;stroke:var(--bg3);stroke-width:8}
-.circle-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+.main{max-width:900px;margin:0 auto;padding:20px}
 
-::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+/* Header card */
+.summary{background:linear-gradient(135deg,var(--green2),var(--blue2));border:1px solid var(--green);border-radius:14px;padding:20px 24px;margin-bottom:14px;color:white}
+.summary-title{font-size:18px;font-weight:900;margin-bottom:4px}
+.summary-sub{font-size:11px;opacity:0.8}
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
+.summary-cell{background:rgba(255,255,255,0.10);border-radius:9px;padding:11px;text-align:center}
+.summary-val{font-size:22px;font-weight:900}
+.summary-lbl{font-size:9px;opacity:0.75;margin-top:2px}
+@media (max-width:680px){.summary-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* Big verdict */
+.verdict{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:14px;display:flex;align-items:center;gap:16px}
+.verdict-icon{font-size:42px}
+.verdict-text{font-size:16px;font-weight:800}
+.verdict-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.verdict-pct{margin-right:auto;font-size:34px;font-weight:900}
+
+/* Card */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.ch{padding:11px 16px;display:flex;justify-content:space-between;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border)}
+.ct{font-size:12px;font-weight:800}
+.cb{padding:14px 16px}
+
+/* Question */
+.q{border:1px solid var(--border);border-radius:11px;padding:14px;margin-bottom:11px;background:var(--bg2)}
+.q.correct{border-color:rgba(15,186,129,0.4);background:rgba(15,186,129,0.04)}
+.q.wrong{border-color:rgba(240,82,82,0.4);background:rgba(240,82,82,0.04)}
+
+.q-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.q-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;font-size:12px;font-weight:800;color:white}
+.q-num.ok{background:var(--green)}
+.q-num.bad{background:var(--red)}
+.q-status{font-size:10px;font-weight:700;padding:3px 10px;border-radius:8px}
+.q-status.ok{background:rgba(15,186,129,0.15);color:var(--green)}
+.q-status.bad{background:rgba(240,82,82,0.15);color:var(--red)}
+.q-text{font-size:14px;font-weight:700;margin-bottom:10px;line-height:1.7}
+.q-image{max-width:100%;max-height:240px;border-radius:8px;border:1px solid var(--border);margin-bottom:10px;display:block}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+@media (max-width:640px){.opts{grid-template-columns:1fr}}
+.opt{padding:8px 11px;border-radius:7px;border:1px solid var(--border);background:var(--card2);font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px;line-height:1.6}
+.opt-letter{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--bg3);color:var(--text2);font-weight:700;font-size:11px;flex-shrink:0}
+.opt.correct{background:rgba(15,186,129,0.10);border-color:var(--green);color:var(--green);font-weight:700}
+.opt.correct .opt-letter{background:var(--green);color:white}
+.opt.chosen-wrong{background:rgba(240,82,82,0.10);border-color:var(--red);color:var(--red);font-weight:700}
+.opt.chosen-wrong .opt-letter{background:var(--red);color:white}
+.opt-mark{margin-right:auto;font-size:14px;font-weight:800}
+
+.feedback{margin-top:10px;padding:9px 12px;background:rgba(155,114,245,0.06);border:1px solid rgba(155,114,245,0.2);border-right:3px solid var(--purple);border-radius:7px;font-size:11px;color:var(--purple);line-height:1.7}
+
+.no-answer{background:rgba(245,166,35,0.08);border:1px solid var(--orange);color:var(--orange);padding:6px 10px;border-radius:6px;font-size:10px;display:inline-block;margin-bottom:6px}
+
+/* Print */
+@media print {
+  body{background:white !important;color:#111 !important}
+  .topbar,.no-print{display:none !important}
+  .card,.q,.summary,.verdict{background:white !important;border:1px solid #cbd5e1 !important;color:#111 !important;break-inside:avoid;page-break-inside:avoid}
+  .summary{background:#f1f5f9 !important;color:#0d4f35 !important;border:2px solid #0d4f35 !important}
+  .summary-cell{background:rgba(0,0,0,0.05) !important;color:#111 !important}
+  .summary-title,.summary-sub{color:#0d4f35 !important}
+  .ct,.q-text{color:#111 !important}
+  .opt{background:white !important;color:#111 !important;border-color:#cbd5e1 !important}
+  .opt.correct{background:#dcfce7 !important;color:#166534 !important;border-color:#16a34a !important}
+  .opt.correct .opt-letter{background:#16a34a !important;color:white !important}
+  .opt.chosen-wrong{background:#fee2e2 !important;color:#991b1b !important;border-color:#dc2626 !important}
+  .opt.chosen-wrong .opt-letter{background:#dc2626 !important;color:white !important}
+  .feedback{background:#f5f3ff !important;color:#5b21b6 !important;border-color:#8b5cf6 !important}
+  .verdict-icon,.verdict-pct{color:#111 !important}
+  .q.correct{background:#f0fdf4 !important}
+  .q.wrong{background:#fef2f2 !important}
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important }
+  .main{padding:8px;max-width:100%}
+}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="logo">
-    <div class="logo-mark">🎓</div>
-    <div>
-      <div class="logo-name">منصة آمنة التعليمية</div>
-    </div>
+<div class="topbar no-print">
+  <div style="display:flex;align-items:center;gap:9px">
+    <div style="width:30px;height:30px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px">🎓</div>
+    <div style="font-size:12px;font-weight:800">ورقة اختباري</div>
   </div>
-  <a href="/students/dashboard/" class="btn btn-b" style="font-size:10px">← العودة للداشبورد</a>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <a href="{% url 'student_dashboard' %}" class="btn btn-b">← الداشبورد</a>
+    <button onclick="window.print()" class="btn btn-p">🖨️ طباعة الورقة المصححة</button>
+  </div>
 </div>
 
 <div class="main">
 
-  <!-- بطل النتيجة -->
-  <div class="result-hero {% if result.passed %}pass{% else %}fail{% endif %}">
-    {% if result.passed %}
-      <div class="result-emoji">🎉</div>
-      <div class="result-status" style="color:var(--green)">ممتازة! اجتزتِ الاختبار</div>
-    {% else %}
-      <div class="result-emoji">💪</div>
-      <div class="result-status" style="color:var(--orange)">لا بأس! المحاولة تُكسب الخبرة</div>
-    {% endif %}
-    <div class="result-score-big" style="color:{% if result.passed %}var(--green){% else %}var(--red){% endif %}">
-      {{ result.score }}<span style="font-size:24px;opacity:0.6">/{{ result.total }}</span>
+  <!-- ملخص النتيجة -->
+  <div class="summary">
+    <div class="summary-title">📋 {{ result.exam.get_exam_type_display }} — {{ result.exam.skill.title }}</div>
+    <div class="summary-sub">
+      الاسم: {{ request.user.get_full_name|default:request.user.username }}
+      • التاريخ: {{ result.submitted_at|date:"Y/m/d - H:i" }}
+      {% if request.user.core_profile.national_id %} • الهوية: {{ request.user.core_profile.national_id }}{% endif %}
     </div>
-    <div class="result-pct">{{ result.percentage }}% — درجة النجاح: {{ result.exam.pass_score }}%</div>
-    <div style="font-size:11px;opacity:0.6;margin-top:6px">{{ result.exam.get_exam_type_display }} — {{ result.exam.skill.title }}</div>
-  </div>
-
-  <!-- إحصاءات -->
-  <div class="stats-grid">
-    <div class="stat">
-      <div class="stat-value" style="color:var(--green)">{{ answers|length }}</div>
-      <div class="stat-label">إجمالي الأسئلة</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value" style="color:var(--green)">
-        {% with correct=0 %}
-        {% for a in answers %}{% if a.is_correct %}{% with correct=correct|add:1 %}{% endwith %}{% endif %}{% endfor %}
-        {{ result.score }}
-        {% endwith %}
+    <div class="summary-grid">
+      <div class="summary-cell">
+        <div class="summary-val">{{ result.score }}/{{ result.total }}</div>
+        <div class="summary-lbl">الدرجة</div>
       </div>
-      <div class="stat-label">إجابات صحيحة ✅</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value" style="color:var(--red)">{{ result.total|add:"-"|add:result.score|stringformat:"d" }}</div>
-      <div class="stat-label">إجابات خاطئة ❌</div>
-    </div>
-    <div class="stat">
-      <div class="stat-value" style="color:var(--blue)">
-        {% if result.time_taken_seconds %}
-          {% widthratio result.time_taken_seconds 60 1 %}د
-        {% else %}—{% endif %}
+      <div class="summary-cell">
+        <div class="summary-val">{{ result.percentage|floatformat:1 }}%</div>
+        <div class="summary-lbl">النسبة</div>
       </div>
-      <div class="stat-label">الوقت المستغرق ⏱️</div>
+      <div class="summary-cell">
+        <div class="summary-val">{{ duration_min }}:{{ duration_sec|stringformat:"02d" }}</div>
+        <div class="summary-lbl">الزمن المستغرق</div>
+      </div>
+      <div class="summary-cell">
+        <div class="summary-val">{% if result.passed %}✅{% else %}❌{% endif %}</div>
+        <div class="summary-lbl">{% if result.passed %}ناجحة{% else %}راسبة{% endif %} (النجاح ≥ {{ result.exam.pass_score }}%)</div>
+      </div>
     </div>
   </div>
 
-  <!-- تفاصيل الإجابات -->
+  <!-- تقييم محفّز -->
+  <div class="verdict">
+    <div class="verdict-icon">{{ verdict_icon }}</div>
+    <div>
+      <div class="verdict-text" style="color:{{ verdict_color }}">{{ verdict_text }}</div>
+      <div class="verdict-sub">إجابات صحيحة: {{ correct }} • إجابات خاطئة: {{ incorrect }} من إجمالي {{ result.total }} سؤال</div>
+    </div>
+    <div class="verdict-pct" style="color:{{ verdict_color }}">{{ result.percentage|floatformat:0 }}%</div>
+  </div>
+
+  <!-- الأسئلة المصححة -->
   <div class="card">
     <div class="ch">
-      <span class="ct">📋 تفاصيل إجاباتك</span>
-      <span style="font-size:9px;color:var(--text3)">{{ answers|length }} سؤال</span>
+      <span class="ct">📝 ورقة الأسئلة المصحّحة</span>
+      <span style="font-size:10px;color:var(--text3)">✅ صحيحة بالأخضر • ❌ خاطئة بالأحمر</span>
     </div>
     <div class="cb">
-      {% for answer in answers %}
-      <div class="answer-item {% if answer.is_correct %}correct{% else %}wrong{% endif %}">
-        <div class="answer-header">
-          <div class="answer-icon">{% if answer.is_correct %}✅{% else %}❌{% endif %}</div>
-          <div class="q-num-badge">{{ forloop.counter }}</div>
-          <div class="q-text-small">{{ answer.question.question_plain }}</div>
+      {% for ans in answers %}
+      {% with q=ans.question %}
+      <div class="q {% if ans.is_correct %}correct{% else %}wrong{% endif %}">
+        <div class="q-head">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="q-num {% if ans.is_correct %}ok{% else %}bad{% endif %}">{{ q.order|default:forloop.counter }}</div>
+            <span class="q-status {% if ans.is_correct %}ok{% else %}bad{% endif %}">
+              {% if ans.is_correct %}✓ إجابة صحيحة{% else %}✗ إجابة خاطئة{% endif %}
+            </span>
+          </div>
+          {% if q.target_skill_name %}
+          <span style="font-size:9px;color:var(--text3)">🏷️ {{ q.target_skill_name }}</span>
+          {% endif %}
         </div>
 
-        <div class="answer-choices">
-          {% for opt, label in "A,أ|B,ب|C,ج|D,د"|split:"|" %}
-          {% endfor %}
+        <div class="q-text">{{ q.question_plain|default:q.question_text|striptags|default:"—"|safe }}</div>
+        {% if q.question_image %}<img class="q-image" src="{{ q.question_image.url }}" alt="صورة السؤال">{% endif %}
 
-          <!-- خيار أ -->
-          <div class="choice
-            {% if answer.question.correct_answer == 'A' and answer.chosen_answer == 'A' %}chosen-correct
-            {% elif answer.chosen_answer == 'A' and answer.question.correct_answer != 'A' %}chosen-wrong
-            {% elif answer.question.correct_answer == 'A' %}is-correct
-            {% endif %}">
-            <div class="choice-letter">أ</div>
-            {{ answer.question.option_a_plain|truncatechars:40 }}
+        {% if not ans.chosen_answer %}
+        <div class="no-answer">⚠️ لم تُجيبي على هذا السؤال</div>
+        {% endif %}
+
+        <div class="opts">
+          {# خيار أ #}
+          <div class="opt
+            {% if q.correct_answer == 'A' %}correct{% endif %}
+            {% if ans.chosen_answer == 'A' and not ans.is_correct %}chosen-wrong{% endif %}">
+            <span class="opt-letter">أ</span>
+            <span style="flex:1">{{ q.option_a_plain|default:q.option_a|striptags|default:"—" }}</span>
+            {% if q.correct_answer == 'A' %}<span class="opt-mark">✓</span>{% endif %}
+            {% if ans.chosen_answer == 'A' and q.correct_answer != 'A' %}<span class="opt-mark">✗</span>{% endif %}
+            {% if ans.chosen_answer == 'A' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
           </div>
-
-          <!-- خيار ب -->
-          <div class="choice
-            {% if answer.question.correct_answer == 'B' and answer.chosen_answer == 'B' %}chosen-correct
-            {% elif answer.chosen_answer == 'B' and answer.question.correct_answer != 'B' %}chosen-wrong
-            {% elif answer.question.correct_answer == 'B' %}is-correct
-            {% endif %}">
-            <div class="choice-letter">ب</div>
-            {{ answer.question.option_b_plain|truncatechars:40 }}
+          {# خيار ب #}
+          <div class="opt
+            {% if q.correct_answer == 'B' %}correct{% endif %}
+            {% if ans.chosen_answer == 'B' and not ans.is_correct %}chosen-wrong{% endif %}">
+            <span class="opt-letter">ب</span>
+            <span style="flex:1">{{ q.option_b_plain|default:q.option_b|striptags|default:"—" }}</span>
+            {% if q.correct_answer == 'B' %}<span class="opt-mark">✓</span>{% endif %}
+            {% if ans.chosen_answer == 'B' and q.correct_answer != 'B' %}<span class="opt-mark">✗</span>{% endif %}
+            {% if ans.chosen_answer == 'B' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
           </div>
-
-          <!-- خيار ج -->
-          <div class="choice
-            {% if answer.question.correct_answer == 'C' and answer.chosen_answer == 'C' %}chosen-correct
-            {% elif answer.chosen_answer == 'C' and answer.question.correct_answer != 'C' %}chosen-wrong
-            {% elif answer.question.correct_answer == 'C' %}is-correct
-            {% endif %}">
-            <div class="choice-letter">ج</div>
-            {{ answer.question.option_c_plain|truncatechars:40 }}
+          {# خيار ج #}
+          <div class="opt
+            {% if q.correct_answer == 'C' %}correct{% endif %}
+            {% if ans.chosen_answer == 'C' and not ans.is_correct %}chosen-wrong{% endif %}">
+            <span class="opt-letter">ج</span>
+            <span style="flex:1">{{ q.option_c_plain|default:q.option_c|striptags|default:"—" }}</span>
+            {% if q.correct_answer == 'C' %}<span class="opt-mark">✓</span>{% endif %}
+            {% if ans.chosen_answer == 'C' and q.correct_answer != 'C' %}<span class="opt-mark">✗</span>{% endif %}
+            {% if ans.chosen_answer == 'C' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
           </div>
-
-          <!-- خيار د -->
-          <div class="choice
-            {% if answer.question.correct_answer == 'D' and answer.chosen_answer == 'D' %}chosen-correct
-            {% elif answer.chosen_answer == 'D' and answer.question.correct_answer != 'D' %}chosen-wrong
-            {% elif answer.question.correct_answer == 'D' %}is-correct
-            {% endif %}">
-            <div class="choice-letter">د</div>
-            {{ answer.question.option_d_plain|truncatechars:40 }}
+          {# خيار د #}
+          <div class="opt
+            {% if q.correct_answer == 'D' %}correct{% endif %}
+            {% if ans.chosen_answer == 'D' and not ans.is_correct %}chosen-wrong{% endif %}">
+            <span class="opt-letter">د</span>
+            <span style="flex:1">{{ q.option_d_plain|default:q.option_d|striptags|default:"—" }}</span>
+            {% if q.correct_answer == 'D' %}<span class="opt-mark">✓</span>{% endif %}
+            {% if ans.chosen_answer == 'D' and q.correct_answer != 'D' %}<span class="opt-mark">✗</span>{% endif %}
+            {% if ans.chosen_answer == 'D' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
           </div>
         </div>
 
-        {% if not answer.is_correct and answer.question.feedback_plain %}
-        <div class="feedback-box">
-          💡 <strong>التغذية الراجعة:</strong> {{ answer.question.feedback_plain }}
-        </div>
+        {% if q.feedback_plain %}
+        <div class="feedback">💡 <strong>توضيح المعلمة:</strong> {{ q.feedback_plain }}</div>
         {% endif %}
       </div>
+      {% endwith %}
+      {% empty %}
+      <div style="text-align:center;padding:40px;color:var(--text3);font-size:12px">لا توجد أسئلة في هذا الاختبار.</div>
       {% endfor %}
     </div>
   </div>
 
-  <!-- أزرار -->
-  <div style="display:flex;gap:10px;justify-content:center;margin-bottom:20px">
-    <a href="/students/dashboard/" class="btn btn-b">← العودة للداشبورد</a>
-    <button class="btn btn-g" onclick="window.print()">🖨️ طباعة النتيجة</button>
+  <!-- ملخص للطباعة (بياناتي للمتابعة) -->
+  <div class="card">
+    <div class="ch"><span class="ct">📌 خلاصة لمعالجة الفجوة التعليمية</span></div>
+    <div class="cb" style="font-size:12px;line-height:2;color:var(--text2)">
+      <p>عدد الإجابات الصحيحة: <strong style="color:var(--green)">{{ correct }}</strong> من {{ result.total }}.</p>
+      <p>عدد الإجابات الخاطئة: <strong style="color:var(--red)">{{ incorrect }}</strong> من {{ result.total }}.</p>
+      <p>الزمن المستغرق: <strong>{{ duration_min }} د {{ duration_sec }} ث</strong> من أصل {{ result.exam.duration_minutes }} دقيقة.</p>
+      <p>درجة النجاح المطلوبة: <strong>{{ result.exam.pass_score }}%</strong> — حصلتِ على <strong style="color:{{ verdict_color }}">{{ result.percentage|floatformat:1 }}%</strong>.</p>
+      {% if not result.passed %}
+        <p style="background:rgba(245,166,35,0.08);border-right:3px solid var(--orange);padding:10px;border-radius:7px;color:var(--orange);margin-top:10px">
+          ✋ <strong>اقتراح للمعالجة:</strong> راجعي الأسئلة الخاطئة أعلاه واقرئي ملاحظات المعلمة، ثم أعيدي شرح المهارات المرتبطة بها قبل الاختبار التالي.
+        </p>
+      {% endif %}
+    </div>
   </div>
 
 </div>
 
 <script>
-if(window.MathJax) MathJax.typesetPromise();
+{% if print_mode %}
+  // إن وصلت الطالبة برابط ?print=1 نفتح الطباعة فوراً
+  window.addEventListener('load', () => setTimeout(() => window.print(), 300));
+{% endif %}
 </script>
 </body>
 </html>

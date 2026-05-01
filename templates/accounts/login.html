@@ -103,21 +103,64 @@
 
     <!-- ① طالبة — رقم الهوية فقط (الافتراضي للسهولة) -->
     <div class="form-section active" id="form-student">
-      <form method="POST" autocomplete="off">
+      <form method="POST" autocomplete="off" onsubmit="return validateStudentId(this)">
         {% csrf_token %}
         <input type="hidden" name="login_type" value="student">
         <div class="info">
-          🌸 الدخول للطالبة برقم الهوية فقط — لا حاجة لكلمة مرور.
+          🌸 الدخول للطالبة برقم الهوية الوطنية فقط (10 أرقام) — لا حاجة لكلمة مرور.
         </div>
         <div class="form-group">
-          <label>رقم الهوية</label>
+          <label>رقم الهوية الوطنية (10 أرقام)</label>
           <input type="text" name="national_id" class="form-input"
-                 inputmode="numeric" pattern="[0-9]{8,12}" maxlength="12"
-                 required placeholder="أدخلي رقم هويتك" autofocus>
+                 inputmode="numeric"
+                 maxlength="10"
+                 minlength="10"
+                 required placeholder="أدخلي رقم هويتك ١٠ أرقام" autofocus
+                 oninput="this.value=this.value.replace(/\s+/g,'').slice(0,10)">
+          <div id="student-id-counter" style="font-size:0.78rem;color:#888;margin-top:6px;text-align:left">0 / 10</div>
         </div>
         <button type="submit" class="btn-login">دخول ←</button>
       </form>
     </div>
+
+    <script>
+      // عدّاد أرقام مباشر + تحقق قبل الإرسال
+      (function(){
+        const inp = document.querySelector('#form-student input[name=national_id]');
+        const counter = document.getElementById('student-id-counter');
+        if (!inp || !counter) return;
+        // تحويل الأرقام العربية والفارسية إلى لاتينية للعد فقط
+        const _AR = '٠١٢٣٤٥٦٧٨٩';
+        const _FA = '۰۱۲۳۴۵۶۷۸۹';
+        function normalize(s){
+          return [...s].map(ch => {
+            const a = _AR.indexOf(ch); if (a !== -1) return String(a);
+            const f = _FA.indexOf(ch); if (f !== -1) return String(f);
+            return ch;
+          }).join('');
+        }
+        inp.addEventListener('input', () => {
+          const n = normalize(inp.value).replace(/\D/g,'').length;
+          counter.textContent = n + ' / 10';
+          counter.style.color = (n === 10) ? '#0d5c35' : '#888';
+        });
+      })();
+      function validateStudentId(form){
+        const v = form.national_id.value;
+        const _AR = '٠١٢٣٤٥٦٧٨٩';
+        const _FA = '۰۱۲۳۴۵۶۷۸۹';
+        const norm = [...v].map(ch => {
+          const a = _AR.indexOf(ch); if (a !== -1) return String(a);
+          const f = _FA.indexOf(ch); if (f !== -1) return String(f);
+          return ch;
+        }).join('').replace(/\D/g,'');
+        if (norm.length !== 10) {
+          alert('رقم الهوية الوطنية يجب أن يكون 10 أرقام بالضبط');
+          return false;
+        }
+        return true;
+      }
+    </script>
 
     <!-- ② معلمة — رقم الهوية + PIN -->
     <div class="form-section" id="form-teacher">

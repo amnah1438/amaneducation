@@ -1,4 +1,4 @@
-{% load static %}
+{% load static media_filters %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{{ skill.title }} — منصة آمنة</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']]},options:{skipHtmlTags:['script','noscript','style','textarea']}}</script>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea']}}</script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 <style>
 :root{--bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;--purple:#9b72f5;--orange:#f5a623;--red:#f05252;--teal:#2dd4bf;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
@@ -252,23 +252,33 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
   <!-- ══ مهارة أو درس ══ -->
 
-  <!-- خطوات الحصة -->
+  <!-- خطوات الحصة — تختلف حسب نوع المحتوى -->
   <div class="card">
     <div class="ch"><span class="ct">📋 خطوات سير الحصة</span></div>
     <div class="cb">
       <div class="steps">
-        <div class="step active" id="step1"><div class="step-num">١</div>الاختبار القبلي</div>
-        <span style="color:var(--text3);font-size:12px">←</span>
-        <div class="step" id="step2"><div class="step-num">٢</div>عرض الدرس</div>
-        <span style="color:var(--text3);font-size:12px">←</span>
-        <div class="step" id="step3"><div class="step-num">٣</div>الاختبار البعدي</div>
+        {% if skill.content_type == 'lesson' %}
+          {# الدرس التحصيلي = شرح ثم اختبار بعدي فقط (لا قبلي) #}
+          <div class="step active" id="step2"><div class="step-num">١</div>عرض الدرس</div>
+          <span style="color:var(--text3);font-size:12px">←</span>
+          <div class="step" id="step3"><div class="step-num">٢</div>الاختبار البعدي</div>
+        {% else %}
+          {# مهارة قدرات = قبلي ثم درس ثم بعدي #}
+          <div class="step active" id="step1"><div class="step-num">١</div>الاختبار القبلي</div>
+          <span style="color:var(--text3);font-size:12px">←</span>
+          <div class="step" id="step2"><div class="step-num">٢</div>عرض الدرس</div>
+          <span style="color:var(--text3);font-size:12px">←</span>
+          <div class="step" id="step3"><div class="step-num">٣</div>الاختبار البعدي</div>
+        {% endif %}
       </div>
     </div>
   </div>
 
   <!-- الاختبارات -->
-  <div class="exam-grid">
+  <div class="exam-grid" {% if skill.content_type == 'lesson' %}style="grid-template-columns:1fr"{% endif %}>
 
+    {# الاختبار القبلي يظهر فقط لمهارات القدرات — لا يظهر للدرس التحصيلي #}
+    {% if skill.content_type != 'lesson' %}
     <!-- القبلي -->
     <div class="exam-card exam-pre">
       <div class="exam-icon">📝</div>
@@ -299,6 +309,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       <div style="color:var(--text3);font-size:10px">لا يوجد اختبار قبلي</div>
       {% endif %}
     </div>
+    {% endif %}{# end: skip pre-exam for lesson #}
 
     <!-- البعدي -->
     <div class="exam-card exam-post">
@@ -337,7 +348,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   <div class="card">
     <div class="tabs">
       <button class="tab on" onclick="switchTab('content', this)">📖 محتوى الدرس</button>
-      <button class="tab" onclick="switchTab('print_pre', this)">🖨️ ورقة القبلي</button>
+      {% if skill.content_type != 'lesson' %}
+        <button class="tab" onclick="switchTab('print_pre', this)">🖨️ ورقة القبلي</button>
+      {% endif %}
       <button class="tab" onclick="switchTab('print_post', this)">🖨️ ورقة البعدي</button>
     </div>
 
@@ -347,7 +360,8 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       {% if c %}
         {% if c.video_url %}
         <div class="video-wrap">
-          <iframe src="{{ c.video_url }}" allowfullscreen></iframe>
+          <iframe src="{{ c.video_url|youtube_embed }}" allowfullscreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
         </div>
         {% endif %}
         {% if c.plain_image %}

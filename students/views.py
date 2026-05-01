@@ -283,11 +283,11 @@ def take_exam(request, exam_id):
             national_id = (request.POST.get('national_id') or '').strip()
             pin = (request.POST.get('pin_code') or '').strip()
 
-            # تحقق متساهل (يقبل الأرقام العربية)
+            # تحقق متساهل (يقبل الأرقام العربية) — 10 أرقام للهوية السعودية
             from accounts.views import _is_valid_id, _id_variants
-            if not _is_valid_id(national_id):
+            if not _is_valid_id(national_id, exact=10):
                 return render(request, 'students/exam_login.html', {
-                    'exam': exam, 'error': 'رقم الهوية غير صالح',
+                    'exam': exam, 'error': 'رقم الهوية الوطنية يجب أن يكون 10 أرقام',
                 })
 
             profile = Profile.objects.select_related('user').filter(
@@ -395,16 +395,47 @@ def student_result_view(request, result_id):
         return redirect('home')
 
     # student=request.user → يضمن ألا ترى الطالبة نتيجة طالبة أخرى
-    result = get_object_or_404(ExamResult, id=result_id, student=request.user)
-    answers = (
+    result = get_object_or_404(
+        ExamResult.objects.select_related('exam', 'exam__skill'),
+        id=result_id, student=request.user,
+    )
+    answers = list(
         StudentAnswer.objects
         .filter(result=result)
         .select_related('question')
         .order_by('question__order')
     )
+    # نُجهّز إحصاءات إضافية للعرض
+    correct = sum(1 for a in answers if a.is_correct)
+    incorrect = len(answers) - correct
+    duration = result.time_taken_seconds or 0
+    minutes = duration // 60
+    seconds = duration % 60
+
+    # تصنيف الأداء (للرسالة المحفّزة)
+    pct = float(result.percentage or 0)
+    if pct >= 90:
+        verdict = ('🏆', 'أداء استثنائي', 'var(--green)')
+    elif pct >= 70:
+        verdict = ('🌟', 'أداء جيد جداً', 'var(--blue)')
+    elif pct >= 50:
+        verdict = ('👍', 'أداء مقبول — يمكنكِ التحسّن', 'var(--orange)')
+    else:
+        verdict = ('💪', 'تحتاجين مراجعة هذه المهارة', 'var(--red)')
+
+    print_mode = request.GET.get('print') == '1'
+
     return render(request, 'students/result.html', {
         'result': result,
         'answers': answers,
+        'correct': correct,
+        'incorrect': incorrect,
+        'duration_min': minutes,
+        'duration_sec': seconds,
+        'verdict_icon': verdict[0],
+        'verdict_text': verdict[1],
+        'verdict_color': verdict[2],
+        'print_mode': print_mode,
     })
 
 

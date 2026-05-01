@@ -1,9 +1,11 @@
-{% load static %}
+{% load static media_filters %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <title>طباعة — {{ skill.title }}</title>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea']}}</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 <style>
   body { font-family: 'Tajawal','Cairo',sans-serif; max-width: 800px; margin: 30px auto; padding: 0 30px; color:#222; line-height:1.9; }
   h1 { font-size: 22px; border-bottom: 3px solid #4b0082; padding-bottom: 8px; }

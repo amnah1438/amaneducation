@@ -163,20 +163,38 @@ textarea.fi{min-height:60px;resize:vertical}
             <button type="button" class="sym" data-ins="٨">٨</button>
             <button type="button" class="sym" data-ins="٩">٩</button>
           </div>
-          <div style="font-size:9px;color:var(--text3);line-height:1.7">
-            💡 الصيغ بين <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">$...$</code> تُعرض كرياضيات. مثال: <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">$x^2 + 5x = 0$</code>
+          <div style="font-size:10px;color:var(--text2);line-height:1.9;padding:8px 10px;background:rgba(79,142,247,0.06);border-right:3px solid var(--blue);border-radius:6px;margin-top:4px">
+            💡 <strong>كيف تكتبين معادلة رياضية؟</strong><br>
+            ضعي الصيغة بين علامتي <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">$...$</code>.<br>
+            مثال: <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">$x^2 + 5x = 0$</code>
+            ↩ ستُعرض للطالبة كـ: <span style="background:white;color:#111;padding:2px 8px;border-radius:4px">$x^2 + 5x = 0$</span><br>
+            🎯 تستطيعين الضغط على رمز جاهز أعلاه فيُدرَج تلقائياً في آخر حقل ضغطتِ عليه.
           </div>
         </div>
 
         <div class="fg">
-          <label class="fl">نص السؤال *</label>
-          <textarea class="fi" name="question_plain" rows="3" required
+          <label class="fl">نص السؤال * <span style="font-weight:400;color:var(--text3)">— استعملي $...$ للمعادلات</span></label>
+          <textarea class="fi" id="qPlainArea" name="question_plain" rows="3" required
             placeholder="مثال: ما حل المعادلة $x^2 - 4 = 0$ ؟"></textarea>
+          <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+            <button type="button" class="btn btn-b" onclick="insertLatexBlock('qPlainArea')">
+              ➕ إدراج معادلة LaTeX
+            </button>
+            <button type="button" class="btn btn-p" onclick="previewLatex('qPlainArea','qPreviewBox')">
+              👁️ معاينة المعادلة
+            </button>
+          </div>
+          <div id="qPreviewBox" style="display:none;margin-top:8px;padding:10px 14px;background:white;color:#111;border:1px solid var(--border);border-radius:7px;font-size:14px;line-height:1.9;direction:rtl"></div>
         </div>
 
         <div class="fg">
-          <label class="fl">صورة (اختياري)</label>
-          <input class="fi" type="file" name="question_image" accept="image/*">
+          <label class="fl">📷 صورة السؤال (اختيارية — للأسئلة التي تحوي رسومات/أشكال)</label>
+          <input class="fi" id="qImgInput" type="file" name="question_image" accept="image/*"
+                 onchange="previewImage(this,'qImgPreview')">
+          <div style="display:none;margin-top:8px;padding:8px;background:var(--bg3);border:1px dashed var(--border);border-radius:7px;text-align:center" id="qImgPreviewWrap">
+            <img id="qImgPreview" style="max-width:100%;max-height:220px;border-radius:6px">
+            <div style="font-size:9px;color:var(--text3);margin-top:5px">معاينة الصورة قبل الرفع</div>
+          </div>
         </div>
 
         <div class="row4">
@@ -292,8 +310,13 @@ textarea.fi{min-height:60px;resize:vertical}
     <form id="editQForm" method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <div class="fg">
-        <label class="fl">نص السؤال *</label>
+        <label class="fl">نص السؤال * <span style="font-weight:400;color:var(--text3)">— استعملي $...$ للمعادلات</span></label>
         <textarea class="fi" name="question_plain" id="eq_text" rows="3" required></textarea>
+        <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+          <button type="button" class="btn btn-b" onclick="insertLatexBlock('eq_text')">➕ إدراج معادلة</button>
+          <button type="button" class="btn btn-p" onclick="previewLatex('eq_text','eq_preview')">👁️ معاينة</button>
+        </div>
+        <div id="eq_preview" style="display:none;margin-top:8px;padding:10px;background:white;color:#111;border-radius:7px;font-size:13px;direction:rtl"></div>
       </div>
       <div class="row4">
         <div class="fg"><label class="fl">خيار أ</label><input class="fi" name="option_a_plain" id="eq_a"></div>
@@ -319,8 +342,12 @@ textarea.fi{min-height:60px;resize:vertical}
         <textarea class="fi" name="feedback_plain" id="eq_feedback" rows="2"></textarea>
       </div>
       <div class="fg">
-        <label class="fl">تغيير الصورة (اختياري)</label>
-        <input class="fi" type="file" name="question_image" accept="image/*">
+        <label class="fl">📷 تغيير الصورة (اختياري — للرسومات/الأشكال)</label>
+        <input class="fi" type="file" name="question_image" accept="image/*"
+               onchange="previewImage(this,'eq_img_preview')">
+        <div style="display:none;margin-top:6px;text-align:center" id="eq_img_preview_wrap">
+          <img id="eq_img_preview" style="max-width:100%;max-height:160px;border-radius:6px">
+        </div>
       </div>
       <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
         <button type="button" class="btn btn-r" onclick="closeEditQ()">إلغاء</button>
@@ -352,6 +379,49 @@ document.querySelectorAll('.sym').forEach(function(b){
     el.focus();
   });
 });
+
+// إدراج معادلة LaTeX جاهزة في حقل معيّن
+function insertLatexBlock(targetId){
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  const tpl = '$\\frac{1}{2}$';   // قالب بسيط — تعدّله المعلمة
+  const start = el.selectionStart || el.value.length;
+  const end = el.selectionEnd || el.value.length;
+  el.value = el.value.slice(0,start) + tpl + el.value.slice(end);
+  // نضع المؤشر داخل الـ $...$ ليبدأ التحرير مباشرة
+  el.focus();
+  el.setSelectionRange(start+1, start+tpl.length-1);
+}
+
+// معاينة LaTeX — تستخدم MathJax لعرض النص في صندوق معاينة
+function previewLatex(srcId, boxId){
+  const src = document.getElementById(srcId);
+  const box = document.getElementById(boxId);
+  if (!src || !box) return;
+  box.style.display = 'block';
+  box.innerHTML = src.value || '<span style="color:#888">— الحقل فارغ —</span>';
+  if (window.MathJax && window.MathJax.typesetPromise) {
+    window.MathJax.typesetPromise([box]).catch(()=>{});
+  }
+}
+
+// معاينة الصورة قبل الرفع
+function previewImage(inp, imgId){
+  const img = document.getElementById(imgId);
+  if (!img) return;
+  const wrap = document.getElementById(imgId + '_wrap') || img.parentElement;
+  const file = inp.files && inp.files[0];
+  if (!file) {
+    wrap.style.display = 'none';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.src = e.target.result;
+    wrap.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
 
 // تعديل سؤال — يقرأ من data-* attributes في بطاقة السؤال
 function editQuestion(id){

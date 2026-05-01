@@ -66,12 +66,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
           class="input"
           type="text"
           name="national_id"
-          placeholder="أدخلي رقم الهوية الوطنية"
-          maxlength="12"
-          pattern="[0-9]{8,12}"
+          placeholder="رقم الهوية الوطنية (10 أرقام)"
+          maxlength="10"
+          minlength="10"
           inputmode="numeric"
           autofocus
           required
+          oninput="this.value=this.value.replace(/\s+/g,'').slice(0,10)"
         >
 
         {% if require_pin %}
