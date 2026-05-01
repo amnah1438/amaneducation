@@ -3,6 +3,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>الاختبارات الشاملة — منصة آمنة</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -10,23 +11,25 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;text-decoration:none}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;text-decoration:none;white-space:nowrap}
 .btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
 .btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
 .btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
 .btn-o{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.25)}
-.main{max-width:1000px;margin:0 auto;padding:20px}
+.btn-p{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.25)}
+.main{max-width:1100px;margin:0 auto;padding:20px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:12px}
 .ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)}
 .ct{font-size:11px;font-weight:700;color:var(--text2)}
 .cb{padding:16px}
 .fg{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
 .fl{font-size:10px;color:var(--text3);font-weight:600}
-.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;padding:8px 10px;border-radius:7px;outline:none}
+.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;padding:8px 10px;border-radius:7px;outline:none;width:100%}
 .fi:focus{border-color:var(--blue)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.comp-card{border-radius:12px;padding:16px;border:1px solid;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+@media (max-width:780px){.g2,.g3{grid-template-columns:1fr}}
+.comp-card{border-radius:12px;padding:16px;border:1px solid;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
 .comp-q{background:rgba(79,142,247,0.05);border-color:rgba(79,142,247,0.2)}
 .comp-t{background:rgba(155,114,245,0.05);border-color:rgba(155,114,245,0.2)}
 .bd{display:inline-flex;align-items:center;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:700}
@@ -36,9 +39,16 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .msg{padding:9px 12px;border-radius:8px;font-size:11px;margin-bottom:12px;border-right:3px solid}
 .msg-s{background:rgba(15,186,129,0.08);border-color:var(--green);color:#6ee7a0}
 .msg-e{background:rgba(240,82,82,0.08);border-color:var(--red);color:#fca5a5}
-.link-box{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;display:none;align-items:center;gap:6px;margin-top:8px}
-.link-text{font-size:10px;color:var(--blue);flex:1;word-break:break-all;direction:ltr;text-align:left}
+.msg-w{background:rgba(245,166,35,0.08);border-color:var(--orange);color:#fbbf24}
+.link-box{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;display:none;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap}
+.link-text{font-size:10px;color:var(--blue);flex:1;word-break:break-all;direction:ltr;text-align:left;min-width:140px}
 .copy-btn{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2);font-family:'Tajawal',sans-serif;font-size:9px;padding:3px 8px;border-radius:5px;cursor:pointer}
+
+.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:22px;width:100%;max-width:460px}
+.modal-title{font-size:14px;font-weight:800;margin-bottom:14px}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 </style>
 </head>
 <body>
@@ -49,8 +59,8 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
     <div style="font-size:12px;font-weight:800">منصة آمنة التعليمية</div>
   </div>
   <div style="display:flex;gap:8px">
-    <a href="/admin-dashboard/" class="btn btn-b">← لوحة المديرة</a>
-    <a href="/" class="btn btn-b">🏠 الرئيسية</a>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-b">← لوحة المديرة</a>
+    <a href="{% url 'home' %}" class="btn btn-b">🏠 الرئيسية</a>
   </div>
 </div>
 
@@ -60,21 +70,20 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
   {% if messages %}
     {% for msg in messages %}
-    <div class="msg {% if 'error' in msg.tags %}msg-e{% else %}msg-s{% endif %}">{{ msg }}</div>
+    <div class="msg msg-{% if 'error' in msg.tags %}e{% elif 'warning' in msg.tags %}w{% else %}s{% endif %}">{{ msg }}</div>
     {% endfor %}
   {% endif %}
 
   <div class="g2">
-
     <!-- إضافة اختبار شامل -->
     <div class="card">
       <div class="ch"><span class="ct">➕ إضافة اختبار شامل جديد</span></div>
       <div class="cb">
-        <form method="post" action="/admin-dashboard/add-comprehensive/">
+        <form method="post" action="{% url 'admin_add_comprehensive' %}">
           {% csrf_token %}
           <div class="fg">
             <label class="fl">عنوان الاختبار *</label>
-            <input class="fi" name="title" placeholder="مثال: اختبار قدرات شامل — الفصل الثاني" required>
+            <input class="fi" name="title" placeholder="مثال: اختبار شامل قدرات 1" required>
           </div>
           <div class="fg">
             <label class="fl">نوع الاختبار *</label>
@@ -107,24 +116,15 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       </div>
     </div>
 
-    <!-- معلومات -->
+    <!-- معلومات + إحصاءات -->
     <div>
       <div class="card" style="margin-bottom:10px">
-        <div class="ch"><span class="ct">ℹ️ كيف يعمل الاختبار الشامل؟</span></div>
-        <div class="cb" style="font-size:11px;line-height:2;color:var(--text2)">
-          <div style="margin-bottom:8px">
-            <strong style="color:var(--blue)">🎯 قدرات شامل:</strong><br>
-            يضم أسئلة كمي + لفظي مختلطة<br>
-            مثل اختبار قياس الحقيقي
-          </div>
-          <div style="margin-bottom:8px">
-            <strong style="color:var(--purple)">📚 تحصيلي شامل:</strong><br>
-            يضم رياضيات + أحياء + كيمياء + فيزياء<br>
-            مثل اختبار قياس التحصيلي
-          </div>
-          <div style="padding:8px;background:rgba(245,166,35,0.06);border-radius:6px;border-right:3px solid var(--orange);color:var(--orange)">
-            ⚠️ الاختبار الشامل تضيف له الأسئلة من صفحة المهارات
-          </div>
+        <div class="ch"><span class="ct">ℹ️ كيف يعمل التفعيل؟</span></div>
+        <div class="cb" style="font-size:11px;line-height:1.9;color:var(--text2)">
+          1. أضيفي اختباراً شاملاً ثم اضغطي زر <strong style="color:var(--orange)">✏️ أسئلة</strong> لإضافة الأسئلة (يدوياً أو عبر Excel).<br>
+          2. اختاري <strong>الفصل</strong> (أو "جميع الفصول") ثم اضغطي <strong style="color:var(--green)">▶️ تفعيل</strong>.<br>
+          3. اضغطي <strong style="color:var(--blue)">🔗 رابط</strong> لإرسال رابط الطالبات أو <strong style="color:#25d366">واتساب</strong> لإرساله مباشرة.<br>
+          4. الزر <strong style="color:var(--purple)">🖨️ طباعة</strong> يطبع نسخة ورقية للاختبار.
         </div>
       </div>
 
@@ -137,64 +137,77 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               <div style="font-size:9px;color:var(--text3)">اختبار شامل</div>
             </div>
             <div style="background:var(--bg3);border-radius:8px;padding:12px;text-align:center">
-              <div style="font-size:22px;font-weight:800;color:var(--green)">
-                {{ comp_skills|length }}
-              </div>
-              <div style="font-size:9px;color:var(--text3)">منشأ من المديرة</div>
+              <div style="font-size:22px;font-weight:800;color:var(--green)">{{ classrooms|length }}</div>
+              <div style="font-size:9px;color:var(--text3)">فصل دراسي</div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
   </div>
 
   <!-- قائمة الاختبارات الشاملة -->
   <div class="card">
-    <div class="ch"><span class="ct">📋 الاختبارات الشاملة الموجودة</span></div>
+    <div class="ch">
+      <span class="ct">📋 الاختبارات الشاملة الموجودة</span>
+      <span style="font-size:10px;color:var(--text3)">الإجمالي: {{ comp_skills|length }}</span>
+    </div>
     <div class="cb">
       {% if comp_skills %}
         {% for skill in comp_skills %}
         {% with exam=skill.exams.first %}
         <div class="comp-card {% if skill.skill_type == 'qodrat_kamy' %}comp-q{% else %}comp-t{% endif %}">
-          <div>
+          <div style="flex:1;min-width:240px">
             <div style="font-size:13px;font-weight:800;margin-bottom:4px">
               {% if skill.skill_type == 'qodrat_kamy' %}🎯{% else %}📚{% endif %}
               {{ skill.title }}
             </div>
             <div style="font-size:10px;color:var(--text3);margin-bottom:8px">
-              {% if exam %}❓ {{ exam.questions_count }} سؤال • ⏱️ {{ exam.duration_minutes }} دقيقة • 🎯 {{ exam.pass_score }}%{% endif %}
+              {% if exam %}
+                ❓ {{ exam.questions.count }}/{{ exam.questions_count }} سؤال •
+                ⏱️ {{ exam.duration_minutes }} دقيقة •
+                🎯 {{ exam.pass_score }}%
+              {% endif %}
             </div>
-            <div style="display:flex;gap:6px;align-items:center">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
               <span class="bd {% if skill.is_active %}status-on{% else %}status-off{% endif %}">
                 {% if skill.is_active %}✅ مفعّل{% else %}⏸️ غير مفعّل{% endif %}
               </span>
+              {% if skill.target_classes %}
+              <span class="bd" style="background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.2)">
+                📍 {{ skill.target_classes }}
+              </span>
+              {% endif %}
             </div>
           </div>
-          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;min-width:240px">
             {% if exam %}
-            <div>
-              <select class="sel" id="cls-{{ exam.id }}" style="width:160px;margin-bottom:0">
-                <option value="">اختاري الفصل</option>
+            <div style="width:100%">
+              <select class="sel" id="cls-{{ exam.id }}" style="margin-bottom:0">
+                <option value="all">📌 جميع الفصول</option>
                 {% for cls in classrooms %}
                 <option value="{{ cls.id }}">{{ cls.name }}</option>
                 {% endfor %}
               </select>
             </div>
-            <div style="display:flex;gap:5px">
+            <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
               <button class="btn btn-g" onclick="activateComp({{ exam.id }})">▶️ تفعيل</button>
               <button class="btn btn-r" onclick="deactivateComp({{ exam.id }})">⏸️ إيقاف</button>
               <button class="btn btn-b" onclick="showCompLink({{ exam.id }})">🔗 رابط</button>
               <a href="/skill/{{ skill.id }}/" class="btn btn-o">✏️ أسئلة</a>
-             {% if exam %}
-<a href="/teachers/exam/{{ exam.id }}/import/" class="btn btn-o">📥 رفع Excel</a>
-{% endif %}
-
-              
+              <a href="/teachers/exam/{{ exam.id }}/import/" class="btn btn-o">📥 Excel</a>
+              <a href="{% url 'exam_print' exam.id %}" target="_blank" class="btn btn-p">🖨️ طباعة</a>
+              <button class="btn btn-o" onclick="openEditComp({{ skill.id }},'{{ skill.title|escapejs }}',{{ exam.questions_count }},{{ exam.duration_minutes }},{{ exam.pass_score }},'{{ skill.description|default_if_none:''|escapejs }}')">⚙️ تعديل</button>
+              <form method="post" action="{% url 'admin_delete_comprehensive' skill.id %}" style="display:inline" onsubmit="return confirm('حذف الاختبار الشامل بكل أسئلته؟ لا يمكن استرجاع البيانات.')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-r">🗑️</button>
+              </form>
             </div>
             <div class="link-box" id="link-{{ exam.id }}">
               <span class="link-text" id="linktext-{{ exam.id }}"></span>
               <button class="copy-btn" onclick="copyLink('linktext-{{ exam.id }}')">نسخ</button>
+              <button class="copy-btn" style="background:rgba(37,211,102,0.15);color:#25d366;border:1px solid rgba(37,211,102,0.3)" onclick="sendWhats('linktext-{{ exam.id }}','{{ skill.title|escapejs }}')">💬 واتساب</button>
             </div>
             {% endif %}
           </div>
@@ -212,17 +225,52 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 </div>
 
+<!-- Modal تعديل -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-title">⚙️ تعديل الاختبار الشامل</div>
+    <form id="editForm" method="post">
+      {% csrf_token %}
+      <div class="fg">
+        <label class="fl">العنوان</label>
+        <input class="fi" name="title" id="ec_title" required>
+      </div>
+      <div class="g3">
+        <div class="fg">
+          <label class="fl">عدد الأسئلة</label>
+          <input class="fi" type="number" name="questions_count" id="ec_qcount" min="1" max="300">
+        </div>
+        <div class="fg">
+          <label class="fl">الزمن (دقيقة)</label>
+          <input class="fi" type="number" name="duration" id="ec_duration" min="1" max="600">
+        </div>
+        <div class="fg">
+          <label class="fl">درجة النجاح %</label>
+          <input class="fi" type="number" name="pass_score" id="ec_pass" min="0" max="100">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">الوصف</label>
+        <textarea class="fi" name="description" id="ec_desc" rows="2"></textarea>
+      </div>
+      <div class="modal-btns">
+        <button type="button" class="btn btn-r" onclick="closeEditComp()">إلغاء</button>
+        <button type="submit" class="btn btn-g">💾 حفظ</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
 const csrfToken = '{{ csrf_token }}';
 const baseUrl = window.location.origin;
 
 function activateComp(examId){
-  const classId = document.getElementById('cls-'+examId)?.value;
-  if(!classId){ alert('يرجى اختيار الفصل أولاً'); return; }
+  const classId = document.getElementById('cls-'+examId)?.value || 'all';
   fetch('/activate-exam/'+examId+'/', {
     method:'POST',
     headers:{'X-CSRFToken':csrfToken,'Content-Type':'application/x-www-form-urlencoded'},
-    body:'classroom_id='+classId
+    body:'classroom_id='+encodeURIComponent(classId)
   })
   .then(r=>r.json())
   .then(data=>{
@@ -230,6 +278,8 @@ function activateComp(examId){
       document.getElementById('linktext-'+examId).textContent = data.url;
       document.getElementById('link-'+examId).style.display = 'flex';
       alert(data.message);
+    } else {
+      alert('❌ ' + (data.error || 'فشل التفعيل'));
     }
   });
 }
@@ -239,6 +289,7 @@ function showCompLink(examId){
   document.getElementById('linktext-'+examId).textContent = link;
   document.getElementById('link-'+examId).style.display = 'flex';
 }
+
 function deactivateComp(examId){
   fetch('/deactivate-exam/'+examId+'/', {
     method:'POST',
@@ -249,9 +300,33 @@ function deactivateComp(examId){
 }
 
 function copyLink(textId){
-  navigator.clipboard.writeText(document.getElementById(textId).textContent)
-  .then(()=>alert('✅ تم نسخ الرابط!'));
+  const t = document.getElementById(textId).textContent;
+  navigator.clipboard.writeText(t).then(()=>alert('✅ تم نسخ الرابط!'));
 }
+
+function sendWhats(textId, title){
+  const link = document.getElementById(textId).textContent;
+  const text = encodeURIComponent('🏆 ' + title + '\n' + link);
+  window.open('https://wa.me/?text=' + text, '_blank');
+}
+
+function openEditComp(skillId, title, q, d, p, desc){
+  document.getElementById('ec_title').value = title || '';
+  document.getElementById('ec_qcount').value = q || '';
+  document.getElementById('ec_duration').value = d || '';
+  document.getElementById('ec_pass').value = p || '';
+  document.getElementById('ec_desc').value = desc || '';
+  document.getElementById('editForm').action = '/admin-dashboard/comprehensive/' + skillId + '/edit/';
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeEditComp(){
+  document.getElementById('editModal').classList.remove('show');
+}
+
+document.getElementById('editModal').addEventListener('click', function(e){
+  if(e.target === this) closeEditComp();
+});
 </script>
 </body>
 </html>

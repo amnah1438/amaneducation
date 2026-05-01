@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>طباعة الاختبار — {{ exam.skill.title }}</title>
+<style>
+  body { font-family: 'Tajawal','Cairo',sans-serif; max-width: 850px; margin: 28px auto; padding: 0 32px; color:#222; line-height:1.85; }
+  .head { border: 2px solid #1a4a8a; padding: 12px 18px; border-radius: 10px; margin-bottom: 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
+  .head-title { font-size: 20px; font-weight: 800; color: #1a4a8a; }
+  .head-meta { font-size: 12px; color: #555; }
+  .student-bar { border: 1px dashed #999; padding: 10px 14px; margin-bottom: 14px; border-radius: 8px; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; font-size: 13px; }
+  .question { border-bottom: 1px solid #ddd; padding: 14px 0; page-break-inside: avoid; }
+  .qhead { font-weight: 800; margin-bottom: 6px; }
+  .qtext { font-size: 15px; margin-bottom: 8px; }
+  .options { list-style: none; padding: 0; }
+  .options li { padding: 4px 0; font-size: 14px; }
+  .answer-correct { background: #d4edda; color: #0d5c35; padding: 0 4px; border-radius: 4px; font-weight: 700; }
+  .controls { text-align:center; margin: 14px 0 18px; }
+  .btn { background:#0d5c35; color:white; border:none; padding:8px 20px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:13px; margin:0 5px; }
+  .footer { margin-top: 30px; border-top: 1px dashed #aaa; padding-top:8px; font-size: 11px; color:#777; text-align:center; }
+  @media print { .controls { display:none; } body { margin: 0 auto; } }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button class="btn" onclick="window.print()">🖨️ طباعة</button>
+  {% if show_answers %}
+  <a class="btn" style="background:#5b21b6" href="?answers=0">📄 نسخة الطالبة (بدون إجابات)</a>
+  {% else %}
+  <a class="btn" style="background:#5b21b6" href="?answers=1">📝 نسخة المعلمة (مع إجابات)</a>
+  {% endif %}
+  <button class="btn" style="background:#999" onclick="window.close()">إغلاق</button>
+</div>
+
+<div class="head">
+  <div>
+    <div class="head-title">{{ exam.get_exam_type_display }} — {{ exam.skill.title }}</div>
+    <div class="head-meta">
+      ❓ {{ exam.questions_count }} سؤال •
+      ⏱️ {{ exam.duration_minutes }} دقيقة •
+      🎯 درجة النجاح {{ exam.pass_score }}%
+    </div>
+  </div>
+  <div class="head-meta">
+    {{ settings.platform_name|default:"منصة آمنة" }}
+  </div>
+</div>
+
+<div class="student-bar">
+  <span><strong>اسم الطالبة:</strong> ........................................................</span>
+  <span><strong>رقم الهوية:</strong> ......................</span>
+  <span><strong>الفصل:</strong> ......................</span>
+</div>
+
+{% for q in questions %}
+<div class="question">
+  <div class="qhead">س{{ q.order|default:forloop.counter }}.</div>
+  <div class="qtext">{{ q.question_plain|default:q.question_text|default:""|safe }}</div>
+  <ul class="options">
+    <li><strong>أ.</strong> <span class="{% if show_answers and q.correct_answer == 'A' %}answer-correct{% endif %}">{{ q.option_a_plain|default:q.option_a|default:""|safe }}</span></li>
+    <li><strong>ب.</strong> <span class="{% if show_answers and q.correct_answer == 'B' %}answer-correct{% endif %}">{{ q.option_b_plain|default:q.option_b|default:""|safe }}</span></li>
+    <li><strong>ج.</strong> <span class="{% if show_answers and q.correct_answer == 'C' %}answer-correct{% endif %}">{{ q.option_c_plain|default:q.option_c|default:""|safe }}</span></li>
+    <li><strong>د.</strong> <span class="{% if show_answers and q.correct_answer == 'D' %}answer-correct{% endif %}">{{ q.option_d_plain|default:q.option_d|default:""|safe }}</span></li>
+  </ul>
+  {% if show_answers and q.feedback_plain %}
+    <div style="font-size:11px;color:#5b21b6;margin-top:4px">💡 {{ q.feedback_plain }}</div>
+  {% endif %}
+</div>
+{% empty %}
+<div style="text-align:center;padding:40px;color:#888">لا توجد أسئلة في هذا الاختبار بعد.</div>
+{% endfor %}
+
+<div class="footer">
+  {{ settings.platform_name|default:"منصة آمنة التعليمية" }} —
+  تاريخ الطباعة: <script>document.write(new Date().toLocaleDateString('ar-SA'))</script>
+</div>
+</body>
+</html>

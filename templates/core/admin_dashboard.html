@@ -20,8 +20,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
 .btn-o{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.25)}
 .btn-p{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.25)}
-.main{max-width:1100px;margin:0 auto;padding:20px}
-/* KPI */
+.main{max-width:1180px;margin:0 auto;padding:20px}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
 .kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;overflow:hidden}
 .kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
@@ -29,42 +28,40 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .kpi.p::after{background:var(--purple)}.kpi.o::after{background:var(--orange)}
 .kpi-val{font-size:28px;font-weight:800;margin-bottom:3px}
 .kpi-lbl{font-size:10px;color:var(--text3)}
-/* TABS */
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:14px;flex-wrap:wrap}
 .tab{padding:9px 18px;font-size:11px;font-weight:700;cursor:pointer;border-bottom:2px solid transparent;color:var(--text3);transition:all 0.2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'Tajawal',sans-serif}
 .tab.on{color:var(--blue);border-bottom-color:var(--blue)}
 .tab-content{display:none}.tab-content.on{display:block}
-/* CARD */
 .card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:12px}
 .ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2);flex-wrap:wrap;gap:8px}
 .ct{font-size:11px;font-weight:700;color:var(--text2)}
 .cb{padding:14px}
-/* TABLE */
 .tb{width:100%;border-collapse:collapse;font-size:11px}
 .tb th{background:var(--bg3);color:var(--text3);font-weight:600;padding:9px 10px;text-align:right;border-bottom:1px solid var(--border);font-size:10px;white-space:nowrap}
 .tb td{padding:9px 10px;border-bottom:1px solid rgba(30,42,61,0.4);color:var(--text2);vertical-align:middle}
 .tb tr:last-child td{border-bottom:none}
 .tb tr:hover td{background:var(--card2)}
-/* FORM */
-.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end}
-.fg{display:flex;flex-direction:column;gap:4px}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
 .fl{font-size:10px;color:var(--text3);font-weight:600}
-.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;padding:8px 10px;border-radius:7px;outline:none;transition:border-color 0.2s}
+.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;padding:8px 10px;border-radius:7px;outline:none;transition:border-color 0.2s;width:100%}
 .fi:focus{border-color:var(--blue)}
-/* BADGE */
 .bd{display:inline-flex;align-items:center;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:700}
 .bp{background:rgba(15,186,129,0.1);color:var(--green);border:1px solid rgba(15,186,129,0.2)}
 .br{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.2)}
-/* MSG */
+.bg-y{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.2)}
 .msg{padding:9px 12px;border-radius:8px;font-size:11px;margin-bottom:12px;border-right:3px solid}
 .msg-s{background:rgba(15,186,129,0.08);border-color:var(--green);color:#6ee7a0}
 .msg-e{background:rgba(240,82,82,0.08);border-color:var(--red);color:#fca5a5}
-/* MODAL */
-.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+.msg-w{background:rgba(245,166,35,0.08);border-color:var(--orange);color:#fbbf24}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media (max-width:780px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.row2,.row3{grid-template-columns:1fr}}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(6px);padding:20px}
 .modal-bg.show{display:flex}
-.modal{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:22px;width:92%;max-width:420px}
+.modal{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:22px;width:100%;max-width:460px}
 .modal-title{font-size:14px;font-weight:800;margin-bottom:14px}
-.modal-form{display:flex;flex-direction:column;gap:10px}
 .modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
@@ -75,15 +72,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 <div class="topbar">
   <div class="logo">
     <div class="logo-mark">🎓</div>
-    <div>
-      <div class="logo-name">منصة آمنة التعليمية</div>
-    </div>
+    <div><div class="logo-name">منصة آمنة التعليمية</div></div>
   </div>
-  <div style="display:flex;gap:8px;align-items:center">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
     <span style="font-size:10px;color:var(--text3)">👑 لوحة المديرة</span>
-    <a href="/admin-dashboard/comprehensive/" class="btn btn-o">🏆 الاختبارات الشاملة</a>
-    <a href="/" class="btn btn-b">🏠 الرئيسية</a>
-    <a href="/accounts/logout/" class="btn btn-r">خروج</a>
+    <a href="{% url 'admin_comprehensive' %}" class="btn btn-o">🏆 الاختبارات الشاملة</a>
+    <a href="{% url 'home' %}" class="btn btn-b">🏠 الرئيسية</a>
+    <a href="{% url 'logout' %}" class="btn btn-r">خروج</a>
   </div>
 </div>
 
@@ -94,7 +89,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
   {% if messages %}
     {% for msg in messages %}
-    <div class="msg {% if 'error' in msg.tags %}msg-e{% else %}msg-s{% endif %}">{{ msg }}</div>
+    <div class="msg msg-{% if 'error' in msg.tags %}e{% elif 'warning' in msg.tags %}w{% else %}s{% endif %}">{{ msg }}</div>
     {% endfor %}
   {% endif %}
 
@@ -122,7 +117,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   <div class="tabs">
     <button class="tab on" onclick="switchTab('teachers', this)">👩‍🏫 المعلمات</button>
     <button class="tab" onclick="switchTab('students', this)">👩‍🎓 الطالبات</button>
+    <button class="tab" onclick="switchTab('classes', this)">🏫 الفصول</button>
     <button class="tab" onclick="switchTab('add', this)">➕ إضافة مستخدم</button>
+    <button class="tab" onclick="switchTab('import', this)">📥 رفع Excel</button>
   </div>
 
   <!-- المعلمات -->
@@ -130,6 +127,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
     <div class="card">
       <div class="ch">
         <span class="ct">👩‍🏫 المعلمات ({{ total_teachers }})</span>
+        <span style="font-size:10px;color:var(--text3)">اضغطي ✏️ للتعديل أو 🗑️ للحذف</span>
       </div>
       <div style="overflow-x:auto">
         <table class="tb">
@@ -138,9 +136,11 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               <th>#</th>
               <th>الاسم</th>
               <th>رقم الهوية</th>
+              <th>PIN</th>
               <th>المهارات</th>
               <th>الحصص</th>
               <th>متوسط الطالبات</th>
+              <th>الحالة</th>
               <th>آخر دخول</th>
               <th>الإجراءات</th>
             </tr>
@@ -151,19 +151,28 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               <td style="color:var(--text3)">{{ forloop.counter }}</td>
               <td style="font-weight:700;color:var(--text)">{{ t.name }}</td>
               <td style="font-family:monospace;color:var(--blue)">{{ t.national_id }}</td>
+              <td style="font-family:monospace;color:var(--text3)">{{ t.pin_code|default:"—" }}</td>
               <td><span class="bd bp">{{ t.skills_count }}</span></td>
               <td><span class="bd" style="background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)">{{ t.sessions_count }}</span></td>
               <td style="color:{% if t.avg_score >= 70 %}var(--green){% elif t.avg_score >= 50 %}var(--orange){% else %}var(--red){% endif %}">{{ t.avg_score }}%</td>
+              <td>
+                {% if t.is_active %}
+                  <span class="bd bp">✓ نشط</span>
+                {% else %}
+                  <span class="bd br">✗ معطّل</span>
+                {% endif %}
+              </td>
               <td style="font-size:9px;color:var(--text3)">
                 {% if t.last_login %}{{ t.last_login|date:"Y/m/d" }}{% else %}لم تدخل{% endif %}
               </td>
               <td>
                 <div style="display:flex;gap:4px">
-                  {# تحويل view-as إلى POST form لمنع CSRF — كان GET فأي رابط مدسوس قد يُسرّب الجلسة. #}
                   <form method="post" action="{% url 'admin_view_as' t.user.id %}" style="display:inline">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-b" style="font-size:9px;padding:3px 8px;border:none;cursor:pointer">👁️ داشبوردها</button>
+                    <button type="submit" class="btn btn-b" style="font-size:9px;padding:3px 8px">👁️</button>
                   </form>
+                  <button type="button" class="btn btn-o" style="font-size:9px;padding:3px 8px"
+                    onclick="openEdit({{ t.user.id }},'{{ t.name|escapejs }}','{{ t.pin_code|escapejs }}')">✏️</button>
                   <form method="post" action="{% url 'admin_delete_user' t.user.id %}" style="display:inline" onsubmit="return confirm('هل أنتِ متأكدة من حذف المعلمة؟ لن يمكن استرجاع البيانات.')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-r" style="font-size:9px;padding:3px 8px">🗑️</button>
@@ -172,7 +181,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               </td>
             </tr>
             {% empty %}
-            <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text3)">لا توجد معلمات بعد</td></tr>
+            <tr><td colspan="10" style="text-align:center;padding:20px;color:var(--text3)">لا توجد معلمات بعد</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -185,6 +194,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
     <div class="card">
       <div class="ch">
         <span class="ct">👩‍🎓 الطالبات ({{ total_students }})</span>
+        <span style="font-size:10px;color:var(--text3)">دخول الطالبات بالهوية فقط</span>
       </div>
       <div style="overflow-x:auto">
         <table class="tb">
@@ -195,6 +205,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               <th>رقم الهوية</th>
               <th>الاختبارات</th>
               <th>المتوسط</th>
+              <th>الحالة</th>
               <th>آخر دخول</th>
               <th>الإجراءات</th>
             </tr>
@@ -207,6 +218,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               <td style="font-family:monospace;color:var(--blue)">{{ s.national_id }}</td>
               <td><span class="bd bp">{{ s.results_count }}</span></td>
               <td style="color:{% if s.avg_score >= 70 %}var(--green){% elif s.avg_score >= 50 %}var(--orange){% else %}var(--red){% endif %}">{{ s.avg_score }}%</td>
+              <td>
+                {% if s.is_active %}
+                  <span class="bd bp">✓ نشط</span>
+                {% else %}
+                  <span class="bd br">✗ معطّل</span>
+                {% endif %}
+              </td>
               <td style="font-size:9px;color:var(--text3)">
                 {% if s.last_login %}{{ s.last_login|date:"Y/m/d" }}{% else %}لم تدخل{% endif %}
               </td>
@@ -214,8 +232,10 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
                 <div style="display:flex;gap:4px">
                   <form method="post" action="{% url 'admin_view_as' s.user.id %}" style="display:inline">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-b" style="font-size:9px;padding:3px 8px;border:none;cursor:pointer">👁️ حسابها</button>
+                    <button type="submit" class="btn btn-b" style="font-size:9px;padding:3px 8px">👁️</button>
                   </form>
+                  <button type="button" class="btn btn-o" style="font-size:9px;padding:3px 8px"
+                    onclick="openEdit({{ s.user.id }},'{{ s.name|escapejs }}','')">✏️</button>
                   <form method="post" action="{% url 'admin_delete_user' s.user.id %}" style="display:inline" onsubmit="return confirm('هل أنتِ متأكدة من حذف الطالبة؟ لن يمكن استرجاع البيانات.')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-r" style="font-size:9px;padding:3px 8px">🗑️</button>
@@ -224,7 +244,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               </td>
             </tr>
             {% empty %}
-            <tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">لا توجد طالبات بعد</td></tr>
+            <tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text3)">لا توجد طالبات بعد</td></tr>
             {% endfor %}
           </tbody>
         </table>
@@ -232,28 +252,68 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
     </div>
   </div>
 
+  <!-- الفصول -->
+  <div class="tab-content" id="tab-classes">
+    <div class="row2">
+      <div class="card">
+        <div class="ch"><span class="ct">🏫 الفصول الموجودة</span></div>
+        <div class="cb">
+          {% if classrooms %}
+            {% for cls in classrooms %}
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--border)">
+              <span style="font-weight:700">📍 {{ cls.name }}</span>
+              <form method="post" action="{% url 'admin_delete_classroom' cls.id %}" style="display:inline" onsubmit="return confirm('حذف الفصل؟ سيتم حذف الطالبات المرتبطات أيضاً.')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-r" style="font-size:9px;padding:3px 8px">🗑️</button>
+              </form>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div style="text-align:center;padding:20px;color:var(--text3);font-size:11px">لا توجد فصول بعد</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">➕ إضافة فصل جديد</span></div>
+        <div class="cb">
+          <form method="post" action="{% url 'admin_add_classroom' %}">
+            {% csrf_token %}
+            <div class="fg">
+              <label class="fl">اسم الفصل *</label>
+              <input class="fi" name="name" placeholder="مثال: ث١٢ — أو — ثالث ثانوي 1" required>
+            </div>
+            <button type="submit" class="btn btn-g" style="width:100%">➕ إضافة الفصل</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- إضافة مستخدم -->
   <div class="tab-content" id="tab-add">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-
+    <div class="row2">
       <!-- إضافة معلمة -->
       <div class="card">
         <div class="ch"><span class="ct">👩‍🏫 إضافة معلمة جديدة</span></div>
         <div class="cb">
-          <form method="post" action="/admin-dashboard/add-teacher/">
+          <form method="post" action="{% url 'admin_add_teacher' %}">
             {% csrf_token %}
-            <div class="fg" style="margin-bottom:10px">
+            <div class="fg">
               <label class="fl">الاسم الكامل *</label>
               <input class="fi" name="full_name" placeholder="مثال: فاطمة محمد العنزي" required>
             </div>
-            <div class="fg" style="margin-bottom:14px">
+            <div class="fg">
               <label class="fl">رقم الهوية *</label>
-              <input class="fi" name="national_id" placeholder="10 أرقام" maxlength="10" required>
+              <input class="fi" name="national_id" placeholder="10 أرقام" maxlength="12" required>
+            </div>
+            <div class="fg">
+              <label class="fl">PIN (اختياري)</label>
+              <input class="fi" name="pin_code" placeholder="رمز PIN — أرقام فقط" maxlength="6">
             </div>
             <button type="submit" class="btn btn-g" style="width:100%">➕ إضافة معلمة</button>
           </form>
-          <div style="margin-top:10px;padding:8px;background:rgba(79,142,247,0.06);border-radius:6px;font-size:10px;color:var(--blue)">
-            💡 كلمة المرور = رقم الهوية تلقائياً
+          <div style="margin-top:10px;padding:8px;background:rgba(79,142,247,0.06);border-radius:6px;font-size:10px;color:var(--blue);line-height:1.7">
+            💡 إن لم تُدخلي PIN فالكلمة الافتراضية = رقم الهوية.
           </div>
         </div>
       </div>
@@ -262,17 +322,17 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       <div class="card">
         <div class="ch"><span class="ct">👩‍🎓 إضافة طالبة جديدة</span></div>
         <div class="cb">
-          <form method="post" action="/admin-dashboard/add-student/">
+          <form method="post" action="{% url 'admin_add_student' %}">
             {% csrf_token %}
-            <div class="fg" style="margin-bottom:10px">
+            <div class="fg">
               <label class="fl">الاسم الكامل *</label>
               <input class="fi" name="full_name" placeholder="مثال: نورة أحمد الشمري" required>
             </div>
-            <div class="fg" style="margin-bottom:10px">
+            <div class="fg">
               <label class="fl">رقم الهوية *</label>
-              <input class="fi" name="national_id" placeholder="10 أرقام" maxlength="10" required>
+              <input class="fi" name="national_id" placeholder="10 أرقام" maxlength="12" required>
             </div>
-            <div class="fg" style="margin-bottom:14px">
+            <div class="fg">
               <label class="fl">الفصل</label>
               <select class="fi" name="classroom_id">
                 <option value="">اختاري الفصل</option>
@@ -283,37 +343,87 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             </div>
             <button type="submit" class="btn btn-g" style="width:100%">➕ إضافة طالبة</button>
           </form>
-          <div style="margin-top:10px;padding:8px;background:rgba(79,142,247,0.06);border-radius:6px;font-size:10px;color:var(--blue)">
-            💡 كلمة المرور = رقم الهوية تلقائياً
+          <div style="margin-top:10px;padding:8px;background:rgba(79,142,247,0.06);border-radius:6px;font-size:10px;color:var(--blue);line-height:1.7">
+            🌸 الطالبة تدخل برقم الهوية فقط (بدون كلمة مرور).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- استيراد Excel -->
+  <div class="tab-content" id="tab-import">
+    <div class="row2">
+      <div class="card">
+        <div class="ch"><span class="ct">📥 استيراد المعلمات</span></div>
+        <div class="cb">
+          <form method="post" action="{% url 'admin_import_teachers' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="fg">
+              <label class="fl">ملف Excel (xlsx)</label>
+              <input class="fi" type="file" name="excel_file" accept=".xlsx,.xlsm" required>
+            </div>
+            <button type="submit" class="btn btn-g" style="width:100%">📥 رفع وحفظ</button>
+          </form>
+          <div style="margin-top:10px;padding:8px;background:rgba(245,166,35,0.06);border-radius:6px;font-size:10px;color:var(--orange);line-height:1.7">
+            📋 الأعمدة المتوقعة (السطر الأول = عناوين):<br>
+            <strong>أ.</strong> الاسم الكامل · <strong>ب.</strong> رقم الهوية · <strong>ج.</strong> PIN (اختياري)
           </div>
         </div>
       </div>
 
-    </div>
-<!-- إضافة فصل -->
-<div class="card">
-  <div class="ch"><span class="ct">🏫 إضافة فصل جديد</span></div>
-  <div class="cb">
-    <form method="post" action="/admin-dashboard/add-classroom/">
-      {% csrf_token %}
-      <div class="fg" style="margin-bottom:10px">
-        <label class="fl">اسم الفصل *</label>
-        <input class="fi" name="name" placeholder="مثال: ث١٢ أو أول ١" required>
-      </div>
-      <button type="submit" class="btn btn-g" style="width:100%">➕ إضافة فصل</button>
-    </form>
-  </div>
-</div>
-    <!-- رفع Excel -->
-    <div class="card">
-      <div class="ch"><span class="ct">📥 استيراد الطالبات من Excel</span></div>
-      <div class="cb">
-        <a href="/students/import/" class="btn btn-g">📊 فتح صفحة الاستيراد</a>
-        <span style="font-size:10px;color:var(--text3);margin-right:10px">رفع ملف Excel بأسماء الطالبات وأرقام هوياتهن</span>
+      <div class="card">
+        <div class="ch"><span class="ct">📥 استيراد الطالبات</span></div>
+        <div class="cb">
+          <form method="post" action="{% url 'admin_import_students' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="fg">
+              <label class="fl">ملف Excel (xlsx)</label>
+              <input class="fi" type="file" name="excel_file" accept=".xlsx,.xlsm" required>
+            </div>
+            <button type="submit" class="btn btn-g" style="width:100%">📥 رفع وحفظ</button>
+          </form>
+          <div style="margin-top:10px;padding:8px;background:rgba(245,166,35,0.06);border-radius:6px;font-size:10px;color:var(--orange);line-height:1.7">
+            📋 الأعمدة المتوقعة:<br>
+            <strong>أ.</strong> الاسم · <strong>ب.</strong> رقم الهوية · <strong>ج.</strong> الفصل
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
+</div>
+
+<!-- Modal: تعديل مستخدم -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <div class="modal-title">✏️ تعديل بيانات المستخدم</div>
+    <form id="editForm" method="post">
+      {% csrf_token %}
+      <div class="fg">
+        <label class="fl">الاسم الكامل</label>
+        <input class="fi" name="full_name" id="edit_full_name" required>
+      </div>
+      <div class="fg">
+        <label class="fl">PIN جديد (اختياري — اتركيه فارغاً للإبقاء)</label>
+        <input class="fi" name="pin_code" id="edit_pin" placeholder="أرقام فقط" maxlength="6">
+      </div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);margin-top:6px">
+        <input type="checkbox" name="clear_pin" value="1"> مسح PIN (الدخول بالهوية فقط)
+      </label>
+      <div class="modal-btns">
+        <button type="button" class="btn btn-r" onclick="closeEdit()">إلغاء</button>
+        <button type="submit" class="btn btn-g">💾 حفظ</button>
+      </div>
+    </form>
+    <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
+    <form method="post" id="toggleForm" style="display:flex;justify-content:space-between;align-items:center">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="toggle">
+      <span style="font-size:11px;color:var(--text3)">تفعيل/تعطيل الحساب</span>
+      <button type="submit" class="btn btn-o">🔄 تبديل الحالة</button>
+    </form>
+  </div>
 </div>
 
 <script>
@@ -323,6 +433,22 @@ function switchTab(name, btn){
   btn.classList.add('on');
   document.getElementById('tab-'+name).classList.add('on');
 }
+
+function openEdit(userId, name, pin){
+  document.getElementById('edit_full_name').value = name || '';
+  document.getElementById('edit_pin').value = '';
+  document.getElementById('editForm').action = '/admin-dashboard/edit-user/' + userId + '/';
+  document.getElementById('toggleForm').action = '/admin-dashboard/edit-user/' + userId + '/';
+  document.getElementById('editModal').classList.add('show');
+}
+
+function closeEdit(){
+  document.getElementById('editModal').classList.remove('show');
+}
+
+document.getElementById('editModal').addEventListener('click', function(e){
+  if(e.target === this) closeEdit();
+});
 </script>
 </body>
 </html>

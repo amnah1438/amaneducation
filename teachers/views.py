@@ -529,6 +529,124 @@ def add_session(request):
     return render(request, 'teachers/add_session.html', {'teacher': teacher, 'skills': my_skills})
 
 
+# ═══════════════════════════════════════════════════════════════
+# عرض / تعديل / تعديل أسئلة (CRUD كامل للمعلمة)
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+def view_skill(request, skill_id):
+    """عرض المهارة كاملة (محتوى + أسئلة) — للمعلمة المنشئة أو المشاركة."""
+    if not check_teacher_or_admin(request):
+        return redirect('home')
+    teacher = get_teacher(request)
+    skill = get_object_or_404(TeacherSkill, id=skill_id)
+    # الصلاحية: المنشئة، أو المهارة مشتركة، أو المديرة
+    is_owner = teacher and skill.created_by_id == teacher.id
+    is_admin = False
+    try:
+        is_admin = request.user.core_profile.role == 'ADMIN'
+    except Profile.DoesNotExist:
+        pass
+    if not (is_owner or skill.is_shared or is_admin):
+        messages.error(request, 'لا تملكين صلاحية عرض هذه المهارة')
+        return redirect('skill_manager')
+
+    return render(request, 'teachers/view_skill.html', {
+        'skill': skill,
+        'content': getattr(skill, 'content', None),
+        'exams': skill.exams.all().prefetch_related('questions'),
+        'is_owner': is_owner or is_admin,
+        'teacher': teacher,
+    })
+
+
+@login_required
+def edit_skill(request, skill_id):
+    """تعديل بيانات المهارة + المحتوى + إعداداتها."""
+    if not check_teacher(request):
+        return redirect('home')
+    teacher = get_teacher(request)
+    skill = get_object_or_404(TeacherSkill, id=skill_id, created_by=teacher)
+
+    if request.method == 'POST':
+        skill.title = (request.POST.get('title') or skill.title).strip()
+        skill.description = request.POST.get('description', skill.description)
+        skill.target_classes = request.POST.get('target_classes', skill.target_classes)
+        skill.is_shared = request.POST.get('is_shared') == 'on'
+        skill.is_active = request.POST.get('is_active') == 'on'
+        skill.skill_type = request.POST.get('skill_type', skill.skill_type)
+        skill.subject = request.POST.get('subject', skill.subject)
+        skill.save()
+
+        # تحديث/إنشاء المحتوى
+        plain_text = request.POST.get('plain_text', '').strip()
+        video_url = request.POST.get('video_url', '').strip()
+        content, _ = TeacherSkillContent.objects.get_or_create(skill=skill)
+        if plain_text:
+            content.plain_text = plain_text
+        if video_url:
+            content.video_url = video_url
+        if 'plain_image' in request.FILES:
+            content.plain_image = request.FILES['plain_image']
+        if 'pdf_file' in request.FILES:
+            content.pdf_file = request.FILES['pdf_file']
+        content.save()
+
+        messages.success(request, '✅ تم حفظ التعديلات')
+        return redirect('skill_manager')
+
+    return render(request, 'teachers/edit_skill.html', {
+        'skill': skill,
+        'content': getattr(skill, 'content', None),
+        'teacher': teacher,
+    })
+
+
+@login_required
+def edit_question(request, exam_id, q_id):
+    """تعديل سؤال داخل اختبار."""
+    if not check_teacher(request):
+        return redirect('home')
+    teacher = get_teacher(request)
+    exam = get_object_or_404(TeacherExam, id=exam_id, skill__created_by=teacher)
+    q = get_object_or_404(TeacherQuestion, id=q_id, exam=exam)
+
+    if request.method == 'POST':
+        q.question_plain = request.POST.get('question_plain', q.question_plain).strip()
+        q.option_a_plain = request.POST.get('option_a_plain', q.option_a_plain)
+        q.option_b_plain = request.POST.get('option_b_plain', q.option_b_plain)
+        q.option_c_plain = request.POST.get('option_c_plain', q.option_c_plain)
+        q.option_d_plain = request.POST.get('option_d_plain', q.option_d_plain)
+        q.correct_answer = request.POST.get('correct_answer', q.correct_answer).upper()[:1]
+        q.target_skill_name = request.POST.get('target_skill_name', q.target_skill_name)
+        q.feedback_plain = request.POST.get('feedback_plain', q.feedback_plain)
+        if 'question_image' in request.FILES:
+            q.question_image = request.FILES['question_image']
+        q.save()
+        messages.success(request, '✅ تم حفظ السؤال')
+        return redirect('view_skill', skill_id=exam.skill_id)
+
+    return render(request, 'teachers/edit_question.html', {
+        'q': q, 'exam': exam, 'teacher': teacher,
+    })
+
+
+@login_required
+def delete_question(request, exam_id, q_id):
+    """حذف سؤال."""
+    if not check_teacher(request):
+        return redirect('home')
+    teacher = get_teacher(request)
+    exam = get_object_or_404(TeacherExam, id=exam_id, skill__created_by=teacher)
+    q = get_object_or_404(TeacherQuestion, id=q_id, exam=exam)
+    if request.method == 'POST':
+        q.delete()
+        messages.success(request, '🗑️ تم حذف السؤال')
+    return redirect('view_skill', skill_id=exam.skill_id)
+
+
+# ═══════════════════════════════════════════════════════════════
+
 @login_required
 def get_skill_questions(request, skill_id):
     teacher = get_teacher(request)

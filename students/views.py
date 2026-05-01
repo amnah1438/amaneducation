@@ -277,12 +277,15 @@ def take_exam(request, exam_id):
     exam = get_object_or_404(TeacherExam, id=exam_id, is_active=True)
 
     # ─── 1) دخول قبل بدء الاختبار ─────────────────────────────
+    # متوافق مع نظام الدخول الموحّد:
+    #   • طالبة بدون pin_code → رقم الهوية فقط.
+    #   • طالبة لديها pin_code → نطلب PIN أيضاً.
     if not request.user.is_authenticated:
         if request.method == 'POST' and request.POST.get('national_id'):
             national_id = (request.POST.get('national_id') or '').strip()
-            pin = (request.POST.get('pin_code') or national_id).strip()
+            pin = (request.POST.get('pin_code') or '').strip()
 
-            if not national_id.isdigit():
+            if not national_id.isdigit() or not (8 <= len(national_id) <= 12):
                 return render(request, 'students/exam_login.html', {
                     'exam': exam, 'error': 'رقم الهوية غير صالح',
                 })
@@ -297,16 +300,19 @@ def take_exam(request, exam_id):
                 })
 
             user = profile.user
-            # نتحقق من PIN — أو من كلمة مرور Django إن لم يكن PIN مضبوطاً
-            from django.contrib.auth.hashers import check_password
-            authorized = (
-                (profile.pin_code and profile.pin_code == pin)
-                or (not profile.pin_code and check_password(pin, user.password))
-            )
-            if not authorized or not user.is_active:
+            if not user.is_active:
                 return render(request, 'students/exam_login.html', {
-                    'exam': exam, 'error': 'رمز التحقق غير صحيح',
+                    'exam': exam, 'error': 'الحساب غير مفعّل',
                 })
+
+            # طالبة لها PIN → يجب التطابق
+            if profile.pin_code:
+                if not pin or profile.pin_code != pin:
+                    return render(request, 'students/exam_login.html', {
+                        'exam': exam, 'error': 'رمز التحقق غير صحيح',
+                        'require_pin': True,
+                    })
+            # طالبة بدون PIN → الهوية وحدها كافية
 
             auth_login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             request.session.cycle_key()

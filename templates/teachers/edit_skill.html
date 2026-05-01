@@ -1,0 +1,124 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تعديل — {{ skill.title }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090f;--bg2:#0c0f1a;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--blue:#4f8ef7;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none}
+.btn-g{background:linear-gradient(135deg,#065442,#1a3060);color:white;border:1px solid var(--green)}
+.btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
+.btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
+.main{max-width:760px;margin:0 auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.fl{font-size:11px;color:var(--text2);font-weight:700}
+.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;padding:10px 12px;border-radius:8px;outline:none;width:100%}
+.fi:focus{border-color:var(--blue)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:680px){.row2{grid-template-columns:1fr}}
+label.chk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="font-size:13px;font-weight:800">✏️ تعديل المهارة</div>
+  <div style="display:flex;gap:6px">
+    <a href="{% url 'view_skill' skill.id %}" class="btn btn-b">← عرض</a>
+    <a href="{% url 'skill_manager' %}" class="btn btn-b">قائمة المهارات</a>
+  </div>
+</div>
+
+<div class="main">
+
+  {% if messages %}{% for m in messages %}<div class="card" style="color:#6ee7a0;border-color:var(--green)">{{ m }}</div>{% endfor %}{% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    <div class="fg">
+      <label class="fl">العنوان *</label>
+      <input class="fi" name="title" value="{{ skill.title }}" required>
+    </div>
+    <div class="fg">
+      <label class="fl">الوصف المختصر</label>
+      <textarea class="fi" name="description" rows="2">{{ skill.description }}</textarea>
+    </div>
+    <div class="row2">
+      <div class="fg">
+        <label class="fl">نوع القدرات</label>
+        <select class="fi" name="skill_type">
+          <option value="" {% if not skill.skill_type %}selected{% endif %}>—</option>
+          <option value="qodrat_kamy" {% if skill.skill_type == 'qodrat_kamy' %}selected{% endif %}>قدرات — كمي</option>
+          <option value="qodrat_lafzy" {% if skill.skill_type == 'qodrat_lafzy' %}selected{% endif %}>قدرات — لفظي</option>
+          <option value="tahsili" {% if skill.skill_type == 'tahsili' %}selected{% endif %}>تحصيلي شامل</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">مادة التحصيلي</label>
+        <select class="fi" name="subject">
+          <option value="" {% if not skill.subject %}selected{% endif %}>—</option>
+          <option value="math" {% if skill.subject == 'math' %}selected{% endif %}>رياضيات</option>
+          <option value="bio" {% if skill.subject == 'bio' %}selected{% endif %}>أحياء</option>
+          <option value="chem" {% if skill.subject == 'chem' %}selected{% endif %}>كيمياء</option>
+          <option value="phys" {% if skill.subject == 'phys' %}selected{% endif %}>فيزياء</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">الفصول المستهدفة</label>
+      <input class="fi" name="target_classes" value="{{ skill.target_classes }}" placeholder="مثال: ث١٢ أو جميع الفصول">
+    </div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
+
+    <div style="font-weight:700;margin-bottom:10px">📖 محتوى الشرح</div>
+    <div class="fg">
+      <label class="fl">رابط فيديو</label>
+      <input class="fi" name="video_url" value="{{ content.video_url|default:'' }}" placeholder="https://...">
+    </div>
+    <div class="fg">
+      <label class="fl">شرح نصي (يدعم الرموز الرياضية بصيغة LaTeX)</label>
+      <textarea class="fi" name="plain_text" rows="6">{{ content.plain_text|default:'' }}</textarea>
+    </div>
+    <div class="row2">
+      <div class="fg">
+        <label class="fl">صورة توضيحية</label>
+        <input class="fi" type="file" name="plain_image" accept="image/*">
+      </div>
+      <div class="fg">
+        <label class="fl">ملف PDF</label>
+        <input class="fi" type="file" name="pdf_file" accept=".pdf">
+      </div>
+    </div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:14px 0">
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <label class="chk"><input type="checkbox" name="is_shared" {% if skill.is_shared %}checked{% endif %}> 🌍 مشاركة مع جميع المعلمات (إن أُلغي → خاصة بكِ فقط)</label>
+      <label class="chk"><input type="checkbox" name="is_active" {% if skill.is_active %}checked{% endif %}> ✅ مفعّلة (تظهر في الصفحة الرئيسية)</label>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <a href="{% url 'view_skill' skill.id %}" class="btn btn-r">إلغاء</a>
+      <button type="submit" class="btn btn-g">💾 حفظ التعديلات</button>
+    </div>
+  </form>
+
+  <form method="post" action="{% url 'delete_skill' skill.id %}" class="card" onsubmit="return confirm('حذف المهارة كاملة بكل أسئلتها ونتائجها؟')">
+    {% csrf_token %}
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:11px;color:var(--text3)">منطقة الخطر</div>
+      <button type="submit" class="btn btn-r">🗑️ حذف نهائياً</button>
+    </div>
+  </form>
+
+</div>
+</body>
+</html>

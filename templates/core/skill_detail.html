@@ -153,9 +153,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       <div class="dot {% if exam.is_active %}dot-g{% else %}dot-r{% endif %}"></div>
       {% if exam.is_active %}مفعّل{% else %}غير مفعّل{% endif %}
     </div>
-    {% if request.user.is_authenticated %}
+    {% if request.user.is_authenticated and not is_student %}
     <select class="sel" id="bankClass">
-      <option value="">اختاري الفصل</option>
+      <option value="all">📌 جميع الفصول</option>
       {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
     </select>
     <div style="display:flex;gap:6px;flex-wrap:wrap">
@@ -197,7 +197,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
         {% if exam.is_active %}مفعّل{% else %}غير مفعّل{% endif %}
       </div>
       <select class="sel" id="bankClass" style="max-width:220px">
-        <option value="">اختاري الفصل</option>
+        <option value="all">📌 جميع الفصول</option>
         {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
       </select>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
@@ -281,7 +281,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       </div>
       {% if request.user.is_authenticated %}
       <select class="sel" id="preClass">
-        <option value="">اختاري الفصل</option>
+        <option value="all">📌 جميع الفصول</option>
         {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
       </select>
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
@@ -312,7 +312,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       </div>
       {% if request.user.is_authenticated %}
       <select class="sel" id="postClass">
-        <option value="">اختاري الفصل</option>
+        <option value="all">📌 جميع الفصول</option>
         {% for cls in classrooms %}<option value="{{ cls.id }}">{{ cls.name }}</option>{% endfor %}
       </select>
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
@@ -538,6 +538,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
     <div class="modal-link" id="modalLink"></div>
     <div class="modal-btns">
       <button class="btn btn-b" onclick="copyModalLink()">📋 نسخ</button>
+      <button class="btn" style="background:rgba(37,211,102,0.15);color:#25d366;border:1px solid rgba(37,211,102,0.3)" onclick="sendModalWhats()">💬 واتساب</button>
       <button class="btn btn-g" onclick="document.getElementById('linkModal').classList.remove('show')">✅ تم</button>
     </div>
   </div>
@@ -558,12 +559,11 @@ function switchTab(name, btn){
 // تفعيل اختبار
 function activateExam(examId, type){
   const selMap = {pre:'preClass', post:'postClass', bank:'bankClass'};
-  const classId = document.getElementById(selMap[type])?.value;
-  if(!classId){ showMsg('يرجى اختيار الفصل أولاً', 'error'); return; }
+  const classId = document.getElementById(selMap[type])?.value || 'all';
   fetch('/activate-exam/'+examId+'/', {
     method:'POST',
     headers:{'X-CSRFToken':csrfToken,'Content-Type':'application/x-www-form-urlencoded'},
-    body:'classroom_id='+classId
+    body:'classroom_id='+encodeURIComponent(classId)
   })
   .then(r=>r.json())
   .then(data=>{
@@ -621,6 +621,11 @@ function copyText(textId){
 function copyModalLink(){
   navigator.clipboard.writeText(document.getElementById('modalLink').textContent)
   .then(()=>{ showMsg('✅ تم نسخ الرابط!', 'success'); document.getElementById('linkModal').classList.remove('show'); });
+}
+function sendModalWhats(){
+  const link = document.getElementById('modalLink').textContent;
+  const text = encodeURIComponent('🎓 رابط الاختبار: ' + link);
+  window.open('https://wa.me/?text=' + text, '_blank');
 }
 
 function showMsg(text, type){

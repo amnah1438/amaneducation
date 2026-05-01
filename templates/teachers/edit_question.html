@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تعديل سؤال — {{ exam.skill.title }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090f;--bg2:#0c0f1a;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--blue:#4f8ef7;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none}
+.btn-g{background:linear-gradient(135deg,#065442,#1a3060);color:white;border:1px solid var(--green)}
+.btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
+.btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
+.main{max-width:760px;margin:0 auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.fl{font-size:11px;color:var(--text2);font-weight:700}
+.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;padding:10px 12px;border-radius:8px;outline:none;width:100%}
+.fi:focus{border-color:var(--blue)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:680px){.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div style="font-size:13px;font-weight:800">✏️ تعديل سؤال</div>
+  <a href="{% url 'view_skill' exam.skill_id %}" class="btn btn-b">← عودة</a>
+</div>
+
+<div class="main">
+  {% if messages %}{% for m in messages %}<div class="card" style="color:#6ee7a0;border-color:var(--green)">{{ m }}</div>{% endfor %}{% endif %}
+
+  <form method="post" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    <div class="fg">
+      <label class="fl">نص السؤال *</label>
+      <textarea class="fi" name="question_plain" rows="3" required>{{ q.question_plain }}</textarea>
+    </div>
+    <div class="fg">
+      <label class="fl">صورة السؤال (اختياري)</label>
+      <input class="fi" type="file" name="question_image" accept="image/*">
+      {% if q.question_image %}<small style="color:var(--text3)">📌 موجودة: {{ q.question_image.name }}</small>{% endif %}
+    </div>
+    <div class="row2">
+      <div class="fg">
+        <label class="fl">خيار أ</label>
+        <input class="fi" name="option_a_plain" value="{{ q.option_a_plain }}">
+      </div>
+      <div class="fg">
+        <label class="fl">خيار ب</label>
+        <input class="fi" name="option_b_plain" value="{{ q.option_b_plain }}">
+      </div>
+      <div class="fg">
+        <label class="fl">خيار ج</label>
+        <input class="fi" name="option_c_plain" value="{{ q.option_c_plain }}">
+      </div>
+      <div class="fg">
+        <label class="fl">خيار د</label>
+        <input class="fi" name="option_d_plain" value="{{ q.option_d_plain }}">
+      </div>
+    </div>
+    <div class="fg">
+      <label class="fl">الإجابة الصحيحة</label>
+      <select class="fi" name="correct_answer">
+        <option value="A" {% if q.correct_answer == 'A' %}selected{% endif %}>أ</option>
+        <option value="B" {% if q.correct_answer == 'B' %}selected{% endif %}>ب</option>
+        <option value="C" {% if q.correct_answer == 'C' %}selected{% endif %}>ج</option>
+        <option value="D" {% if q.correct_answer == 'D' %}selected{% endif %}>د</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">المهارة المرتبطة (اختياري)</label>
+      <input class="fi" name="target_skill_name" value="{{ q.target_skill_name }}">
+    </div>
+    <div class="fg">
+      <label class="fl">تغذية راجعة (تعليق)</label>
+      <textarea class="fi" name="feedback_plain" rows="2">{{ q.feedback_plain }}</textarea>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <a href="{% url 'view_skill' exam.skill_id %}" class="btn btn-r">إلغاء</a>
+      <button type="submit" class="btn btn-g">💾 حفظ السؤال</button>
+    </div>
+  </form>
+</div>
+</body>
+</html>

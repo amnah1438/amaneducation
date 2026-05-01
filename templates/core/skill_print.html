@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>طباعة — {{ skill.title }}</title>
+<style>
+  body { font-family: 'Tajawal','Cairo',sans-serif; max-width: 800px; margin: 30px auto; padding: 0 30px; color:#222; line-height:1.9; }
+  h1 { font-size: 22px; border-bottom: 3px solid #4b0082; padding-bottom: 8px; }
+  .meta { color:#666; font-size: 13px; margin-bottom: 18px; }
+  .content { font-size: 15px; }
+  .content img { max-width:100%; height:auto; }
+  .footer { margin-top: 40px; border-top: 1px dashed #aaa; padding-top:10px; font-size: 11px; color:#777; }
+  .controls { text-align:center; margin: 14px 0; }
+  .btn { background:#0d5c35; color:white; border:none; padding:8px 20px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:13px; margin:0 5px; }
+  @media print { .controls { display:none; } }
+</style>
+</head>
+<body>
+  <div class="controls">
+    <button class="btn" onclick="window.print()">🖨️ طباعة</button>
+    <button class="btn" style="background:#999" onclick="window.close()">إغلاق</button>
+  </div>
+
+  <h1>{{ skill.title }}</h1>
+  <div class="meta">
+    {% if skill.get_content_type_display %}{{ skill.get_content_type_display }} •{% endif %}
+    المعلمة: {{ skill.created_by.full_name|default:"—" }}
+    {% if skill.target_classes %} • الفصل: {{ skill.target_classes }}{% endif %}
+  </div>
+
+  {% if skill.description %}
+    <p style="font-style:italic;color:#555">{{ skill.description }}</p>
+  {% endif %}
+
+  <div class="content">
+    {% if content %}
+      {% if content.text_content %}{{ content.text_content|safe }}{% endif %}
+      {% if content.plain_text %}<pre style="white-space:pre-wrap;font-family:inherit">{{ content.plain_text }}</pre>{% endif %}
+      {% if content.plain_image %}<img src="{{ content.plain_image.url }}" alt="">{% endif %}
+      {% if content.video_url %}
+        <p>🎬 رابط الفيديو: <a href="{{ content.video_url }}">{{ content.video_url }}</a></p>
+      {% endif %}
+    {% else %}
+      <p style="color:#999">لا يوجد محتوى نصي مضاف.</p>
+    {% endif %}
+  </div>
+
+  <div class="footer">
+    {{ settings.platform_name|default:"منصة آمنة التعليمية" }} —
+    {{ settings.header_line_4|default:"" }} —
+    تاريخ الطباعة: <script>document.write(new Date().toLocaleDateString('ar-SA'))</script>
+  </div>
+</body>
+</html>

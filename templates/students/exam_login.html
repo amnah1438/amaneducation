@@ -67,18 +67,33 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
           type="text"
           name="national_id"
           placeholder="أدخلي رقم الهوية الوطنية"
-          maxlength="10"
-          pattern="[0-9]{10}"
+          maxlength="12"
+          pattern="[0-9]{8,12}"
           inputmode="numeric"
           autofocus
           required
         >
+
+        {% if require_pin %}
+        <div style="margin-top:14px"></div>
+        <label class="label">رمز التحقق (PIN)</label>
+        <input
+          class="input"
+          type="password"
+          name="pin_code"
+          placeholder="رمز PIN"
+          maxlength="32"
+          inputmode="numeric"
+          required
+        >
+        {% endif %}
+
         <button type="submit" class="btn">▶️ ابدئي الاختبار الآن</button>
       </form>
 
       <div class="hint">
-        رقم هويتك = اسم المستخدم وكلمة المرور<br>
-        يمكنك الدخول لحسابك لاحقاً لمتابعة تقدمك
+        🌸 الدخول للطالبة برقم الهوية فقط<br>
+        تواصلي مع المعلمة إن واجهتِ مشكلة
       </div>
 
       <div class="divider"></div>

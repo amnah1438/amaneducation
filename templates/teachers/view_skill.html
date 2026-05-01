@@ -1,0 +1,143 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ skill.title }} — عرض المهارة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07090f;--bg2:#0c0f1a;--card:#0f1424;--card2:#161d30;--border:#1a2236;--green:#0fba81;--blue:#4f8ef7;--orange:#f5a623;--red:#f05252;--purple:#9b72f5;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn-g{background:linear-gradient(135deg,#065442,#1a3060);color:white;border:1px solid var(--green)}
+.btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
+.btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
+.btn-o{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.25)}
+.btn-p{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.25)}
+.main{max-width:980px;margin:0 auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.ch{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.ct{font-size:12px;font-weight:800}
+.cb{padding:14px 16px}
+.bd{display:inline-block;padding:3px 9px;border-radius:8px;font-size:10px;font-weight:700;margin-right:5px}
+.bp{background:rgba(15,186,129,0.1);color:var(--green);border:1px solid rgba(15,186,129,0.2)}
+.bg-y{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.2)}
+.q-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px}
+.q-text{font-size:13px;font-weight:700;margin-bottom:7px}
+.q-options{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:5px}
+.q-opt{padding:5px 9px;border-radius:6px;background:var(--card2);border:1px solid var(--border);font-size:11px;color:var(--text2)}
+.q-opt.correct{background:rgba(15,186,129,0.1);border-color:var(--green);color:var(--green)}
+.video-wrap{position:relative;padding-bottom:56.25%;height:0;border-radius:10px;overflow:hidden;background:black;margin-bottom:10px}
+.video-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none}
+img.cnt{max-width:100%;border-radius:8px;border:1px solid var(--border);margin:8px 0}
+.prose{font-size:13px;line-height:2.1;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div style="font-size:13px;font-weight:800">📚 عرض المهارة</div>
+  <div style="display:flex;gap:6px">
+    <a href="{% url 'skill_manager' %}" class="btn btn-b">← قائمة المهارات</a>
+    {% if is_owner %}
+      <a href="{% url 'edit_skill' skill.id %}" class="btn btn-o">✏️ تعديل</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="main">
+  {% if messages %}{% for m in messages %}<div class="card" style="padding:10px 14px;color:#6ee7a0;border-color:var(--green)">{{ m }}</div>{% endfor %}{% endif %}
+
+  <div class="card">
+    <div class="ch">
+      <div>
+        <div style="font-size:16px;font-weight:900">{{ skill.title }}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">
+          {{ skill.get_content_type_display }}
+          {% if skill.skill_type %} • {{ skill.get_skill_type_display }}{% endif %}
+          {% if skill.subject %} • {{ skill.get_subject_display }}{% endif %}
+          {% if skill.target_classes %} • 📍 {{ skill.target_classes }}{% endif %}
+          • 👩‍🏫 {{ skill.created_by.full_name }}
+        </div>
+      </div>
+      <div>
+        <span class="bd {% if skill.is_active %}bp{% else %}bg-y{% endif %}">{% if skill.is_active %}✓ مفعّلة{% else %}⏸️ غير مفعّلة{% endif %}</span>
+        <span class="bd bp">{% if skill.is_shared %}🌍 مشاركة{% else %}🔒 خاصة{% endif %}</span>
+      </div>
+    </div>
+    <div class="cb">
+      {% if skill.description %}<p style="color:var(--text2);font-size:12px">{{ skill.description }}</p>{% endif %}
+    </div>
+  </div>
+
+  <!-- محتوى الدرس -->
+  <div class="card">
+    <div class="ch">
+      <span class="ct">📖 محتوى الشرح</span>
+    </div>
+    <div class="cb">
+      {% if content %}
+        {% if content.video_url %}<div class="video-wrap"><iframe src="{{ content.video_url }}" allowfullscreen></iframe></div>{% endif %}
+        {% if content.plain_image %}<img src="{{ content.plain_image.url }}" class="cnt" alt="">{% endif %}
+        {% if content.plain_text %}<div class="prose">{{ content.plain_text|linebreaksbr }}</div>{% endif %}
+        {% if content.text_content %}<div class="prose">{{ content.text_content|safe }}</div>{% endif %}
+        {% if content.pdf_file %}<a href="{{ content.pdf_file.url }}" target="_blank" class="btn btn-b" style="margin-top:8px">📄 فتح ملف PDF</a>{% endif %}
+        {% if not content.video_url and not content.plain_text and not content.text_content and not content.plain_image and not content.pdf_file %}
+          <p style="color:var(--text3);font-size:12px;text-align:center;padding:20px">لم يُضَف محتوى بعد.</p>
+        {% endif %}
+      {% else %}
+        <p style="color:var(--text3);font-size:12px;text-align:center;padding:20px">لم يُضَف محتوى بعد.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- الأسئلة لكل اختبار -->
+  {% for exam in exams %}
+  <div class="card">
+    <div class="ch">
+      <span class="ct">{{ exam.get_exam_type_display }} ({{ exam.questions.count }} سؤال)</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        {% if is_owner %}
+          <a href="{% url 'add_question' exam.id %}" class="btn btn-g">➕ إضافة سؤال</a>
+          <a href="{% url 'import_questions_excel' exam.id %}" class="btn btn-o">📥 رفع Excel</a>
+        {% endif %}
+        <a href="{% url 'exam_print' exam.id %}" target="_blank" class="btn btn-p">🖨️ طباعة</a>
+      </div>
+    </div>
+    <div class="cb">
+      {% for q in exam.questions.all %}
+      <div class="q-card">
+        <div class="q-text">س{{ q.order|default:forloop.counter }}. {{ q.question_plain|default:q.question_text|striptags }}</div>
+        {% if q.question_image %}<img src="{{ q.question_image.url }}" class="cnt" style="max-height:160px">{% endif %}
+        <div class="q-options">
+          <div class="q-opt {% if q.correct_answer == 'A' %}correct{% endif %}"><strong>أ.</strong> {{ q.option_a_plain|default:q.option_a|striptags }}</div>
+          <div class="q-opt {% if q.correct_answer == 'B' %}correct{% endif %}"><strong>ب.</strong> {{ q.option_b_plain|default:q.option_b|striptags }}</div>
+          <div class="q-opt {% if q.correct_answer == 'C' %}correct{% endif %}"><strong>ج.</strong> {{ q.option_c_plain|default:q.option_c|striptags }}</div>
+          <div class="q-opt {% if q.correct_answer == 'D' %}correct{% endif %}"><strong>د.</strong> {{ q.option_d_plain|default:q.option_d|striptags }}</div>
+        </div>
+        {% if q.feedback_plain %}<div style="font-size:11px;color:var(--purple);margin-top:6px">💡 {{ q.feedback_plain }}</div>{% endif %}
+        {% if is_owner %}
+        <div style="display:flex;gap:5px;margin-top:8px">
+          <a href="{% url 'edit_question' exam.id q.id %}" class="btn btn-o">✏️ تعديل</a>
+          <form method="post" action="{% url 'delete_question' exam.id q.id %}" onsubmit="return confirm('حذف السؤال؟')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-r">🗑️ حذف</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+      {% empty %}
+      <p style="color:var(--text3);font-size:12px;text-align:center;padding:20px">لا توجد أسئلة بعد.</p>
+      {% endfor %}
+    </div>
+  </div>
+  {% empty %}
+  <div class="card"><div class="cb" style="text-align:center;color:var(--text3);font-size:12px;padding:20px">لا توجد اختبارات لهذه المهارة.</div></div>
+  {% endfor %}
+
+</div>
+</body>
+</html>
