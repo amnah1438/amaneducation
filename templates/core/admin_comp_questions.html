@@ -11,6 +11,9 @@
 <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']]},options:{skipHtmlTags:['script','noscript','style','textarea','pre']}}</script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 
+<!-- Tesseract.js — OCR في المتصفح بدون رفع ملفات لخادم خارجي -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <style>
 :root{--bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;--purple:#9b72f5;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -66,6 +69,68 @@ textarea.fi{min-height:60px;resize:vertical}
 .modal-bg.show{display:flex}
 .modal{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:20px;width:100%;max-width:700px;margin:auto}
 .modal-title{font-size:14px;font-weight:800;margin-bottom:14px}
+
+/* ─── Lens (OCR) ─── */
+.ocr-lens{
+  position:absolute;left:6px;top:6px;width:36px;height:36px;
+  border-radius:9px;border:1px solid var(--border2);
+  background:linear-gradient(135deg,var(--blue2),var(--green2));
+  color:white;cursor:pointer;font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;z-index:2;
+}
+.ocr-lens:hover{transform:scale(1.05);box-shadow:0 4px 12px rgba(79,142,247,0.4)}
+.ocr-lens-sm{
+  position:absolute;left:5px;top:50%;transform:translateY(-50%);
+  width:30px;height:30px;border-radius:7px;border:1px solid var(--border2);
+  background:rgba(79,142,247,0.15);color:var(--blue);
+  cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;z-index:2;
+}
+.ocr-lens-sm:hover{background:var(--blue);color:white;transform:translateY(-50%) scale(1.05)}
+
+/* ─── Drag & Drop zone ─── */
+.dropzone{
+  border:2px dashed var(--border2);border-radius:11px;padding:30px 20px;
+  text-align:center;background:var(--bg3);transition:all 0.25s;cursor:pointer;
+  margin-bottom:14px;
+}
+.dropzone.drag{border-color:var(--green);background:rgba(15,186,129,0.1);transform:scale(1.01)}
+.dropzone .dz-icon{font-size:50px;margin-bottom:8px}
+.dropzone .dz-title{font-size:13px;font-weight:800;margin-bottom:4px}
+.dropzone .dz-sub{font-size:11px;color:var(--text3);line-height:1.7}
+
+.ocr-progress{
+  background:var(--bg3);border-radius:8px;padding:10px 14px;margin-top:10px;
+  display:none;
+}
+.ocr-progress.on{display:block}
+.ocr-progress .pb{height:5px;background:var(--card2);border-radius:3px;overflow:hidden;margin-top:6px}
+.ocr-progress .pf{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));width:0%;transition:width 0.2s}
+.ocr-result{
+  background:var(--card2);border:1px solid var(--border2);border-radius:9px;
+  padding:12px 14px;margin-top:10px;font-size:12px;line-height:1.8;
+  white-space:pre-wrap;display:none;direction:rtl;text-align:right;color:var(--text);
+}
+.ocr-result.on{display:block}
+
+/* ─── Quick Mode Toggle ─── */
+.quick-toggle{
+  display:flex;align-items:center;gap:9px;background:var(--card2);
+  border:1px solid var(--border2);border-radius:10px;padding:9px 14px;
+  margin-bottom:12px;
+}
+.toggle-switch{
+  position:relative;width:42px;height:24px;background:var(--bg3);
+  border-radius:14px;cursor:pointer;transition:background 0.2s;
+  border:1px solid var(--border);
+}
+.toggle-switch.on{background:var(--green)}
+.toggle-switch::after{
+  content:"";position:absolute;width:18px;height:18px;border-radius:50%;
+  background:white;top:2px;right:3px;transition:right 0.2s;
+}
+.toggle-switch.on::after{right:21px}
 </style>
 </head>
 <body>
@@ -101,9 +166,28 @@ textarea.fi{min-height:60px;resize:vertical}
   <!-- ─── الإدخال اليدوي ─── -->
   <div class="card">
     <div class="ch">
-      <span class="ct">✍️ إضافة سؤال يدوياً (يدعم الرموز الرياضية)</span>
+      <span class="ct">✍️ إضافة سؤال (يدعم الرموز + المسح الضوئي + الصور)</span>
+      <span style="font-size:9px;color:var(--text3)">📷 اضغطي زر العدسة لمسح الأسئلة من كتاب أو صورة</span>
     </div>
     <div class="cb">
+
+      <!-- Quick Mode -->
+      <div class="quick-toggle">
+        <div class="toggle-switch" id="quickToggle" onclick="toggleQuickMode()"></div>
+        <div>
+          <div style="font-size:12px;font-weight:800">⚡ وضع الإدخال السريع (Quick Add)</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">يحفظ السؤال ويُجهّز النموذج لسؤال جديد فوراً بدون مغادرة الصفحة</div>
+        </div>
+      </div>
+
+      <!-- Drag & Drop -->
+      <div class="dropzone" id="dropzone" onclick="document.getElementById('dzFileInp').click()">
+        <input type="file" id="dzFileInp" accept="image/*" style="display:none" onchange="handleDropImage(this.files[0])">
+        <div class="dz-icon">📸</div>
+        <div class="dz-title">اسحبي صورة السؤال هنا — أو اضغطي للاختيار</div>
+        <div class="dz-sub">يستخرج النص العربي والإنجليزي والأرقام تلقائياً ويوزّعها على السؤال والخيارات</div>
+      </div>
+
       <form method="post" action="{% url 'admin_comp_add_question' skill.id %}" enctype="multipart/form-data" id="qform">
         {% csrf_token %}
 
@@ -174,14 +258,23 @@ textarea.fi{min-height:60px;resize:vertical}
 
         <div class="fg">
           <label class="fl">نص السؤال * <span style="font-weight:400;color:var(--text3)">— استعملي $...$ للمعادلات</span></label>
-          <textarea class="fi" id="qPlainArea" name="question_plain" rows="3" required
-            placeholder="مثال: ما حل المعادلة $x^2 - 4 = 0$ ؟"></textarea>
+          <div style="position:relative">
+            <textarea class="fi" id="qPlainArea" name="question_plain" rows="3" required
+              placeholder="مثال: ما حل المعادلة $x^2 - 4 = 0$ ؟"
+              style="padding-left:50px"></textarea>
+            <button type="button" class="ocr-lens"
+              onclick="openOcr('qPlainArea','full')"
+              title="مسح ضوئي — استخراج السؤال والخيارات تلقائياً">📷</button>
+          </div>
           <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
             <button type="button" class="btn btn-b" onclick="insertLatexBlock('qPlainArea')">
               ➕ إدراج معادلة LaTeX
             </button>
             <button type="button" class="btn btn-p" onclick="previewLatex('qPlainArea','qPreviewBox')">
-              👁️ معاينة المعادلة
+              👁️ معاينة فورية
+            </button>
+            <button type="button" class="btn btn-o" onclick="openOcr('qPlainArea','full')">
+              📷 مسح من صورة (OCR)
             </button>
           </div>
           <div id="qPreviewBox" style="display:none;margin-top:8px;padding:10px 14px;background:white;color:#111;border:1px solid var(--border);border-radius:7px;font-size:14px;line-height:1.9;direction:rtl"></div>
@@ -198,10 +291,34 @@ textarea.fi{min-height:60px;resize:vertical}
         </div>
 
         <div class="row4">
-          <div class="fg"><label class="fl">خيار أ</label><input class="fi" name="option_a_plain" placeholder="مثلاً: 2"></div>
-          <div class="fg"><label class="fl">خيار ب</label><input class="fi" name="option_b_plain" placeholder="مثلاً: -2"></div>
-          <div class="fg"><label class="fl">خيار ج</label><input class="fi" name="option_c_plain" placeholder="مثلاً: ±2"></div>
-          <div class="fg"><label class="fl">خيار د</label><input class="fi" name="option_d_plain" placeholder="مثلاً: 4"></div>
+          <div class="fg">
+            <label class="fl">خيار أ</label>
+            <div style="position:relative">
+              <input class="fi" id="optA" name="option_a_plain" placeholder="مثلاً: 2" style="padding-left:42px">
+              <button type="button" class="ocr-lens-sm" onclick="openOcr('optA','single')" title="مسح ضوئي للخيار">📷</button>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">خيار ب</label>
+            <div style="position:relative">
+              <input class="fi" id="optB" name="option_b_plain" placeholder="مثلاً: -2" style="padding-left:42px">
+              <button type="button" class="ocr-lens-sm" onclick="openOcr('optB','single')" title="مسح ضوئي للخيار">📷</button>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">خيار ج</label>
+            <div style="position:relative">
+              <input class="fi" id="optC" name="option_c_plain" placeholder="مثلاً: ±2" style="padding-left:42px">
+              <button type="button" class="ocr-lens-sm" onclick="openOcr('optC','single')" title="مسح ضوئي للخيار">📷</button>
+            </div>
+          </div>
+          <div class="fg">
+            <label class="fl">خيار د</label>
+            <div style="position:relative">
+              <input class="fi" id="optD" name="option_d_plain" placeholder="مثلاً: 4" style="padding-left:42px">
+              <button type="button" class="ocr-lens-sm" onclick="openOcr('optD','single')" title="مسح ضوئي للخيار">📷</button>
+            </div>
+          </div>
         </div>
 
         <div class="row2">
@@ -301,6 +418,48 @@ textarea.fi{min-height:60px;resize:vertical}
     </div>
   </div>
 
+</div>
+
+<!-- Modal: المسح الضوئي OCR -->
+<div class="modal-bg" id="ocrModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title">📷 المسح الضوئي الذكي</div>
+
+    <!-- اختيار وضع التحليل -->
+    <div style="background:var(--card2);border-radius:9px;padding:10px 12px;margin-bottom:12px;font-size:11px;color:var(--text2);line-height:1.8">
+      <div id="ocrModeLabel" style="font-weight:800;color:var(--blue);margin-bottom:4px">— الوضع: مسح حقل واحد —</div>
+      <div id="ocrModeHelp">سيُستخرج النص من الصورة ويوضع في الحقل المختار.</div>
+    </div>
+
+    <!-- Drop Zone -->
+    <div class="dropzone" id="ocrDrop">
+      <input type="file" id="ocrFileInp" accept="image/*" style="display:none">
+      <div class="dz-icon">📸</div>
+      <div class="dz-title">اسحبي الصورة هنا أو اضغطي للاختيار</div>
+      <div class="dz-sub">يدعم: JPG · PNG · يقرأ العربية والإنجليزية والأرقام والرموز</div>
+    </div>
+
+    <!-- معاينة الصورة المختارة -->
+    <div id="ocrPreviewWrap" style="display:none;text-align:center;margin-bottom:10px">
+      <img id="ocrPreview" style="max-width:100%;max-height:220px;border-radius:9px;border:1px solid var(--border)">
+    </div>
+
+    <!-- شريط التقدم -->
+    <div class="ocr-progress" id="ocrProgress">
+      <div style="font-size:11px;color:var(--text2);font-weight:700">⏳ جاري المسح... <span id="ocrPct">0%</span></div>
+      <div class="pb"><div class="pf" id="ocrBar"></div></div>
+    </div>
+
+    <!-- النتيجة -->
+    <div class="ocr-result" id="ocrResult"></div>
+
+    <!-- زر التطبيق -->
+    <div class="modal-btns">
+      <button type="button" class="btn btn-r" onclick="closeOcr()">إلغاء</button>
+      <button type="button" id="ocrApplyBtn" class="btn btn-g" onclick="applyOcrResult()" style="display:none">✅ تطبيق النتيجة</button>
+      <button type="button" id="ocrStartBtn" class="btn btn-o" onclick="runOcr()" style="display:none">🔍 بدء المسح</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal تعديل سؤال -->
@@ -442,6 +601,278 @@ function closeEditQ(){ document.getElementById('editQModal').classList.remove('s
 document.getElementById('editQModal').addEventListener('click', function(e){
   if (e.target === this) closeEditQ();
 });
+
+/* ═══════════════════════════════════════════════════════════
+   OCR (Tesseract.js) — استخراج النص من صور الكتب والأسئلة
+═══════════════════════════════════════════════════════════ */
+let ocrTargetField = null;     // اسم الحقل المستهدف
+let ocrMode = 'single';        // 'single' (حقل واحد) أو 'full' (السؤال + خيارات)
+let ocrSelectedFile = null;
+let ocrLastResult = null;
+
+function openOcr(targetId, mode){
+  ocrTargetField = targetId;
+  ocrMode = mode || 'single';
+  ocrSelectedFile = null;
+  ocrLastResult = null;
+
+  // ضبط الواجهة
+  if (ocrMode === 'full'){
+    document.getElementById('ocrModeLabel').textContent = '— الوضع: مسح كامل (سؤال + خيارات) —';
+    document.getElementById('ocrModeHelp').innerHTML =
+      'النظام سيحلّل الصورة ويوزّع النص تلقائياً على نص السؤال والخيارات الأربعة. <br>' +
+      'تأكدي أن الصورة تحوي السؤال والخيارات بترتيب: السؤال ثم أ ب ج د.';
+  } else {
+    document.getElementById('ocrModeLabel').textContent = '— الوضع: مسح حقل واحد —';
+    document.getElementById('ocrModeHelp').textContent = 'سيُستخرج النص ويُلصق في الحقل المختار.';
+  }
+
+  // Reset
+  document.getElementById('ocrPreviewWrap').style.display = 'none';
+  document.getElementById('ocrProgress').classList.remove('on');
+  document.getElementById('ocrResult').classList.remove('on');
+  document.getElementById('ocrApplyBtn').style.display = 'none';
+  document.getElementById('ocrStartBtn').style.display = 'none';
+  document.getElementById('ocrModal').classList.add('show');
+}
+
+function closeOcr(){
+  document.getElementById('ocrModal').classList.remove('show');
+}
+
+document.getElementById('ocrModal').addEventListener('click', function(e){
+  if (e.target === this) closeOcr();
+});
+
+// زر اختيار الصورة + Drag & Drop داخل modal
+const ocrDrop = document.getElementById('ocrDrop');
+const ocrFileInp = document.getElementById('ocrFileInp');
+ocrDrop.addEventListener('click', () => ocrFileInp.click());
+['dragover','dragenter'].forEach(ev =>
+  ocrDrop.addEventListener(ev, e => { e.preventDefault(); ocrDrop.classList.add('drag'); })
+);
+['dragleave','drop'].forEach(ev =>
+  ocrDrop.addEventListener(ev, e => { e.preventDefault(); ocrDrop.classList.remove('drag'); })
+);
+ocrDrop.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) handleOcrFile(f);
+});
+ocrFileInp.addEventListener('change', e => {
+  if (e.target.files[0]) handleOcrFile(e.target.files[0]);
+});
+
+function handleOcrFile(file){
+  ocrSelectedFile = file;
+  const url = URL.createObjectURL(file);
+  document.getElementById('ocrPreview').src = url;
+  document.getElementById('ocrPreviewWrap').style.display = 'block';
+  document.getElementById('ocrStartBtn').style.display = 'inline-flex';
+  document.getElementById('ocrResult').classList.remove('on');
+  document.getElementById('ocrApplyBtn').style.display = 'none';
+}
+
+async function runOcr(){
+  if (!ocrSelectedFile) { alert('اختاري صورة أولاً'); return; }
+  if (!window.Tesseract) { alert('مكتبة OCR لم تُحمَّل بعد — حاولي بعد لحظة'); return; }
+
+  document.getElementById('ocrProgress').classList.add('on');
+  document.getElementById('ocrStartBtn').style.display = 'none';
+  document.getElementById('ocrResult').classList.remove('on');
+
+  const bar = document.getElementById('ocrBar');
+  const pct = document.getElementById('ocrPct');
+  bar.style.width = '0%'; pct.textContent = '0%';
+
+  try {
+    // تحليل الصورة (عربي + إنجليزي)
+    const { data } = await Tesseract.recognize(ocrSelectedFile, 'ara+eng', {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          const p = Math.round(m.progress * 100);
+          bar.style.width = p + '%'; pct.textContent = p + '%';
+        }
+      }
+    });
+    ocrLastResult = (data.text || '').trim();
+    showOcrResult(ocrLastResult);
+  } catch (err) {
+    document.getElementById('ocrResult').classList.add('on');
+    document.getElementById('ocrResult').textContent = '❌ خطأ في المسح: ' + (err.message || err);
+    document.getElementById('ocrProgress').classList.remove('on');
+  }
+}
+
+function showOcrResult(text){
+  document.getElementById('ocrProgress').classList.remove('on');
+  const box = document.getElementById('ocrResult');
+  box.classList.add('on');
+
+  if (ocrMode === 'full') {
+    const parsed = parseQuestionFromText(text);
+    box.innerHTML =
+      '<div style="font-weight:800;color:var(--green);margin-bottom:6px">✅ تم استخراج النص. المعاينة:</div>' +
+      '<div style="font-size:11px;line-height:1.9">' +
+        '<div><strong>السؤال:</strong> ' + (parsed.question || '<em style="color:var(--text3)">(لم يُكتشف)</em>') + '</div>' +
+        '<div><strong>أ:</strong> ' + (parsed.a || '—') + '</div>' +
+        '<div><strong>ب:</strong> ' + (parsed.b || '—') + '</div>' +
+        '<div><strong>ج:</strong> ' + (parsed.c || '—') + '</div>' +
+        '<div><strong>د:</strong> ' + (parsed.d || '—') + '</div>' +
+      '</div>' +
+      '<details style="margin-top:8px"><summary style="cursor:pointer;font-size:10px;color:var(--text3)">عرض النص الخام</summary>' +
+      '<pre style="white-space:pre-wrap;font-size:10px;color:var(--text3);margin-top:6px">' + escapeHtml(text) + '</pre></details>';
+    ocrLastResult = parsed;
+  } else {
+    box.textContent = text || '(لم يُستخرج نص)';
+    ocrLastResult = text;
+  }
+  document.getElementById('ocrApplyBtn').style.display = 'inline-flex';
+}
+
+function applyOcrResult(){
+  if (!ocrLastResult) { closeOcr(); return; }
+  if (ocrMode === 'full' && typeof ocrLastResult === 'object') {
+    const map = {
+      question: 'qPlainArea', a: 'optA', b: 'optB', c: 'optC', d: 'optD'
+    };
+    Object.keys(map).forEach(k => {
+      const el = document.getElementById(map[k]);
+      if (el && ocrLastResult[k]) el.value = ocrLastResult[k];
+    });
+  } else {
+    const el = document.getElementById(ocrTargetField);
+    if (el) el.value = (typeof ocrLastResult === 'string') ? ocrLastResult : (ocrLastResult.question || '');
+  }
+  closeOcr();
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+}
+
+/**
+ * يحلّل النص المستخرَج ليفصل السؤال عن الخيارات.
+ * يبحث عن أنماط مثل:  أ) … ب) … ج) … د) …
+ *                     أ.        ب.       ج.       د.
+ *                     (أ)       (ب)      (ج)      (د)
+ *                     A) B) C) D)
+ */
+function parseQuestionFromText(text){
+  if (!text) return { question:'', a:'', b:'', c:'', d:'' };
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+
+  const patterns = [
+    /^[\(\[]?\s*([أابجدةabcd])\s*[\)\].\-:]\s*(.*)$/i,
+    /^\s*([1234])\s*[\)\].\-:]\s*(.*)$/,
+  ];
+  const arabicMap = { 'أ':'a','ا':'a','ب':'b','ج':'c','د':'d', 'A':'a','B':'b','C':'c','D':'d', '1':'a','2':'b','3':'c','4':'d' };
+
+  let qLines = [];
+  let opts = { a:'', b:'', c:'', d:'' };
+  let curOpt = null;
+
+  for (const line of lines) {
+    let matched = false;
+    for (const pat of patterns) {
+      const m = line.match(pat);
+      if (m) {
+        const letter = arabicMap[m[1]] || arabicMap[m[1].toLowerCase()];
+        if (letter) {
+          curOpt = letter;
+          opts[letter] = (opts[letter] ? opts[letter] + ' ' : '') + (m[2] || '').trim();
+          matched = true;
+          break;
+        }
+      }
+    }
+    if (!matched) {
+      if (curOpt) opts[curOpt] = (opts[curOpt] + ' ' + line).trim();
+      else qLines.push(line);
+    }
+  }
+  return { question: qLines.join(' ').trim(), a: opts.a, b: opts.b, c: opts.c, d: opts.d };
+}
+
+/* ═══════════ Drag & Drop on main dropzone (مسح كامل) ═══════════ */
+const mainDz = document.getElementById('dropzone');
+['dragover','dragenter'].forEach(ev =>
+  mainDz.addEventListener(ev, e => { e.preventDefault(); mainDz.classList.add('drag'); })
+);
+['dragleave','drop'].forEach(ev =>
+  mainDz.addEventListener(ev, e => { e.preventDefault(); mainDz.classList.remove('drag'); })
+);
+mainDz.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) handleDropImage(f);
+});
+
+function handleDropImage(file){
+  if (!file) return;
+  // افتح modal بمسح كامل وأرسل الصورة فوراً
+  openOcr('qPlainArea', 'full');
+  handleOcrFile(file);
+  // نشغّل المسح فوراً لتسريع التجربة
+  setTimeout(runOcr, 200);
+}
+
+/* ═══════════ Quick Add Mode ═══════════ */
+let quickModeOn = false;
+function toggleQuickMode(){
+  quickModeOn = !quickModeOn;
+  document.getElementById('quickToggle').classList.toggle('on', quickModeOn);
+  localStorage.setItem('amaneduc-quick-mode', quickModeOn ? '1' : '0');
+}
+// استرجاع الحالة من localStorage
+if (localStorage.getItem('amaneduc-quick-mode') === '1') toggleQuickMode();
+
+// عند تشغيل Quick Mode: نُرسل النموذج عبر AJAX ونُفرغ الحقول بدل الـ reload
+const qform = document.getElementById('qform');
+if (qform) {
+  qform.addEventListener('submit', function(e){
+    if (!quickModeOn) return; // الوضع العادي — submit طبيعي
+    e.preventDefault();
+    const fd = new FormData(qform);
+    fetch(qform.action, {
+      method: 'POST',
+      body: fd,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin',
+    })
+    .then(r => {
+      if (r.ok) {
+        // تنظيف النص فقط (نُبقي على نوع الإجابة الصحيحة الافتراضي)
+        ['qPlainArea','optA','optB','optC','optD'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = '';
+        });
+        const fb = qform.querySelector('textarea[name=feedback_plain]');
+        if (fb) fb.value = '';
+        const targ = qform.querySelector('input[name=target_skill_name]');
+        if (targ) targ.value = '';
+        const img = qform.querySelector('input[name=question_image]');
+        if (img) img.value = '';
+        // نخفي معاينة الصورة إن كانت ظاهرة
+        const wrap = document.getElementById('qImgPreviewWrap');
+        if (wrap) wrap.style.display = 'none';
+        // إشعار سريع
+        flashAddedToast();
+        // نسكرول لأعلى النموذج
+        document.getElementById('qPlainArea').focus();
+      } else {
+        alert('❌ تعذّر الحفظ — تأكدي من اكتمال البيانات');
+      }
+    })
+    .catch(() => alert('❌ خطأ في الاتصال'));
+  });
+}
+
+function flashAddedToast(){
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--green);color:white;padding:11px 18px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.3);z-index:9999;font-size:12px;font-weight:800';
+  t.textContent = '✅ تم حفظ السؤال — جاهزة للسؤال التالي';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
 </script>
 </body>
 </html>

@@ -23,7 +23,11 @@ urlpatterns = [
     path('exam/<int:exam_id>/print/', views.exam_print, name='exam_print'),
 
     # ── لوحة المديرة ────────────────────────────────────────────
-    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    # افتراضياً: تذهب المديرة إلى الـ Enterprise Dashboard.
+    # admin-dashboard/classic/ يحتفظ بالنسخة القديمة لمن يفضّلها.
+    path('admin-dashboard/', views.admin_v2_dashboard, name='admin_dashboard'),
+    path('admin-dashboard/classic/', views.admin_dashboard, name='admin_dashboard_classic'),
+    path('admin-dashboard/data.json', views.admin_v2_data_json, name='admin_v2_data_json'),
     path('admin-dashboard/add-teacher/', views.admin_add_teacher, name='admin_add_teacher'),
     path('admin-dashboard/add-student/', views.admin_add_student, name='admin_add_student'),
     path('admin-dashboard/add-classroom/', views.admin_add_classroom, name='admin_add_classroom'),

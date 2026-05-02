@@ -1,0 +1,1118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة المديرة — منصة آمنة (Enterprise)</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea']}}</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   THEME — يعتمد على data-theme على <html> + CSS variables.
+═══════════════════════════════════════════════════════════════ */
+:root[data-theme="dark"] {
+  --bg: #0a0e1a;
+  --bg2: #11162a;
+  --bg3: #1a2138;
+  --card: #131a30;
+  --card2: #1c2540;
+  --border: #232c4a;
+  --border2: #2f3a5e;
+  --text: #eef2ff;
+  --text2: #b1bbd6;
+  --text3: #6b7799;
+  --accent: #6366f1;     /* indigo */
+  --accent2: #8b5cf6;    /* violet */
+  --primary: #818cf8;
+  --green: #10b981;
+  --green2: #064e3b;
+  --blue: #3b82f6;
+  --blue2: #1e3a8a;
+  --purple: #a855f7;
+  --pink: #ec4899;
+  --orange: #f59e0b;
+  --red: #ef4444;
+  --teal: #14b8a6;
+  --shadow: 0 10px 40px rgba(0,0,0,0.5);
+  --shadow2: 0 4px 16px rgba(0,0,0,0.3);
+  --glass: rgba(255,255,255,0.03);
+}
+:root[data-theme="light"] {
+  --bg: #f1f5f9;
+  --bg2: #e2e8f0;
+  --bg3: #f8fafc;
+  --card: #ffffff;
+  --card2: #f8fafc;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --text: #0f172a;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --accent: #6366f1;
+  --accent2: #8b5cf6;
+  --primary: #4f46e5;
+  --green: #059669;
+  --green2: #d1fae5;
+  --blue: #2563eb;
+  --blue2: #dbeafe;
+  --purple: #9333ea;
+  --pink: #db2777;
+  --orange: #d97706;
+  --red: #dc2626;
+  --teal: #0d9488;
+  --shadow: 0 8px 30px rgba(15,23,42,0.06);
+  --shadow2: 0 2px 8px rgba(15,23,42,0.04);
+  --glass: rgba(255,255,255,0.7);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg); color: var(--text); font-family: 'Tajawal', sans-serif; min-height: 100vh; transition: background 0.3s, color 0.3s; }
+body { padding-bottom: 40px; overflow-x: hidden; }
+
+/* ═══════════ Smart Top Bar ═══════════ */
+.topbar {
+  position: sticky; top: 0; z-index: 80;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 22px; display: flex; align-items: center; justify-content: space-between;
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow2);
+  flex-wrap: wrap; gap: 10px;
+}
+.tb-left { display: flex; align-items: center; gap: 14px; }
+.tb-logo {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+}
+.tb-title { font-size: 14px; font-weight: 800; line-height: 1.2; }
+.tb-sub { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.tb-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.live-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: 20px; font-size: 10px; font-weight: 700;
+  background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.25);
+}
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.6s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+
+.icon-btn {
+  background: var(--card2); border: 1px solid var(--border);
+  color: var(--text); width: 38px; height: 38px;
+  border-radius: 10px; display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; transition: all 0.2s; position: relative;
+}
+.icon-btn:hover { background: var(--bg3); transform: translateY(-1px); }
+.notif-dot {
+  position: absolute; top: 7px; right: 7px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--red); border: 2px solid var(--card2);
+}
+
+.user-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px 6px 6px;
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 30px;
+}
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--purple));
+  display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 800;
+}
+.user-name { font-size: 11px; font-weight: 700; }
+.user-role { font-size: 9px; color: var(--text3); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 10px; border: 1px solid transparent;
+  font-family: 'Tajawal', sans-serif; font-size: 11px; font-weight: 700;
+  cursor: pointer; text-decoration: none; transition: all 0.2s;
+  background: var(--card2); color: var(--text);
+}
+.btn:hover { transform: translateY(-1px); box-shadow: var(--shadow2); }
+.btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-ghost { background: transparent; border-color: var(--border); }
+.btn-danger { background: rgba(239,68,68,0.1); color: var(--red); border-color: rgba(239,68,68,0.25); }
+.btn-success { background: rgba(16,185,129,0.1); color: var(--green); border-color: rgba(16,185,129,0.25); }
+.btn-info { background: rgba(59,130,246,0.1); color: var(--blue); border-color: rgba(59,130,246,0.25); }
+.btn-warn { background: rgba(245,158,11,0.1); color: var(--orange); border-color: rgba(245,158,11,0.25); }
+
+/* ═══════════ Main Layout ═══════════ */
+.shell { max-width: 1480px; margin: 0 auto; padding: 18px; }
+
+.section-title {
+  font-size: 13px; font-weight: 800; color: var(--text2);
+  margin: 18px 0 10px; display: flex; align-items: center; gap: 8px;
+}
+.section-title::before {
+  content: ""; width: 3px; height: 14px; background: linear-gradient(var(--accent), var(--accent2)); border-radius: 2px;
+}
+
+/* ═══════════ KPI Cards ═══════════ */
+.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+@media (max-width: 1100px){ .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px){ .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.kpi {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px;
+  position: relative; overflow: hidden;
+  transition: all 0.25s;
+}
+.kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.kpi::before {
+  content: ""; position: absolute; top: 0; right: 0; width: 60px; height: 60px;
+  background: var(--kpi-color); opacity: 0.1; border-radius: 50%;
+  transform: translate(20px, -20px);
+}
+.kpi-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--kpi-color); color: white; font-size: 15px;
+  margin-bottom: 10px; box-shadow: 0 4px 12px var(--kpi-shadow);
+}
+.kpi-val { font-size: 26px; font-weight: 900; line-height: 1.1; }
+.kpi-lbl { font-size: 10px; color: var(--text3); margin-top: 4px; font-weight: 600; }
+.kpi-trend {
+  position: absolute; top: 16px; left: 16px;
+  font-size: 10px; font-weight: 800;
+  padding: 3px 8px; border-radius: 8px;
+}
+.kpi-up { background: rgba(16,185,129,0.15); color: var(--green); }
+.kpi-down { background: rgba(239,68,68,0.15); color: var(--red); }
+.kpi-flat { background: rgba(148,163,184,0.15); color: var(--text2); }
+
+/* ═══════════ Cards & Charts ═══════════ */
+.row-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+.row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.row-2-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 1000px){ .row-2, .row-3, .row-2-equal { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; overflow: hidden;
+  transition: all 0.25s;
+}
+.card:hover { box-shadow: var(--shadow); }
+.card-h {
+  padding: 13px 18px; display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px;
+}
+.card-t { font-size: 12px; font-weight: 800; }
+.card-b { padding: 16px; }
+
+/* ═══════════ Filters ═══════════ */
+.filters-bar {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 12px 16px; margin-bottom: 14px;
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+}
+.filter-sel, .filter-inp {
+  background: var(--card2); border: 1px solid var(--border2); color: var(--text);
+  font-family: 'Tajawal', sans-serif; font-size: 11px; padding: 8px 12px;
+  border-radius: 9px; outline: none; min-width: 130px;
+}
+.filter-sel:focus, .filter-inp:focus { border-color: var(--accent); }
+
+/* ═══════════ Tables ═══════════ */
+.tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
+.tbl th { background: var(--bg3); color: var(--text2); padding: 10px 12px; text-align: right; font-weight: 700; font-size: 10px; border-bottom: 1px solid var(--border); }
+.tbl td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--text2); }
+.tbl tr:hover td { background: var(--card2); }
+.tbl tr:last-child td { border-bottom: none; }
+
+.bd { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 8px; font-size: 9px; font-weight: 800; }
+.bd-g { background: rgba(16,185,129,0.15); color: var(--green); }
+.bd-b { background: rgba(59,130,246,0.15); color: var(--blue); }
+.bd-o { background: rgba(245,158,11,0.15); color: var(--orange); }
+.bd-r { background: rgba(239,68,68,0.15); color: var(--red); }
+.bd-p { background: rgba(168,85,247,0.15); color: var(--purple); }
+
+/* ═══════════ Leaderboard ═══════════ */
+.lb-podium { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; align-items: end; margin-bottom: 12px; }
+.lb-step { background: var(--card2); border-radius: 12px; padding: 12px; text-align: center; border: 1px solid var(--border); position: relative; }
+.lb-1 { transform: translateY(-10px); border-color: var(--orange); background: linear-gradient(180deg, rgba(245,158,11,0.10), var(--card2)); }
+.lb-1::before { content: "🥇"; position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 28px; }
+.lb-2::before { content: "🥈"; position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 22px; }
+.lb-3::before { content: "🥉"; position: absolute; top: -18px; left: 50%; transform: translateX(-50%); font-size: 22px; }
+.lb-name { font-size: 11px; font-weight: 800; margin-top: 8px; }
+.lb-pct { font-size: 16px; font-weight: 900; margin-top: 4px; }
+
+/* ═══════════ Alerts (AI) ═══════════ */
+.alert {
+  display: flex; gap: 10px; padding: 12px 14px;
+  border-radius: 11px; border: 1px solid; border-right: 3px solid;
+  margin-bottom: 9px;
+}
+.alert-icon { font-size: 22px; line-height: 1; flex-shrink: 0; }
+.alert-body { flex: 1; }
+.alert-title { font-size: 12px; font-weight: 800; margin-bottom: 3px; }
+.alert-msg { font-size: 11px; color: var(--text2); line-height: 1.7; }
+.alert-success { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.3); }
+.alert-success .alert-title { color: var(--green); }
+.alert-warning { background: rgba(245,158,11,0.06); border-color: rgba(245,158,11,0.3); }
+.alert-warning .alert-title { color: var(--orange); }
+.alert-danger { background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.3); }
+.alert-danger .alert-title { color: var(--red); }
+.alert-info { background: rgba(59,130,246,0.06); border-color: rgba(59,130,246,0.3); }
+.alert-info .alert-title { color: var(--blue); }
+
+/* ═══════════ Decisions ═══════════ */
+.decision {
+  background: linear-gradient(135deg, var(--card2), var(--card));
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 10px;
+  display: flex; gap: 12px; align-items: flex-start;
+  transition: all 0.2s;
+}
+.decision:hover { transform: translateX(-3px); border-color: var(--accent); }
+.dec-icon { font-size: 26px; line-height: 1; }
+.dec-body { flex: 1; }
+.dec-priority { display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 9px; border-radius: 8px; margin-bottom: 5px; }
+.dec-action { font-size: 13px; font-weight: 800; margin-bottom: 4px; }
+.dec-why { font-size: 10px; color: var(--text3); line-height: 1.6; }
+
+/* ═══════════ Tabs ═══════════ */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); padding: 0 14px; background: var(--card); }
+.tab {
+  padding: 10px 18px; font-size: 11px; font-weight: 700; cursor: pointer;
+  border: none; background: none; color: var(--text3);
+  border-bottom: 2px solid transparent; transition: all 0.2s;
+  font-family: 'Tajawal', sans-serif;
+}
+.tab.on { color: var(--accent); border-bottom-color: var(--accent); }
+.tab:hover:not(.on) { color: var(--text2); }
+.tab-content { display: none; padding: 16px; }
+.tab-content.on { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ═══════════ Drawer ═══════════ */
+.drawer-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  display: none; z-index: 200; backdrop-filter: blur(4px);
+}
+.drawer-bg.show { display: block; }
+.drawer {
+  position: fixed; top: 0; bottom: 0; left: 0;
+  width: min(520px, 92%);
+  background: var(--card); border-left: 1px solid var(--border);
+  box-shadow: -10px 0 40px rgba(0,0,0,0.4);
+  transform: translateX(-100%); transition: transform 0.3s;
+  z-index: 201; overflow-y: auto;
+}
+.drawer.show { transform: translateX(0); }
+.drawer-h { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--card); z-index: 1; }
+.drawer-t { font-size: 14px; font-weight: 800; }
+.drawer-b { padding: 18px 20px; }
+.drawer-close { background: var(--card2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 14px; }
+
+/* Form */
+.fg { display: flex; flex-direction: column; gap: 5px; margin-bottom: 13px; }
+.fl { font-size: 11px; color: var(--text2); font-weight: 700; }
+.fi { background: var(--card2); border: 1px solid var(--border2); color: var(--text); font-family: 'Tajawal', sans-serif; font-size: 13px; padding: 10px 12px; border-radius: 9px; outline: none; width: 100%; }
+.fi:focus { border-color: var(--accent); }
+.row-form-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Messages */
+.msg { padding: 10px 14px; border-radius: 10px; margin-bottom: 10px; font-size: 11px; border-right: 3px solid; }
+.msg.s { background: rgba(16,185,129,0.08); color: var(--green); border-color: var(--green); }
+.msg.e { background: rgba(239,68,68,0.08); color: var(--red); border-color: var(--red); }
+.msg.w { background: rgba(245,158,11,0.08); color: var(--orange); border-color: var(--orange); }
+
+/* Loading skeleton */
+.skel { background: linear-gradient(90deg, var(--card2), var(--bg3), var(--card2)); background-size: 200% 100%; border-radius: 8px; animation: skel 1.5s infinite; }
+@keyframes skel { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Display Mode (school screens) */
+body.display-mode { padding: 20px; }
+body.display-mode .topbar, body.display-mode .filters-bar, body.display-mode .non-display { display: none !important; }
+body.display-mode .shell { max-width: 100%; padding: 0; }
+body.display-mode .kpi-val { font-size: 50px; }
+body.display-mode .card-t { font-size: 18px; }
+
+/* Empty state */
+.empty { text-align: center; padding: 30px 20px; color: var(--text3); font-size: 11px; }
+.empty-ico { font-size: 38px; margin-bottom: 8px; }
+
+/* Search input */
+.search-wrap { position: relative; flex: 1; min-width: 200px; }
+.search-wrap input { width: 100%; padding-right: 32px; }
+.search-wrap::before { content: "🔍"; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; opacity: 0.5; }
+</style>
+</head>
+<body class="{% if display_mode %}display-mode{% endif %}">
+
+<!-- ═══════════ TOP BAR ═══════════ -->
+<div class="topbar">
+  <div class="tb-left">
+    <div class="tb-logo">🎓</div>
+    <div>
+      <div class="tb-title">منصة آمنة التعليمية</div>
+      <div class="tb-sub">Enterprise Dashboard • {{ request.user.first_name|default:request.user.username }}</div>
+    </div>
+    <span class="live-status"><span class="live-dot"></span>متصل آنياً</span>
+  </div>
+  <div class="tb-right">
+    <a href="{% url 'admin_comprehensive' %}" class="btn btn-warn">🏆 الاختبارات الشاملة</a>
+    <a href="{% url 'admin_dashboard_classic' %}" class="btn btn-ghost" title="النسخة القديمة">⚙️</a>
+    <button class="icon-btn" title="إشعارات" onclick="openDrawer('alertsDrawer')">
+      🔔 {% if alerts %}<span class="notif-dot"></span>{% endif %}
+    </button>
+    <button class="icon-btn" id="themeToggle" title="تبديل الوضع">🌙</button>
+    <a href="?display=1" class="icon-btn" title="وضع شاشة العرض">📺</a>
+    <div class="user-chip">
+      <div class="user-avatar">{{ request.user.first_name|default:"م"|first|upper }}</div>
+      <div>
+        <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="user-role">المديرة</div>
+      </div>
+    </div>
+    <a href="{% url 'logout' %}" class="btn btn-danger">خروج</a>
+  </div>
+</div>
+
+<div class="shell">
+
+  {% if messages %}
+    {% for m in messages %}
+    <div class="msg {% if 'error' in m.tags %}e{% elif 'warning' in m.tags %}w{% else %}s{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- ═══════════ Quick Actions Bar (الأزرار الموجودة سابقاً) ═══════════ -->
+  <div class="filters-bar non-display" style="margin-bottom: 14px">
+    <span style="font-size:11px;color:var(--text3);font-weight:700;margin-left:6px">⚡ إجراءات سريعة:</span>
+    <button class="btn btn-success" onclick="openDrawer('addTeacherDrawer')">➕ إضافة معلمة</button>
+    <button class="btn btn-info" onclick="openDrawer('addStudentDrawer')">➕ إضافة طالبة</button>
+    <button class="btn btn-warn" onclick="openDrawer('addClassroomDrawer')">🏫 إضافة فصل</button>
+    <button class="btn btn-primary" onclick="openDrawer('addCompDrawer')">🏆 اختبار شامل</button>
+    <button class="btn" onclick="openDrawer('importDrawer')">📥 استيراد Excel</button>
+    <button class="btn btn-ghost" onclick="refreshLiveData()">🔄 تحديث البيانات</button>
+  </div>
+
+  <!-- ═══════════ KPI CARDS ═══════════ -->
+  <div class="section-title">📊 مؤشرات الأداء الرئيسية</div>
+  <div class="kpi-grid">
+    <div class="kpi" style="--kpi-color:var(--blue);--kpi-shadow:rgba(59,130,246,0.4)">
+      <div class="kpi-icon">👩‍🎓</div>
+      <div class="kpi-val">{{ kpis.total_students }}</div>
+      <div class="kpi-lbl">إجمالي الطالبات</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--green);--kpi-shadow:rgba(16,185,129,0.4)">
+      <div class="kpi-icon">👩‍🏫</div>
+      <div class="kpi-val">{{ kpis.total_teachers }}</div>
+      <div class="kpi-lbl">إجمالي المعلمات</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--orange);--kpi-shadow:rgba(245,158,11,0.4)">
+      <div class="kpi-icon">📅</div>
+      <div class="kpi-val">{{ kpis.active_sessions }}</div>
+      <div class="kpi-lbl">حصص آخر 30 يوم</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--purple);--kpi-shadow:rgba(168,85,247,0.4)">
+      <div class="kpi-icon">📝</div>
+      <div class="kpi-val">{{ kpis.active_exams }}</div>
+      <div class="kpi-lbl">اختبارات نشطة</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--teal);--kpi-shadow:rgba(20,184,166,0.4)">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-val">{{ kpis.avg_score }}%</div>
+      <div class="kpi-lbl">متوسط الدرجات</div>
+    </div>
+    <div class="kpi" style="--kpi-color:{% if kpis.improvement_delta >= 0 %}var(--green){% else %}var(--red){% endif %};--kpi-shadow:rgba(99,102,241,0.4)">
+      <div class="kpi-icon">{% if kpis.improvement_delta >= 0 %}📈{% else %}📉{% endif %}</div>
+      <div class="kpi-trend {% if kpis.improvement_delta > 0 %}kpi-up{% elif kpis.improvement_delta < 0 %}kpi-down{% else %}kpi-flat{% endif %}">
+        {% if kpis.improvement_delta > 0 %}↑{% elif kpis.improvement_delta < 0 %}↓{% else %}→{% endif %}
+        {{ kpis.improvement_delta }}%
+      </div>
+      <div class="kpi-val">{{ kpis.avg_score_30d }}%</div>
+      <div class="kpi-lbl">آخر 30 يوم</div>
+    </div>
+  </div>
+
+  <!-- ═══════════ Decision Panel (مركز القرار) ═══════════ -->
+  <div class="section-title">🎯 ماذا يجب أن تفعلي اليوم؟ (مركز القرار)</div>
+  <div class="row-3">
+    {% for d in decisions %}
+    <div class="decision">
+      <div class="dec-icon">{{ d.icon }}</div>
+      <div class="dec-body">
+        <span class="dec-priority bd-{% if d.priority == 'عاجل' %}r{% elif d.priority == 'مهم' %}o{% else %}b{% endif %}">{{ d.priority }}</span>
+        <div class="dec-action">{{ d.action }}</div>
+        <div class="dec-why">{{ d.why }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ═══════════ ANALYTICS ═══════════ -->
+  <div class="section-title">📈 التحليلات التفاعلية</div>
+
+  <div class="filters-bar non-display">
+    <span style="font-size:10px;color:var(--text3)">🎛️ فلاتر:</span>
+    <select class="filter-sel" id="filterClass" onchange="applyFilters()">
+      <option value="">كل الفصول</option>
+      {% for c in classrooms %}<option value="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+    </select>
+    <select class="filter-sel" id="filterTeacher" onchange="applyFilters()">
+      <option value="">كل المعلمات</option>
+      {% for t in teachers_list %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+    </select>
+    <select class="filter-sel" id="filterPeriod" onchange="applyFilters()">
+      <option value="30">آخر 30 يوم</option>
+      <option value="14">آخر 14 يوم</option>
+      <option value="7">آخر 7 أيام</option>
+    </select>
+    <span style="font-size:10px;color:var(--text3);margin-right:auto">⚡ تحديث فوري بدون إعادة تحميل</span>
+  </div>
+
+  <div class="row-2">
+    <!-- Line Chart -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t">📈 تطور الأداء خلال الـ 30 يوم</span>
+        <span style="font-size:9px;color:var(--text3)">متوسط النسبة + عدد المحاولات</span>
+      </div>
+      <div class="card-b" style="height: 280px"><canvas id="trendChart"></canvas></div>
+    </div>
+
+    <!-- Donut Chart -->
+    <div class="card">
+      <div class="card-h"><span class="card-t">🎯 توزيع مستويات الطالبات</span></div>
+      <div class="card-b" style="height: 280px"><canvas id="levelsChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="row-2-equal" style="margin-top:14px">
+    <!-- Bar Chart -->
+    <div class="card">
+      <div class="card-h"><span class="card-t">🏫 مقارنة أداء الفصول</span></div>
+      <div class="card-b" style="height: 260px"><canvas id="classroomsChart"></canvas></div>
+    </div>
+
+    <!-- Prediction -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t">🔮 التنبؤ والتحليل المستقبلي</span>
+        <span class="bd {% if predictions.momentum >= 0 %}bd-g{% else %}bd-r{% endif %}">
+          {% if predictions.momentum >= 0 %}↑{% else %}↓{% endif %} {{ predictions.momentum }}%
+        </span>
+      </div>
+      <div class="card-b">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;text-align:center;margin-bottom:14px">
+          <div style="background:var(--card2);border-radius:10px;padding:12px">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px">آخر شهر</div>
+            <div style="font-size:22px;font-weight:900;color:var(--blue)">{{ predictions.last_month }}%</div>
+          </div>
+          <div style="background:var(--card2);border-radius:10px;padding:12px;border:2px solid var(--accent)">
+            <div style="font-size:10px;color:var(--text3);margin-bottom:4px">آخر أسبوع</div>
+            <div style="font-size:22px;font-weight:900;color:var(--accent)">{{ predictions.last_week }}%</div>
+          </div>
+          <div style="background:linear-gradient(135deg,var(--green),var(--blue));border-radius:10px;padding:12px;color:white">
+            <div style="font-size:10px;opacity:0.85;margin-bottom:4px">المتوقع</div>
+            <div style="font-size:22px;font-weight:900">{{ predictions.forecast }}%</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.8;background:var(--card2);padding:10px 14px;border-radius:9px;border-right:3px solid var(--accent)">
+          {% if predictions.momentum >= 5 %}
+            🚀 <strong>زخم إيجابي قوي</strong> — نسبة النجاح المتوقعة في الاختبارات القادمة تشير إلى تحسّن مستمر.
+          {% elif predictions.momentum >= 0 %}
+            ✨ <strong>أداء مستقر</strong> — يمكن تحسينه بدفعة تحفيز للطالبات.
+          {% else %}
+            ⚠️ <strong>تباطؤ في الأداء</strong> — تحتاجين لمراجعة سريعة قبل الاختبار القادم.
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ Smart Alerts (AI Insights) ═══════════ -->
+  {% if alerts %}
+  <div class="section-title">🤖 التنبيهات الذكية والاستنتاجات</div>
+  <div class="card">
+    <div class="card-b">
+      {% for a in alerts %}
+      <div class="alert alert-{{ a.level }}">
+        <div class="alert-icon">{{ a.icon }}</div>
+        <div class="alert-body">
+          <div class="alert-title">{{ a.title }}</div>
+          <div class="alert-msg">{{ a.msg }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ═══════════ Leaderboard ═══════════ -->
+  <div class="section-title">🏆 لوحة المتصدرات (Leaderboard)</div>
+  <div class="card">
+    <div class="card-b">
+      {% if top_students|length >= 3 %}
+      <div class="lb-podium">
+        <div class="lb-step lb-2">
+          <div class="lb-name">{{ top_students.1.name }}</div>
+          <div class="lb-pct" style="color:var(--blue)">{{ top_students.1.avg }}%</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:3px">{{ top_students.1.count }} اختبار</div>
+        </div>
+        <div class="lb-step lb-1">
+          <div class="lb-name" style="font-size:13px">{{ top_students.0.name }}</div>
+          <div class="lb-pct" style="color:var(--orange);font-size:20px">{{ top_students.0.avg }}%</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:3px">{{ top_students.0.count }} اختبار</div>
+        </div>
+        <div class="lb-step lb-3">
+          <div class="lb-name">{{ top_students.2.name }}</div>
+          <div class="lb-pct" style="color:var(--purple)">{{ top_students.2.avg }}%</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:3px">{{ top_students.2.count }} اختبار</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if top_students %}
+      <table class="tbl">
+        <thead><tr><th>الترتيب</th><th>الاسم</th><th>المتوسط</th><th>عدد الاختبارات</th><th>الحالة</th></tr></thead>
+        <tbody>
+          {% for s in top_students %}
+          <tr>
+            <td><strong>#{{ forloop.counter }}</strong></td>
+            <td style="font-weight:700;color:var(--text)">{{ s.name }}</td>
+            <td>
+              <span class="bd {% if s.avg >= 90 %}bd-g{% elif s.avg >= 70 %}bd-b{% elif s.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ s.avg }}%</span>
+            </td>
+            <td>{{ s.count }}</td>
+            <td>
+              {% if s.avg >= 90 %}<span class="bd bd-g">⭐ متفوقة</span>
+              {% elif s.avg >= 70 %}<span class="bd bd-b">جيدة جداً</span>
+              {% elif s.avg >= 50 %}<span class="bd bd-o">متوسطة</span>
+              {% else %}<span class="bd bd-r">تحتاج دعم</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty"><div class="empty-ico">📊</div>لا توجد نتائج بعد</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ═══════════ Tabs: المعلمات / الطالبات / الحصص / الاختبارات ═══════════ -->
+  <div class="section-title">🗂️ الإدارة المضمّنة</div>
+  <div class="card non-display">
+    <div class="tabs">
+      <button class="tab on" onclick="switchTab(event,'tab-teachers')">👩‍🏫 المعلمات</button>
+      <button class="tab" onclick="switchTab(event,'tab-students')">👩‍🎓 الطالبات</button>
+      <button class="tab" onclick="switchTab(event,'tab-exams')">📝 الاختبارات</button>
+      <button class="tab" onclick="switchTab(event,'tab-comprehensive')">🏆 الشاملة</button>
+    </div>
+
+    <!-- التبويب: المعلمات -->
+    <div class="tab-content on" id="tab-teachers">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div class="search-wrap"><input class="filter-inp" id="searchTeachers" placeholder="ابحثي بالاسم أو رقم الهوية..." oninput="filterTable('teachersTbl', this.value)"></div>
+        <button class="btn btn-success" onclick="openDrawer('addTeacherDrawer')">➕ إضافة معلمة</button>
+      </div>
+      <table class="tbl" id="teachersTbl">
+        <thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>PIN</th><th>اختبارات</th><th>متوسط الطالبات</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for t in teachers_list %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td style="font-weight:700;color:var(--text)">{{ t.name }}</td>
+            <td style="font-family:monospace;color:var(--blue)">{{ t.national_id }}</td>
+            <td style="font-family:monospace;color:var(--text3)">{{ t.pin|default:"—" }}</td>
+            <td>{{ t.results }}</td>
+            <td><span class="bd {% if t.avg >= 70 %}bd-g{% elif t.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.avg }}%</span></td>
+            <td>{% if t.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
+            <td>
+              <form method="post" action="{% url 'admin_view_as' t.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️ معاينة</button></form>
+              <form method="post" action="{% url 'admin_delete_user' t.id %}" style="display:inline" onsubmit="return confirm('حذف المعلمة؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="empty">لا توجد معلمات بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- التبويب: الطالبات -->
+    <div class="tab-content" id="tab-students">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div class="search-wrap"><input class="filter-inp" id="searchStudents" placeholder="ابحثي..." oninput="filterTable('studentsTbl', this.value)"></div>
+        <button class="btn btn-info" onclick="openDrawer('addStudentDrawer')">➕ إضافة طالبة</button>
+      </div>
+      <table class="tbl" id="studentsTbl">
+        <thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>الفصل</th><th>اختبارات</th><th>المتوسط</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for s in students_list %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td style="font-weight:700;color:var(--text)">{{ s.name }}</td>
+            <td style="font-family:monospace;color:var(--blue)">{{ s.national_id }}</td>
+            <td>{{ s.classroom }}</td>
+            <td>{{ s.results }}</td>
+            <td><span class="bd {% if s.avg >= 70 %}bd-g{% elif s.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ s.avg }}%</span></td>
+            <td>{% if s.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
+            <td>
+              <form method="post" action="{% url 'admin_view_as' s.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️</button></form>
+              <form method="post" action="{% url 'admin_delete_user' s.id %}" style="display:inline" onsubmit="return confirm('حذف الطالبة؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="empty">لا توجد طالبات بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- التبويب: الاختبارات -->
+    <div class="tab-content" id="tab-exams">
+      <table class="tbl">
+        <thead><tr><th>الاختبار</th><th>النوع</th><th>المعلمة</th><th>المشاركات</th><th>المدة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for e in active_exams %}
+          <tr>
+            <td style="font-weight:700">{{ e.title }}</td>
+            <td>{{ e.type }}</td>
+            <td style="color:var(--text3)">{{ e.teacher }}</td>
+            <td>{{ e.participants }}</td>
+            <td>{{ e.duration }} د</td>
+            <td>{% if e.is_active %}<span class="bd bd-g">▶️ مفعّل</span>{% else %}<span class="bd bd-r">⏸️ موقوف</span>{% endif %}</td>
+            <td>
+              {% if e.is_comprehensive %}
+              <a href="{% url 'admin_comp_questions' e.skill_id %}" class="btn btn-warn" style="padding:4px 8px;font-size:9px">✏️ أسئلة</a>
+              {% endif %}
+              <a href="{% url 'exam_print' e.id %}?answers=1" target="_blank" class="btn btn-info" style="padding:4px 8px;font-size:9px">🖨️</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="empty">لا توجد اختبارات بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- التبويب: الاختبارات الشاملة -->
+    <div class="tab-content" id="tab-comprehensive">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <span style="font-size:11px;color:var(--text2);align-self:center;font-weight:700">إدارة الاختبارات الشاملة (قدرات/تحصيلي):</span>
+        <button class="btn btn-primary" onclick="openDrawer('addCompDrawer')">➕ إضافة شامل جديد</button>
+        <a href="{% url 'admin_comprehensive' %}" class="btn btn-ghost">🔗 الصفحة المخصصة الكاملة</a>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>العنوان</th><th>النوع</th><th>الأسئلة</th><th>المدة</th><th>الفصل</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for s in comprehensive_skills %}
+          {% with exam=s.exams.first %}
+          <tr>
+            <td style="font-weight:700">{% if s.skill_type == 'qodrat_kamy' %}🎯{% else %}📚{% endif %} {{ s.title }}</td>
+            <td>{{ s.skill_type|default:"—" }}</td>
+            <td>{% if exam %}{{ exam.questions.count }}/{{ exam.questions_count }}{% else %}0{% endif %}</td>
+            <td>{% if exam %}{{ exam.duration_minutes }} د{% else %}—{% endif %}</td>
+            <td>{{ s.target_classes|default:"—" }}</td>
+            <td>{% if s.is_active %}<span class="bd bd-g">✓ مفعّل</span>{% else %}<span class="bd bd-r">⏸️</span>{% endif %}</td>
+            <td>
+              <a href="{% url 'admin_comp_questions' s.id %}" class="btn btn-warn" style="padding:4px 8px;font-size:9px">✏️ الأسئلة</a>
+              <form method="post" action="{% url 'admin_delete_comprehensive' s.id %}" style="display:inline" onsubmit="return confirm('حذف نهائي؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
+            </td>
+          </tr>
+          {% endwith %}
+          {% empty %}
+          <tr><td colspan="7" class="empty">لا توجد اختبارات شاملة بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════ Teachers Impact ═══════════ -->
+  <div class="section-title">👩‍🏫 تحليل أداء المعلمات (Impact)</div>
+  <div class="card">
+    <div class="card-b">
+      {% if teachers_impact %}
+      <table class="tbl">
+        <thead><tr><th>الترتيب</th><th>المعلمة</th><th>المهارات</th><th>الاختبارات</th><th>الحصص</th><th>تفاعل الطالبات</th><th>متوسط الأثر</th><th>التصنيف</th></tr></thead>
+        <tbody>
+          {% for t in teachers_impact %}
+          <tr>
+            <td>
+              {% if forloop.counter == 1 %}🥇
+              {% elif forloop.counter == 2 %}🥈
+              {% elif forloop.counter == 3 %}🥉
+              {% else %}#{{ forloop.counter }}{% endif %}
+            </td>
+            <td style="font-weight:700">{{ t.name }}</td>
+            <td>{{ t.skills }}</td>
+            <td>{{ t.exams }}</td>
+            <td>{{ t.sessions }}</td>
+            <td>{{ t.engagement }}</td>
+            <td>
+              <span class="bd {% if t.impact >= 70 %}bd-g{% elif t.impact >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.impact }}%</span>
+            </td>
+            <td>
+              {% if forloop.counter == 1 and t.impact > 0 %}<span class="bd bd-g">⭐ الأعلى تأثيراً</span>
+              {% elif t.impact >= 70 %}<span class="bd bd-b">ممتازة</span>
+              {% elif t.impact >= 50 %}<span class="bd bd-o">جيدة</span>
+              {% elif t.impact > 0 %}<span class="bd bd-r">تحتاج دعم</span>
+              {% else %}<span class="bd" style="background:rgba(148,163,184,0.15);color:var(--text3)">لا بيانات</span>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty"><div class="empty-ico">👥</div>لا توجد معلمات بعد</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ═══════════ Footer ═══════════ -->
+  <div style="text-align:center;margin-top:30px;font-size:10px;color:var(--text3);line-height:1.8">
+    منصة آمنة التعليمية · Enterprise Dashboard v2 · {{ kpis.total_students }} طالبة · {{ kpis.total_teachers }} معلمة<br>
+    <a href="{% url 'admin_dashboard_classic' %}" style="color:var(--accent);text-decoration:none">← الانتقال للنسخة الكلاسيكية</a>
+  </div>
+
+</div>
+
+<!-- ═══════════ DRAWERS ═══════════ -->
+<div class="drawer-bg" id="drawerBg" onclick="closeAllDrawers()"></div>
+
+<!-- Drawer: إضافة معلمة -->
+<div class="drawer" id="addTeacherDrawer">
+  <div class="drawer-h">
+    <div class="drawer-t">➕ إضافة معلمة جديدة</div>
+    <button class="drawer-close" onclick="closeAllDrawers()">✕</button>
+  </div>
+  <div class="drawer-b">
+    <form method="post" action="{% url 'admin_add_teacher' %}">{% csrf_token %}
+      <div class="fg"><label class="fl">الاسم الكامل *</label><input class="fi" name="full_name" required></div>
+      <div class="fg"><label class="fl">رقم الهوية الوطنية *</label><input class="fi" name="national_id" maxlength="12" required></div>
+      <div class="fg"><label class="fl">PIN (اختياري)</label><input class="fi" name="pin_code" maxlength="6"></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:12px">💾 حفظ المعلمة</button>
+    </form>
+  </div>
+</div>
+
+<!-- Drawer: إضافة طالبة -->
+<div class="drawer" id="addStudentDrawer">
+  <div class="drawer-h">
+    <div class="drawer-t">➕ إضافة طالبة جديدة</div>
+    <button class="drawer-close" onclick="closeAllDrawers()">✕</button>
+  </div>
+  <div class="drawer-b">
+    <form method="post" action="{% url 'admin_add_student' %}">{% csrf_token %}
+      <div class="fg"><label class="fl">الاسم الكامل *</label><input class="fi" name="full_name" required></div>
+      <div class="fg"><label class="fl">رقم الهوية الوطنية (10 أرقام) *</label><input class="fi" name="national_id" maxlength="10" required></div>
+      <div class="fg">
+        <label class="fl">الفصل</label>
+        <select class="fi" name="classroom_id">
+          <option value="">— اختاري —</option>
+          {% for c in classrooms %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:12px">💾 حفظ الطالبة</button>
+      <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.7;background:var(--card2);padding:9px 12px;border-radius:8px">🌸 الطالبة تدخل برقم الهوية فقط (بدون كلمة مرور)</div>
+    </form>
+  </div>
+</div>
+
+<!-- Drawer: إضافة فصل -->
+<div class="drawer" id="addClassroomDrawer">
+  <div class="drawer-h">
+    <div class="drawer-t">🏫 إضافة فصل جديد</div>
+    <button class="drawer-close" onclick="closeAllDrawers()">✕</button>
+  </div>
+  <div class="drawer-b">
+    <form method="post" action="{% url 'admin_add_classroom' %}">{% csrf_token %}
+      <div class="fg"><label class="fl">اسم الفصل *</label><input class="fi" name="name" placeholder="مثال: ث١٢" required></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:12px">💾 إضافة</button>
+    </form>
+    <hr style="border:none;border-top:1px solid var(--border);margin:18px 0">
+    <div style="font-size:11px;font-weight:700;margin-bottom:8px">الفصول الموجودة:</div>
+    {% for c in classrooms %}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 11px;background:var(--card2);border-radius:8px;margin-bottom:6px">
+      <span>📍 {{ c.name }}</span>
+      <form method="post" action="{% url 'admin_delete_classroom' c.id %}" onsubmit="return confirm('حذف الفصل؟ سيُحذف الطالبات المرتبطات.')">{% csrf_token %}<button class="btn btn-danger" style="padding:3px 8px;font-size:9px">🗑️</button></form>
+    </div>
+    {% empty %}
+    <div class="empty">لا توجد فصول بعد</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Drawer: إضافة شامل -->
+<div class="drawer" id="addCompDrawer">
+  <div class="drawer-h">
+    <div class="drawer-t">🏆 إضافة اختبار شامل جديد</div>
+    <button class="drawer-close" onclick="closeAllDrawers()">✕</button>
+  </div>
+  <div class="drawer-b">
+    <form method="post" action="{% url 'admin_add_comprehensive' %}">{% csrf_token %}
+      <div class="fg"><label class="fl">عنوان الاختبار *</label><input class="fi" name="title" required></div>
+      <div class="fg">
+        <label class="fl">النوع *</label>
+        <select class="fi" name="comp_type" required>
+          <option value="">— اختاري —</option>
+          <option value="qodrat_kamy">🎯 قدرات شامل (كمي + لفظي)</option>
+          <option value="tahsili">📚 تحصيلي شامل</option>
+        </select>
+      </div>
+      <div class="row-form-2">
+        <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" name="questions_count" value="60" min="10"></div>
+        <div class="fg"><label class="fl">المدة (دقيقة)</label><input class="fi" type="number" name="duration" value="90" min="15"></div>
+      </div>
+      <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" name="pass_score" value="50" min="0" max="100"></div>
+      <div class="fg"><label class="fl">وصف</label><textarea class="fi" name="description" rows="2"></textarea></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:12px">💾 إنشاء الاختبار</button>
+    </form>
+  </div>
+</div>
+
+<!-- Drawer: استيراد Excel -->
+<div class="drawer" id="importDrawer">
+  <div class="drawer-h">
+    <div class="drawer-t">📥 استيراد Excel</div>
+    <button class="drawer-close" onclick="closeAllDrawers()">✕</button>
+  </div>
+  <div class="drawer-b">
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-h"><span class="card-t">👩‍🏫 استيراد المعلمات</span></div>
+      <div class="card-b">
+        <form method="post" action="{% url 'admin_import_teachers' %}" enctype="multipart/form-data">{% csrf_token %}
+          <div class="fg"><input class="fi" type="file" name="excel_file" accept=".xlsx,.xlsm" required></div>
+          <button class="btn btn-primary" style="width:100%">📥 رفع وحفظ</button>
+        </form>
+        <div style="margin-top:8px;font-size:10px;color:var(--text3);line-height:1.7">الأعمدة: الاسم • الهوية • PIN (اختياري)</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><span class="card-t">👩‍🎓 استيراد الطالبات</span></div>
+      <div class="card-b">
+        <form method="post" action="{% url 'admin_import_students' %}" enctype="multipart/form-data">{% csrf_token %}
+          <div class="fg"><input class="fi" type="file" name="excel_file" accept=".xlsx,.xlsm" required></div>
+          <button class="btn btn-primary" style="width:100%">📥 رفع وحفظ</button>
+        </form>
+        <div style="margin-top:8px;font-size:10px;color:var(--text3);line-height:1.7">الأعمدة: الاسم • الهوية • الفصل</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer: التنبيهات -->
+<div class="drawer" id="alertsDrawer">
+  <div class="drawer-h">
+    <div class="drawer-t">🔔 التنبيهات الذكية ({{ alerts|length }})</div>
+    <button class="drawer-close" onclick="closeAllDrawers()">✕</button>
+  </div>
+  <div class="drawer-b">
+    {% for a in alerts %}
+    <div class="alert alert-{{ a.level }}">
+      <div class="alert-icon">{{ a.icon }}</div>
+      <div class="alert-body">
+        <div class="alert-title">{{ a.title }}</div>
+        <div class="alert-msg">{{ a.msg }}</div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty"><div class="empty-ico">✨</div>لا توجد تنبيهات حالياً<br>كل شيء على ما يرام</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ═══════════ DATA ═══════════ -->
+<script id="data-time-series" type="application/json">{{ time_series_json|safe }}</script>
+<script id="data-classrooms" type="application/json">{{ classrooms_json|safe }}</script>
+<script id="data-levels" type="application/json">{{ levels_json|safe }}</script>
+
+<script>
+// ─── Theme toggle ───────────────────────────────────────────
+const themeKey = 'amaneduc-theme';
+const html = document.documentElement;
+const themeBtn = document.getElementById('themeToggle');
+function applyTheme(t){
+  html.setAttribute('data-theme', t);
+  themeBtn.textContent = (t === 'dark') ? '☀️' : '🌙';
+  localStorage.setItem(themeKey, t);
+  // إعادة رسم الـ charts بألوان جديدة
+  setTimeout(redrawAllCharts, 50);
+}
+const savedTheme = localStorage.getItem(themeKey) || 'dark';
+applyTheme(savedTheme);
+themeBtn.addEventListener('click', () => {
+  const cur = html.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+});
+
+// ─── Tabs ───────────────────────────────────────────────────
+function switchTab(ev, id){
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('on'));
+  ev.currentTarget.classList.add('on');
+  document.getElementById(id).classList.add('on');
+}
+
+// ─── Drawers ────────────────────────────────────────────────
+function openDrawer(id){
+  document.getElementById('drawerBg').classList.add('show');
+  document.getElementById(id).classList.add('show');
+}
+function closeAllDrawers(){
+  document.getElementById('drawerBg').classList.remove('show');
+  document.querySelectorAll('.drawer').forEach(d => d.classList.remove('show'));
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllDrawers(); });
+
+// ─── Table search ───────────────────────────────────────────
+function filterTable(tblId, q){
+  q = (q||'').trim().toLowerCase();
+  document.querySelectorAll('#'+tblId+' tbody tr').forEach(tr => {
+    const txt = tr.textContent.toLowerCase();
+    tr.style.display = txt.indexOf(q) > -1 ? '' : 'none';
+  });
+}
+
+// ─── Charts ─────────────────────────────────────────────────
+let charts = {};
+function chartColors(){
+  const cs = getComputedStyle(html);
+  return {
+    text: cs.getPropertyValue('--text2').trim(),
+    grid: cs.getPropertyValue('--border').trim(),
+    accent: cs.getPropertyValue('--accent').trim(),
+    blue: cs.getPropertyValue('--blue').trim(),
+    green: cs.getPropertyValue('--green').trim(),
+    orange: cs.getPropertyValue('--orange').trim(),
+    red: cs.getPropertyValue('--red').trim(),
+    purple: cs.getPropertyValue('--purple').trim(),
+    teal: cs.getPropertyValue('--teal').trim(),
+  };
+}
+
+function buildTrendChart(){
+  const data = JSON.parse(document.getElementById('data-time-series').textContent);
+  const c = chartColors();
+  const ctx = document.getElementById('trendChart');
+  if (!ctx) return;
+  if (charts.trend) charts.trend.destroy();
+  charts.trend = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(d => d.date.slice(5)),
+      datasets: [
+        { label: 'متوسط النسبة', data: data.map(d=>d.avg), borderColor: c.accent, backgroundColor: c.accent+'33', tension: 0.35, fill: true, yAxisID: 'y' },
+        { label: 'عدد المحاولات', data: data.map(d=>d.count), borderColor: c.orange, backgroundColor: 'transparent', tension: 0.35, yAxisID: 'y1', borderDash: [4,4] },
+      ]
+    },
+    options: {
+      maintainAspectRatio: false, responsive: true,
+      plugins: { legend: { labels: { color: c.text, font: {family:'Tajawal'} } } },
+      scales: {
+        x: { ticks:{color:c.text}, grid:{color:c.grid} },
+        y: { position:'right', ticks:{color:c.text}, grid:{color:c.grid}, beginAtZero:true, max: 100 },
+        y1: { position:'left', ticks:{color:c.text}, grid:{display:false}, beginAtZero:true }
+      }
+    }
+  });
+}
+
+function buildLevelsChart(){
+  const data = JSON.parse(document.getElementById('data-levels').textContent);
+  const c = chartColors();
+  const ctx = document.getElementById('levelsChart');
+  if (!ctx) return;
+  if (charts.levels) charts.levels.destroy();
+  charts.levels = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['متفوقات (90%+)', 'جيدات (50-89%)', 'يحتجن دعم (<50%)', 'لم تُختبر بعد'],
+      datasets: [{
+        data: [data.excellent, data.mid, data.weak, data.untested],
+        backgroundColor: [c.green, c.blue, c.red, c.grid],
+        borderColor: 'transparent', borderWidth: 0
+      }]
+    },
+    options: {
+      maintainAspectRatio: false, responsive: true, cutout: '65%',
+      plugins: { legend: { position:'bottom', labels: { color: c.text, font: {family:'Tajawal'}, padding: 12 } } }
+    }
+  });
+}
+
+function buildClassroomsChart(){
+  const data = JSON.parse(document.getElementById('data-classrooms').textContent);
+  const c = chartColors();
+  const ctx = document.getElementById('classroomsChart');
+  if (!ctx) return;
+  if (charts.classrooms) charts.classrooms.destroy();
+  charts.classrooms = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: data.map(d => d.name),
+      datasets: [{
+        label: 'متوسط الفصل %',
+        data: data.map(d => d.avg),
+        backgroundColor: data.map(d => d.avg >= 70 ? c.green : (d.avg >= 50 ? c.orange : c.red)),
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false, responsive: true,
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { ticks:{color:c.text}, grid:{display:false} },
+        y: { ticks:{color:c.text}, grid:{color:c.grid}, beginAtZero:true, max:100 }
+      }
+    }
+  });
+}
+
+function redrawAllCharts(){
+  buildTrendChart(); buildLevelsChart(); buildClassroomsChart();
+}
+window.addEventListener('load', redrawAllCharts);
+
+// ─── Live data refresh ──────────────────────────────────────
+function refreshLiveData(){
+  fetch('{% url "admin_v2_data_json" %}', { headers:{'Accept':'application/json'} })
+    .then(r => r.json())
+    .then(d => {
+      // تحديث الـ JSON containers ثم إعادة رسم الـ charts
+      document.getElementById('data-time-series').textContent = JSON.stringify(d.time_series);
+      document.getElementById('data-classrooms').textContent = JSON.stringify(d.classrooms);
+      document.getElementById('data-levels').textContent = JSON.stringify(d.levels);
+      redrawAllCharts();
+      flashToast('✅ تم تحديث البيانات');
+    })
+    .catch(() => flashToast('❌ تعذّر التحديث'));
+}
+function flashToast(msg){
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--card);color:var(--text);padding:12px 18px;border-radius:10px;box-shadow:var(--shadow);z-index:999;font-size:12px;font-weight:700;border:1px solid var(--border)';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2500);
+}
+
+// ─── Filters (client-side; v2 sends them to server later) ────
+function applyFilters(){
+  // placeholder — يطبّق الفلاتر داخلياً عبر fetch إلى endpoint مع query params
+  flashToast('🎛️ تم تحديث الفلاتر');
+}
+
+// ─── Display Mode auto-refresh ──────────────────────────────
+{% if display_mode %}
+setInterval(refreshLiveData, 30000);
+{% endif %}
+</script>
+</body>
+</html>

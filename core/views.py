@@ -322,9 +322,412 @@ def deactivate_exam(request, exam_id):
 # لوحة المديرة
 # ═══════════════════════════════════════════════════════════════
 
+# ═══════════════════════════════════════════════════════════════
+# Admin V2 — Enterprise Dashboard (Single-Page)
+# ═══════════════════════════════════════════════════════════════
+
+def _v2_kpis():
+    """KPIs الرئيسية + مؤشر التحسن (مقارنة بالـ 30 يوم السابقة)."""
+    from datetime import timedelta
+    now = timezone.now()
+    last_30 = now - timedelta(days=30)
+    prev_30 = now - timedelta(days=60)
+
+    total_students = Profile.objects.filter(role='STUDENT').count()
+    total_teachers = Profile.objects.filter(role='TEACHER').count()
+    active_exams = TeacherExam.objects.filter(is_active=True).count()
+    active_sessions = ClassSession.objects.filter(session_date__gte=last_30.date()).count()
+
+    avg_now = ExamResult.objects.filter(
+        submitted_at__gte=last_30
+    ).aggregate(a=Avg('percentage'))['a'] or 0
+    avg_prev = ExamResult.objects.filter(
+        submitted_at__gte=prev_30, submitted_at__lt=last_30
+    ).aggregate(a=Avg('percentage'))['a'] or 0
+    delta = round(avg_now - avg_prev, 1)
+
+    avg_total = ExamResult.objects.aggregate(a=Avg('percentage'))['a'] or 0
+
+    return {
+        'total_students': total_students,
+        'total_teachers': total_teachers,
+        'active_exams': active_exams,
+        'active_sessions': active_sessions,
+        'avg_score': round(avg_total, 1),
+        'avg_score_30d': round(avg_now, 1),
+        'improvement_delta': delta,
+        'improvement_pct': round((delta / max(avg_prev, 1)) * 100, 1) if avg_prev else 0,
+    }
+
+
+def _v2_time_series(days=30):
+    """سلسلة زمنية لـ Line chart — متوسط النسبة + عدد المحاولات يومياً."""
+    from datetime import timedelta
+    now = timezone.now().date()
+    series = []
+    for i in range(days - 1, -1, -1):
+        d = now - timedelta(days=i)
+        day_results = ExamResult.objects.filter(submitted_at__date=d)
+        series.append({
+            'date': d.isoformat(),
+            'count': day_results.count(),
+            'avg': round(day_results.aggregate(a=Avg('percentage'))['a'] or 0, 1),
+        })
+    return series
+
+
+def _v2_classroom_compare():
+    """مقارنة أداء الفصول — Bar chart."""
+    rooms = []
+    for cls in ClassRoom.objects.all().order_by('name'):
+        names = list(cls.students.values_list('full_name', flat=True))
+        if not names:
+            rooms.append({'name': cls.name, 'avg': 0, 'count': 0, 'students': 0})
+            continue
+        # نطابق بالاسم الكامل (تصميم البيانات الحالي)
+        results = ExamResult.objects.filter(
+            student__in=User.objects.filter(
+                Q(first_name__in=[n.split()[0] for n in names if n]) |
+                Q(username__in=names)
+            )
+        )
+        avg = results.aggregate(a=Avg('percentage'))['a'] or 0
+        rooms.append({
+            'name': cls.name,
+            'avg': round(avg, 1),
+            'count': results.count(),
+            'students': len(names),
+        })
+    return rooms
+
+
+def _v2_level_distribution():
+    """توزيع الطالبات على مستويات الأداء — Pie/Donut."""
+    perf = (
+        ExamResult.objects
+        .values('student_id')
+        .annotate(avg=Avg('percentage'))
+    )
+    excellent = mid = weak = unknown = 0
+    for row in perf:
+        a = row['avg'] or 0
+        if a >= 90:
+            excellent += 1
+        elif a >= 50:
+            mid += 1
+        else:
+            weak += 1
+    total_students = Profile.objects.filter(role='STUDENT').count()
+    rated = excellent + mid + weak
+    unknown = max(0, total_students - rated)
+    return {
+        'excellent': excellent, 'mid': mid, 'weak': weak, 'untested': unknown,
+    }
+
+
+def _v2_top_students(limit=10):
+    """أعلى الطالبات أداءً — Leaderboard."""
+    perf = (
+        ExamResult.objects
+        .values('student_id', 'student__first_name', 'student__last_name', 'student__username')
+        .annotate(avg=Avg('percentage'), count=Count('id'))
+        .order_by('-avg', '-count')[:limit]
+    )
+    out = []
+    for r in perf:
+        name = (f"{r['student__first_name']} {r['student__last_name']}".strip()
+                or r['student__username'])
+        out.append({
+            'name': name,
+            'avg': round(r['avg'] or 0, 1),
+            'count': r['count'],
+            'student_id': r['student_id'],
+        })
+    return out
+
+
+def _v2_teachers_impact():
+    """تحليل أداء المعلمات — تأثير + عدد الحصص + تفاعل الطالبات."""
+    teachers = (
+        Teacher.objects
+        .select_related('user')
+        .annotate(
+            sessions_count=Count('sessions', distinct=True),
+            skills_count=Count('teacher_skills', distinct=True),
+            exams_count=Count('teacher_skills__exams', distinct=True),
+            results_count=Count('teacher_skills__exams__results', distinct=True),
+            avg_impact=Avg('teacher_skills__exams__results__percentage'),
+        )
+        .order_by('-avg_impact')
+    )
+    out = []
+    for t in teachers:
+        out.append({
+            'id': t.id,
+            'name': t.full_name,
+            'sessions': t.sessions_count or 0,
+            'skills': t.skills_count or 0,
+            'exams': t.exams_count or 0,
+            'engagement': t.results_count or 0,
+            'impact': round(t.avg_impact or 0, 1),
+        })
+    return out
+
+
+def _v2_active_exams_inline():
+    """قائمة الاختبارات الفعّالة — للإدارة المضمّنة."""
+    exams = (
+        TeacherExam.objects
+        .select_related('skill', 'skill__created_by')
+        .annotate(participants=Count('results', distinct=True))
+        .order_by('-is_active', '-created_at')[:50]
+    )
+    out = []
+    for e in exams:
+        out.append({
+            'id': e.id,
+            'skill_id': e.skill_id,
+            'title': e.skill.title,
+            'type': e.get_exam_type_display(),
+            'is_active': e.is_active,
+            'participants': e.participants or 0,
+            'duration': e.duration_minutes,
+            'pass_score': e.pass_score,
+            'teacher': e.skill.created_by.full_name if e.skill.created_by else '—',
+            'is_comprehensive': e.skill.content_type == 'comprehensive',
+        })
+    return out
+
+
+def _v2_smart_alerts(kpis, level_dist, teachers_impact, top_students):
+    """تنبيهات ذكية + استنتاجات + توصيات."""
+    alerts = []
+
+    # 1) ضعف الأداء العام
+    if kpis['avg_score'] and kpis['avg_score'] < 60:
+        alerts.append({
+            'level': 'danger',
+            'icon': '⚠️',
+            'title': f"متوسط الفصل {kpis['avg_score']}% — أقل من حد الأداء المطلوب",
+            'msg': 'يُنصح بمراجعة المهارات الأكثر صعوبة على الطالبات وإعادة شرحها.',
+        })
+
+    # 2) تحسن أو تدهور
+    if kpis['improvement_delta'] >= 5:
+        alerts.append({
+            'level': 'success',
+            'icon': '🎉',
+            'title': f"الأداء يتحسن — +{kpis['improvement_delta']}% خلال الـ 30 يوم الأخيرة",
+            'msg': 'استمري في نفس النهج التعليمي — البيانات تُظهر تأثيراً إيجابياً.',
+        })
+    elif kpis['improvement_delta'] <= -5:
+        alerts.append({
+            'level': 'warning',
+            'icon': '📉',
+            'title': f"الأداء يتراجع — {kpis['improvement_delta']}% خلال الـ 30 يوم الأخيرة",
+            'msg': 'راجعي المعلمات وحاولي تحديد سبب التراجع (مهارة معيّنة؟ فصل معيّن؟).',
+        })
+
+    # 3) عدد كبير في فئة الضعف
+    if level_dist['weak'] > level_dist['excellent'] and level_dist['weak'] >= 3:
+        alerts.append({
+            'level': 'warning',
+            'icon': '🆘',
+            'title': f"{level_dist['weak']} طالبة تحت 50% — يحتجن دعماً عاجلاً",
+            'msg': 'فعّلي خطة دعم فردية أو حصصاً علاجية لهؤلاء الطالبات.',
+        })
+
+    # 4) معلمة تحتاج دعم
+    if teachers_impact:
+        worst = min((t for t in teachers_impact if t['impact'] > 0),
+                    key=lambda t: t['impact'], default=None)
+        best = max(teachers_impact, key=lambda t: t['impact'], default=None)
+        if worst and best and best['impact'] - worst['impact'] >= 20:
+            alerts.append({
+                'level': 'info',
+                'icon': '👩‍🏫',
+                'title': f"{best['name']} الأعلى تأثيراً ({best['impact']}%) • {worst['name']} الأقل ({worst['impact']}%)",
+                'msg': f'يمكن لـ {best["name"]} مشاركة خبرتها مع {worst["name"]} لدعم الأداء.',
+            })
+
+    # 5) تشجيع الطالبات المتفوقات
+    if top_students and top_students[0]['avg'] >= 90:
+        alerts.append({
+            'level': 'success',
+            'icon': '🏆',
+            'title': f"تتصدر {top_students[0]['name']} الفصل بـ {top_students[0]['avg']}%",
+            'msg': 'فكّري في تكريمها أمام الفصل لتشجيع الطالبات الأخريات.',
+        })
+
+    return alerts
+
+
+def _v2_decisions(kpis, level_dist, alerts):
+    """مركز القرار — 3 إجراءات فورية مبنية على البيانات."""
+    decisions = []
+    if level_dist['weak'] >= 3:
+        decisions.append({
+            'icon': '🎯',
+            'priority': 'عاجل',
+            'action': 'إعداد جلسة دعم للطالبات الضعيفات',
+            'why': f"{level_dist['weak']} طالبة تحت 50% — تأخير المعالجة يوسّع الفجوة.",
+        })
+    if kpis['active_exams'] == 0:
+        decisions.append({
+            'icon': '📝',
+            'priority': 'مهم',
+            'action': 'تفعيل اختبار قياس جديد',
+            'why': 'لا توجد اختبارات نشطة حالياً — تأكدي من جداول المعلمات.',
+        })
+    if kpis['improvement_delta'] <= -5:
+        decisions.append({
+            'icon': '📊',
+            'priority': 'مهم',
+            'action': 'تحليل سبب تراجع الأداء',
+            'why': f"تراجع {kpis['improvement_delta']}% — راجعي تقارير المهارات والفصول.",
+        })
+    if not decisions:
+        decisions.append({
+            'icon': '✨',
+            'priority': 'تطوير',
+            'action': 'إضافة محتوى تدريبي إضافي',
+            'why': 'الأداء مستقر — هذا وقت ممتاز للتوسّع وإثراء المنصة.',
+        })
+    if level_dist['excellent'] >= 3:
+        decisions.append({
+            'icon': '🏆',
+            'priority': 'تحفيز',
+            'action': 'تكريم المتفوقات',
+            'why': f"{level_dist['excellent']} طالبة فوق 90% — التحفيز يبني ثقافة التميّز.",
+        })
+    return decisions[:3]
+
+
+def _v2_predictions():
+    """تنبؤ بسيط — يعتمد على متوسط آخر 7 أيام لتقدير المتوقع."""
+    from datetime import timedelta
+    now = timezone.now()
+    last_week = ExamResult.objects.filter(
+        submitted_at__gte=now - timedelta(days=7)
+    ).aggregate(a=Avg('percentage'))['a'] or 0
+    last_month = ExamResult.objects.filter(
+        submitted_at__gte=now - timedelta(days=30)
+    ).aggregate(a=Avg('percentage'))['a'] or 0
+    momentum = last_week - last_month
+    forecast = max(0, min(100, last_week + momentum * 0.5))
+    return {
+        'last_week': round(last_week, 1),
+        'last_month': round(last_month, 1),
+        'forecast': round(forecast, 1),
+        'momentum': round(momentum, 1),
+    }
+
+
+@admin_required
+def admin_v2_dashboard(request):
+    """لوحة المديرة الجديدة — Single-Page Enterprise Dashboard."""
+    kpis = _v2_kpis()
+    time_series = _v2_time_series()
+    classroom_cmp = _v2_classroom_compare()
+    level_dist = _v2_level_distribution()
+    top_students = _v2_top_students(limit=10)
+    teachers_impact = _v2_teachers_impact()
+    active_exams = _v2_active_exams_inline()
+    alerts = _v2_smart_alerts(kpis, level_dist, teachers_impact, top_students)
+    decisions = _v2_decisions(kpis, level_dist, alerts)
+    predictions = _v2_predictions()
+
+    # قوائم لإدارة المستخدمين (modals)
+    teacher_profiles = (
+        Profile.objects.filter(role='TEACHER').select_related('user')
+        .annotate(
+            results_count=Count('user__teacher_exam_results', distinct=True),
+            avg_score=Avg('user__teacher__teacher_skills__exams__results__percentage'),
+        )
+    )
+    student_profiles = (
+        Profile.objects.filter(role='STUDENT').select_related('user')
+        .annotate(
+            results_count=Count('user__teacher_exam_results', distinct=True),
+            avg_score=Avg('user__teacher_exam_results__percentage'),
+        )
+    )
+
+    teachers_list = [{
+        'id': p.user.id, 'name': p.user.get_full_name() or p.user.username,
+        'national_id': p.national_id, 'pin': p.pin_code,
+        'is_active': p.user.is_active,
+        'results': p.results_count or 0,
+        'avg': round(p.avg_score or 0, 1),
+    } for p in teacher_profiles]
+
+    students_list = []
+    student_index = {}
+    for s in Student.objects.select_related('classroom').all():
+        student_index.setdefault(s.full_name, s)
+    for p in student_profiles:
+        full_name = p.user.get_full_name() or p.user.username
+        s = student_index.get(full_name)
+        students_list.append({
+            'id': p.user.id, 'name': full_name,
+            'national_id': p.national_id,
+            'classroom': s.classroom.name if s and s.classroom else '—',
+            'is_active': p.user.is_active,
+            'results': p.results_count or 0,
+            'avg': round(p.avg_score or 0, 1),
+        })
+
+    comprehensive_skills = (
+        TeacherSkill.objects.filter(content_type='comprehensive')
+        .select_related('created_by').prefetch_related('exams').order_by('-created_at')
+    )
+
+    # وضع العرض المدرسي
+    display_mode = request.GET.get('display') == '1'
+
+    return render(request, 'core/admin_v2.html', {
+        'kpis': kpis,
+        'time_series_json': _to_json(time_series),
+        'classrooms_json': _to_json(classroom_cmp),
+        'levels_json': _to_json(level_dist),
+        'top_students': top_students,
+        'teachers_impact': teachers_impact,
+        'active_exams': active_exams,
+        'alerts': alerts,
+        'decisions': decisions,
+        'predictions': predictions,
+        'teachers_list': teachers_list,
+        'students_list': students_list,
+        'comprehensive_skills': comprehensive_skills,
+        'classrooms': ClassRoom.objects.all().order_by('name'),
+        'display_mode': display_mode,
+    })
+
+
+def _to_json(data):
+    """تحويل آمن لـ JSON ضمن قالب."""
+    import json
+    return json.dumps(data, default=str, ensure_ascii=False)
+
+
+@admin_required
+def admin_v2_data_json(request):
+    """API للتحديثات الحية — يرجع JSON نظيف."""
+    from django.http import JsonResponse
+    return JsonResponse({
+        'kpis': _v2_kpis(),
+        'time_series': _v2_time_series(),
+        'classrooms': _v2_classroom_compare(),
+        'levels': _v2_level_distribution(),
+        'top_students': _v2_top_students(),
+        'teachers_impact': _v2_teachers_impact(),
+        'predictions': _v2_predictions(),
+    })
+
+
 @admin_required
 def admin_dashboard(request):
-    """لوحة المديرة الرئيسية — إحصاءات + قوائم المعلمات والطالبات."""
+    """لوحة المديرة الكلاسيكية (محفوظة كـ /admin-dashboard/classic/)."""
     teacher_profiles = (
         Profile.objects
         .filter(role='TEACHER')
