@@ -425,6 +425,7 @@ def student_result_view(request, result_id):
 
     print_mode = request.GET.get('print') == '1'
 
+    from core.models import SchoolSettings
     return render(request, 'students/result.html', {
         'result': result,
         'answers': answers,
@@ -436,6 +437,7 @@ def student_result_view(request, result_id):
         'verdict_text': verdict[1],
         'verdict_color': verdict[2],
         'print_mode': print_mode,
+        'settings': SchoolSettings.objects.first(),
     })
 
 

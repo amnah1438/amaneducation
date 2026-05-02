@@ -363,7 +363,6 @@ body.display-mode .card-t { font-size: 18px; }
   </div>
   <div class="tb-right">
     <a href="{% url 'admin_comprehensive' %}" class="btn btn-warn">🏆 الاختبارات الشاملة</a>
-    <a href="{% url 'admin_dashboard_classic' %}" class="btn btn-ghost" title="النسخة القديمة">⚙️</a>
     <button class="icon-btn" title="إشعارات" onclick="openDrawer('alertsDrawer')">
       🔔 {% if alerts %}<span class="notif-dot"></span>{% endif %}
     </button>
@@ -734,6 +733,105 @@ body.display-mode .card-t { font-size: 18px; }
     </div>
   </div>
 
+  <!-- ═══════════ Advanced Visuals ═══════════ -->
+  <div class="section-title">📊 رؤى متقدمة (Advanced Insights)</div>
+  <div class="row-3">
+    <!-- Heatmap of activity -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t">🔥 خريطة النشاط الحرارية (آخر 8 أسابيع)</span>
+        <span style="font-size:9px;color:var(--text3)">شدة المحاولات يومياً</span>
+      </div>
+      <div class="card-b">
+        <div id="heatmap" style="display:grid;grid-template-columns:repeat(56,1fr);gap:3px;direction:ltr"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:9px;color:var(--text3);margin-top:8px">
+          <span>أقل</span>
+          <div style="display:flex;gap:3px">
+            <div style="width:11px;height:11px;border-radius:3px;background:var(--bg3)"></div>
+            <div style="width:11px;height:11px;border-radius:3px;background:rgba(99,102,241,0.25)"></div>
+            <div style="width:11px;height:11px;border-radius:3px;background:rgba(99,102,241,0.5)"></div>
+            <div style="width:11px;height:11px;border-radius:3px;background:rgba(99,102,241,0.75)"></div>
+            <div style="width:11px;height:11px;border-radius:3px;background:var(--accent)"></div>
+          </div>
+          <span>أكثر</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Radar — Skills vs Subjects -->
+    <div class="card">
+      <div class="card-h"><span class="card-t">🎯 رادار المهارات الأساسية</span></div>
+      <div class="card-b" style="height:250px"><canvas id="radarChart"></canvas></div>
+    </div>
+
+    <!-- Engagement KPI Mini-cards -->
+    <div class="card">
+      <div class="card-h"><span class="card-t">⚡ مؤشرات التفاعل</span></div>
+      <div class="card-b" style="display:grid;grid-template-columns:1fr 1fr;gap:9px">
+        <div style="background:var(--card2);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text3)">معدل المشاركة</div>
+          <div style="font-size:24px;font-weight:900;color:var(--green);margin-top:5px">{% widthratio kpis.active_sessions 30 100 %}%</div>
+          <svg height="28" viewBox="0 0 80 28" style="margin-top:5px"><polyline points="0,22 12,18 24,16 36,12 48,10 60,8 72,6 80,4" fill="none" stroke="var(--green)" stroke-width="2"/></svg>
+        </div>
+        <div style="background:var(--card2);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text3)">سرعة الإنجاز</div>
+          <div style="font-size:24px;font-weight:900;color:var(--blue);margin-top:5px">{{ kpis.avg_score_30d|floatformat:0 }}%</div>
+          <svg height="28" viewBox="0 0 80 28" style="margin-top:5px"><polyline points="0,18 12,15 24,16 36,12 48,14 60,10 72,8 80,6" fill="none" stroke="var(--blue)" stroke-width="2"/></svg>
+        </div>
+        <div style="background:var(--card2);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text3)">جودة الأسئلة</div>
+          <div style="font-size:24px;font-weight:900;color:var(--purple);margin-top:5px">{{ kpis.active_exams }}</div>
+          <div style="font-size:9px;color:var(--text3);margin-top:3px">اختبار نشط</div>
+        </div>
+        <div style="background:var(--card2);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text3)">معدل التحسن</div>
+          <div style="font-size:24px;font-weight:900;color:{% if kpis.improvement_delta >= 0 %}var(--green){% else %}var(--red){% endif %};margin-top:5px">
+            {% if kpis.improvement_delta >= 0 %}+{% endif %}{{ kpis.improvement_delta }}
+          </div>
+          <div style="font-size:9px;color:var(--text3);margin-top:3px">آخر 30 يوم</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ Performance Matrix + Activity Feed ═══════════ -->
+  <div class="row-2-equal">
+    <!-- Performance Matrix (Bubble) -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t">🌌 مصفوفة أداء المعلمات</span>
+        <span style="font-size:9px;color:var(--text3)">العمل × التأثير</span>
+      </div>
+      <div class="card-b" style="height:280px"><canvas id="matrixChart"></canvas></div>
+    </div>
+
+    <!-- Live Activity Feed -->
+    <div class="card">
+      <div class="card-h">
+        <span class="card-t">📡 سجل النشاط المباشر</span>
+        <span class="live-status"><span class="live-dot"></span>مباشر</span>
+      </div>
+      <div class="card-b" style="max-height:280px;overflow-y:auto;padding:0">
+        <div id="activityFeed">
+          {% for s in active_exams|slice:":8" %}
+          <div style="padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">
+              {% if s.is_comprehensive %}🏆{% else %}📝{% endif %}
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.title }}</div>
+              <div style="font-size:9px;color:var(--text3);margin-top:2px">{{ s.teacher }} · {{ s.participants }} مشاركات</div>
+            </div>
+            <span class="bd {% if s.is_active %}bd-g{% else %}bd-r{% endif %}">{% if s.is_active %}▶️{% else %}⏸{% endif %}</span>
+          </div>
+          {% empty %}
+          <div class="empty"><div class="empty-ico">📭</div>لا أنشطة بعد</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════════ Teachers Impact ═══════════ -->
   <div class="section-title">👩‍🏫 تحليل أداء المعلمات (Impact)</div>
   <div class="card">
@@ -777,8 +875,7 @@ body.display-mode .card-t { font-size: 18px; }
 
   <!-- ═══════════ Footer ═══════════ -->
   <div style="text-align:center;margin-top:30px;font-size:10px;color:var(--text3);line-height:1.8">
-    منصة آمنة التعليمية · Enterprise Dashboard v2 · {{ kpis.total_students }} طالبة · {{ kpis.total_teachers }} معلمة<br>
-    <a href="{% url 'admin_dashboard_classic' %}" style="color:var(--accent);text-decoration:none">← الانتقال للنسخة الكلاسيكية</a>
+    منصة آمنة التعليمية · Enterprise Dashboard · {{ kpis.total_students }} طالبة · {{ kpis.total_teachers }} معلمة
   </div>
 
 </div>
@@ -933,6 +1030,13 @@ body.display-mode .card-t { font-size: 18px; }
 <script id="data-time-series" type="application/json">{{ time_series_json|safe }}</script>
 <script id="data-classrooms" type="application/json">{{ classrooms_json|safe }}</script>
 <script id="data-levels" type="application/json">{{ levels_json|safe }}</script>
+<script>
+window.__teachersImpactData = [
+  {% for t in teachers_impact %}
+  { name: "{{ t.name|escapejs }}", impact: {{ t.impact|default:0 }}, exams: {{ t.exams|default:0 }}, engagement: {{ t.engagement|default:0 }}, sessions: {{ t.sessions|default:0 }} }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+];
+</script>
 
 <script>
 // ─── Theme toggle ───────────────────────────────────────────
@@ -1076,8 +1180,110 @@ function buildClassroomsChart(){
   });
 }
 
+function buildHeatmap(){
+  const data = JSON.parse(document.getElementById('data-time-series').textContent);
+  const c = chartColors();
+  const hm = document.getElementById('heatmap');
+  if (!hm) return;
+  // 56 يوم (8 أسابيع × 7) — نأخذ آخر 30 ونملأ بصفر
+  const cells = [];
+  const max = Math.max(1, ...data.map(d => d.count));
+  // نولّد 56 خلية: نأخذ من time_series إن وُجد، وإلا 0
+  for (let i = 56; i > 0; i--) {
+    const idx = data.length - i;
+    const v = idx >= 0 ? data[idx].count : 0;
+    cells.push(v);
+  }
+  hm.innerHTML = cells.map(v => {
+    const intensity = v === 0 ? 0 : (v / max);
+    let bg;
+    if (intensity === 0) bg = c.grid;
+    else if (intensity < 0.25) bg = 'rgba(99,102,241,0.25)';
+    else if (intensity < 0.5) bg = 'rgba(99,102,241,0.5)';
+    else if (intensity < 0.75) bg = 'rgba(99,102,241,0.75)';
+    else bg = c.accent;
+    return `<div style="height:14px;border-radius:3px;background:${bg}" title="${v} محاولة"></div>`;
+  }).join('');
+}
+
+function buildRadarChart(){
+  const c = chartColors();
+  const ctx = document.getElementById('radarChart');
+  if (!ctx) return;
+  if (charts.radar) charts.radar.destroy();
+  const data = JSON.parse(document.getElementById('data-classrooms').textContent);
+  // نسبة لكل فصل (max 6 لقراءة الرادار)
+  const top = data.slice(0, 6);
+  charts.radar = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: top.map(d => d.name),
+      datasets: [{
+        label: 'متوسط الفصل',
+        data: top.map(d => d.avg),
+        backgroundColor: 'rgba(99,102,241,0.18)',
+        borderColor: c.accent,
+        borderWidth: 2,
+        pointBackgroundColor: c.accent,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false, responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          min: 0, max: 100,
+          ticks: { color: c.text, backdropColor: 'transparent', stepSize: 25 },
+          grid: { color: c.grid },
+          angleLines: { color: c.grid },
+          pointLabels: { color: c.text, font: { family:'Tajawal', size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+function buildMatrixChart(){
+  const c = chartColors();
+  const ctx = document.getElementById('matrixChart');
+  if (!ctx) return;
+  if (charts.matrix) charts.matrix.destroy();
+  // teachers_impact يأتي من القالب — نلتقطه من DOM data-attr
+  const data = window.__teachersImpactData || [];
+  const points = data.map(t => ({
+    x: t.exams || 0,
+    y: t.impact || 0,
+    r: Math.max(6, Math.min(22, (t.engagement || 1) * 1.5)),
+    label: t.name,
+  }));
+  charts.matrix = new Chart(ctx, {
+    type: 'bubble',
+    data: {
+      datasets: [{
+        label: 'المعلمات',
+        data: points,
+        backgroundColor: points.map(p => p.y >= 70 ? 'rgba(16,185,129,0.55)' : (p.y >= 50 ? 'rgba(245,158,11,0.55)' : 'rgba(239,68,68,0.55)')),
+        borderColor: points.map(p => p.y >= 70 ? c.green : (p.y >= 50 ? c.orange : c.red)),
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false, responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => `${ctx.raw.label}: تأثير ${ctx.raw.y}% • ${ctx.raw.x} اختبارات` } }
+      },
+      scales: {
+        x: { title: { display:true, text:'عدد الاختبارات', color:c.text, font:{family:'Tajawal'} }, ticks:{color:c.text}, grid:{color:c.grid}, beginAtZero:true },
+        y: { title: { display:true, text:'الأثر %', color:c.text, font:{family:'Tajawal'} }, ticks:{color:c.text}, grid:{color:c.grid}, beginAtZero:true, max: 100 }
+      }
+    }
+  });
+}
+
 function redrawAllCharts(){
   buildTrendChart(); buildLevelsChart(); buildClassroomsChart();
+  buildHeatmap(); buildRadarChart(); buildMatrixChart();
 }
 window.addEventListener('load', redrawAllCharts);
 

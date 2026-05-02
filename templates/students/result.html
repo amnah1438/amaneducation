@@ -126,6 +126,22 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="main">
 
+  <!-- ─── ترويسة الشعارات (تظهر بالطباعة وفي الصفحة) ─── -->
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;margin-bottom:14px;background:white;color:#111;border-radius:12px;border:2px solid #0d4f35" class="print-logos">
+    <div style="width:70px;height:70px;display:flex;align-items:center;justify-content:center">
+      {% if settings.ministry_logo %}<img src="{{ settings.ministry_logo.url }}" style="max-width:100%;max-height:100%;object-fit:contain" alt="">{% else %}<div style="font-size:10px;color:#999;text-align:center;border:1px dashed #ccc;padding:14px 6px;border-radius:6px">شعار<br>الوزارة</div>{% endif %}
+    </div>
+    <div style="text-align:center;flex:1;padding:0 10px">
+      <div style="font-size:11px;color:#555;font-weight:600">{{ settings.header_line_1|default:"المملكة العربية السعودية" }}</div>
+      <div style="font-size:15px;font-weight:900;color:#0d4f35;margin:3px 0">{{ settings.header_line_2|default:"وزارة التعليم" }}</div>
+      <div style="font-size:11px;color:#444">{{ settings.header_line_3|default:"" }}</div>
+      <div style="font-size:11px;color:#444;font-weight:700">{{ settings.header_line_4|default:"" }}</div>
+    </div>
+    <div style="width:70px;height:70px;display:flex;align-items:center;justify-content:center">
+      {% if settings.school_logo %}<img src="{{ settings.school_logo.url }}" style="max-width:100%;max-height:100%;object-fit:contain" alt="">{% else %}<div style="font-size:10px;color:#999;text-align:center;border:1px dashed #ccc;padding:14px 6px;border-radius:6px">شعار<br>المدرسة</div>{% endif %}
+    </div>
+  </div>
+
   <!-- ملخص النتيجة -->
   <div class="summary">
     <div class="summary-title">📋 {{ result.exam.get_exam_type_display }} — {{ result.exam.skill.title }}</div>

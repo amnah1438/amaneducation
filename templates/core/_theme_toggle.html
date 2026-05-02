@@ -1,0 +1,40 @@
+{% comment %}
+ملف فرعي يضيف زر تبديل الوضع (داكن/فاتح) لأي صفحة.
+- يعتمد على CSS variables المعرّفة في الصفحة الأصلية.
+- يحفظ الاختيار في localStorage تحت المفتاح: amaneduc-theme
+- متغير `data-theme` يُضبط على <html>؛ على القالب أن يدعم
+  :root[data-theme="light"] CSS variables أيضاً.
+{% endcomment %}
+<script>
+(function(){
+  const KEY = 'amaneduc-theme';
+  const html = document.documentElement;
+  const saved = localStorage.getItem(KEY);
+  if (saved) html.setAttribute('data-theme', saved);
+  else if (!html.getAttribute('data-theme')) html.setAttribute('data-theme', 'dark');
+
+  // إذا لم يكن هناك زر بالفعل، أضِف زراً عائماً.
+  function ensureBtn(){
+    if (document.getElementById('themeToggleBtn')) return;
+    const btn = document.createElement('button');
+    btn.id = 'themeToggleBtn';
+    btn.title = 'تبديل الوضع (داكن/فاتح)';
+    btn.style.cssText = 'position:fixed;bottom:20px;left:20px;z-index:9999;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;font-size:18px;cursor:pointer;box-shadow:0 6px 20px rgba(99,102,241,0.4);transition:transform 0.2s';
+    btn.onmouseover = () => btn.style.transform = 'scale(1.08)';
+    btn.onmouseout  = () => btn.style.transform = 'scale(1)';
+    btn.onclick = () => {
+      const cur = html.getAttribute('data-theme') || 'dark';
+      const nxt = cur === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', nxt);
+      localStorage.setItem(KEY, nxt);
+      btn.textContent = nxt === 'dark' ? '☀️' : '🌙';
+      // إعادة رسم Charts إن وُجدت
+      if (typeof window.redrawAllCharts === 'function') setTimeout(window.redrawAllCharts, 50);
+    };
+    btn.textContent = (html.getAttribute('data-theme') === 'dark') ? '☀️' : '🌙';
+    document.body.appendChild(btn);
+  }
+  if (document.body) ensureBtn();
+  else document.addEventListener('DOMContentLoaded', ensureBtn);
+})();
+</script>

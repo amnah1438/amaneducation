@@ -725,69 +725,6 @@ def admin_v2_data_json(request):
     })
 
 
-@admin_required
-def admin_dashboard(request):
-    """لوحة المديرة الكلاسيكية (محفوظة كـ /admin-dashboard/classic/)."""
-    teacher_profiles = (
-        Profile.objects
-        .filter(role='TEACHER')
-        .select_related('user')
-        .annotate(
-            skills_count=Count('user__teacher__teacher_skills', distinct=True),
-            sessions_count=Count('user__teacher__sessions', distinct=True),
-            avg_score=Avg('user__teacher__teacher_skills__exams__results__percentage'),
-        )
-    )
-    teachers_data = [
-        {
-            'profile': p,
-            'user': p.user,
-            'name': (f"{p.user.first_name} {p.user.last_name}".strip() or p.user.username),
-            'national_id': p.national_id,
-            'pin_code': p.pin_code,
-            'skills_count': p.skills_count or 0,
-            'sessions_count': p.sessions_count or 0,
-            'avg_score': round(p.avg_score or 0, 1),
-            'last_login': p.user.last_login,
-            'is_active': p.user.is_active,
-        }
-        for p in teacher_profiles
-    ]
-
-    student_profiles = (
-        Profile.objects
-        .filter(role='STUDENT')
-        .select_related('user')
-        .annotate(
-            results_count=Count('user__teacher_exam_results', distinct=True),
-            avg_score=Avg('user__teacher_exam_results__percentage'),
-        )
-    )
-    students_data = [
-        {
-            'profile': p,
-            'user': p.user,
-            'name': (f"{p.user.first_name} {p.user.last_name}".strip() or p.user.username),
-            'national_id': p.national_id,
-            'results_count': p.results_count or 0,
-            'avg_score': round(p.avg_score or 0, 1),
-            'last_login': p.user.last_login,
-            'is_active': p.user.is_active,
-        }
-        for p in student_profiles
-    ]
-
-    return render(request, 'core/admin_dashboard.html', {
-        'total_teachers': len(teachers_data),
-        'total_students': len(students_data),
-        'total_skills': TeacherSkill.objects.filter(is_active=True).count(),
-        'total_results': ExamResult.objects.count(),
-        'teachers_data': teachers_data,
-        'students_data': students_data,
-        'classrooms': ClassRoom.objects.all().order_by('name'),
-    })
-
-
 # ─── إدارة المستخدمين ─────────────────────────────────────────
 
 @admin_required
@@ -1315,12 +1252,44 @@ def admin_comp_add_question(request, skill_id):
         target_skill_name=request.POST.get('target_skill_name', '').strip(),
         feedback_plain=request.POST.get('feedback_plain', '').strip(),
     )
-    if 'question_image' in request.FILES:
-        q.question_image = request.FILES['question_image']
-        q.save(update_fields=['question_image'])
+    # صور: السؤال + الخيارات (يدعم data: URL من المسح الضوئي + ملفات مرفوعة)
+    _attach_image(q, 'question_image', request)
+    for letter in ('a', 'b', 'c', 'd'):
+        _attach_image(q, f'option_{letter}_image', request)
+    q.save()
 
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        from django.http import JsonResponse
+        return JsonResponse({'ok': True, 'order': next_order})
     messages.success(request, f'✅ تم إضافة السؤال رقم {next_order}')
     return redirect('admin_comp_questions', skill_id=skill.id)
+
+
+def _attach_image(obj, field_name, request):
+    """يربط الصورة المرفوعة (file) أو data:URL ناتج من OCR/canvas بالحقل."""
+    import base64
+    from django.core.files.base import ContentFile
+
+    # 1) ملف مرفوع عادي
+    if field_name in request.FILES:
+        setattr(obj, field_name, request.FILES[field_name])
+        return
+
+    # 2) data: URL (للصور الملصقة من OCR/Drag&Drop)
+    data_url = request.POST.get(field_name + '_data') or request.POST.get(field_name + '_dataurl')
+    if data_url and data_url.startswith('data:image'):
+        try:
+            header, b64 = data_url.split(',', 1)
+            ext = 'png'
+            if 'jpeg' in header or 'jpg' in header:
+                ext = 'jpg'
+            elif 'webp' in header:
+                ext = 'webp'
+            decoded = base64.b64decode(b64)
+            fname = f"{field_name}_{obj.id or obj.pk or 'new'}.{ext}"
+            setattr(obj, field_name, ContentFile(decoded, name=fname))
+        except Exception:
+            pass
 
 
 @admin_required
@@ -1407,8 +1376,10 @@ def admin_comp_edit_question(request, skill_id, q_id):
     q.correct_answer = (request.POST.get('correct_answer', q.correct_answer) or 'A').upper()[:1]
     q.target_skill_name = request.POST.get('target_skill_name', q.target_skill_name).strip()
     q.feedback_plain = request.POST.get('feedback_plain', q.feedback_plain).strip()
-    if 'question_image' in request.FILES:
-        q.question_image = request.FILES['question_image']
+    # تحديث الصور (من ملف أو data URL)
+    _attach_image(q, 'question_image', request)
+    for letter in ('a', 'b', 'c', 'd'):
+        _attach_image(q, f'option_{letter}_image', request)
     q.save()
     messages.success(request, f'✅ تم حفظ السؤال {q.order}')
     return redirect('admin_comp_questions', skill_id=skill.id)

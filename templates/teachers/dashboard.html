@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root {
+:root, :root[data-theme="dark"] {
   --bg: #0a0d14;
   --bg2: #0f1320;
   --bg3: #141928;
@@ -30,6 +30,30 @@
   --text: #f1f5f9;
   --text2: #94a3b8;
   --text3: #475569;
+}
+:root[data-theme="light"] {
+  --bg: #f8fafc;
+  --bg2: #f1f5f9;
+  --bg3: #e2e8f0;
+  --card: #ffffff;
+  --card2: #f8fafc;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --green: #059669;
+  --green2: #d1fae5;
+  --green3: #ecfdf5;
+  --blue: #2563eb;
+  --blue2: #dbeafe;
+  --purple: #9333ea;
+  --purple2: #f3e8ff;
+  --orange: #d97706;
+  --orange2: #fef3c7;
+  --red: #dc2626;
+  --red2: #fee2e2;
+  --teal: #0d9488;
+  --text: #0f172a;
+  --text2: #475569;
+  --text3: #94a3b8;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1745,5 +1769,6 @@ function resetSettings(){
   if(fontSize) setFontSize(fontSize);
 })();
 </script>
+{% include "core/_theme_toggle.html" %}
 </body>
 </html>

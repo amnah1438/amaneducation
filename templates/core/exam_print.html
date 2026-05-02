@@ -8,6 +8,19 @@
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 <style>
   body { font-family: 'Tajawal','Cairo',sans-serif; max-width: 850px; margin: 28px auto; padding: 0 32px; color:#222; line-height:1.85; }
+  /* ─── Logo Header (Ministry + School) ─── */
+  .logos-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 0; margin-bottom: 12px; border-bottom: 2px solid #0d4f35;
+  }
+  .logos-header .logo-box { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
+  .logos-header img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .logos-header .ministry-block { text-align: center; flex: 1; padding: 0 12px; }
+  .logos-header .gov-line { font-size: 11px; color: #555; font-weight: 600; }
+  .logos-header .ministry { font-size: 16px; font-weight: 900; color: #0d4f35; margin: 4px 0; }
+  .logos-header .admin-line { font-size: 12px; color: #444; }
+  .logos-header .school-line { font-size: 12px; color: #444; font-weight: 700; }
+
   .head { border: 2px solid #1a4a8a; padding: 12px 18px; border-radius: 10px; margin-bottom: 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; }
   .head-title { font-size: 20px; font-weight: 800; color: #1a4a8a; }
   .head-meta { font-size: 12px; color: #555; }
@@ -36,6 +49,30 @@
   <button class="btn" style="background:#999" onclick="window.close()">إغلاق</button>
 </div>
 
+<!-- ─── ترويسة الشعارات: شعار الوزارة (يمين) + ديباجة (وسط) + شعار المدرسة (يسار) ─── -->
+<div class="logos-header">
+  <div class="logo-box">
+    {% if settings.ministry_logo %}
+      <img src="{{ settings.ministry_logo.url }}" alt="شعار وزارة التعليم">
+    {% else %}
+      <div style="text-align:center;color:#999;font-size:10px;border:1px dashed #ccc;padding:25px 8px;border-radius:8px">شعار<br>الوزارة</div>
+    {% endif %}
+  </div>
+  <div class="ministry-block">
+    <div class="gov-line">{{ settings.header_line_1|default:"المملكة العربية السعودية" }}</div>
+    <div class="ministry">{{ settings.header_line_2|default:"وزارة التعليم" }}</div>
+    <div class="admin-line">{{ settings.header_line_3|default:"" }}</div>
+    <div class="school-line">{{ settings.header_line_4|default:"" }}</div>
+  </div>
+  <div class="logo-box">
+    {% if settings.school_logo %}
+      <img src="{{ settings.school_logo.url }}" alt="شعار المدرسة">
+    {% else %}
+      <div style="text-align:center;color:#999;font-size:10px;border:1px dashed #ccc;padding:25px 8px;border-radius:8px">شعار<br>المدرسة</div>
+    {% endif %}
+  </div>
+</div>
+
 <div class="head">
   <div>
     <div class="head-title">{{ exam.get_exam_type_display }} — {{ exam.skill.title }}</div>
@@ -61,10 +98,18 @@
   <div class="qhead">س{{ q.order|default:forloop.counter }}.</div>
   <div class="qtext">{{ q.question_plain|default:q.question_text|default:""|safe }}</div>
   <ul class="options">
-    <li><strong>أ.</strong> <span class="{% if show_answers and q.correct_answer == 'A' %}answer-correct{% endif %}">{{ q.option_a_plain|default:q.option_a|default:""|safe }}</span></li>
-    <li><strong>ب.</strong> <span class="{% if show_answers and q.correct_answer == 'B' %}answer-correct{% endif %}">{{ q.option_b_plain|default:q.option_b|default:""|safe }}</span></li>
-    <li><strong>ج.</strong> <span class="{% if show_answers and q.correct_answer == 'C' %}answer-correct{% endif %}">{{ q.option_c_plain|default:q.option_c|default:""|safe }}</span></li>
-    <li><strong>د.</strong> <span class="{% if show_answers and q.correct_answer == 'D' %}answer-correct{% endif %}">{{ q.option_d_plain|default:q.option_d|default:""|safe }}</span></li>
+    <li><strong>أ.</strong> <span class="{% if show_answers and q.correct_answer == 'A' %}answer-correct{% endif %}">{{ q.option_a_plain|default:q.option_a|default:""|safe }}</span>
+      {% if q.option_a_image %}<br><img src="{{ q.option_a_image.url }}" style="max-height:120px;max-width:300px;margin-top:4px;border:1px solid #ddd;border-radius:4px">{% endif %}
+    </li>
+    <li><strong>ب.</strong> <span class="{% if show_answers and q.correct_answer == 'B' %}answer-correct{% endif %}">{{ q.option_b_plain|default:q.option_b|default:""|safe }}</span>
+      {% if q.option_b_image %}<br><img src="{{ q.option_b_image.url }}" style="max-height:120px;max-width:300px;margin-top:4px;border:1px solid #ddd;border-radius:4px">{% endif %}
+    </li>
+    <li><strong>ج.</strong> <span class="{% if show_answers and q.correct_answer == 'C' %}answer-correct{% endif %}">{{ q.option_c_plain|default:q.option_c|default:""|safe }}</span>
+      {% if q.option_c_image %}<br><img src="{{ q.option_c_image.url }}" style="max-height:120px;max-width:300px;margin-top:4px;border:1px solid #ddd;border-radius:4px">{% endif %}
+    </li>
+    <li><strong>د.</strong> <span class="{% if show_answers and q.correct_answer == 'D' %}answer-correct{% endif %}">{{ q.option_d_plain|default:q.option_d|default:""|safe }}</span>
+      {% if q.option_d_image %}<br><img src="{{ q.option_d_image.url }}" style="max-height:120px;max-width:300px;margin-top:4px;border:1px solid #ddd;border-radius:4px">{% endif %}
+    </li>
   </ul>
   {% if show_answers and q.feedback_plain %}
     <div style="font-size:11px;color:#5b21b6;margin-top:4px">💡 {{ q.feedback_plain }}</div>

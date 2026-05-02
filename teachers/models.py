@@ -137,6 +137,11 @@ class TeacherQuestion(models.Model):
     option_b_plain = models.CharField(max_length=500, blank=True, verbose_name="خيار ب (نص)")
     option_c_plain = models.CharField(max_length=500, blank=True, verbose_name="خيار ج (نص)")
     option_d_plain = models.CharField(max_length=500, blank=True, verbose_name="خيار د (نص)")
+    # صور الخيارات (لأن بعض الإجابات صور/جداول/رسومات)
+    option_a_image = models.ImageField(upload_to='questions/options/', blank=True, null=True, verbose_name="صورة خيار أ")
+    option_b_image = models.ImageField(upload_to='questions/options/', blank=True, null=True, verbose_name="صورة خيار ب")
+    option_c_image = models.ImageField(upload_to='questions/options/', blank=True, null=True, verbose_name="صورة خيار ج")
+    option_d_image = models.ImageField(upload_to='questions/options/', blank=True, null=True, verbose_name="صورة خيار د")
     feedback_plain = models.TextField(blank=True, verbose_name="تغذية راجعة بسيطة")
 
     correct_answer = models.CharField(max_length=1, choices=CORRECT_CHOICES, verbose_name="الإجابة الصحيحة")

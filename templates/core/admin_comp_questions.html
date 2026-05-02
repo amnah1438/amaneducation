@@ -291,34 +291,26 @@ textarea.fi{min-height:60px;resize:vertical}
         </div>
 
         <div class="row4">
-          <div class="fg">
-            <label class="fl">خيار أ</label>
+          {% for L in 'abcd' %}{% with letter=L %}
+          <div class="fg" data-opt-block="{{ letter }}">
+            <label class="fl">خيار {% if letter == 'a' %}أ{% elif letter == 'b' %}ب{% elif letter == 'c' %}ج{% else %}د{% endif %}</label>
             <div style="position:relative">
-              <input class="fi" id="optA" name="option_a_plain" placeholder="مثلاً: 2" style="padding-left:42px">
-              <button type="button" class="ocr-lens-sm" onclick="openOcr('optA','single')" title="مسح ضوئي للخيار">📷</button>
+              <input class="fi opt-text-input" id="opt{{ letter|upper }}" name="option_{{ letter }}_plain"
+                     placeholder="نص الخيار..." style="padding-left:80px;padding-right:12px">
+              <button type="button" class="ocr-lens-sm" style="left:42px"
+                      onclick="openOcr('opt{{ letter|upper }}','single')" title="مسح ضوئي نصي">🔤</button>
+              <button type="button" class="ocr-lens-sm" style="left:8px;background:rgba(168,85,247,0.15);color:var(--purple);border-color:rgba(168,85,247,0.3)"
+                      onclick="openImagePicker('opt{{ letter }}_image')" title="صورة للخيار (رسم/جدول)">🖼️</button>
+            </div>
+            <input type="file" id="opt{{ letter }}_image_file" name="option_{{ letter }}_image" accept="image/*" style="display:none"
+                   onchange="previewOptionImage('{{ letter }}', this)">
+            <input type="hidden" id="opt{{ letter }}_image_data" name="option_{{ letter }}_image_data">
+            <div id="opt{{ letter }}_image_preview" style="display:none;margin-top:5px;padding:5px;background:var(--card2);border:1px dashed var(--border);border-radius:6px;text-align:center;position:relative">
+              <img style="max-width:100%;max-height:90px;border-radius:5px">
+              <button type="button" onclick="clearOptionImage('{{ letter }}')" style="position:absolute;top:3px;left:3px;background:var(--red);color:white;border:none;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:10px;line-height:1">×</button>
             </div>
           </div>
-          <div class="fg">
-            <label class="fl">خيار ب</label>
-            <div style="position:relative">
-              <input class="fi" id="optB" name="option_b_plain" placeholder="مثلاً: -2" style="padding-left:42px">
-              <button type="button" class="ocr-lens-sm" onclick="openOcr('optB','single')" title="مسح ضوئي للخيار">📷</button>
-            </div>
-          </div>
-          <div class="fg">
-            <label class="fl">خيار ج</label>
-            <div style="position:relative">
-              <input class="fi" id="optC" name="option_c_plain" placeholder="مثلاً: ±2" style="padding-left:42px">
-              <button type="button" class="ocr-lens-sm" onclick="openOcr('optC','single')" title="مسح ضوئي للخيار">📷</button>
-            </div>
-          </div>
-          <div class="fg">
-            <label class="fl">خيار د</label>
-            <div style="position:relative">
-              <input class="fi" id="optD" name="option_d_plain" placeholder="مثلاً: 4" style="padding-left:42px">
-              <button type="button" class="ocr-lens-sm" onclick="openOcr('optD','single')" title="مسح ضوئي للخيار">📷</button>
-            </div>
-          </div>
+          {% endwith %}{% endfor %}
         </div>
 
         <div class="row2">
@@ -453,11 +445,22 @@ textarea.fi{min-height:60px;resize:vertical}
     <!-- النتيجة -->
     <div class="ocr-result" id="ocrResult"></div>
 
-    <!-- زر التطبيق -->
-    <div class="modal-btns">
+    <!-- أزرار التطبيق -->
+    <div class="modal-btns" style="flex-wrap:wrap">
       <button type="button" class="btn btn-r" onclick="closeOcr()">إلغاء</button>
-      <button type="button" id="ocrApplyBtn" class="btn btn-g" onclick="applyOcrResult()" style="display:none">✅ تطبيق النتيجة</button>
-      <button type="button" id="ocrStartBtn" class="btn btn-o" onclick="runOcr()" style="display:none">🔍 بدء المسح</button>
+      <button type="button" id="ocrAsImageBtn" class="btn btn-p" onclick="applyOcrAsImage()" style="display:none" title="استخدام الصورة كما هي بدون تحويلها لنص">
+        🖼️ استخدام كصورة (للرسومات)
+      </button>
+      <button type="button" id="ocrApplyBtn" class="btn btn-g" onclick="applyOcrResult()" style="display:none">
+        ✅ تطبيق النص المستخرج
+      </button>
+      <button type="button" id="ocrStartBtn" class="btn btn-o" onclick="runOcr()" style="display:none">
+        🔍 استخراج النص
+      </button>
+    </div>
+    <div style="margin-top:10px;font-size:10px;color:var(--text3);line-height:1.7;background:var(--card2);padding:8px 12px;border-radius:7px">
+      💡 <strong>نصيحة:</strong> إن كانت الصورة تحتوي على رسومات أو جداول صعبة على OCR، اضغطي
+      «🖼️ استخدام كصورة» لإدراج الصورة مباشرة بدون تحويل النص.
     </div>
   </div>
 </div>
@@ -668,8 +671,89 @@ function handleOcrFile(file){
   document.getElementById('ocrPreview').src = url;
   document.getElementById('ocrPreviewWrap').style.display = 'block';
   document.getElementById('ocrStartBtn').style.display = 'inline-flex';
+  document.getElementById('ocrAsImageBtn').style.display = 'inline-flex';
   document.getElementById('ocrResult').classList.remove('on');
   document.getElementById('ocrApplyBtn').style.display = 'none';
+}
+
+// تطبيق الصورة كما هي (للرسومات/الجداول الصعبة على OCR)
+function applyOcrAsImage(){
+  if (!ocrSelectedFile) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    if (ocrTargetField === 'qPlainArea') {
+      // نضع الصورة في صورة السؤال
+      setHiddenImage('question_image', dataUrl, 'qImgPreview');
+    } else if (ocrTargetField && ocrTargetField.startsWith('opt')) {
+      // الحقل: optA/B/C/D → نضع الصورة في صورة الخيار المقابل
+      const letter = ocrTargetField.slice(3).toLowerCase();
+      setHiddenImage(`opt${letter}_image`, dataUrl, `opt${letter}_image_preview`);
+    }
+    closeOcr();
+    flashAddedToast2('✅ تم إضافة الصورة');
+  };
+  reader.readAsDataURL(ocrSelectedFile);
+}
+
+function setHiddenImage(fieldName, dataUrl, previewId){
+  // نضع الـ data URL في حقل hidden + معاينة
+  let hidden = document.getElementById(fieldName + '_data');
+  if (!hidden) {
+    hidden = document.createElement('input');
+    hidden.type = 'hidden';
+    hidden.id = fieldName + '_data';
+    hidden.name = fieldName + '_data';
+    document.getElementById('qform').appendChild(hidden);
+  }
+  hidden.value = dataUrl;
+  // معاينة
+  const wrap = document.getElementById(previewId + '_wrap') || document.getElementById(previewId);
+  if (wrap) {
+    const img = wrap.querySelector('img') || wrap;
+    if (img.tagName === 'IMG') img.src = dataUrl;
+    else { const i = document.createElement('img'); i.src = dataUrl; wrap.innerHTML = ''; wrap.appendChild(i); }
+    wrap.style.display = 'block';
+  }
+}
+
+// زر اختيار صورة للخيار
+function openImagePicker(fieldName){
+  // fieldName مثل: opta_image
+  const letter = fieldName.split('_')[0].slice(-1);
+  document.getElementById(`opt${letter}_image_file`).click();
+}
+
+function previewOptionImage(letter, inp){
+  const f = inp.files && inp.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wrap = document.getElementById(`opt${letter}_image_preview`);
+    const img = wrap.querySelector('img');
+    img.src = e.target.result;
+    wrap.style.display = 'block';
+    // نمسح الـ data URL لو كان موجود من OCR
+    document.getElementById(`opt${letter}_image_data`).value = '';
+  };
+  reader.readAsDataURL(f);
+}
+
+function clearOptionImage(letter){
+  const wrap = document.getElementById(`opt${letter}_image_preview`);
+  const file = document.getElementById(`opt${letter}_image_file`);
+  const data = document.getElementById(`opt${letter}_image_data`);
+  if (wrap) wrap.style.display = 'none';
+  if (file) file.value = '';
+  if (data) data.value = '';
+}
+
+function flashAddedToast2(msg){
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--green);color:white;padding:11px 18px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.3);z-index:9999;font-size:12px;font-weight:800';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 1800);
 }
 
 async function runOcr(){
