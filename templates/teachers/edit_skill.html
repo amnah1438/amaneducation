@@ -1,13 +1,14 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تعديل — {{ skill.title }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#07090f;--bg2:#0c0f1a;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--blue:#4f8ef7;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
+:root, :root[data-theme="dark"] {--bg:#07090f;--bg2:#0c0f1a;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--blue:#4f8ef7;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
+:root[data-theme="light"] {--bg:#f8fafc;--bg2:#f1f5f9;--card:#ffffff;--card2:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--green:#059669;--blue:#2563eb;--orange:#d97706;--red:#dc2626;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
@@ -120,5 +121,6 @@ label.chk{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--tex
   </form>
 
 </div>
+{% include "core/_theme_toggle.html" %}
 </body>
 </html>

@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@ window.MathJax = {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 <style>
-:root{
+:root, :root[data-theme="dark"] {
   --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;
   --card:#0f1424;--card2:#161d30;--card3:#1c243d;
   --border:#1a2236;--border2:#223050;--border3:#2d3f60;
@@ -22,6 +22,15 @@ window.MathJax = {
   --purple:#9b72f5;--purple2:#3d1d80;--orange:#f5a623;--orange2:#6b3f0a;
   --red:#f05252;--teal:#2dd4bf;--gold:#fbbf24;
   --text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;
+}
+:root[data-theme="light"] {
+  --bg:#f8fafc;--bg2:#f1f5f9;--bg3:#e2e8f0;
+  --card:#ffffff;--card2:#f8fafc;--card3:#f1f5f9;
+  --border:#e2e8f0;--border2:#cbd5e1;--border3:#94a3b8;
+  --green:#059669;--green2:#d1fae5;--blue:#2563eb;--blue2:#dbeafe;
+  --purple:#9333ea;--purple2:#f3e8ff;--orange:#d97706;--orange2:#fef3c7;
+  --red:#dc2626;--teal:#0d9488;--gold:#ca8a04;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
@@ -1376,5 +1385,6 @@ function saveSkill(activate){
   form.submit();
 }
 </script>
+{% include "core/_theme_toggle.html" %}
 </body>
 </html>

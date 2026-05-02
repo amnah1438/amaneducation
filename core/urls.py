@@ -25,6 +25,8 @@ urlpatterns = [
     # ── لوحة المديرة (Enterprise V2 — الوحيدة) ─────────────────
     path('admin-dashboard/', views.admin_v2_dashboard, name='admin_dashboard'),
     path('admin-dashboard/data.json', views.admin_v2_data_json, name='admin_v2_data_json'),
+    path('admin-dashboard/analytics.json', views.admin_analytics_json, name='admin_analytics_json'),
+    path('admin-dashboard/report', views.admin_report, name='admin_report'),
     path('admin-dashboard/add-teacher/', views.admin_add_teacher, name='admin_add_teacher'),
     path('admin-dashboard/add-student/', views.admin_add_student, name='admin_add_student'),
     path('admin-dashboard/add-classroom/', views.admin_add_classroom, name='admin_add_classroom'),

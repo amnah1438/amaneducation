@@ -1,0 +1,354 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تقرير — منصة آمنة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea']}}</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+body{font-family:'Tajawal',sans-serif;max-width:880px;margin:24px auto;padding:0 28px;color:#1e293b;line-height:1.85;background:#f8fafc}
+.controls{text-align:center;margin:14px 0}
+.btn{background:#0d4f35;color:white;border:none;padding:9px 22px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;margin:0 5px;text-decoration:none;display:inline-block}
+.btn-2{background:#5b21b6}.btn-3{background:#999}
+@media print{.controls{display:none}body{background:white;margin:0;max-width:100%}}
+.logos-header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:white;border-radius:11px;border:2px solid #0d4f35;margin-bottom:16px}
+.logos-header .logo-box{width:80px;height:80px;display:flex;align-items:center;justify-content:center}
+.logos-header img{max-width:100%;max-height:100%;object-fit:contain}
+.logos-header .ministry-block{flex:1;text-align:center;padding:0 10px}
+.gov-line{font-size:11px;color:#555;font-weight:600}
+.ministry{font-size:16px;font-weight:900;color:#0d4f35;margin:3px 0}
+.admin-line,.school-line{font-size:11px;color:#444}
+.school-line{font-weight:700}
+
+.report-title{font-size:22px;font-weight:900;color:#0d4f35;text-align:center;margin:18px 0 10px;padding:14px;background:white;border-radius:11px;border:2px solid #0d4f35}
+.report-sub{text-align:center;color:#475569;font-size:12px;margin-bottom:14px}
+
+.box{background:white;border:1px solid #e2e8f0;border-radius:11px;padding:16px 18px;margin-bottom:14px;page-break-inside:avoid}
+.box-title{font-size:14px;font-weight:800;color:#0d4f35;margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid #d1fae5}
+
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}
+@media (max-width:680px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:#f1f5f9;border-radius:9px;padding:11px;text-align:center;border-bottom:3px solid #4f46e5}
+.kpi-v{font-size:22px;font-weight:900;color:#1e293b}
+.kpi-l{font-size:10px;color:#64748b;margin-top:3px}
+
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+th{background:#f1f5f9;padding:8px 10px;text-align:right;font-weight:700;border-bottom:2px solid #cbd5e1}
+td{padding:7px 10px;border-bottom:1px solid #e2e8f0;color:#475569}
+tr:hover td{background:#f8fafc}
+
+.bd{display:inline-block;padding:2px 8px;border-radius:7px;font-size:9px;font-weight:700}
+.bd-g{background:#d1fae5;color:#065f46}
+.bd-r{background:#fee2e2;color:#991b1b}
+.bd-o{background:#fed7aa;color:#9a3412}
+.bd-b{background:#dbeafe;color:#1e40af}
+
+.skill-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #f1f5f9}
+.skill-name{font-size:11px;font-weight:700;min-width:120px}
+.skill-bar{flex:1;height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden}
+.skill-fill{height:100%}
+.skill-pct{font-size:11px;font-weight:800;min-width:42px;text-align:left}
+
+.descriptive{background:#fef3c7;padding:14px 16px;border-radius:9px;border-right:4px solid #f59e0b;font-size:13px;line-height:1.95;color:#1e293b}
+
+.audience-banner{background:#dbeafe;color:#1e40af;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:12px;font-weight:700;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button class="btn" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+  <button class="btn btn-3" onclick="window.close()">إغلاق</button>
+</div>
+
+<!-- ─── ترويسة الشعارات ─── -->
+<div class="logos-header">
+  <div class="logo-box">
+    {% if settings.ministry_logo %}<img src="{{ settings.ministry_logo.url }}" alt="">
+    {% else %}<div style="font-size:9px;color:#999;text-align:center">شعار<br>الوزارة</div>{% endif %}
+  </div>
+  <div class="ministry-block">
+    <div class="gov-line">{{ settings.header_line_1|default:"المملكة العربية السعودية" }}</div>
+    <div class="ministry">{{ settings.header_line_2|default:"وزارة التعليم" }}</div>
+    <div class="admin-line">{{ settings.header_line_3|default:"" }}</div>
+    <div class="school-line">{{ settings.header_line_4|default:"" }}</div>
+  </div>
+  <div class="logo-box">
+    {% if settings.school_logo %}<img src="{{ settings.school_logo.url }}" alt="">
+    {% else %}<div style="font-size:9px;color:#999;text-align:center">شعار<br>المدرسة</div>{% endif %}
+  </div>
+</div>
+
+{% if error %}
+<div class="box"><div style="text-align:center;color:#991b1b;font-weight:800">{{ error }}</div></div>
+{% else %}
+
+{% if audience == 'parent' %}
+<div class="audience-banner">👨‍👩‍👧 تقرير موجَّه إلى ولي الأمر</div>
+{% elif audience == 'student' %}
+<div class="audience-banner" style="background:#fef3c7;color:#92400e">👩‍🎓 تقرير موجَّه إلى الطالبة</div>
+{% endif %}
+
+{# ─── تقرير الطالبة ─── #}
+{% if kind == 'student' and student %}
+<div class="report-title">📋 تقرير أداء الطالبة</div>
+<div class="report-sub">
+  {{ student.get_full_name|default:student.username }}
+  {% if profile %} • هوية: {{ profile.national_id }}{% endif %}
+  • تاريخ التقرير: <script>document.write(new Date().toLocaleDateString('ar-SA'))</script>
+</div>
+
+<div class="box">
+  <div class="box-title">📊 مؤشرات الأداء</div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-v">{{ avg }}%</div><div class="kpi-l">المتوسط</div></div>
+    <div class="kpi"><div class="kpi-v">{{ attempts }}</div><div class="kpi-l">الاختبارات</div></div>
+    <div class="kpi"><div class="kpi-v" style="color:#059669">{{ passed }}</div><div class="kpi-l">ناجحة</div></div>
+    <div class="kpi"><div class="kpi-v" style="color:#dc2626">{{ failed }}</div><div class="kpi-l">راسبة</div></div>
+  </div>
+</div>
+
+<div class="box">
+  <div class="box-title">📝 التحليل الوصفي</div>
+  <div class="descriptive">{{ descriptive|safe }}</div>
+</div>
+
+{% if skills %}
+<div class="box">
+  <div class="box-title">🎯 المهارات: متقنة ({{ mastered }}) • تحتاج تحسين ({{ needs }})</div>
+  {% for s in skills %}
+  <div class="skill-row">
+    <span class="skill-name">{% if s.pct >= 70 %}✅{% else %}⚠️{% endif %} {{ s.name }}</span>
+    <div class="skill-bar"><div class="skill-fill" style="width:{{ s.pct }}%;background:{% if s.pct >= 70 %}#059669{% elif s.pct >= 50 %}#f59e0b{% else %}#dc2626{% endif %}"></div></div>
+    <span class="skill-pct" style="color:{% if s.pct >= 70 %}#059669{% elif s.pct >= 50 %}#f59e0b{% else %}#dc2626{% endif %}">{{ s.pct }}%</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if types %}
+<div class="box">
+  <div class="box-title">📚 الأداء حسب نوع الاختبار</div>
+  <table>
+    <thead><tr><th>النوع</th><th>المتوسط</th><th>عدد المحاولات</th></tr></thead>
+    <tbody>
+      {% for t in types %}
+      <tr>
+        <td>{{ t.label }}</td>
+        <td><span class="bd {% if t.avg >= 70 %}bd-g{% elif t.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.avg }}%</span></td>
+        <td>{{ t.count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="box">
+  <div class="box-title">📋 سجل الاختبارات</div>
+  <table>
+    <thead><tr><th>الاختبار</th><th>المهارة</th><th>الدرجة</th><th>النسبة</th><th>الحالة</th><th>التاريخ</th></tr></thead>
+    <tbody>
+      {% for r in results %}
+      <tr>
+        <td>{{ r.exam.get_exam_type_display }}</td>
+        <td>{{ r.exam.skill.title|truncatechars:30 }}</td>
+        <td>{{ r.score }}/{{ r.total }}</td>
+        <td><span class="bd {% if r.passed %}bd-g{% else %}bd-r{% endif %}">{{ r.percentage|floatformat:1 }}%</span></td>
+        <td>{% if r.passed %}✅ ناجحة{% else %}❌ راسبة{% endif %}</td>
+        <td>{{ r.submitted_at|date:"Y/m/d" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:18px">لا توجد محاولات بعد</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if audience == 'parent' %}
+<div class="box" style="background:#fef3c7;border:2px solid #f59e0b">
+  <div class="box-title" style="color:#92400e">👨‍👩‍👧 رسالة لولي الأمر</div>
+  <p style="font-size:13px;line-height:1.95">
+    نحرص في منصة آمنة التعليمية على إبقائكم على اطلاع دائم بتقدم ابنتكم.
+    {% if avg >= 75 %}
+    أداء ابنتكم <strong>متميز</strong> — يستحق التشجيع والاستمرار.
+    {% elif avg >= 50 %}
+    أداء ابنتكم <strong>مقبول</strong> ويمكنه التحسّن مع مزيد من المراجعة في المهارات الموضّحة أعلاه.
+    {% else %}
+    تحتاج ابنتكم إلى <strong>دعم إضافي</strong> — نأمل التعاون معنا لتحديد مواعيد دعم بعد الدوام.
+    {% endif %}
+  </p>
+  <p style="font-size:12px;margin-top:10px;color:#78350f">
+    لأي استفسار، يمكنكم التواصل مع المعلمة عبر إدارة المدرسة.
+  </p>
+</div>
+{% endif %}
+
+{# ─── تقرير الفصل ─── #}
+{% elif kind == 'classroom' %}
+<div class="report-title">🏫 تقرير الفصل {{ classroom_name }}</div>
+<div class="report-sub">عدد الطالبات: {{ students_count }} • تاريخ التقرير: <script>document.write(new Date().toLocaleDateString('ar-SA'))</script></div>
+
+<div class="box">
+  <div class="box-title">📊 مؤشرات الفصل</div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-v">{{ avg }}%</div><div class="kpi-l">المتوسط</div></div>
+    <div class="kpi"><div class="kpi-v">{{ attempts }}</div><div class="kpi-l">المحاولات</div></div>
+    <div class="kpi"><div class="kpi-v" style="color:#059669">{{ passed }}</div><div class="kpi-l">ناجحة</div></div>
+    <div class="kpi"><div class="kpi-v">{{ students_count }}</div><div class="kpi-l">الطالبات</div></div>
+  </div>
+</div>
+
+<div class="box">
+  <div class="box-title">📝 التحليل الوصفي</div>
+  <div class="descriptive">{{ descriptive|safe }}</div>
+</div>
+
+{% if skills %}
+<div class="box">
+  <div class="box-title">🎯 مهارات الفصل: متقنة ({{ mastered }}) • تحتاج ({{ needs }})</div>
+  {% for s in skills %}
+  <div class="skill-row">
+    <span class="skill-name">{% if s.pct >= 70 %}✅{% else %}⚠️{% endif %} {{ s.name }}</span>
+    <div class="skill-bar"><div class="skill-fill" style="width:{{ s.pct }}%;background:{% if s.pct >= 70 %}#059669{% elif s.pct >= 50 %}#f59e0b{% else %}#dc2626{% endif %}"></div></div>
+    <span class="skill-pct" style="color:{% if s.pct >= 70 %}#059669{% elif s.pct >= 50 %}#f59e0b{% else %}#dc2626{% endif %}">{{ s.pct }}%</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{# ─── تقرير المعلمة ─── #}
+{% elif kind == 'teacher' and teacher %}
+<div class="report-title">👩‍🏫 تقرير المعلمة {{ teacher.full_name }}</div>
+<div class="report-sub">
+  التصنيف: <strong style="color:{{ tier_color }}">{{ tier }}</strong> •
+  تاريخ التقرير: <script>document.write(new Date().toLocaleDateString('ar-SA'))</script>
+</div>
+
+<div class="box">
+  <div class="box-title">📊 إنجازات المعلمة</div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-v">{{ skills_count }}</div><div class="kpi-l">مهارات/دروس</div></div>
+    <div class="kpi"><div class="kpi-v">{{ exams_count }}</div><div class="kpi-l">اختبارات</div></div>
+    <div class="kpi"><div class="kpi-v">{{ sessions_count }}</div><div class="kpi-l">حصص مفعّلة</div></div>
+    <div class="kpi"><div class="kpi-v">{{ students_engaged }}</div><div class="kpi-l">طالبات تفاعلن</div></div>
+  </div>
+  <div style="margin-top:14px;padding:14px;background:#f1f5f9;border-radius:9px">
+    <div style="font-size:12px;color:#475569">معدّل تأثيرها على نتائج الطالبات:</div>
+    <div style="font-size:30px;font-weight:900;color:{{ tier_color }};margin-top:4px">{{ avg }}%</div>
+    <div style="font-size:11px;color:#64748b">من إجمالي {{ attempts }} محاولة لطالباتها</div>
+  </div>
+</div>
+
+{% if top_results %}
+<div class="box">
+  <div class="box-title">🏆 أعلى النتائج تحت إشراف المعلمة</div>
+  <table>
+    <thead><tr><th>الطالبة</th><th>الاختبار</th><th>النسبة</th><th>التاريخ</th></tr></thead>
+    <tbody>
+      {% for r in top_results %}
+      <tr>
+        <td>{{ r.student.get_full_name|default:r.student.username }}</td>
+        <td>{{ r.exam.skill.title|truncatechars:30 }}</td>
+        <td><span class="bd bd-g">{{ r.percentage|floatformat:1 }}%</span></td>
+        <td>{{ r.submitted_at|date:"Y/m/d" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{# ─── تقرير المدرسة ─── #}
+{% else %}
+<div class="report-title">🏆 التقرير الشامل للمدرسة</div>
+<div class="report-sub">تاريخ التقرير: <script>document.write(new Date().toLocaleDateString('ar-SA'))</script></div>
+
+<div class="box">
+  <div class="box-title">📊 الإحصاءات العامة</div>
+  <div class="kpi-row">
+    <div class="kpi"><div class="kpi-v">{{ total_students }}</div><div class="kpi-l">طالبات</div></div>
+    <div class="kpi"><div class="kpi-v">{{ total_teachers }}</div><div class="kpi-l">معلمات</div></div>
+    <div class="kpi"><div class="kpi-v">{{ total_classrooms }}</div><div class="kpi-l">فصول</div></div>
+    <div class="kpi"><div class="kpi-v">{{ total_exams }}</div><div class="kpi-l">اختبارات</div></div>
+    <div class="kpi"><div class="kpi-v">{{ avg }}%</div><div class="kpi-l">متوسط الأداء</div></div>
+    <div class="kpi"><div class="kpi-v">{{ attempts }}</div><div class="kpi-l">محاولات</div></div>
+    <div class="kpi"><div class="kpi-v" style="color:#059669">{{ passed }}</div><div class="kpi-l">نجاحات</div></div>
+    <div class="kpi"><div class="kpi-v">{{ total_skills }}</div><div class="kpi-l">مهارات</div></div>
+  </div>
+</div>
+
+<div class="box">
+  <div class="box-title">🏫 توزيع أداء الفصول</div>
+  <table>
+    <thead><tr><th>الفصل</th><th>المتوسط</th><th>المحاولات</th><th>الطالبات</th></tr></thead>
+    <tbody>
+      {% for c in classrooms_perf %}
+      <tr>
+        <td><strong>{{ c.name }}</strong></td>
+        <td><span class="bd {% if c.avg >= 70 %}bd-g{% elif c.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ c.avg }}%</span></td>
+        <td>{{ c.count }}</td>
+        <td>{{ c.students }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="box">
+  <div class="box-title">🏆 أعلى الطالبات أداءً</div>
+  <table>
+    <thead><tr><th>#</th><th>الاسم</th><th>المتوسط</th><th>الاختبارات</th></tr></thead>
+    <tbody>
+      {% for s in top_students %}
+      <tr>
+        <td>{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}#{{ forloop.counter }}{% endif %}</td>
+        <td>{{ s.name }}</td>
+        <td><span class="bd bd-g">{{ s.avg }}%</span></td>
+        <td>{{ s.count }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="box">
+  <div class="box-title">👩‍🏫 تأثير المعلمات</div>
+  <table>
+    <thead><tr><th>المعلمة</th><th>المهارات</th><th>الاختبارات</th><th>الحصص</th><th>متوسط الأثر</th></tr></thead>
+    <tbody>
+      {% for t in teachers_impact %}
+      <tr>
+        <td><strong>{{ t.name }}</strong></td>
+        <td>{{ t.skills }}</td>
+        <td>{{ t.exams }}</td>
+        <td>{{ t.sessions }}</td>
+        <td><span class="bd {% if t.impact >= 70 %}bd-g{% elif t.impact >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.impact }}%</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="box">
+  <div class="box-title">🎯 توزيع مستويات الطالبات</div>
+  <div class="kpi-row">
+    <div class="kpi" style="border-bottom-color:#059669"><div class="kpi-v" style="color:#059669">{{ levels.excellent }}</div><div class="kpi-l">متفوقات</div></div>
+    <div class="kpi" style="border-bottom-color:#1e40af"><div class="kpi-v" style="color:#1e40af">{{ levels.mid }}</div><div class="kpi-l">جيدات</div></div>
+    <div class="kpi" style="border-bottom-color:#dc2626"><div class="kpi-v" style="color:#dc2626">{{ levels.weak }}</div><div class="kpi-l">يحتجن دعم</div></div>
+    <div class="kpi" style="border-bottom-color:#94a3b8"><div class="kpi-v" style="color:#94a3b8">{{ levels.untested }}</div><div class="kpi-l">لم تُختبر</div></div>
+  </div>
+</div>
+
+{% endif %}
+
+<div style="text-align:center;margin-top:24px;font-size:10px;color:#94a3b8;line-height:1.7">
+  {{ settings.platform_name|default:"منصة آمنة التعليمية" }} • تقرير مولّد آلياً
+</div>
+
+{% endif %}
+
+</body>
+</html>

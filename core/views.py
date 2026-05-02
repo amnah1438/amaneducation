@@ -725,6 +725,310 @@ def admin_v2_data_json(request):
     })
 
 
+# ═══════════════════════════════════════════════════════════════
+# Advanced Analytics + Reports
+# ═══════════════════════════════════════════════════════════════
+
+def _filter_results(scope, target_id, exam_type):
+    """يبني QuerySet للنتائج حسب الفلتر."""
+    qs = ExamResult.objects.select_related('exam', 'exam__skill', 'exam__skill__created_by', 'student')
+
+    if scope == 'classroom' and target_id:
+        # نطابق بالاسم الكامل (التصميم الحالي)
+        names = list(Student.objects.filter(classroom__name=target_id).values_list('full_name', flat=True))
+        if not names:
+            return qs.none()
+        # ربط بالـ User: نقابل بـ first_name و username
+        from django.db.models import Q
+        cond = Q()
+        for n in names:
+            parts = n.split()
+            if parts:
+                cond |= Q(student__first_name=parts[0]) | Q(student__username=n)
+        qs = qs.filter(cond)
+    elif scope == 'teacher' and target_id:
+        try:
+            qs = qs.filter(exam__skill__created_by_id=int(target_id))
+        except ValueError:
+            return qs.none()
+    elif scope == 'student' and target_id:
+        try:
+            qs = qs.filter(student_id=int(target_id))
+        except ValueError:
+            return qs.none()
+
+    if exam_type and exam_type != 'all':
+        qs = qs.filter(exam__exam_type=exam_type)
+
+    return qs
+
+
+def _descriptive_text(scope, avg, attempts, pass_pct, improvement):
+    """يولّد جملة وصفية ذكية حسب الأداء."""
+    if attempts == 0:
+        return '⚠️ لا توجد محاولات لهذه الفئة في الفترة المحددة. ابدئي بتفعيل الاختبارات.'
+
+    descriptors = []
+    # المستوى العام
+    if avg >= 90:
+        descriptors.append('🏆 <strong style="color:var(--green)">أداء ممتاز</strong>')
+    elif avg >= 75:
+        descriptors.append('🌟 <strong style="color:var(--blue)">أداء جيد جداً</strong>')
+    elif avg >= 60:
+        descriptors.append('👍 <strong style="color:var(--orange)">أداء جيد</strong>')
+    elif avg >= 50:
+        descriptors.append('⚠️ <strong style="color:var(--orange)">أداء مقبول — يحتاج تطوير</strong>')
+    else:
+        descriptors.append('🆘 <strong style="color:var(--red)">أداء ضعيف — يحتاج تدخل عاجل</strong>')
+
+    # السلوك
+    if attempts >= 10:
+        descriptors.append('🔥 <strong>نشطة جداً</strong> في خوض الاختبارات (' + str(attempts) + ' محاولة)')
+    elif attempts >= 5:
+        descriptors.append('✅ <strong>تفاعل جيد</strong> (' + str(attempts) + ' محاولة)')
+    else:
+        descriptors.append('⚠️ <strong>تفاعل محدود</strong> (' + str(attempts) + ' محاولة فقط) — حفّزيها على المحاولة')
+
+    # التحسن
+    if improvement >= 10:
+        descriptors.append('📈 <strong style="color:var(--green)">تحسّن ملموس</strong> بمقدار +' + str(improvement) + '%')
+    elif improvement <= -10:
+        descriptors.append('📉 <strong style="color:var(--red)">تراجع</strong> بمقدار ' + str(improvement) + '% — راجعي السبب')
+
+    # نسبة النجاح
+    if pass_pct >= 80:
+        descriptors.append('🎯 نسبة نجاح عالية: ' + str(pass_pct) + '%')
+    elif pass_pct < 50:
+        descriptors.append('⚠️ نسبة الرسوب مرتفعة: ' + str(100 - pass_pct) + '%')
+
+    intro_map = {
+        'school': 'تحليل أداء المدرسة كاملة:',
+        'classroom': 'تحليل أداء الفصل:',
+        'teacher': 'تحليل أداء طالبات هذه المعلمة:',
+        'student': 'تحليل أداء الطالبة:',
+    }
+    intro = intro_map.get(scope, 'تحليل الأداء:')
+    return intro + '<br>' + '<br>'.join(descriptors)
+
+
+def _skills_breakdown(qs):
+    """تحليل أداء المهارات — الأسئلة المرتبطة بـ target_skill_name."""
+    from collections import defaultdict
+    bucket = defaultdict(lambda: {'correct': 0, 'total': 0})
+
+    for ans in StudentAnswer.objects.filter(result__in=qs).select_related('question'):
+        name = (ans.question.target_skill_name or 'غير محدّدة').strip() or 'غير محدّدة'
+        bucket[name]['total'] += 1
+        if ans.is_correct:
+            bucket[name]['correct'] += 1
+
+    rows = []
+    mastered = 0
+    needs = 0
+    for name, v in bucket.items():
+        if v['total'] == 0:
+            continue
+        pct = round(100 * v['correct'] / v['total'])
+        rows.append({'name': name, 'pct': pct, 'correct': v['correct'], 'total': v['total']})
+        if pct >= 70:
+            mastered += 1
+        else:
+            needs += 1
+    rows.sort(key=lambda r: -r['pct'])
+    return rows[:12], mastered, needs
+
+
+def _exam_types_breakdown(qs):
+    """متوسط الأداء حسب نوع الاختبار."""
+    from collections import defaultdict
+    bucket = defaultdict(lambda: {'sum': 0, 'count': 0, 'label': ''})
+    type_labels = {
+        'pre': 'قبلي',
+        'post': 'بعدي',
+        'lesson': 'درس تحصيلي',
+        'bank': 'بنك أسئلة',
+        'comprehensive_qodrat': 'شامل قدرات',
+        'comprehensive_tahsili': 'شامل تحصيلي',
+    }
+    for r in qs:
+        t = r.exam.exam_type
+        bucket[t]['sum'] += float(r.percentage or 0)
+        bucket[t]['count'] += 1
+        bucket[t]['label'] = type_labels.get(t, t)
+
+    out = []
+    for k, v in bucket.items():
+        if v['count']:
+            out.append({'type': k, 'label': v['label'], 'avg': round(v['sum'] / v['count'], 1), 'count': v['count']})
+    out.sort(key=lambda x: -x['avg'])
+    return out
+
+
+@admin_required
+def admin_analytics_json(request):
+    """يرجع التحليل المتقدم بناءً على الفلاتر."""
+    from django.http import JsonResponse
+    from datetime import timedelta
+
+    scope = request.GET.get('scope', 'school')
+    target_id = request.GET.get('id', '')
+    exam_type = request.GET.get('exam_type', 'all')
+
+    qs = _filter_results(scope, target_id, exam_type)
+    total_qs = qs.count()
+    if total_qs == 0:
+        return JsonResponse({
+            'avg': 0, 'attempts': 0, 'pass_pct': 0, 'fail_pct': 0,
+            'highest': 0, 'lowest': 0, 'improvement': 0,
+            'descriptive': 'لا توجد بيانات للفلتر المحدد.',
+            'skills_mastered': 0, 'skills_needs': 0, 'skills': [], 'types': [],
+        })
+
+    avg = round(qs.aggregate(a=Avg('percentage'))['a'] or 0, 1)
+    pass_count = qs.filter(passed=True).count()
+    pass_pct = round(100 * pass_count / total_qs)
+    fail_pct = 100 - pass_pct
+    high = round(max((float(r.percentage or 0) for r in qs), default=0), 1)
+    low = round(min((float(r.percentage or 0) for r in qs), default=0), 1)
+
+    # نسبة التحسن: متوسط النصف الأخير - متوسط النصف الأول
+    sorted_qs = list(qs.order_by('submitted_at'))
+    half = max(1, len(sorted_qs) // 2)
+    first_half = sorted_qs[:half]
+    second_half = sorted_qs[half:] if len(sorted_qs) > half else []
+    avg_first = sum(float(r.percentage or 0) for r in first_half) / max(len(first_half), 1)
+    avg_second = (sum(float(r.percentage or 0) for r in second_half) / max(len(second_half), 1)) if second_half else avg_first
+    improvement = round(avg_second - avg_first, 1)
+
+    skills, mastered, needs = _skills_breakdown(qs)
+    types = _exam_types_breakdown(qs)
+
+    descriptive = _descriptive_text(scope, avg, total_qs, pass_pct, improvement)
+
+    return JsonResponse({
+        'avg': avg, 'attempts': total_qs, 'pass_pct': pass_pct, 'fail_pct': fail_pct,
+        'highest': high, 'lowest': low, 'improvement': improvement,
+        'descriptive': descriptive,
+        'skills_mastered': mastered, 'skills_needs': needs, 'skills': skills,
+        'types': types,
+    })
+
+
+@admin_required
+def admin_report(request):
+    """يولّد تقريراً قابلاً للطباعة — طالبة/فصل/معلمة/مدرسة."""
+    kind = request.GET.get('kind', 'school')
+    audience = request.GET.get('audience', 'admin')   # student / parent / admin
+    target_id = request.GET.get('id', '')
+
+    settings_obj = SchoolSettings.objects.first()
+    ctx = {
+        'settings': settings_obj,
+        'kind': kind,
+        'audience': audience,
+    }
+
+    if kind == 'student':
+        try:
+            user = User.objects.get(id=int(target_id))
+        except (User.DoesNotExist, ValueError):
+            user = None
+        if user is None:
+            return render(request, 'core/report.html', {'error': 'الطالبة غير موجودة', **ctx})
+        qs = ExamResult.objects.filter(student=user).select_related('exam', 'exam__skill')
+        skills, mastered, needs = _skills_breakdown(qs)
+        types = _exam_types_breakdown(qs)
+        try:
+            profile = user.core_profile
+        except Profile.DoesNotExist:
+            profile = None
+        ctx.update({
+            'student': user, 'profile': profile,
+            'results': qs.order_by('-submitted_at'),
+            'avg': round(qs.aggregate(a=Avg('percentage'))['a'] or 0, 1),
+            'attempts': qs.count(),
+            'passed': qs.filter(passed=True).count(),
+            'failed': qs.filter(passed=False).count(),
+            'skills': skills, 'mastered': mastered, 'needs': needs,
+            'types': types,
+            'descriptive': _descriptive_text('student',
+                                             round(qs.aggregate(a=Avg('percentage'))['a'] or 0, 1),
+                                             qs.count(),
+                                             round(100 * qs.filter(passed=True).count() / max(qs.count(), 1)),
+                                             0),
+        })
+
+    elif kind == 'classroom':
+        cls_name = target_id
+        names = list(Student.objects.filter(classroom__name=cls_name).values_list('full_name', flat=True))
+        from django.db.models import Q
+        cond = Q()
+        for n in names:
+            parts = n.split()
+            if parts:
+                cond |= Q(student__first_name=parts[0]) | Q(student__username=n)
+        qs = ExamResult.objects.filter(cond) if cond else ExamResult.objects.none()
+        skills, mastered, needs = _skills_breakdown(qs)
+        types = _exam_types_breakdown(qs)
+        ctx.update({
+            'classroom_name': cls_name,
+            'students_count': len(names),
+            'avg': round(qs.aggregate(a=Avg('percentage'))['a'] or 0, 1),
+            'attempts': qs.count(),
+            'passed': qs.filter(passed=True).count(),
+            'skills': skills, 'mastered': mastered, 'needs': needs, 'types': types,
+            'descriptive': _descriptive_text('classroom',
+                                             round(qs.aggregate(a=Avg('percentage'))['a'] or 0, 1),
+                                             qs.count(),
+                                             round(100 * qs.filter(passed=True).count() / max(qs.count(), 1)),
+                                             0),
+        })
+
+    elif kind == 'teacher':
+        try:
+            teacher = Teacher.objects.get(id=int(target_id))
+        except (Teacher.DoesNotExist, ValueError):
+            return render(request, 'core/report.html', {'error': 'المعلمة غير موجودة', **ctx})
+        qs = ExamResult.objects.filter(exam__skill__created_by=teacher)
+        skills_count = TeacherSkill.objects.filter(created_by=teacher).count()
+        sessions_count = ClassSession.objects.filter(teacher=teacher).count()
+        exams_count = TeacherExam.objects.filter(skill__created_by=teacher).count()
+        avg = round(qs.aggregate(a=Avg('percentage'))['a'] or 0, 1)
+        if avg >= 70:
+            tier = ('عالية التأثير', 'var(--green)')
+        elif avg >= 50:
+            tier = ('متوسطة التأثير', 'var(--orange)')
+        else:
+            tier = ('تحتاج دعم', 'var(--red)')
+        ctx.update({
+            'teacher': teacher,
+            'skills_count': skills_count, 'sessions_count': sessions_count, 'exams_count': exams_count,
+            'avg': avg, 'attempts': qs.count(),
+            'students_engaged': qs.values('student').distinct().count(),
+            'tier': tier[0], 'tier_color': tier[1],
+            'top_results': qs.order_by('-percentage')[:10],
+        })
+
+    else:  # school
+        all_results = ExamResult.objects
+        ctx.update({
+            'total_students': Profile.objects.filter(role='STUDENT').count(),
+            'total_teachers': Profile.objects.filter(role='TEACHER').count(),
+            'total_classrooms': ClassRoom.objects.count(),
+            'total_skills': TeacherSkill.objects.count(),
+            'total_exams': TeacherExam.objects.count(),
+            'avg': round(all_results.aggregate(a=Avg('percentage'))['a'] or 0, 1),
+            'attempts': all_results.count(),
+            'passed': all_results.filter(passed=True).count(),
+            'classrooms_perf': _v2_classroom_compare(),
+            'top_students': _v2_top_students(limit=10),
+            'teachers_impact': _v2_teachers_impact(),
+            'levels': _v2_level_distribution(),
+        })
+
+    return render(request, 'core/report.html', ctx)
+
+
 # ─── إدارة المستخدمين ─────────────────────────────────────────
 
 @admin_required

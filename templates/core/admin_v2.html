@@ -347,6 +347,53 @@ body.display-mode .card-t { font-size: 18px; }
 .search-wrap { position: relative; flex: 1; min-width: 200px; }
 .search-wrap input { width: 100%; padding-right: 32px; }
 .search-wrap::before { content: "🔍"; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 11px; opacity: 0.5; }
+
+/* ═══════ Mobile Hamburger + Side Nav ═══════ */
+.hamburger { display: none; background: var(--card2); border: 1px solid var(--border); border-radius: 9px; width: 38px; height: 38px; align-items: center; justify-content: center; cursor: pointer; }
+.hamburger span { display: block; width: 18px; height: 2px; background: var(--text); margin: 2px 0; transition: 0.2s; border-radius: 2px; }
+.side-nav { position: fixed; top: 0; right: -300px; width: 280px; height: 100vh; background: var(--card); border-left: 1px solid var(--border); z-index: 250; transition: right 0.3s; overflow-y: auto; box-shadow: -10px 0 30px rgba(0,0,0,0.3); }
+.side-nav.show { right: 0; }
+.side-nav-h { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.side-nav a, .side-nav button { display: block; width: 100%; padding: 12px 16px; color: var(--text); text-decoration: none; font-size: 12px; font-weight: 700; border: none; background: transparent; text-align: right; cursor: pointer; border-bottom: 1px solid var(--border); font-family: 'Tajawal', sans-serif; }
+.side-nav a:hover, .side-nav button:hover { background: var(--card2); color: var(--accent); }
+
+@media (max-width: 900px) {
+  .hamburger { display: inline-flex; }
+  .tb-right .btn:not(.tb-mobile-keep), .tb-right .icon-btn:not(.tb-mobile-keep), .tb-right .user-chip, .tb-right .live-status { display: none; }
+}
+
+/* Heatmap */
+.heatmap { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.hm-cell { aspect-ratio: 1; border-radius: 3px; background: var(--bg3); cursor: pointer; transition: transform 0.15s; }
+.hm-cell:hover { transform: scale(1.4); z-index: 2; position: relative; }
+.hm-cell[data-level="1"] { background: rgba(99,102,241,0.25); }
+.hm-cell[data-level="2"] { background: rgba(99,102,241,0.5); }
+.hm-cell[data-level="3"] { background: rgba(99,102,241,0.75); }
+.hm-cell[data-level="4"] { background: var(--accent); }
+
+/* Activity feed */
+.activity-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.activity-item:last-child { border-bottom: none; }
+.act-dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.act-body { flex: 1; }
+.act-title { font-size: 11px; font-weight: 700; }
+.act-meta { font-size: 9px; color: var(--text3); margin-top: 2px; }
+
+/* Big chart card */
+.big-chart { height: 320px; }
+
+/* Skills bars */
+.skill-bar-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.skill-bar-row:last-child { border-bottom: none; }
+.skill-name { font-size: 11px; font-weight: 700; min-width: 130px; }
+.skill-bar { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.skill-fill { height: 100%; transition: width 0.6s; }
+.skill-pct { font-size: 11px; font-weight: 800; min-width: 50px; text-align: left; }
+
+/* Filter chips */
+.chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.chip { padding: 5px 12px; border-radius: 14px; font-size: 10px; font-weight: 700; background: var(--card2); border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; color: var(--text2); }
+.chip.on, .chip:hover { background: var(--accent); color: white; border-color: var(--accent); }
 </style>
 </head>
 <body class="{% if display_mode %}display-mode{% endif %}">
@@ -361,6 +408,9 @@ body.display-mode .card-t { font-size: 18px; }
     </div>
     <span class="live-status"><span class="live-dot"></span>متصل آنياً</span>
   </div>
+  <button class="hamburger tb-mobile-keep" id="hamburgerBtn" onclick="toggleSideNav()" title="القائمة">
+    <span></span><span></span><span></span>
+  </button>
   <div class="tb-right">
     <a href="{% url 'admin_comprehensive' %}" class="btn btn-warn">🏆 الاختبارات الشاملة</a>
     <button class="icon-btn" title="إشعارات" onclick="openDrawer('alertsDrawer')">
@@ -873,11 +923,193 @@ body.display-mode .card-t { font-size: 18px; }
     </div>
   </div>
 
+  <!-- ═══════════ Advanced Analytics ═══════════ -->
+  <div class="section-title" id="analytics">📊 التحليل الإحصائي المتقدم</div>
+  <div class="card non-display">
+    <div class="card-h">
+      <span class="card-t">🔬 محرّك التحليل الذكي — كمي + وصفي + مهارات</span>
+      <span style="font-size:9px;color:var(--text3)">يحلّل البيانات منذ بداية الموسم</span>
+    </div>
+    <div class="card-b">
+      <!-- Filters -->
+      <div class="chip-row">
+        <button type="button" class="chip on" data-scope="school" onclick="setAnalyticsScope(this,'school')">🏫 المدرسة كاملة</button>
+        <button type="button" class="chip" data-scope="classroom" onclick="setAnalyticsScope(this,'classroom')">📚 فصل محدد</button>
+        <button type="button" class="chip" data-scope="teacher" onclick="setAnalyticsScope(this,'teacher')">👩‍🏫 معلمة محددة</button>
+        <button type="button" class="chip" data-scope="student" onclick="setAnalyticsScope(this,'student')">👩‍🎓 طالبة محددة</button>
+      </div>
+
+      <div class="chip-row" id="scopeSelectors">
+        <select class="filter-sel" id="anClassroom" style="display:none;min-width:180px">
+          <option value="">— اختاري الفصل —</option>
+          {% for c in classrooms %}<option value="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+        </select>
+        <select class="filter-sel" id="anTeacher" style="display:none;min-width:200px">
+          <option value="">— اختاري المعلمة —</option>
+          {% for t in teachers_list %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+        </select>
+        <select class="filter-sel" id="anStudent" style="display:none;min-width:200px">
+          <option value="">— اختاري الطالبة —</option>
+          {% for s in students_list %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+        </select>
+        <select class="filter-sel" id="anExamType">
+          <option value="all">كل أنواع الاختبارات</option>
+          <option value="pre">قبلي</option>
+          <option value="post">بعدي</option>
+          <option value="lesson">درس تحصيلي</option>
+          <option value="bank">بنك أسئلة</option>
+          <option value="comprehensive_qodrat">شامل قدرات</option>
+          <option value="comprehensive_tahsili">شامل تحصيلي</option>
+        </select>
+        <button class="btn btn-primary" onclick="runAnalytics()">🔍 تشغيل التحليل</button>
+      </div>
+
+      <!-- Results -->
+      <div id="analyticsResult">
+        <!-- التحليل الكمي -->
+        <div style="background:var(--card2);border-radius:11px;padding:14px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:800;color:var(--accent);margin-bottom:10px">🔢 التحليل الكمي (Quantitative)</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
+            <div class="kpi-mini" id="anAvg"><div class="kpi-lbl">متوسط الدرجات</div><div style="font-size:20px;font-weight:900;color:var(--accent)">—</div></div>
+            <div class="kpi-mini" id="anAttempts"><div class="kpi-lbl">عدد المحاولات</div><div style="font-size:20px;font-weight:900;color:var(--blue)">—</div></div>
+            <div class="kpi-mini" id="anPass"><div class="kpi-lbl">نسبة النجاح</div><div style="font-size:20px;font-weight:900;color:var(--green)">—</div></div>
+            <div class="kpi-mini" id="anFail"><div class="kpi-lbl">نسبة الرسوب</div><div style="font-size:20px;font-weight:900;color:var(--red)">—</div></div>
+            <div class="kpi-mini" id="anHigh"><div class="kpi-lbl">أعلى درجة</div><div style="font-size:20px;font-weight:900;color:var(--green)">—</div></div>
+            <div class="kpi-mini" id="anLow"><div class="kpi-lbl">أقل درجة</div><div style="font-size:20px;font-weight:900;color:var(--orange)">—</div></div>
+            <div class="kpi-mini" id="anImprove"><div class="kpi-lbl">نسبة التحسن</div><div style="font-size:20px;font-weight:900;color:var(--purple)">—</div></div>
+          </div>
+        </div>
+
+        <!-- التحليل الوصفي -->
+        <div style="background:var(--card2);border-radius:11px;padding:14px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:800;color:var(--purple);margin-bottom:10px">📝 التحليل الوصفي (Descriptive)</div>
+          <div id="anDescriptive" style="font-size:12px;color:var(--text);line-height:1.9;background:var(--bg3);padding:12px 14px;border-radius:9px;border-right:3px solid var(--purple)">
+            اضغطي «🔍 تشغيل التحليل» لتوليد تحليل وصفي تلقائي…
+          </div>
+        </div>
+
+        <!-- تحليل المهارات -->
+        <div style="background:var(--card2);border-radius:11px;padding:14px;margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:800;color:var(--green)">🎯 تحليل المهارات (Skills Intelligence)</div>
+            <div style="display:flex;gap:8px">
+              <span class="bd bd-g" id="skMastered">—</span>
+              <span class="bd bd-r" id="skNeeds">—</span>
+            </div>
+          </div>
+          <div id="skillsBars">
+            <div style="text-align:center;color:var(--text3);padding:20px;font-size:11px">سيتم عرض المهارات بعد تشغيل التحليل</div>
+          </div>
+        </div>
+
+        <!-- توزيع حسب نوع الاختبار -->
+        <div style="background:var(--card2);border-radius:11px;padding:14px">
+          <div style="font-size:11px;font-weight:800;color:var(--blue);margin-bottom:10px">📚 الأداء حسب نوع الاختبار</div>
+          <div style="height:240px"><canvas id="examTypesChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ Reports Center ═══════════ -->
+  <div class="section-title" id="reports">📋 مركز التقارير المتقدمة</div>
+  <div class="card non-display">
+    <div class="card-h"><span class="card-t">🖨️ تقارير قابلة للطباعة (PDF) — للطالبة وولي الأمر والمعلمة والإدارة</span></div>
+    <div class="card-b">
+      <div class="row-2-equal" style="gap:10px">
+        <!-- تقرير الطالبة -->
+        <div style="background:var(--card2);border-radius:11px;padding:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span style="font-size:24px">👩‍🎓</span>
+            <div>
+              <div style="font-size:13px;font-weight:800">تقرير الطالبة</div>
+              <div style="font-size:9px;color:var(--text3)">أداء + مهارات + توصيات</div>
+            </div>
+          </div>
+          <select class="fi" id="reportStudent" style="margin-bottom:8px">
+            <option value="">— اختاري الطالبة —</option>
+            {% for s in students_list %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+          </select>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="openReport('student','student')">👩‍🎓 تقرير الطالبة</button>
+            <button class="btn btn-warn" onclick="openReport('student','parent')">👨‍👩‍👧 تقرير ولي الأمر</button>
+          </div>
+        </div>
+
+        <!-- تقرير الفصل -->
+        <div style="background:var(--card2);border-radius:11px;padding:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span style="font-size:24px">🏫</span>
+            <div>
+              <div style="font-size:13px;font-weight:800">تقرير الفصل</div>
+              <div style="font-size:9px;color:var(--text3)">متوسطات + توزيع + مهارات الفصل</div>
+            </div>
+          </div>
+          <select class="fi" id="reportClassroom" style="margin-bottom:8px">
+            <option value="">— اختاري الفصل —</option>
+            {% for c in classrooms %}<option value="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-primary" onclick="openReport('classroom')">🏫 إنشاء التقرير</button>
+        </div>
+
+        <!-- تقرير المعلمة -->
+        <div style="background:var(--card2);border-radius:11px;padding:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span style="font-size:24px">👩‍🏫</span>
+            <div>
+              <div style="font-size:13px;font-weight:800">تقرير المعلمة</div>
+              <div style="font-size:9px;color:var(--text3)">حصص + اختبارات + تأثير + تصنيف</div>
+            </div>
+          </div>
+          <select class="fi" id="reportTeacher" style="margin-bottom:8px">
+            <option value="">— اختاري المعلمة —</option>
+            {% for t in teachers_list %}<option value="{{ t.id }}">{{ t.name }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-primary" onclick="openReport('teacher')">👩‍🏫 إنشاء التقرير</button>
+        </div>
+
+        <!-- تقرير المدرسة -->
+        <div style="background:var(--card2);border-radius:11px;padding:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <span style="font-size:24px">🏆</span>
+            <div>
+              <div style="font-size:13px;font-weight:800">تقرير المدرسة الشامل</div>
+              <div style="font-size:9px;color:var(--text3)">إحصائيات عامة + مقارنات</div>
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--text3);margin-bottom:8px">يتضمّن جميع الفصول والمعلمات والطالبات</div>
+          <button class="btn btn-primary" onclick="openReport('school')">🏆 تقرير المدرسة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════════ Footer ═══════════ -->
   <div style="text-align:center;margin-top:30px;font-size:10px;color:var(--text3);line-height:1.8">
     منصة آمنة التعليمية · Enterprise Dashboard · {{ kpis.total_students }} طالبة · {{ kpis.total_teachers }} معلمة
   </div>
 
+</div>
+
+<!-- ═══════════ Side Navigation (Mobile) ═══════════ -->
+<div class="drawer-bg" id="sideNavBg" onclick="toggleSideNav()" style="display:none"></div>
+<div class="side-nav" id="sideNav">
+  <div class="side-nav-h">
+    <div style="font-size:13px;font-weight:800">📋 القائمة</div>
+    <button class="drawer-close" onclick="toggleSideNav()">✕</button>
+  </div>
+  <button onclick="document.getElementById('themeToggle').click(); toggleSideNav()">🌗 تبديل الوضع (داكن/فاتح)</button>
+  <a href="?display=1">📺 وضع شاشة العرض</a>
+  <button onclick="openDrawer('addTeacherDrawer'); toggleSideNav()">➕ إضافة معلمة</button>
+  <button onclick="openDrawer('addStudentDrawer'); toggleSideNav()">➕ إضافة طالبة</button>
+  <button onclick="openDrawer('addClassroomDrawer'); toggleSideNav()">🏫 إضافة فصل</button>
+  <button onclick="openDrawer('addCompDrawer'); toggleSideNav()">🏆 اختبار شامل</button>
+  <button onclick="openDrawer('importDrawer'); toggleSideNav()">📥 استيراد Excel</button>
+  <button onclick="openDrawer('alertsDrawer'); toggleSideNav()">🔔 التنبيهات</button>
+  <a href="{% url 'admin_comprehensive' %}">🏆 صفحة الاختبارات الشاملة</a>
+  <a href="?scrollto=analytics" onclick="toggleSideNav()">📊 التحليلات المتقدمة</a>
+  <a href="?scrollto=reports" onclick="toggleSideNav()">📋 التقارير</a>
+  <a href="{% url 'logout' %}" style="color:var(--red)">🚪 تسجيل الخروج</a>
 </div>
 
 <!-- ═══════════ DRAWERS ═══════════ -->
@@ -1039,6 +1271,15 @@ window.__teachersImpactData = [
 </script>
 
 <script>
+// ─── Side Nav (Mobile) ──────────────────────────────────────
+function toggleSideNav(){
+  const nav = document.getElementById('sideNav');
+  const bg = document.getElementById('sideNavBg');
+  const open = !nav.classList.contains('show');
+  nav.classList.toggle('show', open);
+  bg.style.display = open ? 'block' : 'none';
+}
+
 // ─── Theme toggle ───────────────────────────────────────────
 const themeKey = 'amaneduc-theme';
 const html = document.documentElement;
@@ -1314,6 +1555,127 @@ function applyFilters(){
   // placeholder — يطبّق الفلاتر داخلياً عبر fetch إلى endpoint مع query params
   flashToast('🎛️ تم تحديث الفلاتر');
 }
+
+// ─── Analytics scope + run ──────────────────────────────────
+let currentScope = 'school';
+function setAnalyticsScope(btn, scope){
+  document.querySelectorAll('.chip[data-scope]').forEach(c => c.classList.remove('on'));
+  btn.classList.add('on');
+  currentScope = scope;
+  ['anClassroom','anTeacher','anStudent'].forEach(id => document.getElementById(id).style.display = 'none');
+  if (scope === 'classroom') document.getElementById('anClassroom').style.display = '';
+  if (scope === 'teacher') document.getElementById('anTeacher').style.display = '';
+  if (scope === 'student') document.getElementById('anStudent').style.display = '';
+}
+
+function runAnalytics(){
+  const params = new URLSearchParams();
+  params.set('scope', currentScope);
+  if (currentScope === 'classroom') params.set('id', document.getElementById('anClassroom').value);
+  if (currentScope === 'teacher') params.set('id', document.getElementById('anTeacher').value);
+  if (currentScope === 'student') params.set('id', document.getElementById('anStudent').value);
+  params.set('exam_type', document.getElementById('anExamType').value);
+
+  if ((currentScope !== 'school') && !params.get('id')) {
+    alert('يرجى اختيار العنصر المراد تحليله');
+    return;
+  }
+
+  fetch('/admin-dashboard/analytics.json?' + params.toString())
+    .then(r => r.json())
+    .then(d => renderAnalytics(d))
+    .catch(() => alert('تعذّر تشغيل التحليل'));
+}
+
+function renderAnalytics(d){
+  const setKpi = (id, v, suf='') => {
+    const el = document.querySelector('#'+id+' div:last-child');
+    if (el) el.textContent = (v == null ? '—' : v + suf);
+  };
+  setKpi('anAvg', d.avg, '%');
+  setKpi('anAttempts', d.attempts);
+  setKpi('anPass', d.pass_pct, '%');
+  setKpi('anFail', d.fail_pct, '%');
+  setKpi('anHigh', d.highest, '%');
+  setKpi('anLow', d.lowest, '%');
+  setKpi('anImprove', (d.improvement >= 0 ? '+' : '') + d.improvement, '%');
+
+  // Descriptive
+  document.getElementById('anDescriptive').innerHTML = d.descriptive || '—';
+
+  // Skills
+  document.getElementById('skMastered').textContent = '✅ متقنة: ' + (d.skills_mastered || 0);
+  document.getElementById('skNeeds').textContent = '⚠️ تحتاج: ' + (d.skills_needs || 0);
+
+  const sb = document.getElementById('skillsBars');
+  if (d.skills && d.skills.length) {
+    sb.innerHTML = d.skills.map(s => `
+      <div class="skill-bar-row">
+        <span class="skill-name">${s.name}</span>
+        <div class="skill-bar"><div class="skill-fill" style="width:${s.pct}%;background:${s.pct>=70?'var(--green)':s.pct>=50?'var(--orange)':'var(--red)'}"></div></div>
+        <span class="skill-pct" style="color:${s.pct>=70?'var(--green)':s.pct>=50?'var(--orange)':'var(--red)'}">${s.pct}%</span>
+      </div>
+    `).join('');
+  } else {
+    sb.innerHTML = '<div style="text-align:center;color:var(--text3);padding:20px;font-size:11px">لا توجد بيانات مهارات بعد</div>';
+  }
+
+  // Exam types chart
+  const c = chartColors();
+  const ctx = document.getElementById('examTypesChart');
+  if (charts.examTypes) charts.examTypes.destroy();
+  charts.examTypes = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: d.types ? d.types.map(t => t.label) : [],
+      datasets: [{
+        label: 'متوسط %', data: d.types ? d.types.map(t => t.avg) : [],
+        backgroundColor: [c.blue, c.green, c.purple, c.orange, c.teal, c.pink],
+        borderRadius: 7,
+      }]
+    },
+    options: {
+      maintainAspectRatio: false, indexAxis: 'y',
+      plugins: { legend: { display:false } },
+      scales: { x: { ticks:{color:c.text}, grid:{color:c.grid}, beginAtZero:true, max:100 }, y: { ticks:{color:c.text}, grid:{display:false} } }
+    }
+  });
+}
+
+// ─── Reports ────────────────────────────────────────────────
+function openReport(kind, audience='admin'){
+  const params = new URLSearchParams();
+  params.set('kind', kind);
+  params.set('audience', audience);
+  if (kind === 'student') {
+    const v = document.getElementById('reportStudent').value;
+    if (!v) { alert('اختاري الطالبة'); return; }
+    params.set('id', v);
+  }
+  if (kind === 'classroom') {
+    const v = document.getElementById('reportClassroom').value;
+    if (!v) { alert('اختاري الفصل'); return; }
+    params.set('id', v);
+  }
+  if (kind === 'teacher') {
+    const v = document.getElementById('reportTeacher').value;
+    if (!v) { alert('اختاري المعلمة'); return; }
+    params.set('id', v);
+  }
+  window.open('/admin-dashboard/report?' + params.toString(), '_blank');
+}
+
+// ─── Auto-scroll if ?scrollto= ───────────────────────────────
+(function(){
+  const q = new URLSearchParams(location.search);
+  const s = q.get('scrollto');
+  if (s) {
+    setTimeout(() => {
+      const el = document.getElementById(s);
+      if (el) el.scrollIntoView({ behavior:'smooth' });
+    }, 200);
+  }
+})();
 
 // ─── Display Mode auto-refresh ──────────────────────────────
 {% if display_mode %}
