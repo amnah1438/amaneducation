@@ -741,10 +741,14 @@ def _filter_results(scope, target_id, exam_type):
         # ربط بالـ User: نقابل بـ first_name و username
         from django.db.models import Q
         cond = Q()
+        valid_cond = False
         for n in names:
             parts = n.split()
-            if parts:
+            if parts and parts[0]:
                 cond |= Q(student__first_name=parts[0]) | Q(student__username=n)
+                valid_cond = True
+        if not valid_cond:
+            return qs.none()
         qs = qs.filter(cond)
     elif scope == 'teacher' and target_id:
         try:

@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +15,8 @@
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <style>
-:root{--bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;--purple:#9b72f5;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
+:root, :root[data-theme="dark"] {--bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;--purple:#9b72f5;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
+:root[data-theme="light"] {--bg:#f8fafc;--bg2:#f1f5f9;--bg3:#e2e8f0;--card:#ffffff;--card2:#f8fafc;--border:#e2e8f0;--border2:#cbd5e1;--green:#059669;--green2:#d1fae5;--blue:#2563eb;--blue2:#dbeafe;--purple:#9333ea;--orange:#d97706;--red:#dc2626;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
@@ -131,6 +132,67 @@ textarea.fi{min-height:60px;resize:vertical}
   background:white;top:2px;right:3px;transition:right 0.2s;
 }
 .toggle-switch.on::after{right:21px}
+
+/* ─── Smart Field with Embedded Toolbar ─── */
+.smart-field{
+  position:relative;background:var(--card2);border:1.5px solid var(--border2);
+  border-radius:11px;transition:border-color 0.2s;overflow:hidden;
+}
+.smart-field:focus-within{border-color:var(--blue)}
+.smart-field textarea, .smart-field input{
+  background:transparent;border:none;color:var(--text);font-family:'Tajawal',sans-serif;
+  font-size:13px;padding:10px 12px;outline:none;width:100%;resize:vertical;
+}
+.smart-field .toolbar{
+  display:flex;gap:4px;padding:6px 8px;background:var(--bg3);
+  border-bottom:1px solid var(--border);align-items:center;flex-wrap:wrap;
+}
+.smart-field .toolbar.bottom{border-bottom:none;border-top:1px solid var(--border)}
+.smart-field .tool{
+  width:32px;height:32px;border-radius:7px;border:1px solid var(--border);
+  background:var(--card);color:var(--text2);cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;transition:all 0.15s;
+  flex-shrink:0;
+}
+.smart-field .tool:hover{background:var(--blue);color:white;border-color:var(--blue);transform:translateY(-1px)}
+.smart-field .tool.tool-latex:hover{background:var(--purple);border-color:var(--purple)}
+.smart-field .tool.tool-ocr:hover{background:var(--orange);border-color:var(--orange)}
+.smart-field .tool.tool-img:hover{background:var(--green);border-color:var(--green)}
+.smart-field .tool-label{font-size:9px;color:var(--text3);margin-right:auto;padding-right:6px;font-weight:600}
+
+/* ─── Wizard Steps Cards ─── */
+.method-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:18px}
+@media(max-width:780px){.method-grid{grid-template-columns:1fr}}
+.method-card{
+  background:linear-gradient(135deg,var(--card2),var(--card));
+  border:2px solid var(--border);border-radius:14px;padding:18px;
+  cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;
+}
+.method-card::after{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent-1,var(--blue)),var(--accent-2,var(--purple)));
+  transform:scaleX(0);transition:transform 0.3s;transform-origin:right;
+}
+.method-card:hover{transform:translateY(-3px);border-color:var(--accent-1,var(--blue));box-shadow:0 12px 30px rgba(0,0,0,0.25)}
+.method-card:hover::after{transform:scaleX(1);transform-origin:left}
+.method-card.active{border-color:var(--green);background:linear-gradient(135deg,rgba(15,186,129,0.08),var(--card))}
+.mc-icon{font-size:34px;margin-bottom:10px}
+.mc-title{font-size:14px;font-weight:900;margin-bottom:4px}
+.mc-desc{font-size:11px;color:var(--text2);line-height:1.7}
+.mc-tag{display:inline-block;font-size:9px;background:var(--card);padding:2px 8px;border-radius:8px;margin-top:8px;color:var(--text3);border:1px solid var(--border)}
+
+/* ─── Form sections ─── */
+.section-block{background:var(--card2);border-radius:11px;padding:14px 16px;margin-bottom:13px}
+.section-block-title{font-size:11px;font-weight:800;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.section-block-title::before{content:"";width:3px;height:13px;background:var(--blue);border-radius:2px}
+
+/* ─── LaTeX Modal Iframe ─── */
+.latex-modal{background:var(--card);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:900px;height:600px;display:flex;flex-direction:column;overflow:hidden}
+.latex-modal-h{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg2)}
+.latex-modal-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.latex-modal iframe{flex:1;width:100%;border:none;background:white}
+.latex-paste-row{padding:10px 14px;background:var(--bg3);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center}
+.latex-paste-row input{flex:1;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:monospace;font-size:12px;padding:8px 11px;border-radius:7px;outline:none;direction:ltr;text-align:left}
 </style>
 </head>
 <body>
@@ -163,37 +225,80 @@ textarea.fi{min-height:60px;resize:vertical}
     {% endfor %}
   {% endif %}
 
-  <!-- ─── الإدخال اليدوي ─── -->
+  <!-- ═══ Wizard: 3 طرق لإضافة الأسئلة ═══ -->
   <div class="card">
     <div class="ch">
-      <span class="ct">✍️ إضافة سؤال (يدعم الرموز + المسح الضوئي + الصور)</span>
-      <span style="font-size:9px;color:var(--text3)">📷 اضغطي زر العدسة لمسح الأسئلة من كتاب أو صورة</span>
+      <span class="ct">✨ كيف تريدين إضافة الأسئلة؟ — اختاري الطريقة الأنسب</span>
     </div>
     <div class="cb">
+      <div class="method-grid">
+        <!-- 1) يدوي -->
+        <div class="method-card active" id="mth-manual" onclick="switchMethod('manual')" style="--accent-1:var(--blue);--accent-2:var(--purple)">
+          <div class="mc-icon">✍️</div>
+          <div class="mc-title">إدخال يدوي</div>
+          <div class="mc-desc">اكتبي السؤال والخيارات بنفسك مع أدوات ذكية: <strong>LaTeX • مسح ضوئي • صور</strong> داخل كل حقل</div>
+          <span class="mc-tag">🎯 الأنسب للأسئلة المعقدة</span>
+        </div>
 
-      <!-- Quick Mode -->
-      <div class="quick-toggle">
-        <div class="toggle-switch" id="quickToggle" onclick="toggleQuickMode()"></div>
-        <div>
-          <div style="font-size:12px;font-weight:800">⚡ وضع الإدخال السريع (Quick Add)</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">يحفظ السؤال ويُجهّز النموذج لسؤال جديد فوراً بدون مغادرة الصفحة</div>
+        <!-- 2) Excel -->
+        <div class="method-card" id="mth-excel" onclick="switchMethod('excel')" style="--accent-1:var(--orange);--accent-2:var(--green)">
+          <div class="mc-icon">📊</div>
+          <div class="mc-title">رفع ملف Excel</div>
+          <div class="mc-desc">حضّري ملف بكل الأسئلة دفعة واحدة، النظام يقرؤها ويوزّعها تلقائياً (٦٠ سؤال في ثوانٍ)</div>
+          <span class="mc-tag">⚡ الأسرع للكميات الكبيرة</span>
         </div>
       </div>
 
-      <!-- Drag & Drop -->
-      <div class="dropzone" id="dropzone" onclick="document.getElementById('dzFileInp').click()">
-        <input type="file" id="dzFileInp" accept="image/*" style="display:none" onchange="handleDropImage(this.files[0])">
-        <div class="dz-icon">📸</div>
-        <div class="dz-title">اسحبي صورة السؤال هنا — أو اضغطي للاختيار</div>
-        <div class="dz-sub">يستخرج النص العربي والإنجليزي والأرقام تلقائياً ويوزّعها على السؤال والخيارات</div>
-      </div>
+      <!-- ══════════ طريقة 1: يدوي ══════════ -->
+      <div id="panel-manual">
 
-      <form method="post" action="{% url 'admin_comp_add_question' skill.id %}" enctype="multipart/form-data" id="qform">
-        {% csrf_token %}
+        <!-- Quick Mode -->
+        <div class="quick-toggle">
+          <div class="toggle-switch" id="quickToggle" onclick="toggleQuickMode()"></div>
+          <div>
+            <div style="font-size:12px;font-weight:800">⚡ وضع الإدخال السريع (Quick Add)</div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">يحفظ السؤال ويُجهّز النموذج لسؤال جديد فوراً بدون مغادرة الصفحة</div>
+          </div>
+        </div>
 
-        <!-- لوحة الرموز -->
-        <div class="fg">
-          <label class="fl">🧮 لوحة الرموز السريعة (اضغطي على الرمز لإدراجه في الحقل النشط)</label>
+        <form method="post" action="{% url 'admin_comp_add_question' skill.id %}" enctype="multipart/form-data" id="qform">
+          {% csrf_token %}
+
+        <!-- ─── السؤال — حقل ذكي ─── -->
+        <div class="section-block">
+          <div class="section-block-title">📝 نص السؤال</div>
+          <div class="smart-field">
+            <div class="toolbar">
+              <span class="tool-label">أدوات:</span>
+              <button type="button" class="tool tool-latex" onclick="openLatexEditor('qPlainArea')" title="محرّر معادلات LaTeX">∑</button>
+              <button type="button" class="tool tool-ocr" onclick="openOcr('qPlainArea','full')" title="مسح ضوئي ذكي">📷</button>
+              <button type="button" class="tool tool-img" onclick="document.getElementById('qImgInput').click()" title="إضافة صورة للسؤال">🖼️</button>
+              <button type="button" class="tool" onclick="previewLatex('qPlainArea','qPreviewBox')" title="معاينة فورية">👁️</button>
+              <button type="button" class="tool" onclick="insertSym('qPlainArea','$x^2$')" title="أس">x²</button>
+              <button type="button" class="tool" onclick="insertSym('qPlainArea','$\\\\frac{a}{b}$')" title="كسر">a/b</button>
+              <button type="button" class="tool" onclick="insertSym('qPlainArea','$\\\\sqrt{x}$')" title="جذر">√</button>
+              <button type="button" class="tool" onclick="insertSym('qPlainArea','π')" title="باي">π</button>
+              <button type="button" class="tool" onclick="insertSym('qPlainArea','°')" title="درجة">°</button>
+              <button type="button" class="tool" onclick="insertSym('qPlainArea','±')">±</button>
+              <button type="button" class="tool" onclick="insertSym('qPlainArea','≤')">≤</button>
+              <button type="button" class="tool" onclick="insertSym('qPlainArea','≥')">≥</button>
+            </div>
+            <textarea id="qPlainArea" name="question_plain" rows="3" required
+              placeholder="مثال: ما حل المعادلة $x^2 - 4 = 0$ ؟  (يمكنكِ استخدام أي زر من الشريط أعلاه)"></textarea>
+          </div>
+          <input type="file" id="qImgInput" name="question_image" accept="image/*" style="display:none"
+                 onchange="previewImage(this,'qImgPreview')">
+          <div id="qImgPreviewWrap" style="display:none;margin-top:8px;padding:8px;background:var(--card);border:1px dashed var(--border);border-radius:8px;text-align:center">
+            <img id="qImgPreview" style="max-width:100%;max-height:200px;border-radius:6px">
+            <div style="font-size:9px;color:var(--text3);margin-top:5px">صورة السؤال (للرسومات/الأشكال)</div>
+          </div>
+          <div id="qPreviewBox" style="display:none;margin-top:8px;padding:10px 14px;background:white;color:#111;border:1px solid var(--border);border-radius:7px;font-size:14px;line-height:1.9;direction:rtl"></div>
+        </div>
+
+        <!-- لوحة الرموز الموسعة -->
+        <details style="margin-bottom:14px">
+        <summary style="cursor:pointer;font-size:11px;font-weight:700;color:var(--text2);padding:8px 12px;background:var(--card2);border-radius:8px">🧮 لوحة الرموز الكاملة (اختياري)</summary>
+        <div class="fg" style="margin-top:8px">
           <div class="symbol-bar" id="symBar">
             <span class="sym-group-title">رياضيات أساسية:</span>
             <button type="button" class="sym" data-ins="±">±</button>
@@ -247,70 +352,37 @@ textarea.fi{min-height:60px;resize:vertical}
             <button type="button" class="sym" data-ins="٨">٨</button>
             <button type="button" class="sym" data-ins="٩">٩</button>
           </div>
-          <div style="font-size:10px;color:var(--text2);line-height:1.9;padding:8px 10px;background:rgba(79,142,247,0.06);border-right:3px solid var(--blue);border-radius:6px;margin-top:4px">
-            💡 <strong>كيف تكتبين معادلة رياضية؟</strong><br>
-            ضعي الصيغة بين علامتي <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">$...$</code>.<br>
-            مثال: <code style="background:var(--bg3);padding:1px 4px;border-radius:3px">$x^2 + 5x = 0$</code>
-            ↩ ستُعرض للطالبة كـ: <span style="background:white;color:#111;padding:2px 8px;border-radius:4px">$x^2 + 5x = 0$</span><br>
-            🎯 تستطيعين الضغط على رمز جاهز أعلاه فيُدرَج تلقائياً في آخر حقل ضغطتِ عليه.
-          </div>
         </div>
+        </details>
 
-        <div class="fg">
-          <label class="fl">نص السؤال * <span style="font-weight:400;color:var(--text3)">— استعملي $...$ للمعادلات</span></label>
-          <div style="position:relative">
-            <textarea class="fi" id="qPlainArea" name="question_plain" rows="3" required
-              placeholder="مثال: ما حل المعادلة $x^2 - 4 = 0$ ؟"
-              style="padding-left:50px"></textarea>
-            <button type="button" class="ocr-lens"
-              onclick="openOcr('qPlainArea','full')"
-              title="مسح ضوئي — استخراج السؤال والخيارات تلقائياً">📷</button>
-          </div>
-          <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-            <button type="button" class="btn btn-b" onclick="insertLatexBlock('qPlainArea')">
-              ➕ إدراج معادلة LaTeX
-            </button>
-            <button type="button" class="btn btn-p" onclick="previewLatex('qPlainArea','qPreviewBox')">
-              👁️ معاينة فورية
-            </button>
-            <button type="button" class="btn btn-o" onclick="openOcr('qPlainArea','full')">
-              📷 مسح من صورة (OCR)
-            </button>
-          </div>
-          <div id="qPreviewBox" style="display:none;margin-top:8px;padding:10px 14px;background:white;color:#111;border:1px solid var(--border);border-radius:7px;font-size:14px;line-height:1.9;direction:rtl"></div>
-        </div>
-
-        <div class="fg">
-          <label class="fl">📷 صورة السؤال (اختيارية — للأسئلة التي تحوي رسومات/أشكال)</label>
-          <input class="fi" id="qImgInput" type="file" name="question_image" accept="image/*"
-                 onchange="previewImage(this,'qImgPreview')">
-          <div style="display:none;margin-top:8px;padding:8px;background:var(--bg3);border:1px dashed var(--border);border-radius:7px;text-align:center" id="qImgPreviewWrap">
-            <img id="qImgPreview" style="max-width:100%;max-height:220px;border-radius:6px">
-            <div style="font-size:9px;color:var(--text3);margin-top:5px">معاينة الصورة قبل الرفع</div>
-          </div>
-        </div>
-
-        <div class="row4">
-          {% for L in 'abcd' %}{% with letter=L %}
-          <div class="fg" data-opt-block="{{ letter }}">
-            <label class="fl">خيار {% if letter == 'a' %}أ{% elif letter == 'b' %}ب{% elif letter == 'c' %}ج{% else %}د{% endif %}</label>
-            <div style="position:relative">
-              <input class="fi opt-text-input" id="opt{{ letter|upper }}" name="option_{{ letter }}_plain"
-                     placeholder="نص الخيار..." style="padding-left:80px;padding-right:12px">
-              <button type="button" class="ocr-lens-sm" style="left:42px"
-                      onclick="openOcr('opt{{ letter|upper }}','single')" title="مسح ضوئي نصي">🔤</button>
-              <button type="button" class="ocr-lens-sm" style="left:8px;background:rgba(168,85,247,0.15);color:var(--purple);border-color:rgba(168,85,247,0.3)"
-                      onclick="openImagePicker('opt{{ letter }}_image')" title="صورة للخيار (رسم/جدول)">🖼️</button>
+        <div class="section-block">
+          <div class="section-block-title">📋 الخيارات الأربعة (كل خيار يدعم: نص • LaTeX • مسح ضوئي • صورة)</div>
+          <div class="row4">
+            {% for L in 'abcd' %}{% with letter=L %}
+            <div class="fg" data-opt-block="{{ letter }}" style="margin-bottom:0">
+              <label class="fl" style="margin-bottom:5px">
+                خيار {% if letter == 'a' %}أ{% elif letter == 'b' %}ب{% elif letter == 'c' %}ج{% else %}د{% endif %}
+              </label>
+              <div class="smart-field">
+                <div class="toolbar">
+                  <button type="button" class="tool tool-latex" onclick="openLatexEditor('opt{{ letter|upper }}')" title="LaTeX">∑</button>
+                  <button type="button" class="tool tool-ocr" onclick="openOcr('opt{{ letter|upper }}','single')" title="مسح ضوئي">📷</button>
+                  <button type="button" class="tool tool-img" onclick="openImagePicker('opt{{ letter }}_image')" title="صورة">🖼️</button>
+                  <button type="button" class="tool" onclick="insertSym('opt{{ letter|upper }}','$x^2$')" style="font-size:11px">x²</button>
+                  <button type="button" class="tool" onclick="insertSym('opt{{ letter|upper }}','$\\\\frac{a}{b}$')" style="font-size:10px">a/b</button>
+                </div>
+                <input id="opt{{ letter|upper }}" name="option_{{ letter }}_plain" placeholder="نص الخيار...">
+              </div>
+              <input type="file" id="opt{{ letter }}_image_file" name="option_{{ letter }}_image" accept="image/*" style="display:none"
+                     onchange="previewOptionImage('{{ letter }}', this)">
+              <input type="hidden" id="opt{{ letter }}_image_data" name="option_{{ letter }}_image_data">
+              <div id="opt{{ letter }}_image_preview" style="display:none;margin-top:5px;padding:5px;background:var(--card2);border:1px dashed var(--border);border-radius:6px;text-align:center;position:relative">
+                <img style="max-width:100%;max-height:90px;border-radius:5px">
+                <button type="button" onclick="clearOptionImage('{{ letter }}')" style="position:absolute;top:3px;left:3px;background:var(--red);color:white;border:none;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:10px;line-height:1">×</button>
+              </div>
             </div>
-            <input type="file" id="opt{{ letter }}_image_file" name="option_{{ letter }}_image" accept="image/*" style="display:none"
-                   onchange="previewOptionImage('{{ letter }}', this)">
-            <input type="hidden" id="opt{{ letter }}_image_data" name="option_{{ letter }}_image_data">
-            <div id="opt{{ letter }}_image_preview" style="display:none;margin-top:5px;padding:5px;background:var(--card2);border:1px dashed var(--border);border-radius:6px;text-align:center;position:relative">
-              <img style="max-width:100%;max-height:90px;border-radius:5px">
-              <button type="button" onclick="clearOptionImage('{{ letter }}')" style="position:absolute;top:3px;left:3px;background:var(--red);color:white;border:none;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:10px;line-height:1">×</button>
-            </div>
+            {% endwith %}{% endfor %}
           </div>
-          {% endwith %}{% endfor %}
         </div>
 
         <div class="row2">
@@ -334,29 +406,42 @@ textarea.fi{min-height:60px;resize:vertical}
           <textarea class="fi" name="feedback_plain" rows="2" placeholder="شرح للطالبة بعد الحل..."></textarea>
         </div>
 
-        <button type="submit" class="btn btn-g" style="width:100%;font-size:13px;padding:11px">➕ حفظ السؤال</button>
-      </form>
-    </div>
-  </div>
+          <button type="submit" class="btn btn-g" style="width:100%;font-size:13px;padding:12px">💾 حفظ السؤال</button>
+        </form>
+      </div>
 
-  <!-- ─── رفع Excel ─── -->
-  <div class="card">
-    <div class="ch">
-      <span class="ct">📥 رفع أسئلة من Excel</span>
-    </div>
-    <div class="cb">
-      <form method="post" action="{% url 'admin_comp_import_excel' skill.id %}" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="fg">
-          <label class="fl">ملف Excel (xlsx)</label>
-          <input class="fi" type="file" name="excel_file" accept=".xlsx,.xlsm" required>
+      <!-- ══════════ طريقة 2: Excel ══════════ -->
+      <div id="panel-excel" style="display:none">
+        <div class="section-block" style="background:linear-gradient(135deg,rgba(245,158,11,0.08),var(--card2));border:2px dashed var(--orange);text-align:center;padding:24px">
+          <div style="font-size:42px;margin-bottom:10px">📊</div>
+          <div style="font-size:14px;font-weight:800;margin-bottom:5px">رفع ملف Excel — السرعة القصوى</div>
+          <div style="font-size:11px;color:var(--text2);line-height:1.8;max-width:540px;margin:0 auto 14px">
+            حضّري ملف Excel بكل الأسئلة (٦٠ سؤال أو أكثر) ثم ارفعيه — النظام يقرأ ويوزّع تلقائياً.
+          </div>
+          <form method="post" action="{% url 'admin_comp_import_excel' skill.id %}" enctype="multipart/form-data" style="max-width:420px;margin:0 auto">
+            {% csrf_token %}
+            <div class="fg">
+              <input class="fi" type="file" name="excel_file" accept=".xlsx,.xlsm" required style="background:var(--card)">
+            </div>
+            <button type="submit" class="btn btn-o" style="width:100%;font-size:13px;padding:12px">📥 رفع وإضافة الأسئلة</button>
+          </form>
+          <details style="margin-top:14px;text-align:right">
+            <summary style="cursor:pointer;font-size:11px;font-weight:700;color:var(--orange)">📋 شرح أعمدة الملف</summary>
+            <table style="margin-top:8px;width:100%;font-size:11px;background:var(--card);border-radius:8px;overflow:hidden">
+              <thead><tr style="background:var(--bg3)"><th style="padding:7px;text-align:right">العمود</th><th style="padding:7px;text-align:right">المحتوى</th></tr></thead>
+              <tbody>
+                <tr><td style="padding:6px 9px;border-bottom:1px solid var(--border)"><strong>أ</strong></td><td style="padding:6px 9px;border-bottom:1px solid var(--border)">نص السؤال (يدعم $...$ للمعادلات)</td></tr>
+                <tr><td style="padding:6px 9px;border-bottom:1px solid var(--border)"><strong>ب</strong></td><td style="padding:6px 9px;border-bottom:1px solid var(--border)">خيار أ</td></tr>
+                <tr><td style="padding:6px 9px;border-bottom:1px solid var(--border)"><strong>ج</strong></td><td style="padding:6px 9px;border-bottom:1px solid var(--border)">خيار ب</td></tr>
+                <tr><td style="padding:6px 9px;border-bottom:1px solid var(--border)"><strong>د</strong></td><td style="padding:6px 9px;border-bottom:1px solid var(--border)">خيار ج</td></tr>
+                <tr><td style="padding:6px 9px;border-bottom:1px solid var(--border)"><strong>هـ</strong></td><td style="padding:6px 9px;border-bottom:1px solid var(--border)">خيار د</td></tr>
+                <tr><td style="padding:6px 9px;border-bottom:1px solid var(--border)"><strong>و</strong></td><td style="padding:6px 9px;border-bottom:1px solid var(--border)">الإجابة الصحيحة: A أو B أو C أو D</td></tr>
+                <tr><td style="padding:6px 9px;border-bottom:1px solid var(--border)"><strong>ز</strong></td><td style="padding:6px 9px;border-bottom:1px solid var(--border)">المهارة (اختياري)</td></tr>
+                <tr><td style="padding:6px 9px"><strong>ح</strong></td><td style="padding:6px 9px">تعليق (اختياري)</td></tr>
+              </tbody>
+            </table>
+          </details>
         </div>
-        <button type="submit" class="btn btn-o" style="width:100%">📥 رفع وإضافة الأسئلة</button>
-      </form>
-      <div style="margin-top:10px;padding:9px 12px;background:rgba(245,166,35,0.06);border-radius:7px;border-right:3px solid var(--orange);font-size:10px;color:var(--orange);line-height:1.8">
-        📋 <strong>أعمدة الملف (السطر الأول = عناوين)</strong>:<br>
-        أ. السؤال • ب. الخيار أ • ج. الخيار ب • د. الخيار ج • هـ. الخيار د •
-        و. الإجابة الصحيحة (A/B/C/D) • ز. المهارة (اختياري) • ح. تعليق (اختياري)
       </div>
     </div>
   </div>
