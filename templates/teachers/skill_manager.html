@@ -406,12 +406,19 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
                 <div class="fg">
                   <label class="fl">الفصل المستهدف *</label>
                   <select class="fi" name="target_classes">
-                    <option value="ث١٢">ث١٢</option>
-                    <option value="ث١١">ث١١</option>
-                    <option value="ث١٠">ث١٠</option>
-                    <option value="ث١٢,ث١١">ث١٢ + ث١١</option>
-                    <option value="جميع الفصول">جميع الفصول</option>
+                    <option value="جميع الفصول">📌 جميع الفصول</option>
+                    {% for cls in school_classrooms %}
+                    <option value="{{ cls.name }}">{{ cls.name }}</option>
+                    {% endfor %}
+                    {% if not school_classrooms %}
+                    <option value="" disabled>— لم تضيف المديرة فصولاً بعد —</option>
+                    {% endif %}
                   </select>
+                  {% if not school_classrooms %}
+                  <div style="font-size:9px;color:var(--orange);margin-top:4px;line-height:1.6">
+                    ⚠️ المديرة لم تضف فصول الدراسة بعد. تواصلي معها لإضافتها.
+                  </div>
+                  {% endif %}
                 </div>
                 <div class="fg">
                   <label class="fl">نوع الحصة</label>
