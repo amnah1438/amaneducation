@@ -56,14 +56,30 @@ textarea.fi{min-height:60px;resize:vertical}
 .sym-tex{font-family:'Tajawal',monospace;font-size:11px}
 
 /* قائمة الأسئلة */
-.q-card{background:var(--bg2);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:9px}
-.q-num{display:inline-block;width:24px;height:24px;line-height:24px;border-radius:50%;background:var(--blue);color:white;text-align:center;font-size:11px;font-weight:800;margin-left:6px}
-.q-text{font-size:13px;font-weight:700;margin-bottom:7px;line-height:1.6}
-.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px}
-.q-opt{padding:5px 9px;border-radius:6px;background:var(--card2);border:1px solid var(--border);font-size:11px;color:var(--text2)}
+.q-card{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:16px;margin-bottom:11px}
+.q-num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--blue);color:white;text-align:center;font-size:12px;font-weight:800;margin-left:8px}
+.q-text{font-size:14px;font-weight:700;margin-bottom:10px;line-height:1.7;display:flex;align-items:flex-start}
+.q-text-content{flex:1}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.q-opt{padding:9px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--border);font-size:12px;color:var(--text2);display:flex;align-items:center;gap:7px;min-height:40px;line-height:1.6}
+.q-opt strong{flex-shrink:0;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;background:var(--bg3);border-radius:50%;font-size:11px}
 .q-opt.ok{background:rgba(15,186,129,0.1);border-color:var(--green);color:var(--green);font-weight:700}
-.q-actions{display:flex;gap:5px;margin-top:6px}
-.q-image{max-width:200px;max-height:140px;border-radius:6px;border:1px solid var(--border);margin-bottom:7px}
+.q-opt.ok strong{background:var(--green);color:white}
+.q-opt-img{max-width:100%;max-height:80px;border-radius:6px;border:1px solid var(--border);margin-right:auto}
+.q-actions{display:flex;gap:6px;margin-top:8px;justify-content:flex-end}
+
+/* صورة السؤال — كبيرة احترافية في وسط البطاقة */
+.q-image-wrap{
+  text-align:center;background:white;border-radius:10px;padding:12px;
+  margin:8px 0 10px;border:1px solid var(--border);
+}
+.q-image{
+  max-width:100%;max-height:280px;height:auto;border-radius:6px;
+  display:inline-block;
+}
+
+/* Bidi: لفّ المعادلات بـ LTR isolate */
+.math-ltr{unicode-bidi:isolate;direction:ltr;display:inline-block}
 
 /* Modal */
 .modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:999;align-items:flex-start;justify-content:center;backdrop-filter:blur(6px);padding:20px;overflow-y:auto}
@@ -274,6 +290,7 @@ textarea.fi{min-height:60px;resize:vertical}
               <button type="button" class="tool tool-ocr" onclick="openOcr('qPlainArea','full')" title="مسح ضوئي ذكي">📷</button>
               <button type="button" class="tool tool-img" onclick="document.getElementById('qImgInput').click()" title="إضافة صورة للسؤال">🖼️</button>
               <button type="button" class="tool" onclick="previewLatex('qPlainArea','qPreviewBox')" title="معاينة فورية">👁️</button>
+              <button type="button" class="tool" onclick="toggleDir('qPlainArea')" title="تبديل اتجاه الكتابة (RTL/LTR)">🔁</button>
               <button type="button" class="tool" onclick="insertSym('qPlainArea','$x^2$')" title="أس">x²</button>
               <button type="button" class="tool" onclick="insertSym('qPlainArea','$\\\\frac{a}{b}$')" title="كسر">a/b</button>
               <button type="button" class="tool" onclick="insertSym('qPlainArea','$\\\\sqrt{x}$')" title="جذر">√</button>
@@ -368,6 +385,7 @@ textarea.fi{min-height:60px;resize:vertical}
                   <button type="button" class="tool tool-latex" onclick="openLatexEditor('opt{{ letter|upper }}')" title="LaTeX">∑</button>
                   <button type="button" class="tool tool-ocr" onclick="openOcr('opt{{ letter|upper }}','single')" title="مسح ضوئي">📷</button>
                   <button type="button" class="tool tool-img" onclick="openImagePicker('opt{{ letter }}_image')" title="صورة">🖼️</button>
+                  <button type="button" class="tool" onclick="toggleDir('opt{{ letter|upper }}')" title="تبديل اتجاه (RTL/LTR)">🔁</button>
                   <button type="button" class="tool" onclick="insertSym('opt{{ letter|upper }}','$x^2$')" style="font-size:11px">x²</button>
                   <button type="button" class="tool" onclick="insertSym('opt{{ letter|upper }}','$\\\\frac{a}{b}$')" style="font-size:10px">a/b</button>
                 </div>
@@ -466,14 +484,37 @@ textarea.fi{min-height:60px;resize:vertical}
              data-feedback="{{ q.feedback_plain|escape }}">
           <div class="q-text">
             <span class="q-num">{{ q.order|default:forloop.counter }}</span>
-            {{ q.question_plain|default:q.question_text|striptags }}
+            <span class="q-text-content math-aware">{{ q.question_plain|default:q.question_text|striptags }}</span>
           </div>
-          {% if q.question_image %}<img src="{{ q.question_image.url }}" class="q-image" alt="صورة">{% endif %}
+
+          {# صورة السؤال — احترافية وكبيرة #}
+          {% if q.question_image %}
+          <div class="q-image-wrap">
+            <img src="{{ q.question_image.url }}" class="q-image" alt="صورة السؤال">
+          </div>
+          {% endif %}
+
           <div class="q-opts">
-            <div class="q-opt {% if q.correct_answer == 'A' %}ok{% endif %}"><strong>أ.</strong> {{ q.option_a_plain|default:q.option_a|striptags }}</div>
-            <div class="q-opt {% if q.correct_answer == 'B' %}ok{% endif %}"><strong>ب.</strong> {{ q.option_b_plain|default:q.option_b|striptags }}</div>
-            <div class="q-opt {% if q.correct_answer == 'C' %}ok{% endif %}"><strong>ج.</strong> {{ q.option_c_plain|default:q.option_c|striptags }}</div>
-            <div class="q-opt {% if q.correct_answer == 'D' %}ok{% endif %}"><strong>د.</strong> {{ q.option_d_plain|default:q.option_d|striptags }}</div>
+            <div class="q-opt {% if q.correct_answer == 'A' %}ok{% endif %}">
+              <strong>أ</strong>
+              {% if q.option_a_image %}<img src="{{ q.option_a_image.url }}" class="q-opt-img">{% endif %}
+              <span class="math-aware">{{ q.option_a_plain|default:q.option_a|striptags|default:'—' }}</span>
+            </div>
+            <div class="q-opt {% if q.correct_answer == 'B' %}ok{% endif %}">
+              <strong>ب</strong>
+              {% if q.option_b_image %}<img src="{{ q.option_b_image.url }}" class="q-opt-img">{% endif %}
+              <span class="math-aware">{{ q.option_b_plain|default:q.option_b|striptags|default:'—' }}</span>
+            </div>
+            <div class="q-opt {% if q.correct_answer == 'C' %}ok{% endif %}">
+              <strong>ج</strong>
+              {% if q.option_c_image %}<img src="{{ q.option_c_image.url }}" class="q-opt-img">{% endif %}
+              <span class="math-aware">{{ q.option_c_plain|default:q.option_c|striptags|default:'—' }}</span>
+            </div>
+            <div class="q-opt {% if q.correct_answer == 'D' %}ok{% endif %}">
+              <strong>د</strong>
+              {% if q.option_d_image %}<img src="{{ q.option_d_image.url }}" class="q-opt-img">{% endif %}
+              <span class="math-aware">{{ q.option_d_plain|default:q.option_d|striptags|default:'—' }}</span>
+            </div>
           </div>
           {% if q.target_skill_name %}<div style="font-size:10px;color:var(--purple);margin-top:4px">🏷️ {{ q.target_skill_name }}</div>{% endif %}
           {% if q.feedback_plain %}<div style="font-size:10px;color:var(--text3);margin-top:4px">💡 {{ q.feedback_plain }}</div>{% endif %}
@@ -666,13 +707,31 @@ function insertLatexBlock(targetId){
   el.setSelectionRange(start+1, start+tpl.length-1);
 }
 
-// معاينة LaTeX — تستخدم MathJax لعرض النص في صندوق معاينة
+// معاينة LaTeX — تطبّع المعادلات وتعرضها بالاتجاه الصحيح
 function previewLatex(srcId, boxId){
   const src = document.getElementById(srcId);
   const box = document.getElementById(boxId);
   if (!src || !box) return;
   box.style.display = 'block';
-  box.innerHTML = src.value || '<span style="color:#888">— الحقل فارغ —</span>';
+  if (!src.value) { box.innerHTML = '<span style="color:#888">— الحقل فارغ —</span>'; return; }
+  // نطبّق normalizeMathInside ثم نلفّ كل $..$ بـ math-ltr
+  const normalized = (typeof normalizeMathInside === 'function') ? normalizeMathInside(src.value) : src.value;
+  // نبني HTML آمن
+  let safe = '';
+  let i = 0;
+  while (i < normalized.length) {
+    if (normalized[i] === '$') {
+      const end = normalized.indexOf('$', i + 1);
+      if (end > i) {
+        safe += '<span class="math-ltr">' + normalized.slice(i, end + 1) + '</span>';
+        i = end + 1; continue;
+      }
+    }
+    const c = normalized[i];
+    safe += (c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '&' ? '&amp;' : c);
+    i++;
+  }
+  box.innerHTML = safe;
   if (window.MathJax && window.MathJax.typesetPromise) {
     window.MathJax.typesetPromise([box]).catch(()=>{});
   }
@@ -694,6 +753,83 @@ function previewImage(inp, imgId){
     wrap.style.display = 'block';
   };
   reader.readAsDataURL(file);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   نظام Bidi الذكي للمعادلات الرياضية
+   - يحوّل الأرقام العربية → لاتينية فقط داخل $...$
+   - يلفّ كل ما بين $...$ بـ <span dir="ltr"> ليُعرض بالاتجاه الصحيح
+   - يُصلح backslash \ المحوّل خطأً إلى ١
+═══════════════════════════════════════════════════════════ */
+const _AR_TO_LA_MATH = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9','۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9'};
+
+function normalizeMathInside(text){
+  // يطبّع كل ما بين $...$ فقط (نص عربي خارج $...$ يبقى كما هو)
+  return String(text).replace(/\$([^$]+)\$/g, (m, inner) => {
+    let s = inner;
+    // تحويل الأرقام العربية والفارسية إلى لاتينية
+    s = [...s].map(ch => _AR_TO_LA_MATH[ch] || ch).join('');
+    // الباك سلاش العكسي → الأمامي (في حال كتبتْه المعلمة بالخطأ)
+    s = s.replace(/\/(?=[a-z])/gi, '\\');
+    // sqrt بدون backslash → \sqrt
+    s = s.replace(/(?<![\\])\bsqrt\b/g, '\\sqrt');
+    s = s.replace(/(?<![\\])\bfrac\b/g, '\\frac');
+    return '$' + s + '$';
+  });
+}
+
+function wrapMathLtr(html){
+  // يلفّ كل المعادلات بين $...$ بـ span dir="ltr"
+  return html.replace(/\$([^$]+)\$/g, '<span class="math-ltr">$$$1$$</span>');
+}
+
+// تطبيق على كل العناصر بصنف math-aware
+function processMathElements(){
+  document.querySelectorAll('.math-aware').forEach(el => {
+    if (el.dataset.processed) return;
+    const original = el.textContent || '';
+    const normalized = normalizeMathInside(original);
+    el.innerHTML = wrapMathLtr(normalized.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]).replace(/&lt;span class=&quot;math-ltr&quot;&gt;/g, '<span class="math-ltr">').replace(/&lt;\/span&gt;/g, '</span>'));
+    // أبسط طريقة: نعالج المعادلات أولاً ثم نضع HTML آمن
+    let safe = '';
+    let i = 0;
+    while (i < normalized.length) {
+      if (normalized[i] === '$') {
+        const end = normalized.indexOf('$', i + 1);
+        if (end > i) {
+          const eq = normalized.slice(i, end + 1);
+          safe += `<span class="math-ltr">${eq}</span>`;
+          i = end + 1; continue;
+        }
+      }
+      const ch = normalized[i];
+      safe += (ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '&' ? '&amp;' : ch);
+      i++;
+    }
+    el.innerHTML = safe;
+    el.dataset.processed = '1';
+    if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise([el]).catch(()=>{});
+  });
+}
+
+window.addEventListener('load', processMathElements);
+
+/* ─── زر تبديل اتجاه الحقل (RTL ↔ LTR) ─── */
+function toggleDir(targetId){
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  const cur = el.dir || el.style.direction || 'rtl';
+  const next = (cur === 'rtl') ? 'ltr' : 'rtl';
+  el.dir = next;
+  el.style.direction = next;
+  el.style.textAlign = (next === 'rtl') ? 'right' : 'left';
+  flashMiniToast('🔁 الاتجاه: ' + (next === 'ltr' ? 'يسار → يمين (LTR)' : 'يمين → يسار (RTL)'));
+}
+function flashMiniToast(msg){
+  const t = document.createElement('div');
+  t.style.cssText='position:fixed;bottom:80px;right:20px;background:var(--blue);color:white;padding:8px 14px;border-radius:7px;font-size:11px;font-weight:700;z-index:9999;box-shadow:0 4px 14px rgba(0,0,0,0.3)';
+  t.textContent=msg;document.body.appendChild(t);
+  setTimeout(()=>t.remove(),1800);
 }
 
 /* ─── Wizard: تبديل طريقة الإدخال ─── */
