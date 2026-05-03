@@ -550,6 +550,32 @@ textarea.fi{min-height:60px;resize:vertical}
   </div>
 </div>
 
+<!-- Modal: محرّر LaTeX خارجي -->
+<div class="modal-bg" id="latexModal">
+  <div class="latex-modal">
+    <div class="latex-modal-h">
+      <div>
+        <div style="font-size:14px;font-weight:800">∑ محرّر معادلات LaTeX</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px">اكتبي معادلتكِ في المحرّر، انسخيها، الصقيها بالأسفل، اضغطي «إدراج»</div>
+      </div>
+      <button class="drawer-close" onclick="closeLatexEditor()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 10px;cursor:pointer">✕</button>
+    </div>
+    <div class="latex-modal-body">
+      <iframe src="https://www.hostmath.com/" title="محرّر LaTeX"></iframe>
+      <div class="latex-paste-row">
+        <input id="latexPasteInp" placeholder="الصقي كود LaTeX هنا، مثال: x^2 + 5x - 3 = 0">
+        <button class="btn btn-g" onclick="applyLatexCode()" style="white-space:nowrap">✅ إدراج المعادلة</button>
+      </div>
+      <div style="padding:8px 14px;background:var(--card2);font-size:10px;color:var(--text3);line-height:1.7;border-top:1px solid var(--border)">
+        🌐 محررات بديلة (افتحي بنافذة جديدة):
+        <a href="https://latex.codecogs.com/eqneditor/editor.php" target="_blank" style="color:var(--blue);text-decoration:none;margin:0 4px">CodeCogs</a> ·
+        <a href="https://www.mathjax.org/#demo" target="_blank" style="color:var(--blue);text-decoration:none;margin:0 4px">MathJax Demo</a> ·
+        <a href="https://editor.codecogs.com/" target="_blank" style="color:var(--blue);text-decoration:none;margin:0 4px">CodeCogs Editor</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal تعديل سؤال -->
 <div class="modal-bg" id="editQModal">
   <div class="modal">
@@ -668,6 +694,45 @@ function previewImage(inp, imgId){
     wrap.style.display = 'block';
   };
   reader.readAsDataURL(file);
+}
+
+/* ─── Wizard: تبديل طريقة الإدخال ─── */
+function switchMethod(method){
+  document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+  document.getElementById('mth-' + method).classList.add('active');
+  document.getElementById('panel-manual').style.display = (method === 'manual') ? 'block' : 'none';
+  document.getElementById('panel-excel').style.display = (method === 'excel') ? 'block' : 'none';
+}
+
+/* ─── إدراج رمز سريع في حقل ─── */
+function insertSym(targetId, sym){
+  const el = document.getElementById(targetId);
+  if (!el) return;
+  const start = el.selectionStart || el.value.length;
+  const end = el.selectionEnd || el.value.length;
+  el.value = el.value.slice(0, start) + sym + el.value.slice(end);
+  const p = start + sym.length;
+  el.focus();
+  if (el.setSelectionRange) el.setSelectionRange(p, p);
+}
+
+/* ─── محرّر LaTeX خارجي عبر iframe ─── */
+let latexTargetField = null;
+function openLatexEditor(targetId){
+  latexTargetField = targetId;
+  document.getElementById('latexModal').classList.add('show');
+  document.getElementById('latexPasteInp').value = '';
+  document.getElementById('latexPasteInp').focus();
+}
+function closeLatexEditor(){
+  document.getElementById('latexModal').classList.remove('show');
+}
+function applyLatexCode(){
+  const code = document.getElementById('latexPasteInp').value.trim();
+  if (!code) { alert('انسخي كود المعادلة من المحرّر ثم الصقيه هنا'); return; }
+  const wrapped = code.startsWith('$') ? code : ('$' + code + '$');
+  if (latexTargetField) insertSym(latexTargetField, wrapped);
+  closeLatexEditor();
 }
 
 // تعديل سؤال — يقرأ من data-* attributes في بطاقة السؤال
@@ -1042,6 +1107,11 @@ function flashAddedToast(){
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2200);
 }
+
+// إغلاق Modal LaTeX بالضغط خارجه
+const latexModalEl = document.getElementById('latexModal');
+if (latexModalEl) latexModalEl.addEventListener('click', e => { if (e.target === latexModalEl) closeLatexEditor(); });
 </script>
+{% include "core/_theme_toggle.html" %}
 </body>
 </html>
