@@ -13,6 +13,12 @@ window.MathJax = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<!-- المحرّر الذكي: Tesseract.js + MathLive (نفس لوحة المديرة) -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://unpkg.com/mathlive@0.105.2/dist/mathlive.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/mathlive@0.105.2/dist/mathlive-fonts.css">
+
 <style>
 :root, :root[data-theme="dark"] {
   --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;
@@ -1017,15 +1023,31 @@ function setType(t){
     document.getElementById('wz2').style.display='none';
     document.getElementById('wz3').innerHTML='<div class="wz-icon">❓</div><div class="wz-num">٣</div><div class="wz-label">الأسئلة</div>';
     document.getElementById('wz4').style.display='none';
+    // تحديث عناوين الـ panels داخلياً
+    _updatePanelTitles('بنك أسئلة');
   } else if(t==='lesson'){
+    // التحصيلي = شرح ثم بعدي فقط (لا قبلي)
     document.getElementById('wz2').style.display='';
-    document.getElementById('wz3').innerHTML='<div class="wz-icon">📝</div><div class="wz-num">٣</div><div class="wz-label">الاختبار</div>';
+    document.getElementById('wz3').innerHTML='<div class="wz-icon">📝</div><div class="wz-num">٣</div><div class="wz-label">الاختبار البعدي</div>';
     document.getElementById('wz4').style.display='none';
+    _updatePanelTitles('الاختبار البعدي');
   } else {
+    // قدرات = قبلي + شرح + بعدي
     document.getElementById('wz2').style.display='';
     document.getElementById('wz3').innerHTML='<div class="wz-icon">📝</div><div class="wz-num">٣</div><div class="wz-label">الاختبار القبلي</div>';
     document.getElementById('wz4').style.display='';
+    _updatePanelTitles('الاختبار القبلي');
   }
+}
+
+/* يحدّث كل العناوين داخل step 3 panel ليطابق نوع المحتوى */
+function _updatePanelTitles(title){
+  document.querySelectorAll('#step3 .ct, #step3 h3, #step3 .step-title-pre').forEach(el => {
+    if (el.textContent.includes('القبلي') || el.textContent.includes('الاختبار')) {
+      // نحافظ على prefix الإيقونة (إن وُجد قبل النص)
+      el.innerHTML = el.innerHTML.replace(/الاختبار القبلي|الاختبار البعدي|بنك أسئلة|الاختبار/g, title);
+    }
+  });
 }
 
 // ═══════════════════
@@ -1391,7 +1413,179 @@ function saveSkill(activate){
 
   form.submit();
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ✨ المحرّر الذكي للأسئلة — مماثل لصفحة المديرة
+═══════════════════════════════════════════════════════════ */
+let smartTargetField = null;
+
+function smartLatex(targetId){
+  smartTargetField = targetId;
+  document.getElementById('smartLatexModal').style.display = 'flex';
+  document.getElementById('smartLatexPaste').value = '';
+  setTimeout(() => {
+    const ml = document.getElementById('smartMlField');
+    if (ml && ml.focus) ml.focus();
+  }, 60);
+}
+function smartLatexClose(){ document.getElementById('smartLatexModal').style.display = 'none'; }
+
+function smartLatexApply(){
+  const code = document.getElementById('smartLatexPaste').value.trim();
+  if (!code) { alert('انسخي كود المعادلة من المحرّر ثم الصقيه هنا'); return; }
+  const wrapped = code.startsWith('$') ? code : ('$' + code + '$');
+  if (!smartTargetField) { smartLatexClose(); return; }
+  const el = document.getElementById(smartTargetField);
+  if (el && el.contentEditable === 'true') {
+    el.focus(); document.execCommand('insertText', false, wrapped);
+  } else if (el) {
+    const s = el.selectionStart || 0, e = el.selectionEnd || 0;
+    el.value = el.value.slice(0,s) + wrapped + el.value.slice(e);
+  }
+  smartLatexClose();
+}
+function smartLatexTab(btn, panelId){
+  document.querySelectorAll('.smart-latex-tab').forEach(t => {
+    t.style.background='var(--card2)';t.style.color='var(--text)';t.style.fontWeight='700';
+  });
+  btn.style.background='linear-gradient(135deg,var(--green2),var(--blue2))';
+  btn.style.color='white';btn.style.fontWeight='800';
+  ['smart-mathlive','smart-myscript','smart-hostmath'].forEach(id => {
+    const f = document.getElementById(id);
+    if (!f) return;
+    f.style.display = (id === panelId) ? (id === 'smart-mathlive' ? 'flex' : 'block') : 'none';
+  });
+}
+function smartCopyMl(){
+  const ml = document.getElementById('smartMlField');
+  if (!ml) return;
+  const code = ml.getValue('latex') || ml.value || '';
+  if (!code.trim()) { alert('اكتبي معادلة أولاً'); return; }
+  document.getElementById('smartLatexPaste').value = code;
+}
+
+/* OCR للمحرر الذكي */
+let smartOcrFile = null, smartOcrText = null;
+function smartOcrOpen(targetId){
+  smartTargetField = targetId;
+  document.getElementById('smartOcrModal').style.display = 'flex';
+  document.getElementById('smartOcrPreview').style.display = 'none';
+  document.getElementById('smartOcrResult').style.display = 'none';
+  document.getElementById('smartOcrApply').style.display = 'none';
+  document.getElementById('smartOcrAsImg').style.display = 'none';
+  document.getElementById('smartOcrStart').style.display = 'none';
+  document.getElementById('smartOcrProgress').style.display = 'none';
+}
+function smartOcrClose(){ document.getElementById('smartOcrModal').style.display = 'none'; }
+
+function smartOcrFileChange(f){
+  smartOcrFile = f;
+  document.getElementById('smartOcrPreview').src = URL.createObjectURL(f);
+  document.getElementById('smartOcrPreview').style.display = 'block';
+  document.getElementById('smartOcrStart').style.display = 'inline-flex';
+  document.getElementById('smartOcrAsImg').style.display = 'inline-flex';
+}
+
+async function smartOcrRun(){
+  if (!smartOcrFile) return;
+  document.getElementById('smartOcrProgress').style.display = 'block';
+  document.getElementById('smartOcrStart').style.display = 'none';
+  const bar = document.getElementById('smartOcrBar');
+  const pct = document.getElementById('smartOcrPct');
+  bar.style.width = '0%'; pct.textContent = '0%';
+  try {
+    const { data } = await Tesseract.recognize(smartOcrFile, 'ara+eng', {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          const p = Math.round(m.progress*100);
+          bar.style.width = p+'%'; pct.textContent = p+'%';
+        }
+      }
+    });
+    smartOcrText = (data.text || '').trim();
+    document.getElementById('smartOcrResult').style.display = 'block';
+    document.getElementById('smartOcrResult').textContent = smartOcrText || '(لم يُستخرج نص)';
+    document.getElementById('smartOcrApply').style.display = 'inline-flex';
+    document.getElementById('smartOcrProgress').style.display = 'none';
+  } catch (e) {
+    document.getElementById('smartOcrResult').style.display = 'block';
+    document.getElementById('smartOcrResult').textContent = '❌ ' + (e.message || e);
+  }
+}
+
+function smartOcrApplyText(){
+  if (!smartOcrText || !smartTargetField) { smartOcrClose(); return; }
+  const el = document.getElementById(smartTargetField);
+  if (el && el.contentEditable === 'true') {
+    el.focus(); document.execCommand('insertText', false, smartOcrText);
+  } else if (el) {
+    const s = el.selectionStart || 0, e = el.selectionEnd || 0;
+    el.value = el.value.slice(0,s) + smartOcrText + el.value.slice(e);
+  }
+  smartOcrClose();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('smartOcrFileInp');
+  if (inp) inp.addEventListener('change', e => { if (e.target.files[0]) smartOcrFileChange(e.target.files[0]); });
+});
 </script>
+
+<!-- Modal: LaTeX (مع MathLive + MyScript + HostMath) -->
+<div id="smartLatexModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(6px)">
+  <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:1000px;height:660px;display:flex;flex-direction:column;overflow:hidden;margin:auto">
+    <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg2)">
+      <div style="font-size:13px;font-weight:800">∑ محرّر المعادلات الذكي</div>
+      <button onclick="smartLatexClose()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 12px;cursor:pointer">✕</button>
+    </div>
+    <div style="display:flex;gap:4px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <button type="button" class="smart-latex-tab" onclick="smartLatexTab(this,'smart-mathlive')" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:none;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800">✏️ MathLive (مثل Word)</button>
+      <button type="button" class="smart-latex-tab" onclick="smartLatexTab(this,'smart-myscript')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">✍️ MyScript</button>
+      <button type="button" class="smart-latex-tab" onclick="smartLatexTab(this,'smart-hostmath')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">🧮 HostMath</button>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div id="smart-mathlive" style="display:flex;flex-direction:column;flex:1;padding:20px;background:white;color:#111;overflow-y:auto">
+        <div style="font-size:12px;color:#1e293b;margin-bottom:10px;font-weight:700">📝 اكتبي المعادلة كما في Word — اختصارات: <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">1/2</code> كسر، <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">x^2</code> أس، <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">sqrt 2</code> جذر</div>
+        <math-field id="smartMlField" virtual-keyboard-mode="manual" style="min-height:160px;font-size:22px;border:2px solid #cbd5e1;border-radius:11px;padding:18px;background:#fff;color:#0f172a;direction:ltr"></math-field>
+        <button type="button" onclick="smartCopyMl()" style="margin-top:12px;background:linear-gradient(135deg,#10b981,#3b82f6);color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;align-self:flex-start">📋 نسخ الكود إلى أسفل</button>
+      </div>
+      <iframe id="smart-myscript" src="https://webdemo.myscript.com/views/math/index.html" style="display:none;flex:1;border:none"></iframe>
+      <iframe id="smart-hostmath" src="https://www.hostmath.com/" style="display:none;flex:1;border:none"></iframe>
+      <div style="padding:10px 14px;background:var(--bg3);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
+        <input id="smartLatexPaste" placeholder="الصقي كود المعادلة هنا" style="flex:1;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:monospace;font-size:12px;padding:7px 10px;border-radius:7px;outline:none;direction:ltr;text-align:left">
+        <button type="button" onclick="smartLatexApply()" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);padding:8px 16px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;white-space:nowrap">✅ إدراج</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: OCR -->
+<div id="smartOcrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(6px)">
+  <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:20px;width:100%;max-width:520px;margin:auto">
+    <div style="font-size:13px;font-weight:800;margin-bottom:14px">📷 المسح الضوئي الذكي</div>
+    <div onclick="document.getElementById('smartOcrFileInp').click()" style="border:2px dashed var(--border2);border-radius:11px;padding:30px 20px;text-align:center;background:var(--bg3);cursor:pointer;margin-bottom:14px">
+      <input type="file" id="smartOcrFileInp" accept="image/*" style="display:none">
+      <div style="font-size:38px;margin-bottom:8px">📸</div>
+      <div style="font-size:12px;font-weight:800">اضغطي لاختيار صورة</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:4px">يدعم العربية والإنجليزية والأرقام</div>
+    </div>
+    <div style="text-align:center;margin-bottom:10px">
+      <img id="smartOcrPreview" style="display:none;max-width:100%;max-height:200px;border-radius:9px;border:1px solid var(--border)">
+    </div>
+    <div id="smartOcrProgress" style="display:none;background:var(--bg3);border-radius:8px;padding:10px 14px;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--text2);font-weight:700">⏳ جاري المسح... <span id="smartOcrPct">0%</span></div>
+      <div style="height:5px;background:var(--card2);border-radius:3px;overflow:hidden;margin-top:6px"><div id="smartOcrBar" style="height:100%;background:linear-gradient(90deg,var(--blue),var(--green));width:0%;transition:width 0.2s"></div></div>
+    </div>
+    <div id="smartOcrResult" style="display:none;background:var(--card2);border:1px solid var(--border2);border-radius:9px;padding:11px 13px;font-size:11px;line-height:1.8;white-space:pre-wrap;direction:rtl;text-align:right;color:var(--text);margin-bottom:10px"></div>
+    <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
+      <button type="button" onclick="smartOcrClose()" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.3);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Tajawal',sans-serif">إلغاء</button>
+      <button type="button" id="smartOcrAsImg" onclick="smartOcrClose()" style="display:none;background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.3);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Tajawal',sans-serif">🖼️ احتفظي بالصورة</button>
+      <button type="button" id="smartOcrApply" onclick="smartOcrApplyText()" style="display:none;background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Tajawal',sans-serif">✅ إدراج النص</button>
+      <button type="button" id="smartOcrStart" onclick="smartOcrRun()" style="display:none;background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.3);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Tajawal',sans-serif">🔍 بدء المسح</button>
+    </div>
+  </div>
+</div>
+
 {% include "core/_theme_toggle.html" %}
 </body>
 </html>

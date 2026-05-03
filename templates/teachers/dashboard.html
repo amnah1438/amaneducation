@@ -1139,40 +1139,56 @@ body {
 ═══════════════════════════════════════════════ -->
 <div class="pg" id="pg-al">
   <div class="alg">
+    <!-- 🚨 تنبيهات عاجلة من البيانات الحقيقية -->
     <div class="ali alr">
-      <div class="alt">🚨 تنبيهات عاجلة — تحتاج تدخل فوري</div>
+      <div class="alt">🚨 تنبيهات عاجلة — مبنية على بياناتك الفعلية</div>
       <ul class="allist">
-        <li>• نوف الرشيدي — ٨ غيابات متتالية هذا الأسبوع</li>
-        <li>• ليلى القحطاني — تراجع 15% خلال ٧ أيام</li>
-        <li>• ٣ طالبات أقل من 30% في الاختبار البعدي</li>
-        <li>• الكسور غير الاعتيادية — نسبة فشل 65% هذا الأسبوع</li>
+        {% for s in weak_students|slice:":4" %}
+        <li>• {{ s.name }} — متوسط {{ s.pct }}% (تحتاج دعم فوري)</li>
+        {% empty %}
+        <li>✅ لا توجد طالبات بحاجة لتدخل عاجل حالياً</li>
+        {% endfor %}
       </ul>
     </div>
+
+    <!-- ⚠️ تحذيرية: المهارات الأصعب -->
     <div class="ali alo">
-      <div class="alt">⚠️ تنبيهات تحذيرية — تحتاج متابعة</div>
+      <div class="alt">⚠️ مهارات تحتاج إعادة شرح — من واقع نتائج طالباتك</div>
       <ul class="allist">
-        <li>• الكسور غير الاعتيادية — 35% متوسط الفصل</li>
-        <li>• القسمة على الكسور — 62% ضعف في الفصل</li>
-        <li>• ملاك محمد — لم تكمل ٤ مهارات بعد</li>
-        <li>• ٥ طالبات لم يؤدين الاختبار البعدي</li>
+        {% for sk in skill_hardness|slice:":4" %}
+        {% if sk.pct < 60 %}
+        <li>• {{ sk.name }} — متوسط {{ sk.pct }}% ({{ sk.count }} محاولة)</li>
+        {% endif %}
+        {% empty %}
+        <li>✅ لا توجد مهارات صعبة حالياً</li>
+        {% endfor %}
       </ul>
     </div>
+
+    <!-- ℹ️ معلومات: حالة المهارات والاختبارات -->
     <div class="ali albl">
-      <div class="alt">ℹ️ تنبيهات للمعلومة</div>
+      <div class="alt">ℹ️ ملخّص حالتك التعليمية</div>
       <ul class="allist">
-        <li>• موعد الاختبار الشامل بعد أسبوعين</li>
-        <li>• ٢ طالبة تقتربان من إكمال جميع المهارات</li>
-        <li>• بنك الأسئلة يحتاج ٢٠ سؤال جديد</li>
-        <li>• تقارير الفصل الثاني تستحق المراجعة</li>
+        <li>• المهارات النشطة: {{ active_skills }} من {{ total_skills }}</li>
+        <li>• الاختبارات النشطة: {{ active_exams }} من {{ total_exams }}</li>
+        <li>• حصص قدرات: {{ qodrat_sessions }} • تحصيلي: {{ tahsili_sessions }}</li>
+        <li>• الطالبات اللاتي عالجتهن: {{ treated_students }} من {{ trained_students }}</li>
       </ul>
     </div>
+
+    <!-- ✅ أخبار إيجابية -->
     <div class="ali alg2">
-      <div class="alt">✅ أخبار إيجابية</div>
+      <div class="alt">✅ إنجازاتك — مبنية على نتائج فعلية</div>
       <ul class="allist">
-        <li>• سارة العتيبي أكملت جميع المهارات</li>
-        <li>• تحسن الفصل ٨% هذا الشهر</li>
-        <li>• ٤ طالبات جديدات في مستوى ممتاز</li>
-        <li>• نسبة النجاح ارتفعت من 39% إلى 69%</li>
+        {% for s in excellent_students|slice:":3" %}
+        <li>• {{ s.name }} — {{ s.pct }}% (متفوقة)</li>
+        {% empty %}
+        <li>📈 العمل على رفع الطالبات للمستوى المتميز جارٍ</li>
+        {% endfor %}
+        <li>🎯 إجمالي طالباتك: {{ trained_students }} طالبة</li>
+        {% if avg_score >= 70 %}
+        <li>🏆 متوسط الفصل ممتاز: {{ avg_score }}%</li>
+        {% endif %}
       </ul>
     </div>
   </div>
@@ -1223,10 +1239,17 @@ body {
   <div style="font-size:10px;color:var(--text3);margin-bottom:10px">🔮 التنبؤ بالأداء بناءً على المسار الحالي لكل طالبة — تحديث تلقائي</div>
 
   <div class="predg">
-    <div class="predi"><div class="predn" style="color:var(--green)">88%</div><div class="predl">سارة العتيبي — متوقع</div><div class="predc up">↑ مستمرة في التحسن</div></div>
-    <div class="predi"><div class="predn" style="color:var(--blue)">76%</div><div class="predl">نورة الشمري — متوقع</div><div class="predc up">↑ تقدم ثابت ومستقر</div></div>
-    <div class="predi"><div class="predn" style="color:var(--orange)">45%</div><div class="predl">ملاك محمد — متوقع</div><div class="predc dn">↓ تحتاج تدخل سريع</div></div>
-    <div class="predi"><div class="predn" style="color:var(--red)">28%</div><div class="predl">ليلى القحطاني — متوقع</div><div class="predc dn">↓ تدخل عاجل جداً</div></div>
+    {% for s in top_students|slice:":4" %}
+    <div class="predi">
+      <div class="predn" style="color:{% if s.pct >= 80 %}var(--green){% elif s.pct >= 60 %}var(--blue){% elif s.pct >= 40 %}var(--orange){% else %}var(--red){% endif %}">{{ s.pct }}%</div>
+      <div class="predl">{{ s.name }} — متوقع</div>
+      <div class="predc {% if s.pct >= 60 %}up{% else %}dn{% endif %}">
+        {% if s.pct >= 80 %}↑ متفوقة — استمرار{% elif s.pct >= 60 %}↑ مسار جيد{% elif s.pct >= 40 %}↓ تحتاج تدخل{% else %}↓ تدخل عاجل{% endif %}
+      </div>
+    </div>
+    {% empty %}
+    <div class="predi" style="grid-column:1/-1;text-align:center;padding:30px"><div style="font-size:32px;margin-bottom:8px">🔮</div><div style="font-size:11px;color:var(--text3)">لا توجد بيانات كافية للتنبؤ بعد. شجّعي طالباتك على خوض الاختبارات.</div></div>
+    {% endfor %}
   </div>
 
   <div class="card">
@@ -1257,14 +1280,24 @@ body {
   <div style="font-size:10px;color:var(--text3);margin-bottom:10px">🏆 إنجازات الفصل — نظام تحفيز الطالبات بالنجوم والشارات</div>
 
   <div class="achg">
-    <div class="achi"><div class="achio">🌟</div><div class="achn">الطالبة المثالية</div><div class="achd">سارة العتيبي — 91%</div></div>
-    <div class="achi"><div class="achio">🚀</div><div class="achn">أسرع تحسن</div><div class="achd">↑30% في شهر واحد</div></div>
-    <div class="achi"><div class="achio">💯</div><div class="achn">علامة كاملة</div><div class="achd">الكسور الاعتيادية — 100%</div></div>
-    <div class="achi"><div class="achio">🎯</div><div class="achn">مكتملة المهارات</div><div class="achd">٤ طالبات أكملن الكل</div></div>
-    <div class="achi"><div class="achio">📈</div><div class="achn">تحسن مستمر</div><div class="achd">٦ أشهر متتالية للفصل</div></div>
-    <div class="achi"><div class="achio">🔥</div><div class="achn">اختبارات متتالية</div><div class="achd">٥ اختبارات بدون فشل</div></div>
-    <div class="achi locked"><div class="achio">🔒</div><div class="achn">بطلة الفصل</div><div class="achd">تحتاج 95% أو أكثر</div></div>
-    <div class="achi locked"><div class="achio">🔒</div><div class="achn">صفر غيابات</div><div class="achd">لم تتحقق بعد</div></div>
+    {% if top_students.0 %}
+    <div class="achi"><div class="achio">🌟</div><div class="achn">الطالبة المثالية</div><div class="achd">{{ top_students.0.name }} — {{ top_students.0.pct }}%</div></div>
+    {% else %}
+    <div class="achi locked"><div class="achio">🔒</div><div class="achn">الطالبة المثالية</div><div class="achd">لم تُؤدَّ اختبارات بعد</div></div>
+    {% endif %}
+
+    <div class="achi"><div class="achio">📚</div><div class="achn">إجمالي مهاراتك</div><div class="achd">{{ total_skills|add:total_lessons|add:total_banks }} (مهارة + درس + بنك)</div></div>
+    <div class="achi"><div class="achio">📅</div><div class="achn">إجمالي حصصك</div><div class="achd">{{ qodrat_sessions|add:tahsili_sessions }} حصة مسجلة</div></div>
+    <div class="achi"><div class="achio">🎯</div><div class="achn">طالبات دربتهن</div><div class="achd">{{ trained_students }} طالبة</div></div>
+    <div class="achi"><div class="achio">💪</div><div class="achn">طالبات عالجتهن</div><div class="achd">{{ treated_students }} طالبة (تحسّن ≥10%)</div></div>
+    <div class="achi"><div class="achio">📈</div><div class="achn">متوسط طالباتك</div><div class="achd">{{ avg_score }}%</div></div>
+    <div class="achi"><div class="achio">✅</div><div class="achn">نتائج ناجحة</div><div class="achd">{{ passed_results }} من {{ total_results }}</div></div>
+
+    {% if students_count_excellent >= 1 %}
+    <div class="achi"><div class="achio">🏆</div><div class="achn">متفوقات</div><div class="achd">{{ students_count_excellent }} طالبة فوق 90%</div></div>
+    {% else %}
+    <div class="achi locked"><div class="achio">🔒</div><div class="achn">بطلة الفصل</div><div class="achd">تحتاج 90% أو أكثر</div></div>
+    {% endif %}
   </div>
 
   <div class="card">
