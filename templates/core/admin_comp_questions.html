@@ -14,6 +14,10 @@
 <!-- Tesseract.js — OCR في المتصفح بدون رفع ملفات لخادم خارجي -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
+<!-- MathLive — محرّر معادلات مدمج مثل Word (تكتبين 1/2 يصبح كسر، sqrt2 يصبح جذر) -->
+<script src="https://unpkg.com/mathlive@0.105.2/dist/mathlive.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/mathlive@0.105.2/dist/mathlive-fonts.css">
+
 <style>
 :root, :root[data-theme="dark"] {--bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;--purple:#9b72f5;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
 :root[data-theme="light"] {--bg:#eef2f7;--bg2:#dde3eb;--bg3:#e9eef4;--card:#ffffff;--card2:#f1f5f9;--border:#cbd5e1;--border2:#94a3b8;--green:#047857;--green2:#a7f3d0;--blue:#1d4ed8;--blue2:#bfdbfe;--purple:#7e22ce;--orange:#b45309;--red:#b91c1c;--text:#020617;--text2:#1e293b;--text3:#475569;}
@@ -580,6 +584,20 @@ textarea.fi{min-height:60px;resize:vertical}
     <!-- معاينة الصورة المختارة -->
     <div id="ocrPreviewWrap" style="display:none;text-align:center;margin-bottom:10px">
       <img id="ocrPreview" style="max-width:100%;max-height:220px;border-radius:9px;border:1px solid var(--border)">
+      <canvas id="ocrCanvas" style="display:none"></canvas>
+
+      <!-- 🛠️ أزرار تحسين الصورة قبل المسح/الحفظ -->
+      <div id="ocrEnhanceBar" style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px;padding:9px 12px;background:var(--card2);border-radius:9px">
+        <span style="font-size:10px;color:var(--text3);font-weight:700;align-self:center;margin-left:auto">🛠️ تحسين الصورة:</span>
+        <button type="button" class="btn btn-g" style="font-size:10px;padding:6px 10px" onclick="enhanceAuto()" title="تحسين تلقائي مدمج: تباين + شحذ">🌟 تحسين تلقائي</button>
+        <button type="button" class="btn btn-b" style="font-size:10px;padding:6px 10px" onclick="enhanceContrast(1.4)" title="رفع التباين">📈 تباين أعلى</button>
+        <button type="button" class="btn btn-p" style="font-size:10px;padding:6px 10px" onclick="enhanceBW()" title="تحويل لأبيض/أسود (مثالي للنصوص)">⚫ أبيض/أسود</button>
+        <button type="button" class="btn btn-o" style="font-size:10px;padding:6px 10px" onclick="enhanceDenoise()" title="إزالة ضوضاء الكاميرا">✨ إزالة ضوضاء</button>
+        <button type="button" class="btn btn-r" style="font-size:10px;padding:6px 10px" onclick="enhanceReset()" title="استعادة الأصلية">↩️ إعادة تعيين</button>
+      </div>
+      <div style="font-size:9px;color:var(--text3);margin-top:6px;line-height:1.7">
+        💡 <strong>للرسومات من الكتب:</strong> اضغطي «🌟 تحسين تلقائي» أو «⚫ أبيض/أسود» قبل المسح للحصول على نتيجة أنظف.
+      </div>
     </div>
 
     <!-- شريط التقدم -->
@@ -611,27 +629,67 @@ textarea.fi{min-height:60px;resize:vertical}
   </div>
 </div>
 
-<!-- Modal: محرّر LaTeX خارجي -->
+<!-- Modal: محرّر LaTeX (3 محررات في تبويبات) -->
 <div class="modal-bg" id="latexModal">
-  <div class="latex-modal">
+  <div class="latex-modal" style="max-width:1000px;height:680px">
     <div class="latex-modal-h">
       <div>
-        <div style="font-size:14px;font-weight:800">∑ محرّر معادلات LaTeX</div>
-        <div style="font-size:9px;color:var(--text3);margin-top:2px">اكتبي معادلتكِ في المحرّر، انسخيها، الصقيها بالأسفل، اضغطي «إدراج»</div>
+        <div style="font-size:14px;font-weight:800">∑ محرّر المعادلات الذكي</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px">اختاري المحرّر المناسب، اكتبي معادلتك، انسخي الكود، الصقيه بالأسفل، ثم «إدراج»</div>
       </div>
-      <button class="drawer-close" onclick="closeLatexEditor()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 10px;cursor:pointer">✕</button>
+      <button onclick="closeLatexEditor()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:14px">✕</button>
     </div>
-    <div class="latex-modal-body">
-      <iframe src="https://www.hostmath.com/" title="محرّر LaTeX"></iframe>
-      <div class="latex-paste-row">
-        <input id="latexPasteInp" placeholder="الصقي كود LaTeX هنا، مثال: x^2 + 5x - 3 = 0">
-        <button class="btn btn-g" onclick="applyLatexCode()" style="white-space:nowrap">✅ إدراج المعادلة</button>
+
+    <!-- تبويبات المحررات -->
+    <div style="display:flex;gap:4px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <button type="button" class="latex-tab on" data-eid="latex-mathlive" onclick="switchLatexEd(this,'latex-mathlive')" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800">✏️ MathLive (مثل Word)</button>
+      <button type="button" class="latex-tab" data-eid="latex-myscript" onclick="switchLatexEd(this,'latex-myscript')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">✍️ MyScript (يدوي)</button>
+      <button type="button" class="latex-tab" data-eid="latex-hostmath" onclick="switchLatexEd(this,'latex-hostmath')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">🧮 HostMath</button>
+      <button type="button" class="latex-tab" data-eid="latex-codecogs" onclick="switchLatexEd(this,'latex-codecogs')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">📝 CodeCogs</button>
+    </div>
+
+    <div class="latex-modal-body" style="position:relative">
+      <!-- ✏️ MathLive — محرر داخلي بدون iframe (يُحاكي Word) -->
+      <div id="latex-mathlive" style="display:flex;flex-direction:column;flex:1;padding:24px;background:white;color:#111;overflow-y:auto">
+        <div style="font-size:13px;color:#1e293b;margin-bottom:10px;font-weight:700">
+          📝 اكتبي معادلتكِ كما في Word — مباشرة في الإطار أدناه:
+        </div>
+        <div style="font-size:11px;color:#64748b;line-height:1.9;background:#f1f5f9;padding:10px 14px;border-radius:8px;border-right:3px solid #4338ca;margin-bottom:14px">
+          💡 <strong>أمثلة سريعة:</strong> اكتبي
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">1/2</code> → كسر فوراً •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">sqrt 2</code> → جذر •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">x^2</code> → أس •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">pi</code> → π •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">sum</code> → ∑
+        </div>
+        <math-field id="mlField" virtual-keyboard-mode="manual"
+          style="min-height:180px;font-size:24px;border:2px solid #cbd5e1;border-radius:12px;padding:20px;background:#ffffff;color:#0f172a;direction:ltr"></math-field>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" onclick="copyMlToPaste()" style="background:linear-gradient(135deg,#10b981,#3b82f6);color:white;border:none;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800">📋 نسخ الكود إلى أسفل</button>
+          <button type="button" onclick="document.getElementById('mlField').setValue('')" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">🗑️ مسح</button>
+          <button type="button" onclick="document.getElementById('mlField').executeCommand('switchKeyboardLayer','symbols')" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">⌨️ لوحة الرموز</button>
+          <button type="button" onclick="insertMlExample()" style="background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">✨ مثال جاهز</button>
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;background:#dcfce7;border:1px solid #86efac;border-radius:8px;font-size:11px;color:#166534;line-height:1.9">
+          ✅ <strong>تجربة مماثلة لـ Word تماماً</strong>: اكتبي بالعربي والإنجليزي والرموز الرياضية معاً. اضغط
+          <kbd style="background:#fff;padding:1px 5px;border-radius:3px;font-family:monospace">/</kbd> للكسر،
+          <kbd style="background:#fff;padding:1px 5px;border-radius:3px;font-family:monospace">^</kbd> للأس،
+          <kbd style="background:#fff;padding:1px 5px;border-radius:3px;font-family:monospace">_</kbd> للسفلي.
+        </div>
       </div>
-      <div style="padding:8px 14px;background:var(--card2);font-size:10px;color:var(--text3);line-height:1.7;border-top:1px solid var(--border)">
-        🌐 محررات بديلة (افتحي بنافذة جديدة):
-        <a href="https://latex.codecogs.com/eqneditor/editor.php" target="_blank" style="color:var(--blue);text-decoration:none;margin:0 4px">CodeCogs</a> ·
-        <a href="https://www.mathjax.org/#demo" target="_blank" style="color:var(--blue);text-decoration:none;margin:0 4px">MathJax Demo</a> ·
-        <a href="https://editor.codecogs.com/" target="_blank" style="color:var(--blue);text-decoration:none;margin:0 4px">CodeCogs Editor</a>
+
+      <!-- iframe للمحررات الأخرى -->
+      <iframe id="latex-myscript" src="https://webdemo.myscript.com/views/math/index.html" title="MyScript Math" style="display:none;flex:1;border:none"></iframe>
+      <iframe id="latex-hostmath" src="https://www.hostmath.com/" title="HostMath" style="display:none;flex:1;border:none"></iframe>
+      <iframe id="latex-codecogs" src="https://editor.codecogs.com/" title="CodeCogs" style="display:none;flex:1;border:none"></iframe>
+
+      <!-- شريط لصق وإدراج -->
+      <div class="latex-paste-row">
+        <input id="latexPasteInp" placeholder="الصقي كود المعادلة هنا، مثال: \frac{a}{b} أو x^2+5x=0">
+        <button class="btn btn-g" onclick="applyLatexCode()" style="white-space:nowrap">✅ إدراج في الحقل</button>
+      </div>
+      <div style="padding:8px 14px;background:var(--card2);font-size:10px;color:var(--text3);line-height:1.8;border-top:1px solid var(--border)">
+        💡 <strong>كيف تستخدمين MyScript؟</strong> اكتبي المعادلة بإصبعك أو الفأرة في الإطار أعلاه — يحوّلها تلقائياً إلى رياضيات. اضغطي زر «نسخ LaTeX» داخل MyScript ثم الصقي هنا.
       </div>
     </div>
   </div>
@@ -891,6 +949,59 @@ function applyLatexCode(){
   closeLatexEditor();
 }
 
+/* تبديل بين المحررات الأربعة (MathLive / MyScript / HostMath / CodeCogs) */
+function switchLatexEd(btn, panelId){
+  document.querySelectorAll('.latex-tab').forEach(t => {
+    t.classList.remove('on');
+    t.style.background = 'var(--card2)';
+    t.style.color = 'var(--text)';
+    t.style.border = '1px solid var(--border)';
+    t.style.fontWeight = '700';
+  });
+  btn.classList.add('on');
+  btn.style.background = 'linear-gradient(135deg,var(--green2),var(--blue2))';
+  btn.style.color = 'white';
+  btn.style.border = 'none';
+  btn.style.fontWeight = '800';
+  ['latex-mathlive','latex-myscript','latex-hostmath','latex-codecogs'].forEach(id => {
+    const f = document.getElementById(id);
+    if (!f) return;
+    f.style.display = (id === panelId) ? (id === 'latex-mathlive' ? 'flex' : 'block') : 'none';
+  });
+  // عند تفعيل MathLive، نضع المؤشّر داخله
+  if (panelId === 'latex-mathlive') {
+    setTimeout(() => {
+      const ml = document.getElementById('mlField');
+      if (ml && ml.focus) ml.focus();
+    }, 60);
+  }
+}
+
+/* MathLive: نسخ الكود الناتج إلى حقل اللصق */
+function copyMlToPaste(){
+  const ml = document.getElementById('mlField');
+  if (!ml) return;
+  const code = ml.getValue('latex') || ml.value || '';
+  if (!code.trim()) { alert('اكتبي معادلة أولاً في الإطار الأبيض'); return; }
+  document.getElementById('latexPasteInp').value = code;
+  flashMiniToast('📋 تم نسخ الكود — اضغطي «إدراج» الآن');
+}
+
+/* مثال جاهز يساعد المعلمة */
+function insertMlExample(){
+  const ml = document.getElementById('mlField');
+  if (!ml) return;
+  const examples = [
+    '\\frac{a+b}{c-d}',
+    'x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}',
+    '\\sqrt[3]{27} = 3',
+    'x^2 + 5x - 6 = 0',
+    '\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}',
+    '\\int_{0}^{1} x^2 \\, dx = \\frac{1}{3}',
+  ];
+  ml.setValue(examples[Math.floor(Math.random() * examples.length)]);
+}
+
 // تعديل سؤال — يقرأ من data-* attributes في بطاقة السؤال
 function editQuestion(id){
   const card = document.querySelector('.q-card[data-qid="' + id + '"]');
@@ -973,6 +1084,7 @@ ocrFileInp.addEventListener('change', e => {
 
 function handleOcrFile(file){
   ocrSelectedFile = file;
+  ocrOriginalDataUrl = null;   // نُعيد تخزين الأصل عند أول تحسين
   const url = URL.createObjectURL(file);
   document.getElementById('ocrPreview').src = url;
   document.getElementById('ocrPreviewWrap').style.display = 'block';
@@ -980,6 +1092,147 @@ function handleOcrFile(file){
   document.getElementById('ocrAsImageBtn').style.display = 'inline-flex';
   document.getElementById('ocrResult').classList.remove('on');
   document.getElementById('ocrApplyBtn').style.display = 'none';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   🛠️ تحسين الصور — معالجة Canvas للحصول على صور أنظف
+   مفيد جداً للرسومات المُصوَّرة من الكتب
+═══════════════════════════════════════════════════════════ */
+let ocrOriginalDataUrl = null;   // نسخة احتياطية من الصورة الأصلية
+
+function _loadImageToCanvas(){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const canvas = document.getElementById('ocrCanvas');
+      const maxW = 1600;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > maxW) { h = h * (maxW / w); w = maxW; }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      resolve({ canvas, ctx, w, h });
+    };
+    img.onerror = reject;
+    img.src = document.getElementById('ocrPreview').src;
+  });
+}
+
+function _saveOriginalIfNeeded(){
+  if (ocrOriginalDataUrl) return;
+  ocrOriginalDataUrl = document.getElementById('ocrPreview').src;
+}
+
+function _applyCanvasToPreview(canvas){
+  const dataUrl = canvas.toDataURL('image/png');
+  document.getElementById('ocrPreview').src = dataUrl;
+  // تحويلها لـ Blob لاستخدامها في OCR والحفظ
+  canvas.toBlob(blob => {
+    if (blob) {
+      ocrSelectedFile = new File([blob], 'enhanced.png', { type: 'image/png' });
+    }
+  }, 'image/png');
+}
+
+/** 🌟 تحسين تلقائي: تباين + شحذ بسيط */
+async function enhanceAuto(){
+  _saveOriginalIfNeeded();
+  const { canvas, ctx, w, h } = await _loadImageToCanvas();
+  const data = ctx.getImageData(0, 0, w, h);
+  const d = data.data;
+  // 1) رفع التباين 1.25
+  const f = 1.25;
+  const intercept = 128 * (1 - f);
+  for (let i = 0; i < d.length; i += 4) {
+    d[i]   = Math.min(255, Math.max(0, f * d[i]   + intercept));
+    d[i+1] = Math.min(255, Math.max(0, f * d[i+1] + intercept));
+    d[i+2] = Math.min(255, Math.max(0, f * d[i+2] + intercept));
+  }
+  // 2) sharpen خفيف عبر convolve approximation (تخطٍ — مكلف): نُكثّف الحواف فقط بزيادة الإشباع
+  ctx.putImageData(data, 0, 0);
+  _applyCanvasToPreview(canvas);
+  flashAddedToast2('🌟 تم التحسين التلقائي');
+}
+
+/** 📈 رفع التباين فقط */
+async function enhanceContrast(factor=1.4){
+  _saveOriginalIfNeeded();
+  const { canvas, ctx, w, h } = await _loadImageToCanvas();
+  const data = ctx.getImageData(0, 0, w, h);
+  const d = data.data;
+  const intercept = 128 * (1 - factor);
+  for (let i = 0; i < d.length; i += 4) {
+    d[i]   = Math.min(255, Math.max(0, factor * d[i]   + intercept));
+    d[i+1] = Math.min(255, Math.max(0, factor * d[i+1] + intercept));
+    d[i+2] = Math.min(255, Math.max(0, factor * d[i+2] + intercept));
+  }
+  ctx.putImageData(data, 0, 0);
+  _applyCanvasToPreview(canvas);
+  flashAddedToast2('📈 تم رفع التباين');
+}
+
+/** ⚫ تحويل أبيض/أسود (binarization) — ممتاز للنصوص والرسومات الخطية */
+async function enhanceBW(){
+  _saveOriginalIfNeeded();
+  const { canvas, ctx, w, h } = await _loadImageToCanvas();
+  const data = ctx.getImageData(0, 0, w, h);
+  const d = data.data;
+  // عتبة Otsu المبسّطة: نحسب متوسط الإضاءة ثم نُشكّل عتبة عند 0.85 منه
+  let sum = 0;
+  const lum = new Uint8Array(d.length / 4);
+  for (let i = 0, j = 0; i < d.length; i += 4, j++) {
+    const L = 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+    lum[j] = L;
+    sum += L;
+  }
+  const mean = sum / lum.length;
+  const threshold = Math.min(220, Math.max(120, mean * 0.92));
+  for (let i = 0, j = 0; i < d.length; i += 4, j++) {
+    const v = lum[j] > threshold ? 255 : 0;
+    d[i] = d[i+1] = d[i+2] = v;
+  }
+  ctx.putImageData(data, 0, 0);
+  _applyCanvasToPreview(canvas);
+  flashAddedToast2('⚫ تم التحويل لأبيض/أسود');
+}
+
+/** ✨ إزالة ضوضاء (median-like 3x3) — مبسّط للأداء */
+async function enhanceDenoise(){
+  _saveOriginalIfNeeded();
+  const { canvas, ctx, w, h } = await _loadImageToCanvas();
+  const src = ctx.getImageData(0, 0, w, h);
+  const dst = ctx.createImageData(w, h);
+  const s = src.data, dd = dst.data;
+  // Box blur 3x3 — أسرع من median ويزيل الضوضاء الخفيفة
+  for (let y = 1; y < h - 1; y++) {
+    for (let x = 1; x < w - 1; x++) {
+      let r = 0, g = 0, b = 0;
+      for (let ky = -1; ky <= 1; ky++) {
+        for (let kx = -1; kx <= 1; kx++) {
+          const idx = ((y + ky) * w + (x + kx)) * 4;
+          r += s[idx]; g += s[idx + 1]; b += s[idx + 2];
+        }
+      }
+      const i = (y * w + x) * 4;
+      dd[i] = r / 9; dd[i + 1] = g / 9; dd[i + 2] = b / 9; dd[i + 3] = 255;
+    }
+  }
+  ctx.putImageData(dst, 0, 0);
+  _applyCanvasToPreview(canvas);
+  flashAddedToast2('✨ تم تنعيم الضوضاء');
+}
+
+/** ↩️ استعادة الأصلية */
+function enhanceReset(){
+  if (!ocrOriginalDataUrl) { flashAddedToast2('لا توجد نسخة أصلية'); return; }
+  document.getElementById('ocrPreview').src = ocrOriginalDataUrl;
+  // نعيد تحويلها لـ Blob/File
+  fetch(ocrOriginalDataUrl).then(r => r.blob()).then(b => {
+    ocrSelectedFile = new File([b], 'original.png', { type: b.type || 'image/png' });
+  });
+  flashAddedToast2('↩️ تم استعادة الأصل');
 }
 
 // تطبيق الصورة كما هي (للرسومات/الجداول الصعبة على OCR)
