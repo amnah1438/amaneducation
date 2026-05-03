@@ -427,13 +427,24 @@ def add_skill_complete(request):
         )
         qs_saved += _bulk_questions(exam, request.POST.get('pre_questions'), 'pre')
 
+    # بعد الحفظ — نوجّه المعلمة للمحرر المتقدم (مثل صفحة المديرة) لإكمال الأسئلة
+    # بصور وLaTeX و MathLive و OCR، إن لم يكن قد كملت إدخالها في الـ wizard.
+    first_exam = TeacherExam.objects.filter(skill=skill).order_by('id').first()
     if qs_saved:
-        messages.success(request, f'✅ تم حفظ "{title}" بنجاح مع {qs_saved} سؤال')
+        messages.success(
+            request,
+            f'✅ تم حفظ "{title}" مع {qs_saved} سؤال — '
+            'يمكنك إكمال الأسئلة بالمحرر المتقدم (LaTeX + صور + مسح ضوئي)'
+        )
     else:
         messages.success(
             request,
-            f'✅ تم حفظ "{title}" — يمكنك إضافة الأسئلة لاحقاً من شاشة الأسئلة'
+            f'✅ تم حفظ "{title}" — افتحي المحرر المتقدم لإضافة الأسئلة بكل الميزات'
         )
+
+    # إن طلبت المعلمة الانتقال المباشر للمحرر، نحوّلها
+    if first_exam and request.POST.get('open_advanced') == '1':
+        return redirect('add_question', exam_id=first_exam.id)
     return redirect('skill_manager')
 
 

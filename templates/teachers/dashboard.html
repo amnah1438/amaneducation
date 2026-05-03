@@ -945,18 +945,39 @@ body {
 
   <div class="g2e">
     <div class="card">
-      <div class="ch"><span class="ct">المهارات الأكثر صعوبة على الفصل</span></div>
+      <div class="ch"><span class="ct">المهارات الأكثر صعوبة على طالباتك</span></div>
       <div class="cb">
-        <div class="pr"><span class="plb">الكسور غير الاعتيادية</span><div class="pb"><div class="pf" style="width:35%;background:var(--red)"></div></div><span class="pv" style="color:var(--red)">35%</span><span class="bd bf" style="margin-right:6px">إعادة شرح</span></div>
-        <div class="pr"><span class="plb">القسمة على الكسور</span><div class="pb"><div class="pf" style="width:38%;background:var(--red)"></div></div><span class="pv" style="color:var(--red)">38%</span><span class="bd bf" style="margin-right:6px">إعادة شرح</span></div>
-        <div class="pr"><span class="plb">ضرب الكسور</span><div class="pb"><div class="pf" style="width:42%;background:var(--orange)"></div></div><span class="pv" style="color:var(--orange)">42%</span><span class="bd bm" style="margin-right:6px">تدريب إضافي</span></div>
-        <div class="pr"><span class="plb">النسبة المئوية</span><div class="pb"><div class="pf" style="width:55%;background:var(--orange)"></div></div><span class="pv" style="color:var(--orange)">55%</span><span class="bd bm" style="margin-right:6px">مراجعة</span></div>
-        <div class="pr"><span class="plb">الكسور الاعتيادية</span><div class="pb"><div class="pf" style="width:69%;background:var(--green)"></div></div><span class="pv" style="color:var(--green)">69%</span><span class="bd bp" style="margin-right:6px">جيد</span></div>
+        {% if skill_hardness %}
+          {% for s in skill_hardness %}
+          <div class="pr">
+            <span class="plb">{{ s.name }}</span>
+            <div class="pb"><div class="pf" style="width:{{ s.pct }}%;background:{% if s.pct >= 70 %}var(--green){% elif s.pct >= 50 %}var(--orange){% else %}var(--red){% endif %}"></div></div>
+            <span class="pv" style="color:{% if s.pct >= 70 %}var(--green){% elif s.pct >= 50 %}var(--orange){% else %}var(--red){% endif %}">{{ s.pct }}%</span>
+            <span class="bd {% if s.pct >= 70 %}bp{% elif s.pct >= 50 %}bm{% else %}bf{% endif %}" style="margin-right:6px">
+              {% if s.pct >= 70 %}جيد{% elif s.pct >= 50 %}مراجعة{% else %}إعادة شرح{% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div style="text-align:center;padding:30px;color:var(--text3);font-size:11px">
+            <div style="font-size:30px;margin-bottom:8px">📊</div>
+            ستظهر المهارات الأصعب هنا بعد أن تخوض طالباتك الاختبارات.
+          </div>
+        {% endif %}
       </div>
     </div>
     <div class="card">
       <div class="ch"><span class="ct">خريطة التقدم الفردي — Radar</span></div>
-      <div class="cb"><div style="position:relative;height:180px"><canvas id="radarC" role="img" aria-label="خريطة التقدم الفردي">رادار</canvas></div></div>
+      <div class="cb">
+        {% if has_real_data %}
+          <div style="position:relative;height:180px"><canvas id="radarC" role="img">رادار</canvas></div>
+        {% else %}
+          <div style="text-align:center;padding:30px;color:var(--text3);font-size:11px">
+            <div style="font-size:30px;margin-bottom:8px">📡</div>
+            ستظهر خريطة الأداء الفردي بعد إكمال الاختبارات.
+          </div>
+        {% endif %}
+      </div>
     </div>
   </div>
 </div>
@@ -985,18 +1006,48 @@ body {
       </div>
     </div>
     <div class="cb" style="padding:0;overflow-x:auto">
+      {% if excellent_students or mid_students or weak_students %}
       <table class="tb">
-        <thead><tr><th>#</th><th>اسم الطالبة</th><th>الكسور الاعتيادية</th><th>النسبة والتناسب</th><th>الأعداد الصحيحة</th><th>ضرب الكسور</th><th>القسمة على الكسور</th><th>المتوسط العام</th><th>المستوى</th></tr></thead>
+        <thead><tr><th>#</th><th>اسم الطالبة</th><th>المتوسط العام</th><th>عدد الاختبارات</th><th>المستوى</th></tr></thead>
         <tbody>
-          <tr><td>1</td><td style="font-weight:600">سارة العتيبي</td><td style="color:var(--green)">100</td><td style="color:var(--green)">90</td><td style="color:var(--green)">85</td><td style="color:var(--green)">80</td><td style="color:var(--green)">75</td><td style="color:var(--purple);font-weight:700">86</td><td><span class="bd be">ممتازة</span></td></tr>
-          <tr><td>2</td><td style="font-weight:600">نورة الشمري</td><td style="color:var(--green)">85</td><td style="color:var(--green)">80</td><td style="color:var(--blue)">78</td><td style="color:var(--orange)">65</td><td style="color:var(--orange)">60</td><td style="color:var(--blue);font-weight:700">73.6</td><td><span class="bd bp">جيدة جداً</span></td></tr>
-          <tr><td>3</td><td>هنوف العنزي</td><td style="color:var(--blue)">70</td><td style="color:var(--blue)">70</td><td style="color:var(--orange)">65</td><td style="color:var(--orange)">55</td><td style="color:var(--red)">50</td><td style="color:var(--blue);font-weight:700">62</td><td><span class="bd bp">جيدة</span></td></tr>
-          <tr><td>4</td><td>دانة الحربي</td><td style="color:var(--blue)">65</td><td style="color:var(--orange)">60</td><td style="color:var(--orange)">55</td><td style="color:var(--orange)">50</td><td style="color:var(--red)">42</td><td style="color:var(--orange);font-weight:700">54.4</td><td><span class="bd bm">متوسطة</span></td></tr>
-          <tr><td>5</td><td style="color:var(--red)">ملاك محمد</td><td style="color:var(--red)">40</td><td style="color:var(--red)">45</td><td style="color:var(--orange)">50</td><td style="color:var(--red)">35</td><td style="color:var(--red)">30</td><td style="color:var(--orange);font-weight:700">40</td><td><span class="bd bm">متوسطة</span></td></tr>
-          <tr><td>6</td><td style="color:var(--red)">ليلى القحطاني</td><td style="color:var(--red)">35</td><td style="color:var(--red)">30</td><td style="color:var(--red)">40</td><td style="color:var(--red)">25</td><td style="color:var(--red)">20</td><td style="color:var(--red);font-weight:700">30</td><td><span class="bd bf">تحتاج دعم</span></td></tr>
-          <tr style="background:rgba(30,42,61,0.3)"><td colspan="2" style="font-weight:700;color:var(--green)">📊 متوسط المهارة</td><td style="color:var(--green);font-weight:600">69</td><td style="color:var(--blue);font-weight:600">66</td><td style="color:var(--blue);font-weight:600">65</td><td style="color:var(--orange);font-weight:600">58</td><td style="color:var(--orange);font-weight:600">53</td><td style="color:var(--purple);font-weight:700">64.3</td><td>—</td></tr>
+          {% for s in excellent_students %}
+          <tr><td>{{ forloop.counter }}</td>
+            <td style="font-weight:600">{{ s.name }}</td>
+            <td style="color:var(--green);font-weight:700">{{ s.pct }}%</td>
+            <td>{{ s.count }}</td>
+            <td><span class="bd be">⭐ ممتازة</span></td>
+          </tr>
+          {% endfor %}
+          {% for s in mid_students %}
+          <tr><td>{{ excellent_students|length|add:forloop.counter }}</td>
+            <td>{{ s.name }}</td>
+            <td style="color:{% if s.pct >= 70 %}var(--blue){% else %}var(--orange){% endif %};font-weight:700">{{ s.pct }}%</td>
+            <td>{{ s.count }}</td>
+            <td><span class="bd {% if s.pct >= 70 %}bp{% else %}bm{% endif %}">{% if s.pct >= 70 %}جيدة جداً{% else %}متوسطة{% endif %}</span></td>
+          </tr>
+          {% endfor %}
+          {% for s in weak_students %}
+          <tr><td>{{ excellent_students|length|add:mid_students|length|add:forloop.counter }}</td>
+            <td style="color:var(--red)">{{ s.name }}</td>
+            <td style="color:var(--red);font-weight:700">{{ s.pct }}%</td>
+            <td>{{ s.count }}</td>
+            <td><span class="bd bf">تحتاج دعم</span></td>
+          </tr>
+          {% endfor %}
+          <tr style="background:rgba(30,42,61,0.3)">
+            <td colspan="2" style="font-weight:700;color:var(--green)">📊 المتوسط العام</td>
+            <td style="color:var(--purple);font-weight:700">{{ avg_score }}%</td>
+            <td>{{ total_results }}</td><td>—</td>
+          </tr>
         </tbody>
       </table>
+      {% else %}
+      <div style="text-align:center;padding:50px;color:var(--text3);font-size:12px">
+        <div style="font-size:36px;margin-bottom:10px">📋</div>
+        <div style="font-weight:700;margin-bottom:6px">لا توجد نتائج بعد</div>
+        <div style="font-size:11px">سيظهر سجل الطالبات هنا بمجرد أن يخضن الاختبارات الأولى.</div>
+      </div>
+      {% endif %}
     </div>
   </div>
 </div>
