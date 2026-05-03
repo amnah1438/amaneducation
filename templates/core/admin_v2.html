@@ -41,32 +41,64 @@
   --glass: rgba(255,255,255,0.03);
 }
 :root[data-theme="light"] {
-  --bg: #f1f5f9;
-  --bg2: #e2e8f0;
-  --bg3: #f8fafc;
+  --bg: #eef2f7;
+  --bg2: #dde3eb;
+  --bg3: #e9eef4;
   --card: #ffffff;
-  --card2: #f8fafc;
-  --border: #e2e8f0;
-  --border2: #cbd5e1;
-  --text: #0f172a;
-  --text2: #475569;
-  --text3: #94a3b8;
-  --accent: #6366f1;
-  --accent2: #8b5cf6;
-  --primary: #4f46e5;
-  --green: #059669;
-  --green2: #d1fae5;
-  --blue: #2563eb;
-  --blue2: #dbeafe;
-  --purple: #9333ea;
-  --pink: #db2777;
-  --orange: #d97706;
-  --red: #dc2626;
-  --teal: #0d9488;
-  --shadow: 0 8px 30px rgba(15,23,42,0.06);
-  --shadow2: 0 2px 8px rgba(15,23,42,0.04);
+  --card2: #f1f5f9;
+  --border: #cbd5e1;
+  --border2: #94a3b8;
+  /* نصوص داكنة جداً لتباين عالٍ */
+  --text: #020617;
+  --text2: #1e293b;
+  --text3: #475569;
+  /* ألوان مكثَّفة (700-800 من Tailwind) لتظهر واضحة على الخلفية الفاتحة */
+  --accent: #4338ca;
+  --accent2: #6d28d9;
+  --primary: #3730a3;
+  --green: #047857;
+  --green2: #a7f3d0;
+  --blue: #1d4ed8;
+  --blue2: #bfdbfe;
+  --purple: #7e22ce;
+  --pink: #be185d;
+  --orange: #b45309;
+  --red: #b91c1c;
+  --teal: #0f766e;
+  --shadow: 0 8px 30px rgba(15,23,42,0.10);
+  --shadow2: 0 2px 8px rgba(15,23,42,0.06);
   --glass: rgba(255,255,255,0.7);
 }
+
+/* تحسينات نصوص Light Mode — حتى التسميات الصغيرة تكون مقروءة */
+:root[data-theme="light"] .kpi-lbl,
+:root[data-theme="light"] .card-t,
+:root[data-theme="light"] .alert-msg,
+:root[data-theme="light"] .dec-why { color: #334155 !important; font-weight: 700 !important; }
+
+/* تباين أعلى لـ kpi-mini boxes في قسم التحليل */
+.kpi-mini { background: var(--bg3); border-radius: 9px; padding: 12px 14px; border: 1px solid var(--border); }
+.kpi-mini .kpi-lbl { font-size: 11px; color: var(--text2); font-weight: 700; margin-bottom: 6px; }
+:root[data-theme="light"] .kpi-mini { background: #ffffff; border-color: #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+:root[data-theme="light"] .kpi-mini .kpi-lbl { color: #1e293b !important; }
+:root[data-theme="light"] .kpi-mini > div:last-child { font-weight: 900 !important; text-shadow: 0 0 1px currentColor; }
+
+/* عناوين الأقسام الإحصائية */
+:root[data-theme="light"] .section-block-title,
+:root[data-theme="light"] .descriptive-block { color: #0f172a !important; }
+:root[data-theme="light"] .kpi-val { font-weight: 900 !important; }
+:root[data-theme="light"] .tbl td { color: #1e293b; }
+:root[data-theme="light"] .tbl th { color: #334155; background: #f1f5f9; }
+:root[data-theme="light"] .bd-g { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+:root[data-theme="light"] .bd-b { background: #dbeafe; color: #1e3a8a; border-color: #93c5fd; }
+:root[data-theme="light"] .bd-o { background: #fed7aa; color: #9a3412; border-color: #fdba74; }
+:root[data-theme="light"] .bd-r { background: #fecaca; color: #991b1b; border-color: #fca5a5; }
+:root[data-theme="light"] .bd-p { background: #e9d5ff; color: #6b21a8; border-color: #d8b4fe; }
+:root[data-theme="light"] .live-status { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+:root[data-theme="light"] .filter-sel, :root[data-theme="light"] .filter-inp { background: #ffffff; border-color: #cbd5e1; color: #0f172a; }
+:root[data-theme="light"] .chip { background: #ffffff; color: #1e293b; border-color: #cbd5e1; }
+:root[data-theme="light"] .chip.on { background: #4338ca; color: white; }
+:root[data-theme="light"] .section-title { color: #0f172a; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { background: var(--bg); color: var(--text); font-family: 'Tajawal', sans-serif; min-height: 100vh; transition: background 0.3s, color 0.3s; }
@@ -1607,7 +1639,14 @@ function runAnalytics(){
 function renderAnalytics(d){
   const setKpi = (id, v, suf='') => {
     const el = document.querySelector('#'+id+' div:last-child');
-    if (el) el.textContent = (v == null ? '—' : v + suf);
+    if (!el) return;
+    if (v == null || v === undefined) {
+      el.textContent = '—';
+      el.style.opacity = '0.4';
+    } else {
+      el.textContent = v + suf;
+      el.style.opacity = '1';
+    }
   };
   setKpi('anAvg', d.avg, '%');
   setKpi('anAttempts', d.attempts);
@@ -1615,7 +1654,7 @@ function renderAnalytics(d){
   setKpi('anFail', d.fail_pct, '%');
   setKpi('anHigh', d.highest, '%');
   setKpi('anLow', d.lowest, '%');
-  setKpi('anImprove', (d.improvement >= 0 ? '+' : '') + d.improvement, '%');
+  setKpi('anImprove', d.improvement == null ? null : ((d.improvement >= 0 ? '+' : '') + d.improvement), '%');
 
   // Descriptive
   document.getElementById('anDescriptive').innerHTML = d.descriptive || '—';

@@ -881,11 +881,40 @@ def admin_analytics_json(request):
     qs = _filter_results(scope, target_id, exam_type)
     total_qs = qs.count()
     if total_qs == 0:
+        # نتحقق إن كانت توجد بيانات للفئة بأي نوع آخر — لمساعدة المعلمة على التشخيص
+        any_qs = _filter_results(scope, target_id, 'all')
+        any_count = any_qs.count()
+        available_types = list(any_qs.values_list('exam__exam_type', flat=True).distinct()) if any_count else []
+        type_labels = {
+            'pre': 'قبلي', 'post': 'بعدي', 'lesson': 'درس تحصيلي',
+            'bank': 'بنك أسئلة', 'comprehensive_qodrat': 'شامل قدرات',
+            'comprehensive_tahsili': 'شامل تحصيلي',
+        }
+        type_label = type_labels.get(exam_type, exam_type)
+
+        if any_count == 0:
+            descriptive = (
+                '<strong>📭 لا توجد محاولات اختبارات لهذه الفئة بعد.</strong><br>'
+                '<span style="font-size:11px;color:var(--text3)">الأسباب المحتملة:</span><br>'
+                '• الطالبة/الفصل/المعلمة لم تبدأ خوض أي اختبار حتى الآن.<br>'
+                '• لم يُفعَّل أي اختبار لهذه الفئة من قبل المعلمات.<br>'
+                '<br><span style="color:var(--blue)">💡 الحل: فعّلي اختباراً جديداً أو انتظري حتى تخوض الطالبات الاختبارات.</span>'
+            )
+        else:
+            available_str = '، '.join(type_labels.get(t, t) for t in available_types) if available_types else '—'
+            descriptive = (
+                f'<strong>⚠️ لا توجد محاولات من نوع "{type_label}" لهذه الفئة.</strong><br>'
+                f'<span style="font-size:11px">لكن يوجد <strong>{any_count}</strong> محاولة من أنواع أخرى.</span><br>'
+                f'<br>📋 الأنواع المتاحة لهذه الفئة: <strong style="color:var(--blue)">{available_str}</strong><br>'
+                f'<br><span style="color:var(--green)">💡 غيّري نوع الاختبار من القائمة أعلاه إلى أحد الأنواع المتاحة لمشاهدة التحليل.</span>'
+            )
+
         return JsonResponse({
-            'avg': 0, 'attempts': 0, 'pass_pct': 0, 'fail_pct': 0,
-            'highest': 0, 'lowest': 0, 'improvement': 0,
-            'descriptive': 'لا توجد بيانات للفلتر المحدد.',
+            'avg': None, 'attempts': 0, 'pass_pct': None, 'fail_pct': None,
+            'highest': None, 'lowest': None, 'improvement': None,
+            'descriptive': descriptive,
             'skills_mastered': 0, 'skills_needs': 0, 'skills': [], 'types': [],
+            'no_data': True, 'available_types': available_types, 'any_count': any_count,
         })
 
     avg = round(qs.aggregate(a=Avg('percentage'))['a'] or 0, 1)
