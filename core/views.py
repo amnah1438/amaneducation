@@ -402,9 +402,11 @@ def _v2_classroom_compare():
 
 
 def _v2_level_distribution():
-    """توزيع الطالبات على مستويات الأداء — Pie/Donut."""
+    """توزيع الطالبات على مستويات الأداء — Pie/Donut. الطالبات فقط."""
     perf = (
         ExamResult.objects
+        .filter(student__core_profile__role='STUDENT')
+        .exclude(student__is_superuser=True)
         .values('student_id')
         .annotate(avg=Avg('percentage'))
     )
@@ -426,9 +428,12 @@ def _v2_level_distribution():
 
 
 def _v2_top_students(limit=10):
-    """أعلى الطالبات أداءً — Leaderboard."""
+    """أعلى الطالبات أداءً — Leaderboard. الطالبات فقط — لا مديرة ولا معلمات."""
     perf = (
         ExamResult.objects
+        # نستبعد أي User دوره ليس STUDENT (المديرة، المعلمات، superusers)
+        .filter(student__core_profile__role='STUDENT')
+        .exclude(student__is_superuser=True)
         .values('student_id', 'student__first_name', 'student__last_name', 'student__username')
         .annotate(avg=Avg('percentage'), count=Count('id'))
         .order_by('-avg', '-count')[:limit]
@@ -949,10 +954,25 @@ def admin_analytics_json(request):
 
 @admin_required
 def admin_report(request):
-    """يولّد تقريراً قابلاً للطباعة — طالبة/فصل/معلمة/مدرسة."""
+    """يولّد تقريراً قابلاً للطباعة — طالبة/فصل/معلمة/مدرسة. آمن من الأخطاء."""
+    try:
+        return _admin_report_inner(request)
+    except Exception as exc:
+        # نلتقط أي خطأ غير متوقع ونعرضه بشكل ودود بدل صفحة 500
+        import traceback
+        return render(request, 'core/report.html', {
+            'settings': SchoolSettings.objects.first(),
+            'kind': request.GET.get('kind', ''),
+            'audience': request.GET.get('audience', ''),
+            'error': f'تعذّر إنشاء التقرير: {exc}',
+            'trace_short': str(exc)[:200],
+        })
+
+
+def _admin_report_inner(request):
     kind = request.GET.get('kind', 'school')
     audience = request.GET.get('audience', 'admin')   # student / parent / admin
-    target_id = request.GET.get('id', '')
+    target_id = (request.GET.get('id') or '').strip()
 
     settings_obj = SchoolSettings.objects.first()
     ctx = {
@@ -962,12 +982,14 @@ def admin_report(request):
     }
 
     if kind == 'student':
+        if not target_id or not target_id.isdigit():
+            return render(request, 'core/report.html', {**ctx, 'error': 'يرجى اختيار الطالبة قبل إنشاء التقرير'})
         try:
             user = User.objects.get(id=int(target_id))
         except (User.DoesNotExist, ValueError):
             user = None
         if user is None:
-            return render(request, 'core/report.html', {'error': 'الطالبة غير موجودة', **ctx})
+            return render(request, 'core/report.html', {**ctx, 'error': 'الطالبة غير موجودة'})
         qs = ExamResult.objects.filter(student=user).select_related('exam', 'exam__skill')
         skills, mastered, needs = _skills_breakdown(qs)
         types = _exam_types_breakdown(qs)
@@ -993,14 +1015,18 @@ def admin_report(request):
 
     elif kind == 'classroom':
         cls_name = target_id
+        if not cls_name:
+            return render(request, 'core/report.html', {**ctx, 'error': 'يرجى اختيار الفصل'})
         names = list(Student.objects.filter(classroom__name=cls_name).values_list('full_name', flat=True))
         from django.db.models import Q
         cond = Q()
+        valid = False
         for n in names:
             parts = n.split()
-            if parts:
+            if parts and parts[0]:
                 cond |= Q(student__first_name=parts[0]) | Q(student__username=n)
-        qs = ExamResult.objects.filter(cond) if cond else ExamResult.objects.none()
+                valid = True
+        qs = ExamResult.objects.filter(cond) if valid else ExamResult.objects.none()
         skills, mastered, needs = _skills_breakdown(qs)
         types = _exam_types_breakdown(qs)
         ctx.update({
@@ -1018,10 +1044,14 @@ def admin_report(request):
         })
 
     elif kind == 'teacher':
-        try:
-            teacher = Teacher.objects.get(id=int(target_id))
-        except (Teacher.DoesNotExist, ValueError):
-            return render(request, 'core/report.html', {'error': 'المعلمة غير موجودة', **ctx})
+        if not target_id or not target_id.isdigit():
+            return render(request, 'core/report.html', {**ctx, 'error': 'يرجى اختيار المعلمة'})
+        # القائمة في الـ dashboard ترسل User.id (وليس Teacher.id) — نتعامل مع كليهما
+        tid = int(target_id)
+        teacher = (Teacher.objects.filter(user_id=tid).first()
+                   or Teacher.objects.filter(id=tid).first())
+        if teacher is None:
+            return render(request, 'core/report.html', {**ctx, 'error': 'المعلمة غير موجودة'})
         qs = ExamResult.objects.filter(exam__skill__created_by=teacher)
         skills_count = TeacherSkill.objects.filter(created_by=teacher).count()
         sessions_count = ClassSession.objects.filter(teacher=teacher).count()

@@ -16,7 +16,27 @@
 
 <style>
 :root, :root[data-theme="dark"] {--bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;--purple:#9b72f5;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
-:root[data-theme="light"] {--bg:#f8fafc;--bg2:#f1f5f9;--bg3:#e2e8f0;--card:#ffffff;--card2:#f8fafc;--border:#e2e8f0;--border2:#cbd5e1;--green:#059669;--green2:#d1fae5;--blue:#2563eb;--blue2:#dbeafe;--purple:#9333ea;--orange:#d97706;--red:#dc2626;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+:root[data-theme="light"] {--bg:#eef2f7;--bg2:#dde3eb;--bg3:#e9eef4;--card:#ffffff;--card2:#f1f5f9;--border:#cbd5e1;--border2:#94a3b8;--green:#047857;--green2:#a7f3d0;--blue:#1d4ed8;--blue2:#bfdbfe;--purple:#7e22ce;--orange:#b45309;--red:#b91c1c;--text:#020617;--text2:#1e293b;--text3:#475569;}
+/* قواعد إضافية لوضوح الخطوط في الـ Light Mode */
+:root[data-theme="light"] .smart-field input,
+:root[data-theme="light"] .smart-field textarea { color: #020617 !important; background: #ffffff !important; }
+:root[data-theme="light"] .smart-field { background: #ffffff; border-color: #cbd5e1; }
+:root[data-theme="light"] .smart-field .toolbar { background: #f1f5f9; border-bottom-color: #cbd5e1; }
+:root[data-theme="light"] .smart-field .tool { background: #ffffff; color: #1e293b; border-color: #cbd5e1; }
+:root[data-theme="light"] .fi { background: #ffffff !important; color: #020617 !important; border-color: #cbd5e1 !important; }
+:root[data-theme="light"] .fl { color: #1e293b !important; font-weight: 700 !important; }
+:root[data-theme="light"] .ct, :root[data-theme="light"] .section-block-title { color: #0f172a !important; }
+:root[data-theme="light"] .q-card { background: #ffffff; border-color: #cbd5e1; }
+:root[data-theme="light"] .q-text { color: #020617; }
+:root[data-theme="light"] .q-opt { background: #f1f5f9; color: #1e293b; border-color: #cbd5e1; }
+:root[data-theme="light"] .quick-toggle { background: #ffffff; border-color: #cbd5e1; }
+:root[data-theme="light"] .method-card { background: #ffffff; border-color: #cbd5e1; color: #0f172a; }
+:root[data-theme="light"] .method-card .mc-title { color: #0f172a; }
+:root[data-theme="light"] .method-card .mc-desc { color: #334155; }
+:root[data-theme="light"] .dropzone { background: #f1f5f9; border-color: #94a3b8; }
+:root[data-theme="light"] .dropzone .dz-title { color: #0f172a; }
+:root[data-theme="light"] .ocr-result { background: #ffffff; color: #0f172a; }
+:root[data-theme="light"] .head, :root[data-theme="light"] .ch { color: #0f172a; }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
