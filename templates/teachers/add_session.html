@@ -1,76 +1,128 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <title>تسجيل حصة — منصة آمنة</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Cairo', sans-serif; background: #f4f6fa; padding: 24px; margin: 0; }
-    .card { background: #fff; max-width: 600px; margin: 40px auto; padding: 32px; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); }
-    h1 { margin: 0 0 18px; color: #1a4a8a; font-size: 1.3rem; }
-    .row { margin-bottom: 16px; }
-    label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 0.9rem; color: #333; }
-    input, select, textarea { width: 100%; padding: 12px; border: 2px solid #e4e4e4; border-radius: 10px; font-family: inherit; font-size: 0.95rem; }
-    textarea { min-height: 80px; resize: vertical; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #1a7a4a; }
-    .actions { display: flex; gap: 10px; margin-top: 22px; }
-    .btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-family: inherit; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
-    .btn-primary { background: linear-gradient(135deg, #1a7a4a, #1a4a8a); color: #fff; }
-    .btn-secondary { background: #f4f6fa; color: #555; text-decoration: none; text-align: center; line-height: 28px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>+ سجّل حصة تدريبية — منصة آمنة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root, :root[data-theme="dark"]{--bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#10b981;--green2:#065f46;--blue:#3b82f6;--blue2:#1e3a8a;--purple:#8b5cf6;--orange:#f59e0b;--red:#ef4444;--text:#eef2ff;--text2:#94a3b8;--text3:#475569;}
+:root[data-theme="light"]{--bg:#eef2f7;--bg2:#dde3eb;--bg3:#e9eef4;--card:#ffffff;--card2:#f1f5f9;--border:#cbd5e1;--border2:#94a3b8;--green:#047857;--green2:#a7f3d0;--blue:#1d4ed8;--blue2:#bfdbfe;--purple:#7e22ce;--orange:#b45309;--red:#b91c1c;--text:#020617;--text2:#1e293b;--text3:#475569;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:0 22px;display:flex;justify-content:space-between;align-items:center;height:56px;position:sticky;top:0;z-index:100}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:9px;border:none;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;transition:all 0.2s}
+.btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
+.btn-b{background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.3)}
+.btn-r{background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.3)}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.main{max-width:760px;margin:0 auto;padding:22px}
+.hero{background:linear-gradient(135deg,var(--green2),var(--blue2));border:1px solid var(--green);border-radius:14px;padding:22px 26px;margin-bottom:18px;color:white}
+.hero-title{font-size:18px;font-weight:900;margin-bottom:5px}
+.hero-sub{font-size:11px;opacity:0.85;line-height:1.7}
+.card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:22px;margin-bottom:14px}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.fl{font-size:12px;font-weight:700;color:var(--text2)}
+.fi{background:var(--card2);border:1.5px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;padding:11px 13px;border-radius:9px;outline:none;width:100%}
+.fi:focus{border-color:var(--blue)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:680px){.row2{grid-template-columns:1fr}}
+.msg{padding:11px 14px;border-radius:9px;font-size:11px;margin-bottom:12px;border-right:3px solid}
+.msg-s{background:rgba(16,185,129,0.08);color:var(--green);border-color:var(--green)}
+.msg-e{background:rgba(239,68,68,0.08);color:var(--red);border-color:var(--red)}
+.info-box{background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-right:3px solid var(--blue);border-radius:9px;padding:11px 14px;font-size:11px;color:var(--text2);line-height:1.9;margin-bottom:14px}
+:root[data-theme="light"] .info-box{color:#1e293b}
+</style>
 </head>
 <body>
-  <div class="card">
-    <h1>📅 تسجيل حصة جديدة</h1>
 
-    <form method="POST">
-      {% csrf_token %}
+<div class="topbar">
+  <div style="font-size:14px;font-weight:800">📅 + تسجيل حصة تدريبية</div>
+  <div style="display:flex;gap:8px">
+    <a href="{% url 'teacher_dashboard' %}" class="btn btn-b">← داشبورد المعلمة</a>
+    <a href="{% url 'skill_manager' %}" class="btn btn-b">📚 المهارات</a>
+  </div>
+</div>
 
-      <div class="row">
-        <label for="skill_id">المهارة / الدرس:</label>
-        <select id="skill_id" name="skill_id" required>
-          <option value="">— اختاري —</option>
-          {% for s in skills %}
-            <option value="{{ s.id }}">{{ s.title }} ({{ s.get_content_type_display }})</option>
-          {% endfor %}
-        </select>
-      </div>
+<div class="main">
+  <div class="hero">
+    <div class="hero-title">📅 سجّلي حصتك التدريبية</div>
+    <div class="hero-sub">
+      الحصص المسجلة هنا تُحفَظ في إحصائك وتظهر في تقاريرك. كل حصة = إنجاز يُحسب لكِ.
+    </div>
+  </div>
 
-      <div class="row">
-        <label for="session_type">نوع الحصة:</label>
-        <select id="session_type" name="session_type">
+  {% if messages %}{% for m in messages %}<div class="msg msg-{% if 'error' in m.tags %}e{% else %}s{% endif %}">{{ m }}</div>{% endfor %}{% endif %}
+
+  <form method="post" class="card">
+    {% csrf_token %}
+
+    <div class="info-box">
+      💡 <strong>هذا النموذج يحفظ حقك المهني:</strong> كل حصة تُسجلينها هنا تُحتسب في عدد حصصك،
+      وتربط طالباتك بالمهارة، وتظهر في تقارير تأثيرك.
+    </div>
+
+    <div class="fg">
+      <label class="fl">📚 المهارة / الدرس / البنك *</label>
+      <select class="fi" name="skill_id" required>
+        <option value="">— اختاري من مهاراتك —</option>
+        {% for sk in skills %}
+        <option value="{{ sk.id }}">
+          {% if sk.content_type == 'skill' %}🎯 مهارة قدرات
+          {% elif sk.content_type == 'lesson' %}📖 درس تحصيلي
+          {% elif sk.content_type == 'bank' %}🗂️ بنك أسئلة
+          {% else %}🏆 شامل{% endif %}
+          — {{ sk.title }}
+        </option>
+        {% empty %}
+        <option value="" disabled>لم تُضيفي مهارات بعد</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="row2">
+      <div class="fg">
+        <label class="fl">🏷️ نوع الحصة</label>
+        <select class="fi" name="session_type">
+          <option value="">— تلقائي حسب نوع المحتوى —</option>
           <option value="qodrat">قدرات</option>
           <option value="tahsili">تحصيلي</option>
           <option value="both">قدرات + تحصيلي</option>
         </select>
       </div>
-
-      <div class="row">
-        <label for="target_class">الفصل:</label>
-        <input id="target_class" name="target_class" type="text" required placeholder="مثال: ثالث ثانوي 1">
+      <div class="fg">
+        <label class="fl">🏫 الفصل المستهدف</label>
+        <select class="fi" name="target_class">
+          <option value="">— اختاري —</option>
+          {% for c in classrooms %}<option value="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+        </select>
       </div>
+    </div>
 
-      <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div>
-          <label for="session_date">التاريخ:</label>
-          <input id="session_date" name="session_date" type="date" required>
-        </div>
-        <div>
-          <label for="session_time">الوقت:</label>
-          <input id="session_time" name="session_time" type="time" required>
-        </div>
+    <div class="row2">
+      <div class="fg">
+        <label class="fl">📅 تاريخ الحصة</label>
+        <input class="fi" type="date" name="session_date">
       </div>
+      <div class="fg">
+        <label class="fl">⏰ وقت الحصة</label>
+        <input class="fi" type="time" name="session_time">
+      </div>
+    </div>
 
-      <div class="row">
-        <label for="notes">ملاحظات:</label>
-        <textarea id="notes" name="notes" placeholder="اختياري"></textarea>
-      </div>
+    <div class="fg">
+      <label class="fl">📝 ملاحظات (اختياري)</label>
+      <textarea class="fi" name="notes" rows="3" placeholder="أهداف الحصة، نقاط مميزة، استراتيجية التدريس..."></textarea>
+    </div>
 
-      <div class="actions">
-        <button type="submit" class="btn btn-primary">تسجيل الحصة</button>
-        <a class="btn btn-secondary" href="{% url 'teacher_dashboard' %}">إلغاء</a>
-      </div>
-    </form>
-  </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <a href="{% url 'teacher_dashboard' %}" class="btn btn-r">إلغاء</a>
+      <button type="submit" class="btn btn-g" style="font-size:13px;padding:11px 22px">💾 حفظ الحصة</button>
+    </div>
+  </form>
+</div>
+
+{% include "core/_theme_toggle.html" %}
 </body>
 </html>

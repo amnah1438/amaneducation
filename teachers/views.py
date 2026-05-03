@@ -129,11 +129,92 @@ def teacher_dashboard(request):
     # ─── ترتيب أعلى 3 طالبات ──────────────────────────────────
     top_students = (excellent_students + mid_students)[:3]
 
+    # ═══════════════════════════════════════════════════════════
+    # بيانات حقيقية إضافية للويدجتس
+    # ═══════════════════════════════════════════════════════════
+    from datetime import timedelta as _td
+    from collections import defaultdict as _dd
+    import json as _json
+
+    # 1) Heatmap — نشاط آخر 28 يوم (عدد المحاولات لكل يوم)
+    today = timezone.now().date()
+    heatmap_data = []
+    for i in range(27, -1, -1):
+        d = today - _td(days=i)
+        cnt = my_results.filter(submitted_at__date=d).count()
+        # مستوى 0-4 حسب الكثافة
+        level = 0
+        if cnt >= 10: level = 4
+        elif cnt >= 5: level = 3
+        elif cnt >= 2: level = 2
+        elif cnt >= 1: level = 1
+        heatmap_data.append({'date': d.isoformat(), 'count': cnt, 'level': level})
+
+    # 2) المهارات الأكثر صعوبة (بناءً على target_skill_name لـ StudentAnswer الخاطئة)
+    skill_stats = _dd(lambda: {'correct': 0, 'total': 0})
+    for ans in StudentAnswer.objects.filter(result__exam__skill__created_by=teacher).select_related('question'):
+        name = (ans.question.target_skill_name or 'بدون تصنيف').strip() or 'بدون تصنيف'
+        skill_stats[name]['total'] += 1
+        if ans.is_correct: skill_stats[name]['correct'] += 1
+    skill_hardness = []
+    for name, v in skill_stats.items():
+        if v['total'] >= 3:  # على الأقل 3 محاولات للموثوقية
+            pct = round(100 * v['correct'] / v['total'])
+            skill_hardness.append({'name': name, 'pct': pct, 'count': v['total']})
+    skill_hardness.sort(key=lambda s: s['pct'])  # الأصعب أولاً
+    skill_hardness = skill_hardness[:6]
+
+    # 3) Radar — متوسط أداء أعلى 5 طالبات في كل قسم (sklill_type)
+    radar_buckets = _dd(lambda: _dd(list))
+    for r in my_results.select_related('exam', 'exam__skill', 'student'):
+        section = r.exam.skill.skill_type or r.exam.skill.subject or 'عام'
+        radar_buckets[r.student_id][section].append(float(r.percentage or 0))
+    radar_data = []
+    sections = sorted({s for d in radar_buckets.values() for s in d.keys()})
+    for sid, secs in list(radar_buckets.items())[:5]:
+        u = User.objects.filter(id=sid).first()
+        name = (u.get_full_name() or u.username) if u else f'ID-{sid}'
+        radar_data.append({
+            'name': name,
+            'values': [round(sum(secs.get(s, [0])) / max(len(secs.get(s, [])), 1), 1) for s in sections],
+        })
+
+    # 4) الطالبات الـ "مُعالَجَات" — تحسّن من قبلي إلى بعدي ≥ 10%
+    pre_scores = {}
+    post_scores = {}
+    for r in my_results.select_related('exam', 'exam__skill'):
+        sk_id = r.exam.skill_id
+        key = (r.student_id, sk_id)
+        if r.exam.exam_type == 'pre':
+            pre_scores[key] = float(r.percentage or 0)
+        elif r.exam.exam_type == 'post':
+            post_scores[key] = float(r.percentage or 0)
+    treated_count = 0
+    for key, post in post_scores.items():
+        pre = pre_scores.get(key)
+        if pre is not None and (post - pre) >= 10:
+            treated_count += 1
+
+    # 5) عدد الطالبات الذين دربتهن (distinct students)
+    trained_students = my_results.values('student_id').distinct().count()
+
+    # 6) المهارات الأكثر طلباً للتدريب (من بنوك أسئلة بأي معلمة، خاصة بفجوات طالبات الفصل)
+    bank_gaps = _dd(int)
+    for ans in StudentAnswer.objects.filter(result__exam__exam_type='bank').select_related('question'):
+        if not ans.is_correct and ans.question.target_skill_name:
+            bank_gaps[ans.question.target_skill_name.strip()] += 1
+    top_demand = sorted([(k, v) for k, v in bank_gaps.items()], key=lambda x: -x[1])[:5]
+
+    # 7) skills_count breakdown
+    skills_count = my_skills.filter(content_type='skill').count()
+    lessons_count = my_skills.filter(content_type='lesson').count()
+    banks_count = my_skills.filter(content_type='bank').count()
+
     return render(request, 'teachers/dashboard.html', {
         'teacher': teacher,
-        'total_skills': my_skills.filter(content_type='skill').count(),
-        'total_lessons': my_skills.filter(content_type='lesson').count(),
-        'total_banks': my_skills.filter(content_type='bank').count(),
+        'total_skills': skills_count,
+        'total_lessons': lessons_count,
+        'total_banks': banks_count,
         'active_skills': my_skills.filter(is_active=True).count(),
         'total_exams': my_exams.count(),
         'active_exams': my_exams.filter(is_active=True).count(),
@@ -141,6 +222,8 @@ def teacher_dashboard(request):
         'total_results': my_results.count(),
         'passed_results': my_results.filter(passed=True).count(),
         'total_students': Student.objects.count(),
+        'trained_students': trained_students,        # طالبات دربتهن
+        'treated_students': treated_count,           # طالبات عالجتهن (تحسّن ≥10%)
         'sessions': (
             ClassSession.objects
             .filter(teacher=teacher)
@@ -150,7 +233,6 @@ def teacher_dashboard(request):
         'qodrat_sessions': ClassSession.objects.filter(teacher=teacher, session_type='qodrat').count(),
         'tahsili_sessions': ClassSession.objects.filter(teacher=teacher, session_type='tahsili').count(),
         'recent_skills': my_skills.order_by('-created_at')[:5],
-        # تصنيف الأداء — يستعمله القالب لاستبدال البيانات الوهمية
         'excellent_students': excellent_students,
         'mid_students': mid_students,
         'weak_students': weak_students,
@@ -159,6 +241,12 @@ def teacher_dashboard(request):
         'students_count_mid': len(mid_students),
         'students_count_weak': len(weak_students),
         'has_real_data': bool(students_perf),
+        # ─── البيانات الحقيقية الجديدة ───
+        'heatmap_json': _json.dumps(heatmap_data),
+        'skill_hardness': skill_hardness,
+        'radar_sections': sections,
+        'radar_data_json': _json.dumps(radar_data),
+        'top_demand_skills': [{'name': k, 'count': v} for k, v in top_demand],
     })
 
 
@@ -365,7 +453,7 @@ def add_question(request, exam_id):
     exam = get_object_or_404(TeacherExam, id=exam_id, skill__created_by=teacher)
     if request.method == 'POST':
         order = exam.questions.count() + 1
-        TeacherQuestion.objects.create(
+        q = TeacherQuestion.objects.create(
             exam=exam, order=order,
             question_plain=request.POST.get('question_plain', '').strip(),
             option_a_plain=request.POST.get('option_a_plain', ''),
@@ -376,9 +464,31 @@ def add_question(request, exam_id):
             target_skill_name=request.POST.get('target_skill_name', ''),
             feedback_plain=request.POST.get('feedback_plain', ''),
         )
-        messages.success(request, 'تم إضافة السؤال')
-        return redirect('skill_manager')
-    return render(request, 'teachers/add_question.html', {'exam': exam, 'teacher': teacher})
+        # دعم الصور للسؤال + الخيارات (يقبل ملف أو data:URL من OCR)
+        from core.views import _attach_image as _att
+        for fld in ('question_image', 'option_a_image', 'option_b_image', 'option_c_image', 'option_d_image'):
+            _att(q, fld, request)
+        q.save()
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': True, 'order': order})
+        messages.success(request, '✅ تم إضافة السؤال')
+        return redirect('add_question', exam_id=exam.id)
+
+    # قائمة مهارات كل المدرسة (لربط أسئلة البنوك بأي مهارة لأي معلمة)
+    school_skills = (
+        TeacherSkill.objects
+        .exclude(content_type='bank')
+        .filter(is_active=True)
+        .select_related('created_by')
+        .order_by('created_by__full_name', 'title')
+    )
+
+    return render(request, 'teachers/add_question.html', {
+        'exam': exam, 'teacher': teacher,
+        'school_skills': school_skills,
+        'questions': exam.questions.order_by('order'),
+    })
 
 
 @login_required
@@ -510,23 +620,52 @@ def enter_manual_score(request, result_id):
 
 @login_required
 def add_session(request):
+    """تسجيل حصة تدريبية يدوية — تحفظ حق المعلمة في الإحصاء."""
     if not check_teacher(request):
         return redirect('home')
     teacher = get_teacher(request)
-    if request.method == 'POST':
-        skill = get_object_or_404(TeacherSkill, id=request.POST.get('skill_id'))
-        ClassSession.objects.create(
-            teacher=teacher, skill=skill,
-            session_type=request.POST.get('session_type', 'qodrat'),
-            target_class=request.POST.get('target_class', ''),
-            session_date=request.POST.get('session_date'),
-            session_time=request.POST.get('session_time'),
-            notes=request.POST.get('notes', ''),
-        )
-        messages.success(request, 'تم تسجيل الحصة')
+    if not teacher:
+        messages.error(request, 'لا يوجد سجل معلمة لحسابك')
         return redirect('teacher_dashboard')
-    my_skills = TeacherSkill.objects.filter(created_by=teacher, is_active=True) if teacher else []
-    return render(request, 'teachers/add_session.html', {'teacher': teacher, 'skills': my_skills})
+
+    if request.method == 'POST':
+        skill_id = (request.POST.get('skill_id') or '').strip()
+        skill = TeacherSkill.objects.filter(id=skill_id).first() if skill_id else None
+        if skill is None:
+            messages.error(request, 'يرجى اختيار المهارة/الدرس')
+            return redirect('add_session')
+
+        # نوع الحصة يُستنتج من نوع المحتوى تلقائياً (يمكن التعديل يدوياً)
+        session_type = request.POST.get('session_type', '').strip()
+        if not session_type:
+            session_type = ('qodrat' if skill.skill_type in ('qodrat_kamy', 'qodrat_lafzy')
+                            else 'tahsili' if skill.subject in ('math', 'bio', 'chem', 'phys')
+                            else 'qodrat')
+
+        from datetime import date as _date, time as _time
+        try:
+            ClassSession.objects.create(
+                teacher=teacher, skill=skill,
+                session_type=session_type,
+                target_class=request.POST.get('target_class', ''),
+                session_date=request.POST.get('session_date') or _date.today().isoformat(),
+                session_time=request.POST.get('session_time') or _time(8, 0).isoformat(),
+                notes=request.POST.get('notes', ''),
+            )
+            messages.success(request, '✅ تم تسجيل الحصة وستُحتسب في إحصائك')
+        except Exception as exc:
+            messages.error(request, f'تعذّر التسجيل: {exc}')
+            return redirect('add_session')
+
+        return redirect('teacher_dashboard')
+
+    # كل مهارات المعلمة (مشاركة + خاصة + بنوك) لكي تختار من ضمنها
+    my_skills = (TeacherSkill.objects.filter(created_by=teacher).order_by('-created_at')
+                 if teacher else [])
+    classrooms = ClassRoom.objects.all().order_by('name')
+    return render(request, 'teachers/add_session.html', {
+        'teacher': teacher, 'skills': my_skills, 'classrooms': classrooms,
+    })
 
 
 # ═══════════════════════════════════════════════════════════════

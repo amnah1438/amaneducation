@@ -1,11 +1,16 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>إضافة سؤال — منصة آمنة</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+<!-- Tesseract.js للمسح الضوئي + MathLive -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://unpkg.com/mathlive@0.105.2/dist/mathlive.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/mathlive@0.105.2/dist/mathlive-fonts.css">
 
 <!-- MathJax -->
 <script>
@@ -23,7 +28,7 @@ window.MathJax = {
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 
 <style>
-:root {
+:root, :root[data-theme="dark"] {
   --bg:#07090f; --bg2:#0c0f1a; --bg3:#111520;
   --card:#0f1424; --card2:#161d30; --card3:#1c243d;
   --border:#1a2236; --border2:#223050; --border3:#2d3f60;
@@ -32,6 +37,22 @@ window.MathJax = {
   --text:#eef2ff; --text2:#94a3b8; --text3:#3d5070;
   --gold:#fbbf24;
 }
+:root[data-theme="light"] {
+  --bg:#eef2f7; --bg2:#dde3eb; --bg3:#e9eef4;
+  --card:#ffffff; --card2:#f1f5f9; --card3:#f8fafc;
+  --border:#cbd5e1; --border2:#94a3b8; --border3:#64748b;
+  --green:#047857; --green2:#a7f3d0; --blue:#1d4ed8; --blue2:#bfdbfe;
+  --purple:#7e22ce; --orange:#b45309; --red:#b91c1c; --teal:#0f766e;
+  --text:#020617; --text2:#1e293b; --text3:#475569;
+  --gold:#a16207;
+}
+/* تأكيد وضوح الخطوط في الوضع الفاتح */
+:root[data-theme="light"] .editor-area { background: #ffffff !important; color: #0f172a !important; }
+:root[data-theme="light"] .editor-area[contenteditable]:empty:before { color: #64748b !important; }
+:root[data-theme="light"] .fl, :root[data-theme="light"] .ct, :root[data-theme="light"] .fl-h { color: #1e293b !important; font-weight: 800 !important; }
+:root[data-theme="light"] .fi, :root[data-theme="light"] select.fi, :root[data-theme="light"] textarea.fi { background: #ffffff !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
+:root[data-theme="light"] .preview-box { background: #ffffff !important; color: #0f172a !important; border-color: #cbd5e1 !important; }
+:root[data-theme="light"] .img-upload-area { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
@@ -226,11 +247,29 @@ select.fi option{background:var(--card2)}
             </select>
           </div>
           <div class="fg">
-            <label class="fl">المهارة / الدرس *</label>
-            <select class="fi" name="target_skill_name">
-              <option value="">— اختاري —</option>
+            <label class="fl">المهارة / الدرس المستهدفة *
+              {% if exam.exam_type == 'bank' %}<span style="font-weight:400;color:var(--text3,#888);font-size:9px">— يمكنك اختيار مهارة أي معلمة</span>{% endif %}
+            </label>
+            <select class="fi" name="target_skill_name" required>
+              <option value="">— اختاري المهارة —</option>
               {% if exam.skill %}
-                <option value="{{ exam.skill.title }}" selected>{{ exam.skill.title }}</option>
+                <option value="{{ exam.skill.title }}" selected>📍 {{ exam.skill.title }} (الافتراضية)</option>
+              {% endif %}
+              {% if school_skills %}
+              <optgroup label="🎯 مهارات القدرات">
+                {% for sk in school_skills %}
+                  {% if sk.content_type == 'skill' %}
+                  <option value="{{ sk.title }}">{{ sk.title }} — ({{ sk.created_by.full_name|default:'—' }})</option>
+                  {% endif %}
+                {% endfor %}
+              </optgroup>
+              <optgroup label="📚 دروس التحصيلي">
+                {% for sk in school_skills %}
+                  {% if sk.content_type == 'lesson' %}
+                  <option value="{{ sk.title }}">{{ sk.title }} — ({{ sk.created_by.full_name|default:'—' }})</option>
+                  {% endif %}
+                {% endfor %}
+              </optgroup>
               {% endif %}
               <option value="تأسيس عام">تأسيس عام</option>
             </select>
@@ -414,7 +453,8 @@ select.fi option{background:var(--card2)}
                 <button type="button" class="tb-btn-e" onclick="insertAtCursor('\n','q-text')">↵</button>
               </div>
               <div class="tb-sep"></div>
-              <button type="button" class="tb-btn-e math-btn" onclick="toggleMath()">∑ معادلة</button>
+              <button type="button" class="tb-btn-e math-btn" onclick="openLatexEditor('q-text')" title="محرّر معادلات (مثل Word)">∑ معادلة</button>
+              <button type="button" class="tb-btn-e" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.3)" onclick="openOcr('q-text')" title="مسح ضوئي من صورة">📷 مسح</button>
               <button type="button" class="tb-btn-e img-btn" onclick="document.getElementById('imgModal').classList.add('show')">🖼️ صورة</button>
             </div>
             <div class="editor-area" id="q-text" contenteditable="true"
@@ -463,8 +503,10 @@ select.fi option{background:var(--card2)}
               <button type="button" class="opt-correct-btn" id="opt-btn-{{ opt }}" onclick="setCorrect('{{ opt }}')">تحديد كصحيح ✓</button>
             </div>
             <div class="editor-wrap">
-              <div class="editor-toolbar" style="padding:3px 6px">
-                <button type="button" class="tb-btn-e math-btn" style="font-size:10px;padding:2px 5px" onclick="insertOptMath('{{ opt }}')">∑</button>
+              <div class="editor-toolbar" style="padding:3px 6px;flex-wrap:wrap;gap:3px">
+                <button type="button" class="tb-btn-e math-btn" style="font-size:10px;padding:2px 6px;background:rgba(155,114,245,0.15);color:var(--purple);border:1px solid rgba(155,114,245,0.3)" onclick="openLatexEditor('opt-{{ opt }}')" title="محرّر LaTeX">∑ LaTeX</button>
+                <button type="button" class="tb-btn-e" style="font-size:10px;padding:2px 6px;background:rgba(245,158,11,0.15);color:var(--orange);border:1px solid rgba(245,158,11,0.3)" onclick="openOcr('opt-{{ opt }}')" title="مسح ضوئي">📷 مسح</button>
+                <button type="button" class="tb-btn-e" style="font-size:10px;padding:2px 6px;background:rgba(15,186,129,0.15);color:var(--green);border:1px solid rgba(15,186,129,0.3)" onclick="document.getElementById('optImg{{ opt }}').click()" title="رفع صورة للخيار">🖼️ صورة</button>
                 <div class="tb-sep"></div>
                 {% for sym in "×÷±≠≤≥√²³½" %}
                 <button type="button" class="tb-btn-e" style="font-size:11px;padding:2px 5px;width:24px" onclick="insertSym('{{ sym }}','opt-{{ opt }}')">{{ sym }}</button>
@@ -474,6 +516,11 @@ select.fi option{background:var(--card2)}
                    placeholder="{% if opt == 'A' %}الخيار أ...{% elif opt == 'B' %}الخيار ب...{% elif opt == 'C' %}الخيار ج...{% else %}الخيار د...{% endif %}"></div>
             </div>
             <input type="hidden" name="option_{{ opt|lower }}_plain" id="opt-{{ opt }}-hidden">
+            <input type="file" id="optImg{{ opt }}" name="option_{{ opt|lower }}_image" accept="image/*" style="display:none" onchange="previewOptImg('{{ opt }}', this)">
+            <div id="optImg{{ opt }}Preview" style="display:none;margin-top:6px;text-align:center;padding:6px;background:var(--card2);border:1px dashed var(--border);border-radius:7px;position:relative">
+              <img style="max-width:100%;max-height:90px;border-radius:5px">
+              <button type="button" onclick="clearOptImg('{{ opt }}')" style="position:absolute;top:3px;left:3px;background:var(--red);color:white;border:none;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:10px;line-height:1">×</button>
+            </div>
           </div>
           {% endfor %}
         </div>
@@ -730,6 +777,269 @@ function submitForm(mode){
   }
   document.getElementById('qForm').submit();
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ✨ المحرّر الذكي — مماثل لصفحة المديرة
+═══════════════════════════════════════════════════════════ */
+let latexTargetField = null;
+function openLatexEditor(targetId){
+  latexTargetField = targetId;
+  document.getElementById('latexModal').classList.add('show');
+  document.getElementById('latexPasteInp').value = '';
+  setTimeout(() => {
+    const ml = document.getElementById('mlField');
+    if (ml && ml.focus) ml.focus();
+  }, 60);
+}
+function closeLatexEditor(){ document.getElementById('latexModal').classList.remove('show'); }
+
+function applyLatexCode(){
+  const code = document.getElementById('latexPasteInp').value.trim();
+  if (!code) { alert('انسخي كود المعادلة من المحرّر ثم الصقيه هنا'); return; }
+  const wrapped = code.startsWith('$') ? code : ('$' + code + '$');
+  if (!latexTargetField) { closeLatexEditor(); return; }
+  const el = document.getElementById(latexTargetField);
+  if (el && el.contentEditable === 'true') {
+    el.focus();
+    document.execCommand('insertText', false, wrapped);
+  } else if (el) {
+    const start = el.selectionStart || 0;
+    const end = el.selectionEnd || 0;
+    el.value = el.value.slice(0, start) + wrapped + el.value.slice(end);
+  }
+  closeLatexEditor();
+}
+
+function switchLatexEd(btn, panelId){
+  document.querySelectorAll('.latex-tab').forEach(t => {
+    t.classList.remove('on');
+    t.style.background = 'var(--card2)'; t.style.color = 'var(--text)';
+    t.style.border = '1px solid var(--border)'; t.style.fontWeight = '700';
+  });
+  btn.classList.add('on');
+  btn.style.background = 'linear-gradient(135deg,var(--green2),var(--blue2))';
+  btn.style.color = 'white'; btn.style.border = 'none'; btn.style.fontWeight = '800';
+  ['latex-mathlive','latex-myscript','latex-hostmath','latex-codecogs'].forEach(id => {
+    const f = document.getElementById(id);
+    if (!f) return;
+    f.style.display = (id === panelId) ? (id === 'latex-mathlive' ? 'flex' : 'block') : 'none';
+  });
+}
+
+function copyMlToPaste(){
+  const ml = document.getElementById('mlField');
+  if (!ml) return;
+  const code = ml.getValue('latex') || ml.value || '';
+  if (!code.trim()) { alert('اكتبي معادلة في الإطار الأبيض أعلاه'); return; }
+  document.getElementById('latexPasteInp').value = code;
+}
+function insertMlExample(){
+  const ml = document.getElementById('mlField');
+  if (!ml) return;
+  const examples = ['\\frac{a+b}{c}', 'x^2 + 5x = 0', '\\sqrt{2}+\\sqrt{3}', '\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}'];
+  ml.setValue(examples[Math.floor(Math.random()*examples.length)]);
+}
+
+/* OCR */
+let ocrTargetField = null, ocrSelectedFile = null, ocrLastResult = null, ocrOriginalDataUrl = null;
+function openOcr(targetId){
+  ocrTargetField = targetId;
+  document.getElementById('ocrModal').classList.add('show');
+  document.getElementById('ocrPreviewWrap').style.display = 'none';
+  document.getElementById('ocrProgress').classList.remove('on');
+  document.getElementById('ocrResult').classList.remove('on');
+  document.getElementById('ocrApplyBtn').style.display = 'none';
+  document.getElementById('ocrStartBtn').style.display = 'none';
+}
+function closeOcr(){ document.getElementById('ocrModal').classList.remove('show'); }
+
+function handleOcrFile(file){
+  ocrSelectedFile = file;
+  ocrOriginalDataUrl = null;
+  const url = URL.createObjectURL(file);
+  document.getElementById('ocrPreview').src = url;
+  document.getElementById('ocrPreviewWrap').style.display = 'block';
+  document.getElementById('ocrStartBtn').style.display = 'inline-flex';
+  document.getElementById('ocrResult').classList.remove('on');
+  document.getElementById('ocrApplyBtn').style.display = 'none';
+}
+
+function previewOptImg(letter, inp){
+  const f = inp.files && inp.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wrap = document.getElementById('optImg' + letter + 'Preview');
+    wrap.querySelector('img').src = e.target.result;
+    wrap.style.display = 'block';
+  };
+  reader.readAsDataURL(f);
+}
+function clearOptImg(letter){
+  const wrap = document.getElementById('optImg' + letter + 'Preview');
+  const inp = document.getElementById('optImg' + letter);
+  if (wrap) wrap.style.display = 'none';
+  if (inp) inp.value = '';
+}
+
+async function runOcr(){
+  if (!ocrSelectedFile) return;
+  document.getElementById('ocrProgress').classList.add('on');
+  document.getElementById('ocrStartBtn').style.display = 'none';
+  document.getElementById('ocrAsImageBtn').style.display = 'inline-flex';
+  const bar = document.getElementById('ocrBar');
+  const pct = document.getElementById('ocrPct');
+  bar.style.width = '0%'; pct.textContent = '0%';
+  try {
+    const { data } = await Tesseract.recognize(ocrSelectedFile, 'ara+eng', {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          const p = Math.round(m.progress*100);
+          bar.style.width = p+'%'; pct.textContent = p+'%';
+        }
+      }
+    });
+    ocrLastResult = (data.text || '').trim();
+    document.getElementById('ocrResult').classList.add('on');
+    document.getElementById('ocrResult').textContent = ocrLastResult || '(لم يُستخرج نص)';
+    document.getElementById('ocrApplyBtn').style.display = 'inline-flex';
+    document.getElementById('ocrProgress').classList.remove('on');
+  } catch (e) {
+    document.getElementById('ocrResult').classList.add('on');
+    document.getElementById('ocrResult').textContent = '❌ ' + (e.message || e);
+    document.getElementById('ocrProgress').classList.remove('on');
+  }
+}
+
+function applyOcrText(){
+  if (!ocrLastResult || !ocrTargetField) { closeOcr(); return; }
+  const el = document.getElementById(ocrTargetField);
+  if (el && el.contentEditable === 'true') {
+    el.focus();
+    document.execCommand('insertText', false, ocrLastResult);
+  } else if (el) {
+    const s = el.selectionStart || 0, e = el.selectionEnd || 0;
+    el.value = el.value.slice(0,s) + ocrLastResult + el.value.slice(e);
+  }
+  closeOcr();
+}
+
+function applyOcrAsImage(){
+  if (!ocrSelectedFile) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const dataUrl = e.target.result;
+    // إذا كان الحقل المستهدف هو السؤال، نضع الصورة في qImgInput
+    if (ocrTargetField === 'q-text') {
+      const hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = 'question_image_data';
+      hidden.value = dataUrl;
+      document.getElementById('qForm').appendChild(hidden);
+      document.getElementById('qImgPreview').src = dataUrl;
+      document.getElementById('qImgPreview').style.display = 'block';
+    } else if (ocrTargetField && ocrTargetField.startsWith('opt-')) {
+      const letter = ocrTargetField.split('-')[1].toLowerCase();
+      const hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.name = `option_${letter}_image_data`;
+      hidden.value = dataUrl;
+      document.getElementById('qForm').appendChild(hidden);
+    }
+    closeOcr();
+  };
+  reader.readAsDataURL(ocrSelectedFile);
+}
+
+// Drag & Drop داخل OCR modal
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('ocrDrop');
+  if (dz) {
+    dz.addEventListener('click', () => document.getElementById('ocrFileInp').click());
+    ['dragover','dragenter'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.style.borderColor='var(--green)'; }));
+    ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => { e.preventDefault(); dz.style.borderColor='var(--border2)'; }));
+    dz.addEventListener('drop', e => {
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) handleOcrFile(f);
+    });
+    document.getElementById('ocrFileInp').addEventListener('change', e => {
+      if (e.target.files[0]) handleOcrFile(e.target.files[0]);
+    });
+  }
+});
 </script>
+
+<!-- Modal: LaTeX (محرّر متعدد) -->
+<div class="modal-bg" id="latexModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(6px)">
+  <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:1000px;height:680px;display:flex;flex-direction:column;overflow:hidden;margin:auto">
+    <div style="padding:13px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg2)">
+      <div>
+        <div style="font-size:14px;font-weight:800">∑ محرّر المعادلات الذكي</div>
+        <div style="font-size:9px;color:var(--text3);margin-top:2px">اختاري المحرّر، اكتبي المعادلة، انسخي الكود، الصقيه ثم «إدراج»</div>
+      </div>
+      <button onclick="closeLatexEditor()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:14px">✕</button>
+    </div>
+    <div style="display:flex;gap:4px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <button type="button" class="latex-tab on" onclick="switchLatexEd(this,'latex-mathlive')" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800">✏️ MathLive (مثل Word)</button>
+      <button type="button" class="latex-tab" onclick="switchLatexEd(this,'latex-myscript')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">✍️ MyScript (يدوي)</button>
+      <button type="button" class="latex-tab" onclick="switchLatexEd(this,'latex-hostmath')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">🧮 HostMath</button>
+      <button type="button" class="latex-tab" onclick="switchLatexEd(this,'latex-codecogs')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">📝 CodeCogs</button>
+    </div>
+    <div style="position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div id="latex-mathlive" style="display:flex;flex-direction:column;flex:1;padding:24px;background:white;color:#111;overflow-y:auto">
+        <div style="font-size:13px;color:#1e293b;margin-bottom:10px;font-weight:700">📝 اكتبي معادلتكِ كما في Word — مباشرة في الإطار أدناه:</div>
+        <div style="font-size:11px;color:#64748b;line-height:1.9;background:#f1f5f9;padding:10px 14px;border-radius:8px;border-right:3px solid #4338ca;margin-bottom:14px">
+          💡 <strong>أمثلة:</strong>
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">1/2</code> → كسر •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">sqrt 2</code> → جذر •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">x^2</code> → أس •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">pi</code> → π
+        </div>
+        <math-field id="mlField" virtual-keyboard-mode="manual" style="min-height:180px;font-size:24px;border:2px solid #cbd5e1;border-radius:12px;padding:20px;background:#ffffff;color:#0f172a;direction:ltr"></math-field>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" onclick="copyMlToPaste()" style="background:linear-gradient(135deg,#10b981,#3b82f6);color:white;border:none;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800">📋 نسخ الكود إلى أسفل</button>
+          <button type="button" onclick="document.getElementById('mlField').setValue('')" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">🗑️ مسح</button>
+          <button type="button" onclick="insertMlExample()" style="background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">✨ مثال</button>
+        </div>
+      </div>
+      <iframe id="latex-myscript" src="https://webdemo.myscript.com/views/math/index.html" style="display:none;flex:1;border:none"></iframe>
+      <iframe id="latex-hostmath" src="https://www.hostmath.com/" style="display:none;flex:1;border:none"></iframe>
+      <iframe id="latex-codecogs" src="https://editor.codecogs.com/" style="display:none;flex:1;border:none"></iframe>
+      <div style="padding:10px 14px;background:var(--bg3);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
+        <input id="latexPasteInp" placeholder="الصقي كود المعادلة هنا، مثال: \frac{a}{b}" style="flex:1;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:monospace;font-size:12px;padding:8px 11px;border-radius:7px;outline:none;direction:ltr;text-align:left">
+        <button type="button" onclick="applyLatexCode()" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);padding:9px 16px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;white-space:nowrap">✅ إدراج</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: OCR -->
+<div class="modal-bg" id="ocrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(6px)">
+  <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:20px;width:100%;max-width:560px;margin:auto">
+    <div style="font-size:14px;font-weight:800;margin-bottom:14px">📷 المسح الضوئي الذكي</div>
+    <div id="ocrDrop" style="border:2px dashed var(--border2);border-radius:11px;padding:30px 20px;text-align:center;background:var(--bg3);transition:all 0.25s;cursor:pointer;margin-bottom:14px">
+      <input type="file" id="ocrFileInp" accept="image/*" style="display:none">
+      <div style="font-size:42px;margin-bottom:8px">📸</div>
+      <div style="font-size:13px;font-weight:800;margin-bottom:4px">اسحبي الصورة هنا أو اضغطي للاختيار</div>
+      <div style="font-size:11px;color:var(--text3)">يدعم العربية والإنجليزية والأرقام والرموز</div>
+    </div>
+    <div id="ocrPreviewWrap" style="display:none;text-align:center;margin-bottom:10px">
+      <img id="ocrPreview" style="max-width:100%;max-height:200px;border-radius:9px;border:1px solid var(--border)">
+    </div>
+    <div id="ocrProgress" style="display:none;background:var(--bg3);border-radius:8px;padding:10px 14px;margin-bottom:10px">
+      <div style="font-size:11px;color:var(--text2);font-weight:700">⏳ جاري المسح... <span id="ocrPct">0%</span></div>
+      <div style="height:5px;background:var(--card2);border-radius:3px;overflow:hidden;margin-top:6px"><div id="ocrBar" style="height:100%;background:linear-gradient(90deg,var(--blue),var(--green));width:0%;transition:width 0.2s"></div></div>
+    </div>
+    <div id="ocrResult" style="display:none;background:var(--card2);border:1px solid var(--border2);border-radius:9px;padding:12px 14px;font-size:12px;line-height:1.8;white-space:pre-wrap;direction:rtl;text-align:right;color:var(--text);margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+      <button type="button" onclick="closeOcr()" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.3);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">إلغاء</button>
+      <button type="button" id="ocrAsImageBtn" onclick="applyOcrAsImage()" style="display:none;background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.3);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">🖼️ كصورة (للرسومات)</button>
+      <button type="button" id="ocrApplyBtn" onclick="applyOcrText()" style="display:none;background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">✅ إدراج النص</button>
+      <button type="button" id="ocrStartBtn" onclick="runOcr()" style="display:none;background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.3);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">🔍 بدء المسح</button>
+    </div>
+  </div>
+</div>
+
+{% include "core/_theme_toggle.html" %}
 </body>
 </html>
