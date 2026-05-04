@@ -48,6 +48,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .sk-actions{display:flex;gap:4px;margin-top:7px}
 .sk-act{flex:1;padding:4px;border-radius:6px;border:1px solid;font-family:'Tajawal',sans-serif;font-size:9px;text-decoration:none;text-align:center;font-weight:700;cursor:pointer;transition:.2s}
 .sk-act:hover{opacity:.8;transform:translateY(-1px)}
+.exam-row{margin-top:5px;padding:4px 8px;background:var(--bg3);border-radius:6px;font-size:9px;display:flex;justify-content:space-between;align-items:center}
 .add-skill-btn{width:100%;padding:9px;border-radius:9px;border:1.5px dashed var(--border2);background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;cursor:pointer;transition:.25s;display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:12px}
 .add-skill-btn:hover{border-color:var(--green);color:var(--green);background:rgba(15,186,129,.04)}
 
@@ -138,6 +139,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 .qi-num{width:24px;height:24px;border-radius:50%;background:var(--blue2);color:var(--blue);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .qi-text{font-size:11px;color:var(--text2);flex:1;line-height:1.6}
 .qi-correct{font-size:9px;color:var(--green);background:rgba(15,186,129,.1);padding:2px 8px;border-radius:8px;border:1px solid rgba(15,186,129,.2)}
+.qi-skill{font-size:9px;color:var(--purple);background:rgba(155,114,245,.1);padding:2px 8px;border-radius:8px;border:1px solid rgba(155,114,245,.2)}
 .qi-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:3px 6px;border-radius:5px;transition:.2s}
 .qi-del:hover{color:var(--red);background:rgba(240,82,82,.1)}
 
@@ -188,9 +190,27 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 .bank-btn:hover{border-color:var(--purple);color:var(--purple)}
 .bank-btn.on{background:linear-gradient(135deg,var(--purple2),rgba(155,114,245,.15));color:var(--purple);border-color:var(--purple);box-shadow:0 4px 12px rgba(155,114,245,.15)}
 
+.skill-mgmt-modal{width:100%;max-width:600px}
+.skill-mgmt-modal .ch{display:flex;justify-content:space-between;align-items:center}
+.skill-tabs{display:flex;gap:4px;margin-bottom:12px;padding:4px;background:var(--bg3);border-radius:8px}
+.skill-tab{flex:1;padding:8px 12px;border-radius:6px;border:none;background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:.2s}
+.skill-tab.on{background:var(--card);color:var(--text)}
+.skill-list{display:flex;flex-direction:column;gap:7px}
+.skill-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:7px;font-size:10px}
+.skill-item-text{color:var(--text2);flex:1}
+.skill-del-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;padding:2px 5px}
+.skill-input{width:100%;padding:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;border-radius:7px;outline:none}
+.skill-input:focus{border-color:var(--blue)}
+.skill-add-row{display:flex;gap:7px;margin-bottom:10px}
+.skill-add-row input{flex:1}
+.skill-add-row button{padding:8px 12px;background:rgba(79,142,247,.1);color:var(--blue);border:1px solid rgba(79,142,247,.25);border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-weight:700;font-size:10px}
+
+.delivery-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;background:var(--bg3);border-radius:8px;margin-bottom:12px}
+
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 @media(max-width:1024px){.wrap{grid-template-columns:1fr}.sidebar{display:none}}
 @media(max-width:768px){.g2,.opts-grid{grid-template-columns:1fr}.g3,.bank-grid{grid-template-columns:1fr 1fr}}
+@media print{body{background:#fff;color:#000}.topbar,.sidebar,.main-tabs,.btn,.btn-row{display:none !important}.content{padding:20px}.print-exam{page-break-after:always}}
 </style>
 </head>
 <body>
@@ -205,6 +225,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     <a href="/teachers/dashboard/" class="tnb">📊 الداشبورد</a>
     <span class="tnb on">📚 المهارات</span>
     <a href="/teachers/skills/import/" class="tnb">📤 رفع Excel</a>
+    <button class="tnb" onclick="openSkillsManager()" title="إدارة قائمة المهارات">⚙️ المهارات</button>
     {% include "core/_theme_toggle.html" %}
   </div>
   <div style="font-size:10px;color:var(--text3)" id="clk"></div>
@@ -230,20 +251,25 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
       <div class="sk-progress">
         {% with exams=skill.exams.all %}
         <div class="sk-step {% if skill.content %}done{% endif %}" title="الشرح"></div>
-        <div class="sk-step {% for e in exams %}{% if e.exam_type == 'pre' %}done{% endif %}{% endfor %}" title="��لقبلي"></div>
+        <div class="sk-step {% for e in exams %}{% if e.exam_type == 'pre' %}done{% endif %}{% endfor %}" title="القبلي"></div>
         <div class="sk-step {% for e in exams %}{% if e.exam_type == 'post' %}done{% endif %}{% endfor %}" title="البعدي"></div>
         {% endwith %}
       </div>
       <div class="sk-actions">
         <a href="{% url 'view_skill' skill.id %}" class="sk-act" style="border-color:rgba(79,142,247,.3);background:rgba(79,142,247,.08);color:var(--blue)">📖 عرض</a>
         <a href="{% url 'edit_skill' skill.id %}" class="sk-act" style="border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.08);color:var(--orange)">✏️ تعديل</a>
-        <form method="post" action="{% url 'delete_skill' skill.id %}" style="flex:0;margin:0" onsubmit="return confirm('حذف ��لمهارة؟')">{% csrf_token %}<button type="submit" class="sk-act" style="width:100%;border-color:rgba(240,82,82,.3);background:rgba(240,82,82,.08);color:var(--red)">🗑️</button></form>
+        <form method="post" action="{% url 'delete_skill' skill.id %}" style="flex:0;margin:0" onsubmit="return confirm('حذف المهارة؟')">{% csrf_token %}<button type="submit" class="sk-act" style="width:100%;border-color:rgba(240,82,82,.3);background:rgba(240,82,82,.08);color:var(--red)">🗑️</button></form>
       </div>
       {% with exams=skill.exams.all %}
       {% for e in exams %}
-      <div style="margin-top:5px;padding:4px 8px;background:var(--bg3);border-radius:6px;font-size:9px;display:flex;justify-content:space-between;align-items:center">
+      <div class="exam-row">
         <span>{{ e.get_exam_type_display }} ({{ e.questions.count }} سؤال)</span>
-        {% if e.is_active %}<a href="/students/exam/{{ e.id }}/" style="color:var(--green);font-weight:700;text-decoration:none" onclick="event.stopPropagation();navigator.clipboard.writeText(location.origin+'/students/exam/{{ e.id }}/');alert('تم نسخ الرابط!')">📋 نسخ رابط</a>{% else %}<span style="color:var(--text3)">غير مفعّل</span>{% endif %}
+        <div style="display:flex;gap:5px">
+          {% if e.is_active %}
+            <a href="/students/exam/{{ e.id }}/" style="color:var(--green);font-weight:700;text-decoration:none" onclick="event.stopPropagation();navigator.clipboard.writeText(location.origin+'/students/exam/{{ e.id }}/');alert('تم نسخ الرابط!')">📋 نسخ</a>
+            <button onclick="printExam({{ e.id }},'{{ skill.title }}','{{ e.get_exam_type_display }}')" style="color:var(--orange);font-weight:700;background:none;border:none;cursor:pointer;font-size:9px" title="طباعة">🖨️ طباعة</button>
+          {% else %}<span style="color:var(--text3)">غير مفعّل</span>{% endif %}
+        </div>
       </div>
       {% endfor %}
       {% endwith %}
@@ -347,6 +373,11 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
               <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" id="q-pre-time" value="15"></div>
               <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" id="q-pre-pass" value="60"></div>
             </div>
+            <div class="delivery-row">
+              <div class="fg" style="margin:0"><label class="fl">طريقة التسليم</label>
+                <select class="fi" id="q-pre-delivery"><option value="both">كلاهما</option><option value="electronic">إلكتروني</option><option value="paper">ورقي</option></select>
+              </div>
+            </div>
             <div id="q-pre-editor"></div>
             <div class="btn-row" style="justify-content:flex-end"><button type="button" class="btn btn-b" onclick="goQStep(2)">التالي — المحتوى ←</button></div>
           </div>
@@ -366,7 +397,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
             <div id="qodrat-cnt-0"><div class="fg"><label class="fl">رابط YouTube</label><input class="fi" id="q-yt-url" placeholder="https://youtube.com/watch?v=..." oninput="ytPrev('q')"></div><iframe id="q-yt-preview" class="yt-preview" frameborder="0" allowfullscreen></iframe></div>
             <div id="qodrat-cnt-1" style="display:none"><div class="fg"><label class="fl">رابط فيديو</label><input class="fi" id="q-video-url" placeholder="https://..."></div></div>
             <div id="qodrat-cnt-2" style="display:none"><div class="fg"><label class="fl">ملف PDF</label><input class="fi" type="file" accept=".pdf" style="padding:6px"></div></div>
-            <div id="qodrat-cnt-3" style="display:none"><div class="fg"><label class="fl">شرح نصي</label><div class="q-editor"><div class="q-area" id="q-text-area" contenteditable="true" placeholder="اكتبي الشرح هنا..." style="min-height:120px"></div></div></div></div>
+            <div id="qodrat-cnt-3" style="display:none"><div class="fg"><label class="fl">شرح نصي</label><div class="q-editor"><div class="q-area" id="q-text-area" contenteditable="true" placeholder="اكتبي الشرح هنا..." style="min-height:120px"></div></div><button type="button" class="btn btn-b btn-sm" onclick="printContent('q-text-area','محتوى المهارة')" style="margin-top:8px">🖨️ طباعة المحتوى</button></div></div>
             <div class="btn-row" style="justify-content:space-between">
               <button type="button" class="btn btn-b btn-sm" onclick="goQStep(1)">→ السابق</button>
               <button type="button" class="btn btn-b" onclick="goQStep(3)">التالي — البعدي ←</button>
@@ -464,7 +495,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
             <div id="tahsili-cnt-0"><div class="fg"><label class="fl">رابط YouTube</label><input class="fi" id="t-yt-url" placeholder="https://youtube.com/watch?v=..." oninput="ytPrev('t')"></div><iframe id="t-yt-preview" class="yt-preview" frameborder="0" allowfullscreen></iframe></div>
             <div id="tahsili-cnt-1" style="display:none"><div class="fg"><label class="fl">رابط فيديو</label><input class="fi" id="t-video-url" placeholder="https://..."></div></div>
             <div id="tahsili-cnt-2" style="display:none"><div class="fg"><label class="fl">ملف PDF</label><input class="fi" type="file" accept=".pdf" style="padding:6px"></div></div>
-            <div id="tahsili-cnt-3" style="display:none"><div class="fg"><label class="fl">شرح نصي</label><div class="q-editor"><div class="q-area" id="t-text-area" contenteditable="true" placeholder="اكتبي الشرح هنا..." style="min-height:120px"></div></div></div></div>
+            <div id="tahsili-cnt-3" style="display:none"><div class="fg"><label class="fl">شرح نصي</label><div class="q-editor"><div class="q-area" id="t-text-area" contenteditable="true" placeholder="اكتبي الشرح هنا..." style="min-height:120px"></div></div><button type="button" class="btn btn-b btn-sm" onclick="printContent('t-text-area','محتوى الدرس')" style="margin-top:8px">🖨️ طباعة المحتوى</button></div></div>
             <div class="btn-row" style="justify-content:flex-end"><button type="button" class="btn btn-o" onclick="goTStep(2)">التالي — الاختبار ←</button></div>
           </div>
         </div>
@@ -477,6 +508,11 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
               <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" id="t-post-cnt" value="10"></div>
               <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" id="t-post-time" value="15"></div>
               <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" id="t-post-pass" value="70"></div>
+            </div>
+            <div class="delivery-row">
+              <div class="fg" style="margin:0"><label class="fl">طريقة التسليم</label>
+                <select class="fi" id="t-post-delivery"><option value="both">كلاهما</option><option value="electronic">إلكتروني</option><option value="paper">ورقي</option></select>
+              </div>
             </div>
             <div id="t-post-editor"></div>
             <div class="btn-row" style="justify-content:space-between">
@@ -523,12 +559,48 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
       <button class="bank-btn" onclick="swBank(5,this)">🧪 كيمياء</button>
     </div>
     <div class="card"><div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--purple)"></span> <span id="bank-title">قدرات كمي</span> — بنك الأسئلة</span><span class="bd be" id="bank-badge">٠ أسئلة</span></div>
-      <div class="cb"><div id="bank-editor"></div></div>
+      <div class="cb"><div id="bank-editor"></div><div class="btn-row" style="justify-content:flex-end;border:none;margin:10px 0 0 0;padding:0"><button type="button" class="btn btn-g" onclick="saveBankQuestions()">💾 حفظ أسئلة البنك</button><button type="button" class="btn btn-b btn-sm" onclick="printBank()" style="margin-right:8px">🖨️ طباعة البنك</button></div></div>
     </div>
   </div>
 
 </div><!-- end content -->
 </div><!-- end wrap -->
+
+<!-- ══════ MODAL: SKILLS MANAGEMENT ══════ -->
+<div class="modal-overlay" id="skillsManagerModal">
+  <div class="card" style="max-width:600px;width:100%;margin:auto">
+    <div class="ch">
+      <span class="ct"><span class="ct-dot" style="background:var(--purple)"></span> إدارة قائمة المهارات</span>
+      <button onclick="document.getElementById('skillsManagerModal').classList.remove('on')" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:14px">✕</button>
+    </div>
+    <div class="cb">
+      <div class="skill-tabs">
+        <button class="skill-tab on" onclick="swSkillTab(0,this)">🔢 مهارات كمي</button>
+        <button class="skill-tab" onclick="swSkillTab(1,this)">📝 مهارات لفظي</button>
+      </div>
+
+      <div id="skill-panel-0" style="display:block">
+        <div class="skill-add-row">
+          <input type="text" id="skill-input-0" class="skill-input" placeholder="أضيفي مهارة جديدة..." onkeypress="if(event.key==='Enter')addSkillItem(0)">
+          <button onclick="addSkillItem(0)" class="btn btn-b btn-sm">➕ إضافة</button>
+        </div>
+        <div class="skill-list" id="skill-list-0"></div>
+      </div>
+
+      <div id="skill-panel-1" style="display:none">
+        <div class="skill-add-row">
+          <input type="text" id="skill-input-1" class="skill-input" placeholder="أضيفي مهارة جديدة..." onkeypress="if(event.key==='Enter')addSkillItem(1)">
+          <button onclick="addSkillItem(1)" class="btn btn-b btn-sm">➕ إضافة</button>
+        </div>
+        <div class="skill-list" id="skill-list-1"></div>
+      </div>
+
+      <div class="btn-row" style="border:none;margin:12px 0 0 0;padding:12px 0 0 0;border-top:1px solid var(--border);justify-content:flex-end">
+        <button type="button" class="btn btn-b btn-sm" onclick="document.getElementById('skillsManagerModal').classList.remove('on')">أغلقي</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ══════ MODAL: LATEX ══════ -->
 <div class="modal-overlay" id="smartLatexModal">
@@ -539,7 +611,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     </div>
     <div style="display:flex;gap:4px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border)">
       <button type="button" class="slt" onclick="slTab(this,'sl-ml')" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:#fff;border:none;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800">✏️ MathLive</button>
-      <button type="button" class="slt" onclick="slTab(this,'sl-ms')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">✍��� MyScript</button>
+      <button type="button" class="slt" onclick="slTab(this,'sl-ms')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">✍️ MyScript</button>
       <button type="button" class="slt" onclick="slTab(this,'sl-hm')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">🧮 HostMath</button>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
@@ -580,6 +652,16 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 // ═══ CLOCK ═══
 setInterval(()=>{const n=new Date();document.getElementById('clk').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0')},1000);
 
+// ═══ SKILLS MANAGER ═══
+let skillsData={kamy:[],lafzy:[]};
+function loadSkillsData(){const s=localStorage.getItem('teacherSkills');if(s)skillsData=JSON.parse(s);renderSkillLists()}
+function saveSkillsData(){localStorage.setItem('teacherSkills',JSON.stringify(skillsData))}
+function openSkillsManager(){document.getElementById('skillsManagerModal').classList.add('on');loadSkillsData();renderSkillLists()}
+function swSkillTab(i,btn){document.querySelectorAll('.skill-tab').forEach(t=>t.classList.remove('on'));btn.classList.add('on');['skill-panel-0','skill-panel-1'].forEach((id,idx)=>document.getElementById(id).style.display=idx===i?'block':'none')}
+function addSkillItem(type){const inp=document.getElementById('skill-input-'+type);if(!inp.value.trim())return;const key=type===0?'kamy':'lafzy';skillsData[key].push(inp.value.trim());saveSkillsData();inp.value='';renderSkillLists()}
+function deleteSkillItem(type,idx){const key=type===0?'kamy':'lafzy';skillsData[key].splice(idx,1);saveSkillsData();renderSkillLists()}
+function renderSkillLists(){['skill-list-0','skill-list-1'].forEach((id,type)=>{const list=document.getElementById(id),key=type===0?'kamy':'lafzy',items=skillsData[key]||[];list.innerHTML=items.length?items.map((s,i)=>`<div class="skill-item"><span class="skill-item-text">${s}</span><button class="skill-del-btn" onclick="deleteSkillItem(${type},${i})">✕</button></div>`).join(''):'<div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد مهارات بعد</div>'})}
+
 // ═══ SECTION SWITCHING ═══
 function switchSection(name,btn){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
@@ -597,7 +679,7 @@ function buildQEditor(prefix,containerId){
   <div class="tabs-row"><button class="tab on" onclick="swQTab('${prefix}','manual',this)">✏️ يدوية</button><button class="tab" onclick="swQTab('${prefix}','excel',this)">📤 Excel</button></div>
   <div class="tab-content on" id="${prefix}-manual">
     <div class="q-editor"><div class="q-toolbar">
-      <button type="button" class="q-tb-btn math" onclick="smartLatexOpen('${prefix}-q-area')">∑ ��عادلة</button>
+      <button type="button" class="q-tb-btn math" onclick="smartLatexOpen('${prefix}-q-area')">∑ معادلة</button>
       <button type="button" class="q-tb-btn" style="color:var(--orange)" onclick="smartOcrOpen('${prefix}-q-area')">📷 OCR</button>
       <div class="q-tb-sep"></div>${symBtns}
     </div>
@@ -608,7 +690,7 @@ function buildQEditor(prefix,containerId){
       <div class="opt-tools"><button type="button" class="opt-tool" onclick="smartLatexOpen('${prefix}-opt-area-${l}')">∑ معادلة</button><button type="button" class="opt-tool" onclick="insertImage('${prefix}-opt-area-${l}')">🖼️ صورة</button><button type="button" class="opt-tool" onclick="smartOcrOpen('${prefix}-opt-area-${l}')">📷 مسح ضوئي</button></div>
       <div class="opt-area" id="${prefix}-opt-area-${l}" contenteditable="true" placeholder="${ar}..."></div></div>`;}).join('')}
     </div>
-    <div class="g2"><div class="fg"><label class="fl">المهارة المرتبطة</label><input class="fi" id="${prefix}-skill" placeholder="مثال: الكسور"></div><div class="fg"><label class="fl">تغذية راجعة</label><input class="fi" id="${prefix}-feedback" placeholder="شرح الإجابة..."></div></div>
+    <div class="g2"><div class="fg"><label class="fl">المهارة المرتبطة</label><select class="fi" id="${prefix}-skill" onchange="updateSkillDropdown('${prefix}')"></select></div><div class="fg"><label class="fl">تغذية راجعة</label><input class="fi" id="${prefix}-feedback" placeholder="شرح الإجابة..."></div></div>
     <div style="display:flex;gap:7px;margin-top:8px"><button type="button" class="btn btn-g btn-sm" onclick="addQ('${prefix}')">➕ إضافة للقائمة</button><button type="button" class="btn btn-b btn-sm" onclick="clearQForm('${prefix}')">🔄 مسح</button></div>
   </div>
   <div class="tab-content" id="${prefix}-excel">
@@ -616,6 +698,14 @@ function buildQEditor(prefix,containerId){
     <div class="excel-zone" onclick="document.getElementById('${prefix}-excel-file').click()"><div style="font-size:24px;margin-bottom:6px">📊</div><div style="font-size:11px;color:var(--text2);font-weight:600">رفع Excel</div><input type="file" id="${prefix}-excel-file" accept=".xlsx,.xls" style="display:none" onchange="loadExcel('${prefix}',this)"></div>
   </div>
   <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border)"><div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:7px">الأسئلة: <span class="bd bb" id="${prefix}-count-badge">٠</span></div><div id="${prefix}-list"><div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد</div></div></div>`;
+  updateSkillDropdown(prefix);
+}
+
+function updateSkillDropdown(prefix){
+  const sel=document.getElementById(prefix+'-skill');
+  if(!sel)return;
+  const skills=(skillsData.kamy||[]).concat(skillsData.lafzy||[]);
+  sel.innerHTML='<option value="">-- اختاري مهارة --</option>'+skills.map(s=>`<option value="${s}">${s}</option>`).join('');
 }
 
 // ═══ INIT EDITORS ═══
@@ -625,17 +715,18 @@ document.addEventListener('DOMContentLoaded',()=>{
   buildQEditor('t-post','t-post-editor');
   buildQEditor('bank','bank-editor');
   document.getElementById('smartOcrInp').addEventListener('change',e=>{if(e.target.files[0])ocrFileChange(e.target.files[0])});
+  loadSkillsData();
 });
 
 // ═══ QODRAT WIZARD ═══
 function startQodratWizard(){
   const title=document.getElementById('q-title').value.trim();
-  if(!title){alert('��كتبي اسم المهارة أولاً');return}
+  if(!title){alert('اكتبي اسم المهارة أولاً');return}
   document.getElementById('q-step0').style.display='none';
   document.getElementById('q-wizard-wrap').style.display='block';
   document.getElementById('q-skill-title-display').textContent=title;
   const type=document.getElementById('q-skill-type').value;
-  document.getElementById('q-skill-meta-display').textContent=(type==='qodrat_lafzy'?'لفظي':'ك��ي')+' — '+document.getElementById('q-target-class').value;
+  document.getElementById('q-skill-meta-display').textContent=(type==='qodrat_lafzy'?'لفظي':'كمي')+' — '+document.getElementById('q-target-class').value;
   goQStep(1);
 }
 function openNewSkillWizard(){switchSection('qodrat',document.querySelector('.main-tab'))}
@@ -687,6 +778,7 @@ function goTStep(n){
 const bankNames=['قدرات كمي','قدرات لفظي','رياضيات','فيزياء','أحياء','كيمياء'];
 let curBank=0;
 function swBank(i,btn){curBank=i;document.querySelectorAll('.bank-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('bank-title').textContent=bankNames[i]}
+function saveBankQuestions(){const qs=questions['bank']||[];if(!qs.length){alert('لا توجد أسئلة لحفظها');return}alert('تم حفظ '+qs.length+' سؤال من بنك '+bankNames[curBank])}
 
 // ═══ CONTENT TYPE SWITCH ═══
 function swCnt(sec,idx,btn){
@@ -708,7 +800,7 @@ function prevMath(pId,iId){const i=document.getElementById(iId),p=document.getEl
 function insMath(iId,aId){const i=document.getElementById(iId),a=document.getElementById(aId);if(i&&a&&i.value.trim()){a.focus();document.execCommand('insertText',false,' $'+i.value.trim()+'$ ');i.value=''}}
 function insertImage(aId){const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.onchange=function(){if(!inp.files[0])return;const r=new FileReader();r.onload=function(e){const a=document.getElementById(aId);if(a){a.focus();document.execCommand('insertHTML',false,'<img src="'+e.target.result+'" style="max-width:100%;border-radius:6px;margin:4px 0;display:block">')}};r.readAsDataURL(inp.files[0])};inp.click()}
 
-// ═══ ANSWER SELECTION ���══
+// ═══ ANSWER SELECTION ═══
 const answers={};
 function setAns(pre,l){answers[pre]=l;['A','B','C','D'].forEach(x=>{
   const b=document.getElementById(pre+'-opt-'+x),lt=document.getElementById(pre+'-letter-'+x),bt=document.getElementById(pre+'-setbtn-'+x);
@@ -720,7 +812,7 @@ const questions={};
 function getQ(p){if(!questions[p])questions[p]=[];return questions[p]}
 function addQ(p){
   const a=document.getElementById(p+'-q-area');if(!a||!a.innerHTML.trim()){alert('اكتبي نص السؤال');return}
-  const q={text:a.innerHTML,options:{},correct:answers[p]||'',skill:(document.getElementById(p+'-skill')||{}).value||'',feedback:(document.getElementById(p+'-feedback')||{}).value||''};
+  const q={text:a.innerHTML,options:{},correct:answers[p]||'A',skill:(document.getElementById(p+'-skill')||{}).value||'',feedback:(document.getElementById(p+'-feedback')||{}).value||''};
   ['A','B','C','D'].forEach(l=>{const o=document.getElementById(p+'-opt-area-'+l);q.options[l]=o?o.innerHTML:''});
   getQ(p).push(q);renderQ(p);clearQForm(p);
 }
@@ -741,7 +833,7 @@ function renderQ(p){
   if(bd)bd.textContent=list.length;
   if(!c)return;
   if(!list.length){c.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد</div>';return}
-  c.innerHTML=list.map((q,i)=>`<div class="qi"><div class="qi-head"><div class="qi-num">${i+1}</div><div class="qi-text">${q.text.replace(/<[^>]+>/g,'').substring(0,80)}</div>${q.correct?'<span class="qi-correct">✓ '+LM[q.correct]+'</span>':''}<button class="qi-del" onclick="deleteQ('${p}',${i})">🗑️</button></div></div>`).join('');
+  c.innerHTML=list.map((q,i)=>{const skill=q.skill?`<span class="qi-skill">${q.skill}</span>`:'';return `<div class="qi"><div class="qi-head"><div class="qi-num">${i+1}</div><div class="qi-text">${q.text.replace(/<[^>]+>/g,'').substring(0,80)}</div>${skill}${q.correct?'<span class="qi-correct">✓ '+LM[q.correct]+'</span>':''}<button class="qi-del" onclick="deleteQ('${p}',${i})">🗑️</button></div></div>`}).join('');
 }
 
 // ═══ TABS ═══
@@ -756,60 +848,87 @@ function swQTab(p,tab,btn){
 function loadExcel(p,input){
   if(!input.files[0])return;const r=new FileReader();
   r.onload=function(e){try{const wb=XLSX.read(e.target.result,{type:'array'}),data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:'A'}),list=getQ(p);
-    data.forEach(row=>{if(!row.A)return;list.push({text:String(row.A||''),options:{A:String(row.B||''),B:String(row.C||''),C:String(row.D||''),D:String(row.E||'')},correct:String(row.F||'').toUpperCase(),skill:String(row.G||''),feedback:String(row.H||'')})});
+    data.forEach(row=>{if(!row.A)return;list.push({text:String(row.A||''),options:{A:String(row.B||''),B:String(row.C||''),C:String(row.D||''),D:String(row.E||'')},correct:String(row.F||'').toUpperCase()||'A',skill:String(row.G||''),feedback:String(row.H||'')})});
     renderQ(p);alert('تم رفع '+data.length+' سؤال')}catch(err){alert('خطأ: '+err.message)}};
   r.readAsArrayBuffer(input.files[0]);
 }
 
-// ═══ SAVE SKILL — يرسل للـ backend بالش��ل الصحيح ═══
-function saveSkill(contentType, activate){
-  // تحديد الحقول حسب النوع
-  const isSkill = contentType==='skill';
-  const title = document.getElementById(isSkill?'q-title':'t-title').value.trim();
+// ═══ PRINT FUNCTIONS ═══
+function printExam(examId,skillTitle,examType){
+  const w=window.open('','_blank');
+  const html=`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>ورقة اختبار</title><style>body{font-family:Arial,sans-serif;margin:20px;direction:rtl;text-align:right}h1{font-size:20px;margin:10px 0}table{width:100%;border-collapse:collapse;margin-top:10px}td,th{border:1px solid #000;padding:8px;text-align:center}.header{text-align:center;margin-bottom:20px}.question{margin:15px 0;padding:10px;border-bottom:1px solid #ccc}.answer-sheet{margin-top:30px;padding-top:20px;border-top:2px solid #000}.bubble{display:inline-block;width:20px;height:20px;border:1px solid #000;border-radius:50%;margin:0 5px;text-align:center}@media print{body{margin:0;padding:20px}}</style></head><body><div class="header"><h1>منصة آمنة التعليمية</h1><p><strong>اسم المهارة/الدرس:</strong> ${skillTitle}</p><p><strong>النوع:</strong> ${examType}</p><table><tr><td>اسم الطالبة:</td><td style="width:50%"></td><td>الفصل:</td><td style="width:20%"></td><td>التاريخ:</td><td style="width:20%"></td></tr></table></div><div class="questions"><p>عدد الأسئلة: سيتم ملؤها من قاعدة البيانات</p></div><div class="answer-sheet"><h3>ورقة الإجابات</h3><p>لا توجد أسئلة محفوظة حالياً</p></div></body></html>`;
+  w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+}
+
+function printContent(contentId,title){
+  const el=document.getElementById(contentId);
+  if(!el){alert('لا يوجد محتوى لطباعته');return}
+  const w=window.open('','_blank');
+  const html=`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width"><title>${title}</title><style>body{font-family:Arial,sans-serif;margin:20px;direction:rtl;text-align:right;line-height:1.8}h1{text-align:center;margin-bottom:30px}@media print{body{margin:10px;padding:10px}}</style></head><body><h1>${title}</h1><div>${el.innerHTML}</div></body></html>`;
+  w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+}
+
+function printBank(){
+  const qs=questions['bank']||[];
+  if(!qs.length){alert('لا توجد أسئلة لطباعتها');return}
+  const w=window.open('','_blank');
+  let qsHtml='';
+  qs.forEach((q,i)=>{
+    qsHtml+=`<div style="margin-bottom:20px;page-break-inside:avoid"><strong>السؤال ${i+1}:</strong><p>${q.text}</p><p><strong>أ)</strong> ${q.options.A}</p><p><strong>ب)</strong> ${q.options.B}</p><p><strong>ج)</strong> ${q.options.C}</p><p><strong>د)</strong> ${q.options.D}</p></div>`;
+  });
+  const html=`<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>بنك الأسئلة</title><style>body{font-family:Arial,sans-serif;margin:20px;direction:rtl;text-align:right;line-height:2}h1{text-align:center;margin-bottom:20px}</style></head><body><h1>بنك الأسئلة — ${bankNames[curBank]}</h1><div>${qsHtml}</div></body></html>`;
+  w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+}
+
+// ═══ SAVE SKILL ═══
+function saveSkill(contentType,activate){
+  const isSkill=contentType==='skill';
+  const title=document.getElementById(isSkill?'q-title':'t-title').value.trim();
   if(!title){alert('يرجى إدخال العنوان');return}
 
-  // تعب��ة الفورم المخفي
-  document.getElementById('f-content-type').value = contentType;
-  document.getElementById('f-title').value = title;
-  document.getElementById('f-skill-type').value = isSkill ? document.getElementById('q-skill-type').value : '';
-  document.getElementById('f-subject').value = isSkill ? '' : document.getElementById('t-subject').value;
-  document.getElementById('f-description').value = document.getElementById(isSkill?'q-desc':'t-desc').value;
-  document.getElementById('f-target-classes').value = document.getElementById(isSkill?'q-target-class':'t-target-class').value;
-  document.getElementById('f-is-active').value = activate ? 'on' : '';
-  document.getElementById('f-is-shared').value = document.getElementById(isSkill?'q-shared':'t-shared').value;
+  document.getElementById('f-content-type').value=contentType;
+  document.getElementById('f-title').value=title;
+  document.getElementById('f-skill-type').value=isSkill?document.getElementById('q-skill-type').value:'';
+  document.getElementById('f-subject').value=isSkill?'':document.getElementById('t-subject').value;
+  document.getElementById('f-description').value=document.getElementById(isSkill?'q-desc':'t-desc').value;
+  document.getElementById('f-target-classes').value=document.getElementById(isSkill?'q-target-class':'t-target-class').value;
+  document.getElementById('f-is-active').value=activate?'on':'';
+  document.getElementById('f-is-shared').value=document.getElementById(isSkill?'q-shared':'t-shared').value;
 
-  // المحتوى
-  const ytUrl = document.getElementById(isSkill?'q-yt-url':'t-yt-url');
-  const vidUrl = document.getElementById(isSkill?'q-video-url':'t-video-url');
-  const textArea = document.getElementById(isSkill?'q-text-area':'t-text-area');
-  document.getElementById('f-video-url').value = (ytUrl?ytUrl.value:'') || (vidUrl?vidUrl.value:'');
-  document.getElementById('f-plain-text').value = textArea ? textArea.innerHTML : '';
+  const ytUrl=document.getElementById(isSkill?'q-yt-url':'t-yt-url');
+  const vidUrl=document.getElementById(isSkill?'q-video-url':'t-video-url');
+  const textArea=document.getElementById(isSkill?'q-text-area':'t-text-area');
+  document.getElementById('f-video-url').value=(ytUrl?ytUrl.value:'') || (vidUrl?vidUrl.value:'');
+  document.getElementById('f-plain-text').value=textArea?textArea.innerHTML:'';
 
-  // إعدادات الاختبارات
   if(isSkill){
-    document.getElementById('f-pre-count').value = document.getElementById('q-pre-cnt').value;
-    document.getElementById('f-pre-time').value = document.getElementById('q-pre-time').value;
-    document.getElementById('f-pre-pass').value = document.getElementById('q-pre-pass').value;
-    document.getElementById('f-post-count').value = document.getElementById('q-post-cnt').value;
-    document.getElementById('f-post-time').value = document.getElementById('q-post-time').value;
-    document.getElementById('f-post-pass').value = document.getElementById('q-post-pass').value;
+    document.getElementById('f-pre-count').value=document.getElementById('q-pre-cnt').value;
+    document.getElementById('f-pre-time').value=document.getElementById('q-pre-time').value;
+    document.getElementById('f-pre-pass').value=document.getElementById('q-pre-pass').value;
+    document.getElementById('f-post-count').value=document.getElementById('q-post-cnt').value;
+    document.getElementById('f-post-time').value=document.getElementById('q-post-time').value;
+    document.getElementById('f-post-pass').value=document.getElementById('q-post-pass').value;
+    document.getElementById('f-pre-delivery').value=document.getElementById('q-pre-delivery').value||'both';
   } else {
-    document.getElementById('f-pre-count').value = document.getElementById('t-post-cnt').value;
-    document.getElementById('f-pre-time').value = document.getElementById('t-post-time').value;
-    document.getElementById('f-pre-pass').value = document.getElementById('t-post-pass').value;
+    document.getElementById('f-pre-count').value=document.getElementById('t-post-cnt').value;
+    document.getElementById('f-pre-time').value=document.getElementById('t-post-time').value;
+    document.getElementById('f-pre-pass').value=document.getElementById('t-post-pass').value;
+    document.getElementById('f-pre-delivery').value=document.getElementById('t-post-delivery').value||'both';
   }
 
-  // الأسئلة — تحويل لـ JSON بالشكل اللي يتوقعه الـ backend
   function formatQs(list){return JSON.stringify((list||[]).map(q=>({
     text:q.text.replace(/<[^>]+>/g,''),a:q.options.A?q.options.A.replace(/<[^>]+>/g,''):'',
     b:q.options.B?q.options.B.replace(/<[^>]+>/g,''):'',c:q.options.C?q.options.C.replace(/<[^>]+>/g,''):'',
-    d:q.options.D?q.options.D.replace(/<[^>]+>/g,''):'',correct:(q.correct||'A'),skill:q.skill||'',feedback:q.feedback||''
+    d:q.options.D?q.options.D.replace(/<[^>]+>/g,''):'',correct:q.correct||'A',skill:q.skill||'',feedback:q.feedback||''
   })))}
 
-  document.getElementById('f-pre-questions').value = formatQs(questions['q-pre']);
-  document.getElementById('f-post-questions').value = formatQs(questions[isSkill?'q-post':'t-post']);
+  if(isSkill){
+    document.getElementById('f-pre-questions').value=formatQs(questions['q-pre']);
+    document.getElementById('f-post-questions').value=formatQs(questions['q-post']);
+  } else {
+    document.getElementById('f-pre-questions').value=formatQs(questions['t-post']);
+  }
 
-  // إرس��ل
   document.getElementById('mainForm').submit();
 }
 
