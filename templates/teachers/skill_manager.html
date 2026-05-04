@@ -175,6 +175,34 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 .opt-area{min-height:40px;padding:8px 10px;font-size:11px;outline:none;color:var(--text);direction:rtl;word-break:break-word;line-height:1.8}
 .opt-area[placeholder]:empty::before{content:attr(placeholder);color:var(--text3);font-size:10px}
 
+/* ═══ OPTION TOOLS (3 buttons) ═══ */
+.opt-tools{display:flex;gap:3px;padding:4px 8px;background:var(--bg3);border-bottom:1px solid var(--border)}
+.opt-tool{background:none;border:1px solid var(--border2);color:var(--text3);font-family:'Tajawal',sans-serif;font-size:8px;font-weight:600;padding:3px 7px;border-radius:5px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:3px;white-space:nowrap}
+.opt-tool:hover{color:var(--purple);border-color:rgba(155,114,245,0.4);background:rgba(155,114,245,0.06)}
+.opt-tool.t-math{color:var(--purple)}
+.opt-tool.t-img{color:var(--blue)}
+.opt-tool.t-ocr{color:var(--orange)}
+
+/* ═══ SKILL NAME GRID (like bank) ═══ */
+.skill-name-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin-bottom:14px}
+.skill-name-btn{padding:8px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--card2);color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.2s;text-align:center;display:flex;align-items:center;gap:5px;justify-content:center}
+.skill-name-btn:hover{border-color:var(--blue);color:var(--blue)}
+.skill-name-btn.on{background:linear-gradient(135deg,var(--blue2),rgba(79,142,247,0.15));color:var(--blue);border-color:var(--blue);box-shadow:0 3px 10px rgba(79,142,247,0.12)}
+.skill-name-btn.on-orange{background:linear-gradient(135deg,var(--orange2),rgba(245,166,35,0.15));color:var(--orange);border-color:var(--orange);box-shadow:0 3px 10px rgba(245,166,35,0.12)}
+.skill-name-btn .sn-del{font-size:10px;color:var(--red);opacity:0;transition:opacity 0.2s;margin-right:auto}
+.skill-name-btn:hover .sn-del{opacity:1}
+
+/* ═══ SIDEBAR DYNAMIC LIST ═══ */
+.sb-dynamic{margin-top:10px}
+.sb-dyn-item{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:7px 9px;margin-bottom:5px;font-size:10px;color:var(--text2);display:flex;align-items:center;gap:6px;transition:all 0.2s;cursor:pointer}
+.sb-dyn-item:hover{border-color:var(--border2);background:var(--card3)}
+.sb-dyn-type{font-size:8px;padding:1px 5px;border-radius:4px;font-weight:700}
+.sb-dyn-type.t-q{background:rgba(79,142,247,0.1);color:var(--blue)}
+.sb-dyn-type.t-t{background:rgba(245,166,35,0.1);color:var(--orange)}
+.sb-dyn-type.t-b{background:rgba(155,114,245,0.1);color:var(--purple)}
+.sb-dyn-del{margin-right:auto;color:var(--text3);cursor:pointer;font-size:10px;opacity:0;transition:opacity 0.2s}
+.sb-dyn-item:hover .sb-dyn-del{opacity:1}
+
 /* ═══ QUESTION LIST ITEM ═══ */
 .qi{background:var(--card2);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden;transition:all 0.2s}
 .qi:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,0.1)}
@@ -297,6 +325,9 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 
     <button class="add-skill-btn" onclick="showNewSkill()">➕ إضافة مهارة / درس / بنك</button>
 
+    <!-- العناصر المضافة ديناميكياً -->
+    <div class="sb-dynamic" id="sidebar-dynamic-list"></div>
+
     {% if my_skills %}
       {% for skill in my_skills %}
       <div class="sk-item {% if forloop.first %}active{% endif %}" data-id="{{ skill.id }}">
@@ -377,6 +408,19 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
       <div class="sub-tabs" id="ability-type-tabs">
         <button class="sub-tab on" onclick="switchAbilityType('lafzy',this)">📝 لفظي</button>
         <button class="sub-tab" onclick="switchAbilityType('kamy',this)">🔢 كمي</button>
+      </div>
+
+      <!-- أسماء المهارات (مثل البنك) -->
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:10px;font-weight:700;color:var(--text3)">📋 المهارات المضافة:</span>
+          <button class="btn btn-b btn-sm" onclick="addSkillName('qodrat')">➕ مهارة جديدة</button>
+        </div>
+        <div class="skill-name-grid" id="qodrat-skill-names">
+          <div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text3);font-size:10px;background:var(--bg3);border-radius:8px;border:1px dashed var(--border2)">
+            لا توجد مهارات — اضغطي ➕ لإضافة أول مهارة
+          </div>
+        </div>
       </div>
 
       <!-- WIZARD: 3 مراحل -->
@@ -685,6 +729,19 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
         <button class="sub-tab" onclick="switchSubject('phys',this)">⚡ فيزياء</button>
         <button class="sub-tab" onclick="switchSubject('bio',this)">🧬 أحياء</button>
         <button class="sub-tab" onclick="switchSubject('chem',this)">🧪 كيمياء</button>
+      </div>
+
+      <!-- أسماء الدروس (مثل البنك) -->
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:10px;font-weight:700;color:var(--text3)">📋 الدروس المضافة:</span>
+          <button class="btn btn-o btn-sm" onclick="addSkillName('tahsili')">➕ درس جديد</button>
+        </div>
+        <div class="skill-name-grid" id="tahsili-skill-names">
+          <div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text3);font-size:10px;background:var(--bg3);border-radius:8px;border:1px dashed var(--border2)">
+            لا توجد دروس — اضغطي ➕ لإضافة أول درس
+          </div>
+        </div>
       </div>
 
       <!-- Wizard: مرحلتين -->
@@ -1207,6 +1264,7 @@ function addQ(prefix){
   list.push(q);
   renderQList(prefix);
   clearQForm(prefix);
+  updateSidebarDynamic();
 }
 
 function clearQForm(prefix){
@@ -1231,6 +1289,7 @@ function deleteQ(prefix, idx){
   const list = getQList(prefix);
   list.splice(idx,1);
   renderQList(prefix);
+  updateSidebarDynamic();
 }
 
 const letterMap = {A:'أ',B:'ب',C:'ج',D:'د'};
@@ -1422,9 +1481,154 @@ function smartOcrApplyText(){
   smartOcrClose();
 }
 
+// ═══════════════════════════════════════
+// INSERT IMAGE INTO OPTION/AREA
+// ═══════════════════════════════════════
+function insertImage(areaId){
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.onchange = function(){
+    if(!inp.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const area = document.getElementById(areaId);
+      if(!area) return;
+      area.focus();
+      document.execCommand('insertHTML', false, '<img src="'+e.target.result+'" style="max-width:100%;border-radius:6px;margin:4px 0;display:block">');
+    };
+    reader.readAsDataURL(inp.files[0]);
+  };
+  inp.click();
+}
+
+// ═══════════════════════════════════════
+// INJECT 3 TOOL BUTTONS INTO ALL OPTIONS
+// ═══════════════════════════════════════
+function injectOptTools(){
+  document.querySelectorAll('.opt-box').forEach(box=>{
+    if(box.querySelector('.opt-tools')) return; // already injected
+    const areaEl = box.querySelector('.opt-area');
+    if(!areaEl || !areaEl.id) return;
+    const areaId = areaEl.id;
+    const tools = document.createElement('div');
+    tools.className = 'opt-tools';
+    tools.innerHTML = `
+      <button type="button" class="opt-tool t-math" onclick="smartLatexOpen('${areaId}')">∑ معادلة</button>
+      <button type="button" class="opt-tool t-img" onclick="insertImage('${areaId}')">🖼️ صورة</button>
+      <button type="button" class="opt-tool t-ocr" onclick="smartOcrOpen('${areaId}')">📷 مسح ضوئي</button>
+    `;
+    // Insert after opt-head, before opt-area
+    const head = box.querySelector('.opt-head');
+    if(head) head.after(tools);
+  });
+}
+
+// ═══════════════════════════════════════
+// SKILL NAME MANAGEMENT (القدرات / التحصيلي)
+// ═══════════════════════════════════════
+const skillNames = { qodrat: [], tahsili: [] };
+let activeSkillName = { qodrat: -1, tahsili: -1 };
+
+function addSkillName(section){
+  const name = prompt(section==='qodrat' ? 'اسم المهارة الجديدة:' : 'اسم الدرس الجديد:');
+  if(!name || !name.trim()) return;
+  const item = { name: name.trim(), type: section==='qodrat' ? qodratType : tahsiliSubject };
+  skillNames[section].push(item);
+  activeSkillName[section] = skillNames[section].length - 1;
+  renderSkillNames(section);
+  updateSidebarDynamic();
+}
+
+function selectSkillName(section, idx){
+  activeSkillName[section] = idx;
+  renderSkillNames(section);
+}
+
+function deleteSkillName(section, idx, e){
+  e.stopPropagation();
+  if(!confirm('حذف "'+skillNames[section][idx].name+'"؟')) return;
+  skillNames[section].splice(idx, 1);
+  if(activeSkillName[section] >= skillNames[section].length) activeSkillName[section] = skillNames[section].length - 1;
+  renderSkillNames(section);
+  updateSidebarDynamic();
+}
+
+function renderSkillNames(section){
+  const container = document.getElementById(section+'-skill-names');
+  if(!container) return;
+  const list = skillNames[section];
+  const active = activeSkillName[section];
+  const isOrange = section === 'tahsili';
+
+  if(list.length === 0){
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:12px;color:var(--text3);font-size:10px;background:var(--bg3);border-radius:8px;border:1px dashed var(--border2)">'+
+      (section==='qodrat' ? 'لا توجد مهارات — اضغطي ➕ لإضافة أول مهارة' : 'لا توجد دروس — اضغطي ➕ لإضافة أول درس') +'</div>';
+    return;
+  }
+  container.innerHTML = list.map((item, i) => {
+    const isActive = i === active;
+    const typeLabel = section==='qodrat' ? (item.type==='lafzy'?'لفظي':'كمي') : subjectNames[item.type]||item.type;
+    return `<button class="skill-name-btn ${isActive ? (isOrange ? 'on-orange' : 'on') : ''}" onclick="selectSkillName('${section}',${i})">
+      <span style="font-size:12px">${section==='qodrat'?'🧮':'📖'}</span>
+      ${item.name}
+      <span style="font-size:8px;opacity:0.6">(${typeLabel})</span>
+      <span class="sn-del" onclick="deleteSkillName('${section}',${i},event)">✕</span>
+    </button>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════
+// SIDEBAR DYNAMIC LIST
+// ═══════════════════════════════════════
+function updateSidebarDynamic(){
+  const container = document.getElementById('sidebar-dynamic-list');
+  if(!container) return;
+
+  let html = '';
+
+  // قدرات items
+  skillNames.qodrat.forEach((item, i) => {
+    html += `<div class="sb-dyn-item" onclick="switchSection('qodrat',document.querySelector('.main-tab'));selectSkillName('qodrat',${i})">
+      <span class="sb-dyn-type t-q">قدرات</span>
+      <span>${item.name}</span>
+      <span style="font-size:8px;color:var(--text3)">${item.type==='lafzy'?'لفظي':'كمي'}</span>
+      <span class="sb-dyn-del" onclick="event.stopPropagation();deleteSkillName('qodrat',${i},event)">✕</span>
+    </div>`;
+  });
+
+  // تحصيلي items
+  skillNames.tahsili.forEach((item, i) => {
+    html += `<div class="sb-dyn-item" onclick="switchSection('tahsili',document.querySelectorAll('.main-tab')[1]);selectSkillName('tahsili',${i})">
+      <span class="sb-dyn-type t-t">تحصيلي</span>
+      <span>${item.name}</span>
+      <span style="font-size:8px;color:var(--text3)">${subjectNames[item.type]||item.type}</span>
+      <span class="sb-dyn-del" onclick="event.stopPropagation();deleteSkillName('tahsili',${i},event)">✕</span>
+    </div>`;
+  });
+
+  // بنك items count
+  const bankTotal = Object.keys(questions).filter(k=>k.startsWith('bank')).reduce((sum,k)=>(questions[k]||[]).length+sum, 0);
+  if(bankTotal > 0){
+    html += `<div class="sb-dyn-item" onclick="switchSection('bank',document.querySelectorAll('.main-tab')[2])">
+      <span class="sb-dyn-type t-b">بنك</span>
+      <span>${bankTotal} سؤال في البنك</span>
+    </div>`;
+  }
+
+  container.innerHTML = html || '';
+}
+
+// ═══════════════════════════════════════
+// DOM READY
+// ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', ()=>{
+  // OCR file input
   const inp = document.getElementById('smartOcrFileInp');
   if(inp) inp.addEventListener('change', e=>{if(e.target.files[0]) smartOcrFileChange(e.target.files[0]);});
+
+  // Inject 3 tool buttons into all option boxes
+  injectOptTools();
 });
 </script>
 
