@@ -13,11 +13,10 @@ window.MathJax = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
-
-<!-- المحرّر الذكي: Tesseract.js + MathLive (نفس لوحة المديرة) -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://unpkg.com/mathlive@0.105.2/dist/mathlive.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/mathlive@0.105.2/dist/mathlive-fonts.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
 :root, :root[data-theme="dark"] {
@@ -41,203 +40,229 @@ window.MathJax = {
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
-/* TOPBAR */
-.topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,0.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:300;backdrop-filter:blur(12px)}
-.logo{display:flex;align-items:center;gap:9px}
-.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
-.logo-name{font-size:12px;font-weight:800}
+/* ═══ TOPBAR ═══ */
+.topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,0.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:300;backdrop-filter:blur(16px)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;box-shadow:0 4px 15px rgba(15,186,129,0.3)}
+.logo-name{font-size:13px;font-weight:800;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .logo-sub{font-size:9px;color:var(--text3)}
-.tnav{display:flex;gap:3px}
-.tnb{background:none;border:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;padding:5px 10px;border-radius:6px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:4px;transition:all 0.2s;white-space:nowrap}
+.tnav{display:flex;gap:4px;align-items:center}
+.tnb{background:none;border:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;padding:6px 12px;border-radius:7px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:5px;transition:all 0.2s;white-space:nowrap}
 .tnb:hover{background:var(--bg3);color:var(--text2)}
 .tnb.on{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
 
-/* MAIN LAYOUT */
-.wrap{display:grid;grid-template-columns:280px 1fr;gap:0;min-height:calc(100vh - 52px)}
+/* ═══ LAYOUT ═══ */
+.wrap{display:grid;grid-template-columns:270px 1fr;gap:0;min-height:calc(100vh - 56px)}
 
-/* SIDEBAR */
-.sidebar{background:var(--bg2);border-left:1px solid var(--border);padding:14px 12px;position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto}
+/* ═══ SIDEBAR ═══ */
+.sidebar{background:var(--bg2);border-left:1px solid var(--border);padding:16px 14px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
 .sidebar::-webkit-scrollbar{width:3px}
 .sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-
-.sb-title{font-size:10px;font-weight:700;color:var(--text3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
-
-/* SKILL ITEMS IN SIDEBAR */
-.sk-item{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:10px;margin-bottom:7px;cursor:pointer;transition:all 0.2s;position:relative}
-.sk-item:hover{border-color:var(--border2);transform:translateX(-2px)}
+.sb-title{font-size:10px;font-weight:700;color:var(--text3);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.sk-item{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;cursor:pointer;transition:all 0.25s;position:relative}
+.sk-item:hover{border-color:var(--border2);transform:translateX(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
 .sk-item.active{border-color:var(--blue);background:rgba(79,142,247,0.06)}
-.sk-item.active::before{content:'';position:absolute;right:-1px;top:20%;bottom:20%;width:2px;background:var(--blue);border-radius:2px}
+.sk-item.active::before{content:'';position:absolute;right:-1px;top:18%;bottom:18%;width:3px;background:linear-gradient(180deg,var(--blue),var(--green));border-radius:2px}
 .sk-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px}
 .sk-meta{font-size:9px;color:var(--text3);display:flex;gap:6px;flex-wrap:wrap}
 .sk-progress{margin-top:7px;display:flex;gap:3px}
 .sk-step{flex:1;height:3px;border-radius:2px;background:var(--border)}
 .sk-step.done{background:var(--green)}
 .sk-step.partial{background:var(--orange)}
+.sk-actions{display:flex;gap:4px;margin-top:7px}
+.sk-act{flex:1;padding:4px;border-radius:6px;border:1px solid;font-family:'Tajawal',sans-serif;font-size:9px;text-decoration:none;text-align:center;font-weight:700;cursor:pointer;transition:all 0.2s}
+.sk-act:hover{opacity:0.8;transform:translateY(-1px)}
+.add-skill-btn{width:100%;padding:9px;border-radius:9px;border:1.5px dashed var(--border2);background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;cursor:pointer;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:12px}
+.add-skill-btn:hover{border-color:var(--green);color:var(--green);background:rgba(15,186,129,0.04);box-shadow:0 4px 12px rgba(15,186,129,0.1)}
 
-.add-skill-btn{width:100%;padding:8px;border-radius:8px;border:1px dashed var(--border2);background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:10px}
-.add-skill-btn:hover{border-color:var(--green);color:var(--green);background:rgba(15,186,129,0.04)}
+/* ═══ MAIN CONTENT ═══ */
+.content{padding:20px 24px;overflow-y:auto}
 
-/* CONTENT */
-.content{padding:18px 20px;overflow-y:auto}
+/* ═══ SECTION TABS ═══ */
+.main-tabs{display:flex;gap:6px;margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px;position:relative;overflow:hidden}
+.main-tabs::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(79,142,247,0.03),rgba(155,114,245,0.03));pointer-events:none}
+.main-tab{flex:1;padding:12px 16px;border-radius:8px;border:none;background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;gap:8px;position:relative;z-index:1}
+.main-tab:hover{color:var(--text2);background:var(--bg3)}
+.main-tab.on{color:#fff;box-shadow:0 4px 15px rgba(0,0,0,0.2)}
+.main-tab.on.tab-blue{background:linear-gradient(135deg,#2563eb,#4f8ef7)}
+.main-tab.on.tab-orange{background:linear-gradient(135deg,#d97706,#f5a623)}
+.main-tab.on.tab-purple{background:linear-gradient(135deg,#7c3aed,#9b72f5)}
+.main-tab .tab-icon{font-size:16px}
+.main-tab .tab-count{font-size:9px;padding:1px 6px;border-radius:10px;background:rgba(255,255,255,0.15)}
 
-/* STEP WIZARD */
-.wizard{display:flex;gap:0;margin-bottom:20px;border-radius:10px;overflow:hidden;border:1px solid var(--border)}
-.wz-step{flex:1;padding:10px 8px;text-align:center;cursor:pointer;transition:all 0.2s;border-left:1px solid var(--border);position:relative;background:var(--card)}
+/* ═══ SECTIONS ═══ */
+.section{display:none;animation:fadeSlide 0.35s ease}
+.section.on{display:block}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══ SUB TABS ═══ */
+.sub-tabs{display:flex;gap:4px;margin-bottom:16px;padding:4px;background:var(--bg3);border-radius:9px;border:1px solid var(--border)}
+.sub-tab{padding:8px 16px;border-radius:7px;border:none;background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s}
+.sub-tab:hover{color:var(--text2)}
+.sub-tab.on{background:var(--card);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,0.1);border:1px solid var(--border)}
+
+/* ═══ WIZARD ═══ */
+.wizard{display:flex;gap:0;margin-bottom:20px;border-radius:11px;overflow:hidden;border:1px solid var(--border);background:var(--card)}
+.wz-step{flex:1;padding:12px 8px;text-align:center;cursor:pointer;transition:all 0.3s;border-left:1px solid var(--border);position:relative}
 .wz-step:last-child{border-left:none}
 .wz-step.on{background:rgba(79,142,247,0.08);color:var(--blue)}
+.wz-step.on::after{content:'';position:absolute;bottom:0;right:20%;left:20%;height:2px;background:var(--blue);border-radius:2px}
 .wz-step.done{background:rgba(15,186,129,0.06);color:var(--green)}
-.wz-step.locked{opacity:0.4;cursor:not-allowed}
-.wz-num{font-size:16px;font-weight:800;line-height:1;margin-bottom:3px}
-.wz-label{font-size:9px;font-weight:600}
-.wz-icon{font-size:14px;margin-bottom:3px}
+.wz-step.done::after{content:'';position:absolute;bottom:0;right:20%;left:20%;height:2px;background:var(--green);border-radius:2px}
+.wz-step.locked{opacity:0.35;cursor:not-allowed}
+.wz-icon{font-size:16px;margin-bottom:4px}
+.wz-num{font-size:17px;font-weight:900;line-height:1;margin-bottom:3px}
+.wz-label{font-size:9px;font-weight:600;color:var(--text3)}
 
-/* PANELS */
-.panel{display:none;animation:fi 0.25s ease}
+/* ═══ PANELS ═══ */
+.panel{display:none;animation:fadeSlide 0.3s ease}
 .panel.on{display:block}
-@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-/* CARDS */
-.card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:10px;transition:border-color 0.2s}
+/* ═══ CARDS ═══ */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;transition:border-color 0.2s}
 .card:hover{border-color:var(--border2)}
-.ch{padding:9px 13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)}
-.ct{font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px}
-.ct-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.cb{padding:13px}
+.ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--bg2),var(--bg3))}
+.ct{font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:7px}
+.ct-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.cb{padding:14px}
 
-/* FORMS */
-.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+/* ═══ FORMS ═══ */
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:11px}
 .fl{font-size:9px;color:var(--text3);font-weight:600;letter-spacing:0.3px}
-.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;padding:8px 10px;border-radius:7px;outline:none;transition:all 0.2s;width:100%}
-.fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,0.08)}
+.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;padding:9px 11px;border-radius:8px;outline:none;transition:all 0.2s;width:100%}
+.fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,0.1)}
 .fi::placeholder{color:var(--text3)}
 select.fi option{background:var(--card2)}
 textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
 
-/* QUESTION EDITOR */
-.q-editor{background:var(--bg3);border:1px solid var(--border2);border-radius:9px;overflow:hidden;margin-bottom:8px;transition:border-color 0.2s}
-.q-editor:focus-within{border-color:var(--blue)}
-.q-toolbar{background:var(--card2);border-bottom:1px solid var(--border);padding:5px 8px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
-.q-tb-btn{background:none;border:none;color:var(--text3);font-size:11px;padding:3px 6px;border-radius:4px;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all 0.15s;white-space:nowrap}
+/* ═══ QUESTION EDITOR ═══ */
+.q-editor{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin-bottom:10px;transition:border-color 0.2s}
+.q-editor:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,0.06)}
+.q-toolbar{background:var(--card2);border-bottom:1px solid var(--border);padding:6px 9px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.q-tb-btn{background:none;border:none;color:var(--text3);font-size:11px;padding:3px 6px;border-radius:5px;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all 0.15s;white-space:nowrap}
 .q-tb-btn:hover{background:var(--card3);color:var(--text)}
 .q-tb-btn.math{color:var(--purple);font-weight:700}
-.q-tb-btn.math:hover{background:rgba(155,114,245,0.1)}
+.q-tb-btn.math:hover{background:rgba(155,114,245,0.12)}
 .q-tb-sep{width:1px;height:16px;background:var(--border2);margin:0 2px}
-.q-area{min-height:60px;padding:9px 11px;font-size:12px;line-height:1.9;outline:none;color:var(--text);direction:rtl;word-break:break-word}
+.q-area{min-height:70px;padding:10px 12px;font-size:12px;line-height:2;outline:none;color:var(--text);direction:rtl;word-break:break-word}
 .q-area[placeholder]:empty::before{content:attr(placeholder);color:var(--text3)}
 
-/* SYMBOLS BAR */
-.sym-bar{display:flex;flex-wrap:wrap;gap:3px;padding:5px 8px;background:var(--card3);border-bottom:1px solid var(--border)}
-.sym-b{background:none;border:1px solid var(--border2);color:var(--text2);font-size:12px;width:28px;height:24px;border-radius:4px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+/* ═══ SYMBOLS BAR ═══ */
+.sym-bar{display:flex;flex-wrap:wrap;gap:3px;padding:5px 9px;background:var(--card3);border-bottom:1px solid var(--border)}
+.sym-b{background:none;border:1px solid var(--border2);color:var(--text2);font-size:12px;width:28px;height:25px;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
 .sym-b:hover{background:var(--card2);color:var(--purple);border-color:rgba(155,114,245,0.3);transform:scale(1.1)}
-.sym-b.ar{color:var(--teal);font-weight:700}
 
-/* MATH INLINE */
-.math-inline{display:flex;gap:7px;padding:8px;background:var(--bg2);border-top:1px solid var(--border);align-items:center}
-.math-inp{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:5px 8px;border-radius:5px;outline:none;flex:1;transition:border-color 0.2s}
+/* ═══ MATH INLINE ═══ */
+.math-inline{display:flex;gap:7px;padding:8px 10px;background:var(--bg2);border-top:1px solid var(--border);align-items:center}
+.math-inp{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:6px 9px;border-radius:6px;outline:none;flex:1;direction:ltr;text-align:left}
 .math-inp:focus{border-color:var(--purple)}
-.math-prev{font-size:13px;min-width:60px;text-align:center;color:var(--text2)}
-.ins-btn{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.3);font-family:'Tajawal',sans-serif;font-size:9px;padding:5px 10px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:all 0.2s}
+.math-prev{font-size:14px;min-width:60px;text-align:center;color:var(--text2)}
+.ins-btn{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.3);font-family:'Tajawal',sans-serif;font-size:9px;padding:5px 11px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:all 0.2s}
 .ins-btn:hover{background:rgba(155,114,245,0.2)}
 
-/* OPTIONS */
-.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px}
-.opt-box{background:var(--card2);border:1px solid var(--border2);border-radius:8px;overflow:hidden;transition:border-color 0.2s}
-.opt-box.correct{border-color:rgba(15,186,129,0.4);background:rgba(15,186,129,0.04)}
-.opt-head{display:flex;align-items:center;gap:6px;padding:6px 9px;border-bottom:1px solid var(--border)}
-.opt-letter{width:22px;height:22px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text2);flex-shrink:0;transition:all 0.2s}
+/* ═══ OPTIONS GRID ═══ */
+.opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.opt-box{background:var(--card2);border:1px solid var(--border2);border-radius:9px;overflow:hidden;transition:all 0.2s}
+.opt-box.correct{border-color:rgba(15,186,129,0.5);background:rgba(15,186,129,0.05);box-shadow:0 0 0 2px rgba(15,186,129,0.08)}
+.opt-head{display:flex;align-items:center;gap:7px;padding:7px 10px;border-bottom:1px solid var(--border)}
+.opt-letter{width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text2);flex-shrink:0;transition:all 0.2s}
 .opt-letter.c{background:rgba(15,186,129,0.15);border-color:var(--green);color:var(--green)}
 .opt-name{font-size:9px;color:var(--text3);flex:1}
-.opt-set-btn{font-size:8px;padding:2px 6px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:'Tajawal',sans-serif;transition:all 0.2s}
+.opt-set-btn{font-size:8px;padding:2px 7px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:'Tajawal',sans-serif;transition:all 0.2s}
 .opt-set-btn.c{background:rgba(15,186,129,0.1);color:var(--green);border-color:rgba(15,186,129,0.3)}
-.opt-area{min-height:38px;padding:7px 9px;font-size:11px;outline:none;color:var(--text);direction:rtl;word-break:break-word;line-height:1.7}
+.opt-area{min-height:40px;padding:8px 10px;font-size:11px;outline:none;color:var(--text);direction:rtl;word-break:break-word;line-height:1.8}
 .opt-area[placeholder]:empty::before{content:attr(placeholder);color:var(--text3);font-size:10px}
 
-/* QUESTION ITEM */
+/* ═══ QUESTION LIST ITEM ═══ */
 .qi{background:var(--card2);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden;transition:all 0.2s}
-.qi:hover{border-color:var(--border2)}
-.qi-head{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer}
-.qi-num{width:22px;height:22px;border-radius:50%;background:var(--blue2);color:var(--blue);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.qi-text{font-size:11px;color:var(--text2);flex:1;line-height:1.5}
-.qi-correct{font-size:9px;color:var(--green);background:rgba(15,186,129,0.1);padding:2px 7px;border-radius:8px;border:1px solid rgba(15,186,129,0.2)}
-.qi-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:2px 5px;border-radius:4px;transition:all 0.2s}
+.qi:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.qi-head{display:flex;align-items:center;gap:8px;padding:9px 12px}
+.qi-num{width:24px;height:24px;border-radius:50%;background:var(--blue2);color:var(--blue);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qi-text{font-size:11px;color:var(--text2);flex:1;line-height:1.6}
+.qi-correct{font-size:9px;color:var(--green);background:rgba(15,186,129,0.1);padding:2px 8px;border-radius:8px;border:1px solid rgba(15,186,129,0.2)}
+.qi-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:3px 6px;border-radius:5px;transition:all 0.2s}
 .qi-del:hover{color:var(--red);background:rgba(240,82,82,0.1)}
 
-/* EXCEL UPLOAD */
-.excel-zone{border:2px dashed var(--border2);border-radius:9px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;background:var(--bg3)}
+/* ═══ EXCEL UPLOAD ═══ */
+.excel-zone{border:2px dashed var(--border2);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all 0.25s;background:var(--bg3)}
 .excel-zone:hover{border-color:var(--green);background:rgba(15,186,129,0.03)}
-.excel-zone.active{border-color:var(--green);background:rgba(15,186,129,0.05)}
 
-/* BADGES */
-.bd{display:inline-flex;align-items:center;padding:2px 7px;border-radius:8px;font-size:9px;font-weight:700}
+/* ═══ CONTENT TABS ═══ */
+.cnt-tabs{display:flex;gap:4px;margin-bottom:14px;padding:4px;background:var(--bg3);border-radius:8px}
+.cnt-tab{padding:7px 14px;border-radius:6px;border:none;background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:5px}
+.cnt-tab.on{background:var(--card);color:var(--text);box-shadow:0 2px 6px rgba(0,0,0,0.1)}
+
+/* ═══ BADGES ═══ */
+.bd{display:inline-flex;align-items:center;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:700}
 .bp{background:rgba(15,186,129,0.1);color:var(--green);border:1px solid rgba(15,186,129,0.2)}
 .bb{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
 .be{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.2)}
 .bo{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.2)}
-.br{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.2)}
-.bt{background:rgba(45,212,191,0.1);color:var(--teal);border:1px solid rgba(45,212,191,0.2)}
 
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:7px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap}
-.btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
-.btn-g:hover{opacity:0.85;transform:translateY(-1px);box-shadow:0 4px 12px rgba(15,186,129,0.2)}
+/* ═══ BUTTONS ═══ */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.25s;white-space:nowrap}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.btn-g{background:linear-gradient(135deg,var(--green),#059669);color:white}
 .btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
-.btn-b:hover{background:rgba(79,142,247,0.18)}
 .btn-p{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.25)}
-.btn-p:hover{background:rgba(155,114,245,0.18)}
 .btn-o{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.25)}
 .btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
-.btn-sm{padding:5px 10px;font-size:10px}
-.btn-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.btn-sm{padding:5px 11px;font-size:10px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
 
-/* MYSC LINK */
-.mysc{display:flex;align-items:center;gap:8px;background:rgba(155,114,245,0.05);border:1px solid rgba(155,114,245,0.15);border-radius:7px;padding:7px 10px;text-decoration:none;transition:all 0.2s;margin-bottom:8px}
-.mysc:hover{background:rgba(155,114,245,0.1)}
-
-/* STATUS INDICATOR */
-.status-row{display:flex;gap:6px;align-items:center;padding:8px 10px;background:var(--bg3);border-radius:7px;font-size:10px;color:var(--text3);margin-bottom:10px}
-.status-dot{width:7px;height:7px;border-radius:50%}
-
-/* TABS */
+/* ═══ TABS ROW ═══ */
 .tabs-row{display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:0}
-.tab{background:none;border:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;padding:7px 13px;border-radius:7px 7px 0 0;cursor:pointer;transition:all 0.2s;position:relative;bottom:-1px;border:1px solid transparent;border-bottom:none}
+.tab{background:none;border:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;padding:8px 14px;border-radius:7px 7px 0 0;cursor:pointer;transition:all 0.2s;position:relative;bottom:-1px;border:1px solid transparent;border-bottom:none}
 .tab.on{background:var(--card);color:var(--blue);border-color:var(--border);border-bottom-color:var(--card)}
 .tab-content{display:none}.tab-content.on{display:block}
 
-/* PREVIEW */
-.prev-box{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:10px 13px;font-size:12px;line-height:2;color:var(--text2);min-height:40px;direction:rtl}
-
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
-
-/* EMPTY STATE */
-.empty{text-align:center;padding:40px 20px;color:var(--text3)}
-.empty-icon{font-size:40px;margin-bottom:10px}
-.empty-text{font-size:12px;margin-bottom:5px;color:var(--text2)}
-.empty-sub{font-size:10px}
-
-/* MESSAGES */
-.msg{padding:9px 12px;border-radius:7px;font-size:10px;margin-bottom:10px;border-right:3px solid;display:flex;align-items:center;gap:7px}
+/* ═══ MESSAGES ═══ */
+.msg{padding:10px 13px;border-radius:8px;font-size:10px;margin-bottom:10px;border-right:3px solid;display:flex;align-items:center;gap:7px}
 .msg-s{background:rgba(15,186,129,0.08);border-color:var(--green);color:#6ee7a0}
 .msg-e{background:rgba(240,82,82,0.08);border-color:var(--red);color:#fca5a5}
 
-/* TYPE SELECTOR */
-.type-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
-.type-card{background:var(--card2);border:2px solid var(--border2);border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:all 0.2s}
-.type-card:hover{border-color:var(--border3)}
-.type-card.on{border-color:var(--blue);background:rgba(79,142,247,0.06)}
-.type-card .tc-icon{font-size:20px;margin-bottom:5px}
-.type-card .tc-name{font-size:11px;font-weight:700;margin-bottom:3px}
-.type-card .tc-desc{font-size:9px;color:var(--text3);line-height:1.5}
+/* ═══ YOUTUBE PREVIEW ═══ */
+.yt-preview{width:100%;aspect-ratio:16/9;border-radius:10px;border:1px solid var(--border);margin-top:10px;display:none}
+
+/* ═══ MODAL ═══ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(8px)}
+.modal-overlay.on{display:flex}
+
+/* ═══ EMPTY STATE ═══ */
+.empty{text-align:center;padding:50px 20px;color:var(--text3)}
+.empty-icon{font-size:44px;margin-bottom:12px}
+.empty-text{font-size:12px;margin-bottom:5px;color:var(--text2)}
+
+/* ═══ SECTION HEADER ═══ */
+.sec-header{margin-bottom:20px;padding:18px;background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:14px;position:relative;overflow:hidden}
+.sec-header::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(79,142,247,0.04) 0%,transparent 70%);pointer-events:none}
+.sec-header h2{font-size:16px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.sec-header p{font-size:11px;color:var(--text3);line-height:1.7}
+
+/* ═══ BANK GRID ═══ */
+.bank-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
+.bank-btn{padding:10px;border-radius:9px;border:1px solid var(--border2);background:var(--card2);color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:700;cursor:pointer;transition:all 0.25s;text-align:center}
+.bank-btn:hover{border-color:var(--purple);color:var(--purple)}
+.bank-btn.on{background:linear-gradient(135deg,var(--purple2),rgba(155,114,245,0.15));color:var(--purple);border-color:var(--purple);box-shadow:0 4px 12px rgba(155,114,245,0.15)}
+
+/* ═══ PREV BOX ═══ */
+.prev-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:12px;line-height:2;color:var(--text2);min-height:40px;direction:rtl}
+
+/* ═══ SCROLLBAR / RESPONSIVE ═══ */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+@media(max-width:1024px){.wrap{grid-template-columns:1fr}.sidebar{display:none}}
+@media(max-width:768px){.g2,.opts-grid{grid-template-columns:1fr}.g3,.bank-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
+<!-- ══════════════════ TOPBAR ══════════════════ -->
 <div class="topbar">
   <div class="logo">
-    <div class="logo-mark">🎓</div>
+    <div class="logo-mark">آ</div>
     <div>
       <div class="logo-name">منصة آمنة التعليمية</div>
       <div class="logo-sub">{{ teacher.full_name|default:"المعلمة" }} — إدارة المهارات</div>
@@ -247,16 +272,16 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     <a href="/teachers/dashboard/" class="tnb">📊 الداشبورد</a>
     <span class="tnb on">📚 المهارات</span>
     <a href="/teachers/skills/import/" class="tnb">📤 رفع Excel</a>
+    {% include "core/_theme_toggle.html" %}
   </div>
   <div style="font-size:10px;color:var(--text3)" id="clk"></div>
 </div>
 
 <div class="wrap">
 
-  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <!-- ══════════════════ SIDEBAR ══════════════════ -->
   <div class="sidebar">
 
-    <!-- Django messages -->
     {% if messages %}
       {% for msg in messages %}
         <div class="msg {% if 'error' in msg.tags %}msg-e{% else %}msg-s{% endif %}">
@@ -270,14 +295,12 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
       <span style="font-size:8px">{{ teacher.full_name|default:"" }}</span>
     </div>
 
-    <!-- زر إضافة جديدة -->
     <button class="add-skill-btn" onclick="showNewSkill()">➕ إضافة مهارة / درس / بنك</button>
 
-    <!-- قائمة المهارات -->
     {% if my_skills %}
       {% for skill in my_skills %}
-      <div class="sk-item {% if forloop.first %}active{% endif %}">
-        <div class="sk-name" onclick="selectSkill({{ skill.id }}, this)" style="cursor:pointer">{{ skill.title }}</div>
+      <div class="sk-item {% if forloop.first %}active{% endif %}" data-id="{{ skill.id }}">
+        <div class="sk-name" onclick="selectSkill({{ skill.id }}, this.parentElement)">{{ skill.title }}</div>
         <div class="sk-meta">
           <span>{{ skill.get_content_type_display }}</span>
           <span>{{ skill.target_classes }}</span>
@@ -290,27 +313,25 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
           <div class="sk-step {% for e in exams %}{% if e.exam_type == 'post' %}done{% endif %}{% endfor %}" title="البعدي"></div>
           {% endwith %}
         </div>
-        <div style="display:flex;gap:4px;margin-top:6px">
-          <a href="{% url 'view_skill' skill.id %}" style="flex:1;padding:4px;border-radius:5px;border:1px solid rgba(79,142,247,0.3);background:rgba(79,142,247,0.08);color:var(--blue);font-family:Tajawal;font-size:9px;text-decoration:none;text-align:center;font-weight:700">📖 عرض</a>
-          <a href="{% url 'edit_skill' skill.id %}" style="flex:1;padding:4px;border-radius:5px;border:1px solid rgba(245,166,35,0.3);background:rgba(245,166,35,0.08);color:var(--orange);font-family:Tajawal;font-size:9px;text-decoration:none;text-align:center;font-weight:700">✏️ تعديل</a>
+        <div class="sk-actions">
+          <a href="{% url 'view_skill' skill.id %}" class="sk-act" style="border-color:rgba(79,142,247,0.3);background:rgba(79,142,247,0.08);color:var(--blue)">📖 عرض</a>
+          <a href="{% url 'edit_skill' skill.id %}" class="sk-act" style="border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.08);color:var(--orange)">✏️ تعديل</a>
           <form method="post" action="{% url 'delete_skill' skill.id %}" style="flex:0;margin:0" onsubmit="return confirm('حذف المهارة؟ لن يمكن استرجاعها.')">
             {% csrf_token %}
-            <button type="submit" style="padding:4px 8px;border-radius:5px;border:1px solid rgba(240,82,82,0.3);background:rgba(240,82,82,0.08);color:var(--red);font-family:Tajawal;font-size:9px;cursor:pointer;font-weight:700">🗑️</button>
+            <button type="submit" class="sk-act" style="width:100%;border-color:rgba(240,82,82,0.3);background:rgba(240,82,82,0.08);color:var(--red)">🗑️</button>
           </form>
         </div>
       </div>
       {% endfor %}
     {% else %}
-      <div style="text-align:center;padding:20px 10px;color:var(--text3);font-size:10px">
-        <div style="font-size:24px;margin-bottom:8px">📭</div>
+      <div style="text-align:center;padding:25px 10px;color:var(--text3);font-size:10px">
+        <div style="font-size:28px;margin-bottom:10px">📭</div>
         لا توجد مهارات بعد<br>اضغطي ➕ لإضافة أولى مهاراتك
       </div>
     {% endif %}
 
-    <!-- فاصل -->
-    <div style="height:1px;background:var(--border);margin:12px 0"></div>
+    <div style="height:1px;background:var(--border);margin:14px 0"></div>
 
-    <!-- مهارات مشتركة -->
     <div class="sb-title">🤝 من زميلاتك ({{ shared_skills|length }})</div>
     {% for skill in shared_skills %}
     <div class="sk-item" style="border-color:rgba(155,114,245,0.2)">
@@ -319,1264 +340,661 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
         <span>{{ skill.created_by.full_name }}</span>
         <span>{{ skill.get_content_type_display }}</span>
       </div>
-      <button onclick="useSharedSkill({{ skill.id }})" style="margin-top:6px;width:100%;padding:3px;border-radius:5px;border:1px solid rgba(155,114,245,0.3);background:rgba(155,114,245,0.08);color:var(--purple);font-family:Tajawal;font-size:9px;cursor:pointer">➕ استخدام لفصلي</button>
+      <button onclick="useSharedSkill({{ skill.id }})" style="margin-top:6px;width:100%;padding:4px;border-radius:6px;border:1px solid rgba(155,114,245,0.3);background:rgba(155,114,245,0.08);color:var(--purple);font-family:Tajawal;font-size:9px;cursor:pointer;font-weight:700">➕ استخدام لفصلي</button>
     </div>
     {% endfor %}
   </div>
 
-  <!-- ══════════════ CONTENT ══════════════ -->
+  <!-- ══════════════════ CONTENT ══════════════════ -->
   <div class="content">
 
-    <!-- ══════ إضافة مهارة جديدة ══════ -->
-    <div id="panel-new" class="panel on">
-      <div style="font-size:16px;font-weight:800;margin-bottom:4px">➕ إضافة محتوى جديد</div>
-      <div style="font-size:10px;color:var(--text3);margin-bottom:16px">اختاري النوع أولاً ثم أكملي البيانات خطوة بخطوة</div>
+    <!-- ═══════ MAIN SECTION TABS ═══════ -->
+    <div class="main-tabs">
+      <button class="main-tab on tab-blue" onclick="switchSection('qodrat',this)">
+        <span class="tab-icon">🧮</span>
+        قسم القدرات
+      </button>
+      <button class="main-tab tab-orange" onclick="switchSection('tahsili',this)">
+        <span class="tab-icon">📖</span>
+        قسم التحصيلي
+      </button>
+      <button class="main-tab tab-purple" onclick="switchSection('bank',this)">
+        <span class="tab-icon">🗃️</span>
+        بنك الأسئلة
+      </button>
+    </div>
 
-      <!-- اختيار النوع -->
-      <div class="type-grid">
-        <div class="type-card on" id="type-skill" onclick="setType('skill')">
-          <div class="tc-icon">🧮</div>
-          <div class="tc-name" style="color:var(--blue)">مهارة قدرات</div>
-          <div class="tc-desc">كمي أو لفظي<br>قبلي + شرح + بعدي</div>
-        </div>
-        <div class="type-card" id="type-lesson" onclick="setType('lesson')">
-          <div class="tc-icon">📖</div>
-          <div class="tc-name" style="color:var(--orange)">درس تحصيلي</div>
-          <div class="tc-desc">رياضيات / أحياء / كيمياء / فيزياء<br>شرح + اختبار</div>
-        </div>
-        <div class="type-card" id="type-bank" onclick="setType('bank')">
-          <div class="tc-icon">🗃️</div>
-          <div class="tc-name" style="color:var(--purple)">بنك أسئلة</div>
-          <div class="tc-desc">أسئلة أعوام سابقة<br>مرتبة حسب المهارة</div>
-        </div>
+    <!-- ╔══════════════════════════════════════════╗ -->
+    <!-- ║     SECTION 1: القدرات (ABILITIES)       ║ -->
+    <!-- ╚══════════════════════════════════════════╝ -->
+    <div class="section on" id="sec-qodrat">
+      <div class="sec-header">
+        <h2 style="color:var(--blue)">🧮 قسم القدرات</h2>
+        <p>إدارة مهارات القدرات — كمي ولفظي — مع اختبار قبلي ومحتوى واختبار بعدي</p>
       </div>
 
-      <!-- Wizard Steps -->
-      <div class="wizard" id="wizard">
-        <div class="wz-step on" onclick="goStep(1)" id="wz1">
+      <!-- كمي / لفظي -->
+      <div class="sub-tabs" id="ability-type-tabs">
+        <button class="sub-tab on" onclick="switchAbilityType('lafzy',this)">📝 لفظي</button>
+        <button class="sub-tab" onclick="switchAbilityType('kamy',this)">🔢 كمي</button>
+      </div>
+
+      <!-- WIZARD: 3 مراحل -->
+      <div class="wizard" id="wz-qodrat">
+        <div class="wz-step on" onclick="goQodratStep(1)">
           <div class="wz-icon">📋</div>
           <div class="wz-num">١</div>
-          <div class="wz-label">المعلومات</div>
+          <div class="wz-label">اختبار قبلي</div>
         </div>
-        <div class="wz-step locked" onclick="goStep(2)" id="wz2">
+        <div class="wz-step" onclick="goQodratStep(2)">
           <div class="wz-icon">📹</div>
           <div class="wz-num">٢</div>
-          <div class="wz-label">الشرح</div>
+          <div class="wz-label">محتوى</div>
         </div>
-        <div class="wz-step locked" onclick="goStep(3)" id="wz3">
+        <div class="wz-step" onclick="goQodratStep(3)">
           <div class="wz-icon">📝</div>
           <div class="wz-num">٣</div>
-          <div class="wz-label">الاختبار القبلي</div>
-        </div>
-        <div class="wz-step locked" onclick="goStep(4)" id="wz4">
-          <div class="wz-icon">📝</div>
-          <div class="wz-num">٤</div>
-          <div class="wz-label">الاختبار البعدي</div>
-        </div>
-        <div class="wz-step locked" onclick="goStep(5)" id="wz5">
-          <div class="wz-icon">🚀</div>
-          <div class="wz-num">٥</div>
-          <div class="wz-label">التفعيل</div>
+          <div class="wz-label">اختبار بعدي</div>
         </div>
       </div>
 
-      <!-- ═══ الخطوة ١: المعلومات ═══ -->
-      <div class="panel on" id="step1">
-        <form method="post" action="/teachers/skills/add-complete/" id="skillForm">
-          {% csrf_token %}
-          <input type="hidden" name="content_type" id="content_type_input" value="skill">
-          <div class="card">
-            <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--blue)"></span>معلومات المهارة الأساسية</span></div>
-            <div class="cb">
-              <div class="g2">
-                <div class="fg">
-                  <label class="fl">عنوان المهارة / الدرس *</label>
-                  <input class="fi" name="title" placeholder="مثال: الكسور الاعتيادية" required>
-                </div>
-                <div class="fg" id="skill-type-group">
-                  <label class="fl">القسم *</label>
-                  <select class="fi" name="skill_type" id="skillTypeSelect">
-                    <option value="qodrat_kamy">قدرات — كمي</option>
-                    <option value="qodrat_lafzy">قدرات — لفظي</option>
-                  </select>
-                </div>
-                <div class="fg" id="subject-group" style="display:none">
-                  <label class="fl">المادة *</label>
-                  <select class="fi" name="subject">
-                    <option value="math">رياضيات</option>
-                    <option value="bio">أحياء</option>
-                    <option value="chem">كيمياء</option>
-                    <option value="phys">فيزياء</option>
-                  </select>
-                </div>
-                <div class="fg">
-                  <label class="fl">الفصل المستهدف *</label>
-                  <select class="fi" name="target_classes">
-                    <option value="جميع الفصول">📌 جميع الفصول</option>
-                    {% for cls in school_classrooms %}
-                    <option value="{{ cls.name }}">{{ cls.name }}</option>
-                    {% endfor %}
-                    {% if not school_classrooms %}
-                    <option value="" disabled>— لم تضيف المديرة فصولاً بعد —</option>
-                    {% endif %}
-                  </select>
-                  {% if not school_classrooms %}
-                  <div style="font-size:9px;color:var(--orange);margin-top:4px;line-height:1.6">
-                    ⚠️ المديرة لم تضف فصول الدراسة بعد. تواصلي معها لإضافتها.
-                  </div>
-                  {% endif %}
-                </div>
-                <div class="fg">
-                  <label class="fl">نوع الحصة</label>
-                  <select class="fi" name="session_type">
-                    <option value="qodrat">قدرات</option>
-                    <option value="tahsili">تحصيلي</option>
-                    <option value="both">قدرات + تحصيلي</option>
-                  </select>
-                </div>
-              </div>
-              <div class="fg">
-                <label class="fl">وصف مختصر</label>
-                <textarea class="fi" name="description" placeholder="وصف مختصر للمهارة أو الدرس..."></textarea>
-              </div>
-              <div class="fg">
-                <label style="display:flex;align-items:center;gap:7px;font-size:10px;color:var(--text2);cursor:pointer">
-                  <input type="checkbox" name="is_shared" checked style="accent-color:var(--green)">
-                  مشاركة مع المعلمات الأخريات — سيُذكر اسمك دائماً ✅
-                </label>
-              </div>
-              <div class="btn-row" style="justify-content:flex-end">
-                <button type="button" class="btn btn-b" onclick="goStep(2)">التالي — الشرح ←</button>
-              </div>
-            </div>
-          </div>
-      </div>
-
-      <!-- ═══ الخطوة ٢: الشرح ═══ -->
-      <div class="panel" id="step2">
+      <!-- ═══ مرحلة ١: الاختبار القبلي ═══ -->
+      <div class="panel on" id="qodrat-step1">
         <div class="card">
           <div class="ch">
-            <span class="ct"><span class="ct-dot" style="background:var(--orange)"></span>محتوى الشرح</span>
-            <span class="bd bo">يظهر للطالبة بعد القبلي</span>
-          </div>
-          <div class="cb">
-            <div class="g2">
-              <div class="fg">
-                <label class="fl">رابط فيديو الشرح (YouTube / Drive)</label>
-                <input class="fi" name="video_url" placeholder="https://youtube.com/...">
-              </div>
-              <div class="fg">
-                <label class="fl">ملف PDF</label>
-                <input class="fi" type="file" accept=".pdf" style="padding:6px">
-              </div>
-            </div>
-            <div class="fg">
-              <label class="fl">شرح نصي</label>
-              <div class="q-editor">
-                <div class="sym-bar">
-                  {% for sym in "س,ص,ع,م,ن,×,÷,±,≠,≤,≥,√,²,³,½,π,∞,∠,°,Δ" %}
-                  <button type="button" class="sym-b {% if forloop.counter <= 5 %}ar{% endif %}" onclick="iSym('{{ sym }}','explain-area')">{{ sym }}</button>
-                  {% endfor %}
-                </div>
-                <div class="q-area" id="explain-area" contenteditable="true" placeholder="اكتبي شرح المهارة أو الدرس هنا... يمكنك إدراج رموز رياضية ومعادلات"></div>
-              </div>
-              <input type="hidden" name="plain_text" id="explain-hidden">
-            </div>
-            <div class="fg">
-              <label class="fl">صورة توضيحية</label>
-              <input class="fi" type="file" accept="image/*" style="padding:6px">
-            </div>
-            <div class="btn-row" style="justify-content:space-between">
-              <button type="button" class="btn btn-b btn-sm" onclick="goStep(1)">→ السابق</button>
-              <button type="button" class="btn btn-b" onclick="goStep(3)">التالي — الاختبار القبلي ←</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══ الخطوة ٣: القبلي ═══ -->
-      <div class="panel" id="step3">
-        <div class="card">
-          <div class="ch">
-            <span class="ct"><span class="ct-dot" style="background:var(--orange)"></span>الاختبار القبلي</span>
+            <span class="ct"><span class="ct-dot" style="background:var(--orange)"></span> الاختبار القبلي — <span id="qodrat-type-label">لفظي</span></span>
             <span class="bd bo">قبل الشرح</span>
           </div>
           <div class="cb">
             <div class="g3">
-              <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" name="pre_count" value="10" min="5" max="30"></div>
-              <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" name="pre_time" value="15"></div>
-              <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" name="pre_pass" value="60"></div>
-              <div class="fg"><label class="fl">تاريخ البدء</label><input class="fi" type="date" name="pre_start"></div>
-              <div class="fg"><label class="fl">تاريخ الانتهاء</label><input class="fi" type="date" name="pre_end"></div>
-              <div class="fg"><label class="fl">التسليم</label>
-                <select class="fi" name="pre_delivery">
-                  <option value="both">إلكتروني + ورقي</option>
-                  <option value="electronic">إلكتروني فقط</option>
-                  <option value="paper">ورقي فقط</option>
-                </select>
+              <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" id="q-pre-count" value="10" min="5" max="30"></div>
+              <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" id="q-pre-time" value="15"></div>
+              <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" id="q-pre-pass" value="60"></div>
+            </div>
+
+            <!-- سؤال -->
+            <div style="margin-top:14px">
+              <div class="tabs-row">
+                <button class="tab on" onclick="swQTab('q-pre','manual',this)">✏️ إضافة يدوية</button>
+                <button class="tab" onclick="swQTab('q-pre','excel',this)">📤 رفع Excel</button>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- بانر للمحرّر المتقدم -->
-        <div style="background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.12));border:1.5px solid rgba(99,102,241,0.4);border-radius:11px;padding:13px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <div style="font-size:24px">✨</div>
-          <div style="flex:1;min-width:200px">
-            <div style="font-size:12px;font-weight:800;color:var(--text)">المحرر المتقدم متاح بعد الحفظ</div>
-            <div style="font-size:10px;color:var(--text2);line-height:1.7;margin-top:3px">
-              نفس محرر المديرة بالضبط: <strong>MathLive</strong> (مثل Word) + <strong>OCR ذكي</strong> (تحسين تلقائي للصور) +
-              <strong>صور للسؤال والخيارات</strong> + <strong>4 محررات LaTeX</strong>.
-            </div>
-          </div>
-          <label style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;color:var(--purple);cursor:pointer;padding:6px 12px;background:rgba(155,114,245,0.15);border-radius:7px;border:1px solid rgba(155,114,245,0.3)">
-            <input type="checkbox" name="open_advanced" value="1" style="cursor:pointer">
-            🚀 افتح المحرر بعد الحفظ
-          </label>
-        </div>
-
-        <!-- أسئلة القبلي -->
-        <div class="card">
-          <div class="ch">
-            <span class="ct"><span class="ct-dot" style="background:var(--purple)"></span>أسئلة الاختبار القبلي</span>
-            <div style="display:flex;gap:5px">
-              <span class="bd be" id="pre-q-count">٠ أسئلة</span>
-            </div>
-          </div>
-          <div class="cb">
-            <!-- تبويبات الإضافة -->
-            <div class="tabs-row">
-              <button class="tab on" onclick="swQTab('pre','manual',this)">✏️ إضافة يدوية</button>
-              <button class="tab" onclick="swQTab('pre','excel',this)">📤 رفع Excel</button>
-              <button class="tab" onclick="swQTab('pre','mysc',this)">✍️ MyScript</button>
-            </div>
-
-            <!-- يدوي -->
-            <div class="tab-content on" id="pre-manual">
-              <div id="pre-q-form">
-                <!-- نص السؤال -->
-                <div class="fg">
-                  <label class="fl">نص السؤال</label>
-                  <a href="https://webdemo.myscript.com/views/math/index.html#" target="_blank" class="mysc">
-                    <span>✍️</span>
-                    <div style="font-size:9px"><strong>MyScript</strong> — ارسمي المعادلة يدوياً وانسخي LaTeX</div>
-                    <span style="margin-right:auto;font-size:9px;opacity:0.5">↗</span>
-                  </a>
-                  <div class="q-editor">
-                    <div class="q-toolbar">
-                      <button type="button" class="q-tb-btn math" onclick="toggleMathBar('pre-math')">∑ معادلة</button>
-                      <div class="q-tb-sep"></div>
-                      {% for sym in "س,ص,ع,م,ن" %}
-                      <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('{{ sym }}','pre-q-area')">{{ sym }}</button>
-                      {% endfor %}
-                      <div class="q-tb-sep"></div>
-                      {% for sym in "×,÷,±,≠,≤,≥,√,²,³,½,π,∞" %}
-                      <button type="button" class="q-tb-btn" onclick="iSym('{{ sym }}','pre-q-area')">{{ sym }}</button>
-                      {% endfor %}
-                      <div class="q-tb-sep"></div>
-                      {% for sym in "∠,°,△,⊥,∥,α,β,θ,Δ,Σ" %}
-                      <button type="button" class="q-tb-btn" onclick="iSym('{{ sym }}','pre-q-area')">{{ sym }}</button>
-                      {% endfor %}
-                    </div>
-                    <!-- Math bar -->
-                    <div class="math-inline" id="pre-math" style="display:none">
-                      <input type="text" class="math-inp" id="pre-math-inp" placeholder="\frac{3}{4} أو x^2+5x=0" oninput="prevMath('pre-math-prev','pre-math-inp')">
-                      <div class="math-prev" id="pre-math-prev"></div>
-                      <button type="button" class="ins-btn" onclick="insMath('pre-math-inp','pre-q-area')">إدراج ←</button>
-                    </div>
-                    <div class="q-area" id="pre-q-area" contenteditable="true" placeholder="اكتبي نص السؤال... يمكنك إدراج رموز ومعادلات مباشرة"></div>
+              <div class="tab-content on" id="q-pre-manual">
+                <div class="q-editor">
+                  <div class="q-toolbar">
+                    <button type="button" class="q-tb-btn math" onclick="smartLatexOpen('q-pre-q-area')">∑ معادلة</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--orange)" onclick="smartOcrOpen('q-pre-q-area')">📷 OCR</button>
+                    <div class="q-tb-sep"></div>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('س','q-pre-q-area')">س</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ص','q-pre-q-area')">ص</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ع','q-pre-q-area')">ع</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('م','q-pre-q-area')">م</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ن','q-pre-q-area')">ن</button>
+                    <div class="q-tb-sep"></div>
+                    <button type="button" class="q-tb-btn" onclick="iSym('×','q-pre-q-area')">×</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('÷','q-pre-q-area')">÷</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('±','q-pre-q-area')">±</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('≠','q-pre-q-area')">≠</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('≤','q-pre-q-area')">≤</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('≥','q-pre-q-area')">≥</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('√','q-pre-q-area')">√</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('²','q-pre-q-area')">²</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('³','q-pre-q-area')">³</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('π','q-pre-q-area')">π</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('∞','q-pre-q-area')">∞</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('∠','q-pre-q-area')">∠</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('°','q-pre-q-area')">°</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('Δ','q-pre-q-area')">Δ</button>
                   </div>
-                  <!-- معاينة -->
-                  <div style="font-size:9px;color:var(--text3);margin-top:5px">معاينة:</div>
-                  <div class="prev-box" id="pre-q-prev"></div>
+                  <div class="math-inline" id="q-pre-math" style="display:none">
+                    <input type="text" class="math-inp" id="q-pre-math-inp" placeholder="\frac{3}{4} أو x^2+5x=0" oninput="prevMath('q-pre-math-prev','q-pre-math-inp')">
+                    <div class="math-prev" id="q-pre-math-prev"></div>
+                    <button type="button" class="ins-btn" onclick="insMath('q-pre-math-inp','q-pre-q-area')">إدراج ←</button>
+                  </div>
+                  <div class="q-area" id="q-pre-q-area" contenteditable="true" placeholder="اكتبي نص السؤال... يمكنك إدراج رموز ومعادلات"></div>
                 </div>
 
                 <!-- الخيارات -->
-                <div class="opts-grid" id="pre-opts">
-                  <div class="opt-box" id="pre-opt-A">
-                    <div class="opt-head">
-                      <div class="opt-letter" id="pre-letter-A">أ</div>
-                      <span class="opt-name">الخيار أ</span>
-                      <button type="button" class="opt-set-btn" id="pre-setbtn-A" onclick="setAns('pre','A')">✓ صحيح</button>
-                    </div>
-                    <div class="opt-area" id="pre-opt-area-A" contenteditable="true" placeholder="الخيار أ..."></div>
-                  </div>
-                  <div class="opt-box" id="pre-opt-B">
-                    <div class="opt-head">
-                      <div class="opt-letter" id="pre-letter-B">ب</div>
-                      <span class="opt-name">الخيار ب</span>
-                      <button type="button" class="opt-set-btn" id="pre-setbtn-B" onclick="setAns('pre','B')">✓ صحيح</button>
-                    </div>
-                    <div class="opt-area" id="pre-opt-area-B" contenteditable="true" placeholder="الخيار ب..."></div>
-                  </div>
-                  <div class="opt-box" id="pre-opt-C">
-                    <div class="opt-head">
-                      <div class="opt-letter" id="pre-letter-C">ج</div>
-                      <span class="opt-name">الخيار ج</span>
-                      <button type="button" class="opt-set-btn" id="pre-setbtn-C" onclick="setAns('pre','C')">✓ صحيح</button>
-                    </div>
-                    <div class="opt-area" id="pre-opt-area-C" contenteditable="true" placeholder="الخيار ج..."></div>
-                  </div>
-                  <div class="opt-box" id="pre-opt-D">
-                    <div class="opt-head">
-                      <div class="opt-letter" id="pre-letter-D">د</div>
-                      <span class="opt-name">الخيار د</span>
-                      <button type="button" class="opt-set-btn" id="pre-setbtn-D" onclick="setAns('pre','D')">✓ صحيح</button>
-                    </div>
-                    <div class="opt-area" id="pre-opt-area-D" contenteditable="true" placeholder="الخيار د..."></div>
-                  </div>
+                <div class="opts-grid">
+                  <div class="opt-box" id="q-pre-opt-A"><div class="opt-head"><div class="opt-letter" id="q-pre-letter-A">أ</div><span class="opt-name">الخيار أ</span><button type="button" class="opt-set-btn" id="q-pre-setbtn-A" onclick="setAns('q-pre','A')">✓ صحيح</button></div><div class="opt-area" id="q-pre-opt-area-A" contenteditable="true" placeholder="الخيار أ..."></div></div>
+                  <div class="opt-box" id="q-pre-opt-B"><div class="opt-head"><div class="opt-letter" id="q-pre-letter-B">ب</div><span class="opt-name">الخيار ب</span><button type="button" class="opt-set-btn" id="q-pre-setbtn-B" onclick="setAns('q-pre','B')">✓ صحيح</button></div><div class="opt-area" id="q-pre-opt-area-B" contenteditable="true" placeholder="الخيار ب..."></div></div>
+                  <div class="opt-box" id="q-pre-opt-C"><div class="opt-head"><div class="opt-letter" id="q-pre-letter-C">ج</div><span class="opt-name">الخيار ج</span><button type="button" class="opt-set-btn" id="q-pre-setbtn-C" onclick="setAns('q-pre','C')">✓ صحيح</button></div><div class="opt-area" id="q-pre-opt-area-C" contenteditable="true" placeholder="الخيار ج..."></div></div>
+                  <div class="opt-box" id="q-pre-opt-D"><div class="opt-head"><div class="opt-letter" id="q-pre-letter-D">د</div><span class="opt-name">الخيار د</span><button type="button" class="opt-set-btn" id="q-pre-setbtn-D" onclick="setAns('q-pre','D')">✓ صحيح</button></div><div class="opt-area" id="q-pre-opt-area-D" contenteditable="true" placeholder="الخيار د..."></div></div>
                 </div>
 
-                <div class="fg">
-                  <label class="fl">تغذية راجعة (اختياري)</label>
-                  <input class="fi" id="pre-feedback" placeholder="شرح الإجابة الصحيحة...">
+                <div class="g2">
+                  <div class="fg"><label class="fl">المهارة المرتبطة</label><input class="fi" id="q-pre-skill" placeholder="مثال: الكسور"></div>
+                  <div class="fg"><label class="fl">تغذية راجعة</label><input class="fi" id="q-pre-feedback" placeholder="شرح الإجابة الصحيحة..."></div>
                 </div>
 
                 <div style="display:flex;gap:7px;margin-top:8px">
-                  <button type="button" class="btn btn-g btn-sm" onclick="addQ('pre')">➕ إضافة السؤال للقائمة</button>
-                  <button type="button" class="btn btn-b btn-sm" onclick="clearQForm('pre')">🔄 مسح</button>
+                  <button type="button" class="btn btn-g btn-sm" onclick="addQ('q-pre')">➕ إضافة للقائمة</button>
+                  <button type="button" class="btn btn-b btn-sm" onclick="clearQForm('q-pre')">🔄 مسح</button>
                 </div>
               </div>
-            </div>
 
-            <!-- Excel -->
-            <div class="tab-content" id="pre-excel">
-              <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:10px;font-size:10px;color:var(--text3);line-height:2">
-                <strong style="color:var(--green)">شكل ملف Excel:</strong><br>
-                A: نص السؤال | B: خيار أ | C: خيار ب | D: خيار ج | E: خيار د<br>
-                F: الإجابة الصحيحة (A/B/C/D) | G: المهارة | H: التغذية الراجعة
-              </div>
-              <div class="excel-zone" onclick="document.getElementById('pre-excel-file').click()">
-                <div style="font-size:24px;margin-bottom:6px">📊</div>
-                <div style="font-size:11px;color:var(--text2);font-weight:600">اضغطي لرفع ملف Excel</div>
-                <div style="font-size:9px;color:var(--text3);margin-top:3px">.xlsx أو .xls</div>
-                <input type="file" id="pre-excel-file" name="excel_pre" accept=".xlsx,.xls" style="display:none" onchange="loadExcel('pre',this)">
-              </div>
-              <div id="pre-excel-preview" style="margin-top:8px"></div>
-            </div>
-
-            <!-- MyScript -->
-            <div class="tab-content" id="pre-mysc">
-              <div style="background:rgba(155,114,245,0.06);border:1px solid rgba(155,114,245,0.2);border-radius:8px;padding:12px;text-align:center">
-                <div style="font-size:20px;margin-bottom:6px">✍️</div>
-                <div style="font-size:11px;font-weight:700;color:var(--purple);margin-bottom:4px">رسم المعادلات يدوياً</div>
-                <div style="font-size:10px;color:var(--text3);margin-bottom:10px;line-height:1.8">
-                  ١ — افتحي MyScript في نافذة جديدة<br>
-                  ٢ — ارسمي المعادلة يدوياً<br>
-                  ٣ — انسخي كود LaTeX<br>
-                  ٤ — الصقيه في حقل المعادلة في التبويب اليدوي
+              <div class="tab-content" id="q-pre-excel">
+                <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:10px;font-size:10px;color:var(--text3);line-height:2">
+                  <strong style="color:var(--green)">شكل ملف Excel:</strong><br>
+                  A: نص السؤال | B: خيار أ | C: خيار ب | D: خيار ج | E: خيار د | F: الإجابة (A/B/C/D) | G: المهارة | H: التغذية
                 </div>
-                <a href="https://webdemo.myscript.com/views/math/index.html#" target="_blank" class="btn btn-p" style="display:inline-flex">✍️ فتح MyScript</a>
+                <div class="excel-zone" onclick="document.getElementById('q-pre-excel-file').click()">
+                  <div style="font-size:24px;margin-bottom:6px">📊</div>
+                  <div style="font-size:11px;color:var(--text2);font-weight:600">اضغطي لرفع ملف Excel</div>
+                  <input type="file" id="q-pre-excel-file" accept=".xlsx,.xls" style="display:none" onchange="loadExcel('q-pre',this)">
+                </div>
+              </div>
+
+              <!-- قائمة الأسئلة -->
+              <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border)">
+                <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:7px">الأسئلة المضافة: <span class="bd bb" id="q-pre-count-badge">٠</span></div>
+                <div id="q-pre-list"><div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد</div></div>
               </div>
             </div>
 
-            <!-- قائمة الأسئلة المضافة -->
-            <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
-              <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:7px">الأسئلة المضافة:</div>
-              <div id="pre-q-list">
-                <div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد — أضيفي سؤالاً أعلاه</div>
-              </div>
+            <div class="btn-row" style="justify-content:flex-end">
+              <button type="button" class="btn btn-b" onclick="goQodratStep(2)">التالي — المحتوى ←</button>
             </div>
           </div>
         </div>
+      </div>
 
-        <div class="btn-row" style="justify-content:space-between">
-          <button type="button" class="btn btn-b btn-sm" onclick="goStep(2)">→ السابق</button>
-          <button type="button" class="btn btn-b" onclick="goStep(4)">التالي — الاختبار البعدي ←</button>
+      <!-- ═══ مرحلة ٢: المحتوى ═══ -->
+      <div class="panel" id="qodrat-step2">
+        <div class="card">
+          <div class="ch">
+            <span class="ct"><span class="ct-dot" style="background:var(--blue)"></span> محتوى الشرح</span>
+            <span class="bd bb">يظهر للطالبة بعد القبلي</span>
+          </div>
+          <div class="cb">
+            <div class="cnt-tabs">
+              <button class="cnt-tab on" onclick="switchContentType('qodrat',0,this)">🎬 YouTube</button>
+              <button class="cnt-tab" onclick="switchContentType('qodrat',1,this)">🔗 رابط فيديو</button>
+              <button class="cnt-tab" onclick="switchContentType('qodrat',2,this)">📄 PDF</button>
+              <button class="cnt-tab" onclick="switchContentType('qodrat',3,this)">✍️ نصي</button>
+            </div>
+
+            <!-- YouTube -->
+            <div class="cnt-panel" id="qodrat-cnt-0">
+              <div class="fg">
+                <label class="fl">رابط YouTube</label>
+                <input class="fi" id="qodrat-yt-url" placeholder="https://youtube.com/watch?v=..." oninput="updateYouTubePreview('qodrat')">
+              </div>
+              <iframe id="qodrat-yt-preview" class="yt-preview" frameborder="0" allowfullscreen></iframe>
+            </div>
+
+            <!-- رابط فيديو -->
+            <div class="cnt-panel" id="qodrat-cnt-1" style="display:none">
+              <div class="fg">
+                <label class="fl">رابط فيديو مباشر</label>
+                <input class="fi" id="qodrat-video-url" placeholder="https://example.com/video.mp4">
+              </div>
+            </div>
+
+            <!-- PDF -->
+            <div class="cnt-panel" id="qodrat-cnt-2" style="display:none">
+              <div class="fg">
+                <label class="fl">رابط أو ملف PDF</label>
+                <input class="fi" id="qodrat-pdf-url" placeholder="https://example.com/file.pdf">
+              </div>
+              <div class="fg">
+                <label class="fl">أو رفع ملف PDF</label>
+                <input class="fi" type="file" accept=".pdf" style="padding:6px">
+              </div>
+            </div>
+
+            <!-- نصي -->
+            <div class="cnt-panel" id="qodrat-cnt-3" style="display:none">
+              <div class="q-editor">
+                <div class="sym-bar">
+                  <button type="button" class="sym-b" style="color:var(--teal)" onclick="iSym('س','qodrat-text-area')">س</button>
+                  <button type="button" class="sym-b" style="color:var(--teal)" onclick="iSym('ص','qodrat-text-area')">ص</button>
+                  <button type="button" class="sym-b" style="color:var(--teal)" onclick="iSym('ع','qodrat-text-area')">ع</button>
+                  <button type="button" class="sym-b" onclick="iSym('×','qodrat-text-area')">×</button>
+                  <button type="button" class="sym-b" onclick="iSym('÷','qodrat-text-area')">÷</button>
+                  <button type="button" class="sym-b" onclick="iSym('±','qodrat-text-area')">±</button>
+                  <button type="button" class="sym-b" onclick="iSym('≠','qodrat-text-area')">≠</button>
+                  <button type="button" class="sym-b" onclick="iSym('√','qodrat-text-area')">√</button>
+                  <button type="button" class="sym-b" onclick="iSym('²','qodrat-text-area')">²</button>
+                  <button type="button" class="sym-b" onclick="iSym('π','qodrat-text-area')">π</button>
+                  <button type="button" class="sym-b" onclick="iSym('∞','qodrat-text-area')">∞</button>
+                  <button type="button" class="sym-b" onclick="iSym('Δ','qodrat-text-area')">Δ</button>
+                </div>
+                <div class="q-area" id="qodrat-text-area" contenteditable="true" placeholder="اكتبي شرح المهارة أو الدرس هنا... يمكنك إدراج رموز ومعادلات" style="min-height:120px"></div>
+              </div>
+            </div>
+
+            <div class="fg" style="margin-top:10px">
+              <label class="fl">صورة توضيحية</label>
+              <input class="fi" type="file" accept="image/*" style="padding:6px">
+            </div>
+
+            <div class="btn-row" style="justify-content:space-between">
+              <button type="button" class="btn btn-b btn-sm" onclick="goQodratStep(1)">→ السابق</button>
+              <button type="button" class="btn btn-b" onclick="goQodratStep(3)">التالي — البعدي ←</button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- ═══ الخطوة ٤: البعدي ═══ -->
-      <div class="panel" id="step4">
+      <!-- ═══ مرحلة ٣: الاختبار البعدي ═══ -->
+      <div class="panel" id="qodrat-step3">
         <div class="card">
           <div class="ch">
-            <span class="ct"><span class="ct-dot" style="background:var(--green)"></span>الاختبار البعدي</span>
+            <span class="ct"><span class="ct-dot" style="background:var(--green)"></span> الاختبار البعدي — <span id="qodrat-type-label2">لفظي</span></span>
             <span class="bd bp">بعد الشرح</span>
           </div>
           <div class="cb">
             <div class="g3">
-              <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" name="post_count" value="10"></div>
-              <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" name="post_time" value="15"></div>
-              <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" name="post_pass" value="70"></div>
-              <div class="fg"><label class="fl">تاريخ البدء</label><input class="fi" type="date" name="post_start"></div>
-              <div class="fg"><label class="fl">تاريخ الانتهاء</label><input class="fi" type="date" name="post_end"></div>
-              <div class="fg"><label class="fl">الأسئلة مقارنة بالقبلي</label>
-                <select class="fi" name="post_diff">
-                  <option value="different">مختلفة كلياً</option>
-                  <option value="half">٥٠% مختلفة</option>
-                  <option value="same">نفس الأسئلة</option>
-                </select>
+              <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" id="q-post-count" value="10"></div>
+              <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" id="q-post-time" value="15"></div>
+              <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" id="q-post-pass" value="70"></div>
+            </div>
+
+            <div style="margin-top:14px">
+              <div class="tabs-row">
+                <button class="tab on" onclick="swQTab('q-post','manual',this)">✏️ إضافة يدوية</button>
+                <button class="tab" onclick="swQTab('q-post','excel',this)">📤 رفع Excel</button>
               </div>
-            </div>
-          </div>
-        </div>
 
-        <!-- أسئلة البعدي -->
-        <div class="card">
-          <div class="ch">
-            <span class="ct"><span class="ct-dot" style="background:var(--green)"></span>أسئلة الاختبار البعدي</span>
-            <span class="bd bp" id="post-q-count">٠ أسئلة</span>
-          </div>
-          <div class="cb">
-            <div class="tabs-row">
-              <button class="tab on" onclick="swQTab('post','manual',this)">✏️ إضافة يدوية</button>
-              <button class="tab" onclick="swQTab('post','excel',this)">📤 رفع Excel</button>
-              <button class="tab" onclick="swQTab('post','mysc',this)">✍️ MyScript</button>
-            </div>
-
-            <div class="tab-content on" id="post-manual">
-              <div class="q-editor">
-                <div class="q-toolbar">
-                  <button type="button" class="q-tb-btn math" onclick="toggleMathBar('post-math')">∑ معادلة</button>
-                  <div class="q-tb-sep"></div>
-<button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('س','post-q-area')">س</button>
-<button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ص','post-q-area')">ص</button>
-<button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ع','post-q-area')">ع</button>
-<button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('م','post-q-area')">م</button>
-<button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ن','post-q-area')">ن</button>
-<button type="button" class="q-tb-btn" onclick="iSym('×','post-q-area')">×</button>
-<button type="button" class="q-tb-btn" onclick="iSym('÷','post-q-area')">÷</button>
-<button type="button" class="q-tb-btn" onclick="iSym('±','post-q-area')">±</button>
-<button type="button" class="q-tb-btn" onclick="iSym('≠','post-q-area')">≠</button>
-<button type="button" class="q-tb-btn" onclick="iSym('≤','post-q-area')">≤</button>
-<button type="button" class="q-tb-btn" onclick="iSym('≥','post-q-area')">≥</button>
-<button type="button" class="q-tb-btn" onclick="iSym('√','post-q-area')">√</button>
-<button type="button" class="q-tb-btn" onclick="iSym('²','post-q-area')">²</button>
-<button type="button" class="q-tb-btn" onclick="iSym('³','post-q-area')">³</button>
-<button type="button" class="q-tb-btn" onclick="iSym('π','post-q-area')">π</button>
-<button type="button" class="q-tb-btn" onclick="iSym('∞','post-q-area')">∞</button>
-<button type="button" class="q-tb-btn" onclick="iSym('∠','post-q-area')">∠</button>
-<button type="button" class="q-tb-btn" onclick="iSym('°','post-q-area')">°</button>
-<button type="button" class="q-tb-btn" onclick="iSym('Δ','post-q-area')">Δ</button>                </div>
-                <div class="math-inline" id="post-math" style="display:none">
-                  <input type="text" class="math-inp" id="post-math-inp" placeholder="\frac{3}{4}" oninput="prevMath('post-math-prev','post-math-inp')">
-                  <div class="math-prev" id="post-math-prev"></div>
-                  <button type="button" class="ins-btn" onclick="insMath('post-math-inp','post-q-area')">إدراج ←</button>
+              <div class="tab-content on" id="q-post-manual">
+                <div class="q-editor">
+                  <div class="q-toolbar">
+                    <button type="button" class="q-tb-btn math" onclick="smartLatexOpen('q-post-q-area')">∑ معادلة</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--orange)" onclick="smartOcrOpen('q-post-q-area')">📷 OCR</button>
+                    <div class="q-tb-sep"></div>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('س','q-post-q-area')">س</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ص','q-post-q-area')">ص</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ع','q-post-q-area')">ع</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('م','q-post-q-area')">م</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ن','q-post-q-area')">ن</button>
+                    <div class="q-tb-sep"></div>
+                    <button type="button" class="q-tb-btn" onclick="iSym('×','q-post-q-area')">×</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('÷','q-post-q-area')">÷</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('±','q-post-q-area')">±</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('≠','q-post-q-area')">≠</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('≤','q-post-q-area')">≤</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('≥','q-post-q-area')">≥</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('√','q-post-q-area')">√</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('²','q-post-q-area')">²</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('³','q-post-q-area')">³</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('π','q-post-q-area')">π</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('∞','q-post-q-area')">∞</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('Δ','q-post-q-area')">Δ</button>
+                  </div>
+                  <div class="math-inline" id="q-post-math" style="display:none">
+                    <input type="text" class="math-inp" id="q-post-math-inp" placeholder="\frac{3}{4}" oninput="prevMath('q-post-math-prev','q-post-math-inp')">
+                    <div class="math-prev" id="q-post-math-prev"></div>
+                    <button type="button" class="ins-btn" onclick="insMath('q-post-math-inp','q-post-q-area')">إدراج ←</button>
+                  </div>
+                  <div class="q-area" id="q-post-q-area" contenteditable="true" placeholder="نص السؤال البعدي..."></div>
                 </div>
-                <div class="q-area" id="post-q-area" contenteditable="true" placeholder="نص السؤال البعدي..."></div>
-              </div>
-              <div class="prev-box" id="post-q-prev" style="margin-top:5px"></div>
 
-              <div class="opts-grid" style="margin-top:8px">
-                <div class="opt-box" id="post-opt-A"><div class="opt-head"><div class="opt-letter" id="post-letter-A">أ</div><button type="button" class="opt-set-btn" id="post-setbtn-A" onclick="setAns('post','A')">✓</button></div><div class="opt-area" id="post-opt-area-A" contenteditable="true" placeholder="أ..."></div></div>
-                <div class="opt-box" id="post-opt-B"><div class="opt-head"><div class="opt-letter" id="post-letter-B">ب</div><button type="button" class="opt-set-btn" id="post-setbtn-B" onclick="setAns('post','B')">✓</button></div><div class="opt-area" id="post-opt-area-B" contenteditable="true" placeholder="ب..."></div></div>
-                <div class="opt-box" id="post-opt-C"><div class="opt-head"><div class="opt-letter" id="post-letter-C">ج</div><button type="button" class="opt-set-btn" id="post-setbtn-C" onclick="setAns('post','C')">✓</button></div><div class="opt-area" id="post-opt-area-C" contenteditable="true" placeholder="ج..."></div></div>
-                <div class="opt-box" id="post-opt-D"><div class="opt-head"><div class="opt-letter" id="post-letter-D">د</div><button type="button" class="opt-set-btn" id="post-setbtn-D" onclick="setAns('post','D')">✓</button></div><div class="opt-area" id="post-opt-area-D" contenteditable="true" placeholder="د..."></div></div>
+                <div class="opts-grid">
+                  <div class="opt-box" id="q-post-opt-A"><div class="opt-head"><div class="opt-letter" id="q-post-letter-A">أ</div><span class="opt-name">الخيار أ</span><button type="button" class="opt-set-btn" id="q-post-setbtn-A" onclick="setAns('q-post','A')">✓ صحيح</button></div><div class="opt-area" id="q-post-opt-area-A" contenteditable="true" placeholder="أ..."></div></div>
+                  <div class="opt-box" id="q-post-opt-B"><div class="opt-head"><div class="opt-letter" id="q-post-letter-B">ب</div><span class="opt-name">الخيار ب</span><button type="button" class="opt-set-btn" id="q-post-setbtn-B" onclick="setAns('q-post','B')">✓ صحيح</button></div><div class="opt-area" id="q-post-opt-area-B" contenteditable="true" placeholder="ب..."></div></div>
+                  <div class="opt-box" id="q-post-opt-C"><div class="opt-head"><div class="opt-letter" id="q-post-letter-C">ج</div><span class="opt-name">الخيار ج</span><button type="button" class="opt-set-btn" id="q-post-setbtn-C" onclick="setAns('q-post','C')">✓ صحيح</button></div><div class="opt-area" id="q-post-opt-area-C" contenteditable="true" placeholder="ج..."></div></div>
+                  <div class="opt-box" id="q-post-opt-D"><div class="opt-head"><div class="opt-letter" id="q-post-letter-D">د</div><span class="opt-name">الخيار د</span><button type="button" class="opt-set-btn" id="q-post-setbtn-D" onclick="setAns('q-post','D')">✓ صحيح</button></div><div class="opt-area" id="q-post-opt-area-D" contenteditable="true" placeholder="د..."></div></div>
+                </div>
+
+                <div class="g2">
+                  <div class="fg"><label class="fl">المهارة المرتبطة</label><input class="fi" id="q-post-skill" placeholder="مثال: الكسور"></div>
+                  <div class="fg"><label class="fl">تغذية راجعة</label><input class="fi" id="q-post-feedback" placeholder="شرح الإجابة..."></div>
+                </div>
+
+                <div style="display:flex;gap:7px;margin-top:8px">
+                  <button type="button" class="btn btn-g btn-sm" onclick="addQ('q-post')">➕ إضافة للقائمة</button>
+                  <button type="button" class="btn btn-b btn-sm" onclick="clearQForm('q-post')">🔄 مسح</button>
+                </div>
               </div>
 
-              <div style="display:flex;gap:7px;margin-top:8px">
-                <button type="button" class="btn btn-g btn-sm" onclick="addQ('post')">➕ إضافة للقائمة</button>
-                <button type="button" class="btn btn-b btn-sm" onclick="clearQForm('post')">🔄 مسح</button>
+              <div class="tab-content" id="q-post-excel">
+                <div class="excel-zone" onclick="document.getElementById('q-post-excel-file').click()">
+                  <div style="font-size:24px;margin-bottom:6px">📊</div>
+                  <div style="font-size:11px;color:var(--text2);font-weight:600">رفع أسئلة البعدي من Excel</div>
+                  <input type="file" id="q-post-excel-file" accept=".xlsx,.xls" style="display:none" onchange="loadExcel('q-post',this)">
+                </div>
               </div>
-            </div>
 
-            <div class="tab-content" id="post-excel">
-              <div class="excel-zone" onclick="document.getElementById('post-excel-file').click()">
-                <div style="font-size:24px;margin-bottom:6px">📊</div>
-                <div style="font-size:11px;color:var(--text2);font-weight:600">رفع أسئلة البعدي من Excel</div>
-                <input type="file" id="post-excel-file" accept=".xlsx,.xls" style="display:none" onchange="loadExcel('post',this)">
-              </div>
-              <div id="post-excel-preview" style="margin-top:8px"></div>
-            </div>
-
-            <div class="tab-content" id="post-mysc">
-              <div style="text-align:center;padding:14px">
-                <a href="https://webdemo.myscript.com/views/math/index.html#" target="_blank" class="btn btn-p" style="display:inline-flex">✍️ فتح MyScript</a>
-              </div>
-            </div>
-
-            <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border)">
-              <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:6px">الأسئلة المضافة:</div>
-              <div id="post-q-list">
-                <div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="btn-row" style="justify-content:space-between">
-          <button type="button" class="btn btn-b btn-sm" onclick="goStep(3)">→ السابق</button>
-          <button type="button" class="btn btn-b" onclick="goStep(5)">التالي — التفعيل ←</button>
-        </div>
-      </div>
-
-      <!-- ═══ الخطوة ٥: التفعيل ═══ -->
-      <div class="panel" id="step5">
-        <div class="card">
-          <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--green)"></span>ملخص وتفعيل</span></div>
-          <div class="cb">
-            <div class="g2">
-              <div class="fg">
-                <label class="fl">حالة المهارة</label>
-                <select class="fi" name="is_active">
-                  <option value="true">مفعّلة — تظهر للطالبات</option>
-                  <option value="false">مسودة — لا تظهر بعد</option>
-                </select>
-              </div>
-              <div class="fg">
-                <label class="fl">مشاركة مع المعلمات</label>
-                <select class="fi" name="is_shared_final">
-                  <option value="true">نعم — مع ذكر اسمي</option>
-                  <option value="false">لا — خاص بفصلي</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- ملخص -->
-            <div style="background:rgba(15,186,129,0.05);border:1px solid rgba(15,186,129,0.15);border-radius:9px;padding:12px;margin-top:8px">
-              <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:8px">✅ ملخص المهارة</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px;color:var(--text2)">
-                <div>👩‍🏫 المعلمة: <strong style="color:var(--green)">{{ teacher.full_name|default:"أنتِ" }}</strong></div>
-                <div id="summary-type">🏷️ النوع: —</div>
-                <div id="summary-class">🎓 الفصل: —</div>
-                <div id="summary-pre">📝 القبلي: <span id="pre-count-summary">٠</span> سؤال</div>
-                <div id="summary-post">📝 البعدي: <span id="post-count-summary">٠</span> سؤال</div>
-                <div>📅 التاريخ: {{ today|default:"اليوم" }}</div>
+              <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border)">
+                <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:7px">الأسئلة المضافة: <span class="bd bp" id="q-post-count-badge">٠</span></div>
+                <div id="q-post-list"><div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد</div></div>
               </div>
             </div>
 
             <div class="btn-row" style="justify-content:space-between">
-              <button type="button" class="btn btn-b btn-sm" onclick="goStep(4)">→ السابق</button>
-              <div style="display:flex;gap:7px">
-                <button type="button" class="btn btn-o" onclick="saveSkill(false)">💾 حفظ كمسودة</button>
-                <button type="button" class="btn btn-g" onclick="saveSkill(true)">🚀 حفظ وتفعيل</button>
+              <button type="button" class="btn btn-b btn-sm" onclick="goQodratStep(2)">→ السابق</button>
+              <button type="button" class="btn btn-g" onclick="saveSection('qodrat')">🚀 حفظ قسم القدرات</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ╔══════════════════════════════════════════╗ -->
+    <!-- ║     SECTION 2: التحصيلي (ACHIEVEMENT)    ║ -->
+    <!-- ╚══════════════════════════════════════════╝ -->
+    <div class="section" id="sec-tahsili">
+      <div class="sec-header">
+        <h2 style="color:var(--orange)">📖 قسم التحصيلي</h2>
+        <p>إدارة دروس التحصيلي — رياضيات، فيزياء، أحياء، كيمياء — مع محتوى واختبار بعدي</p>
+      </div>
+
+      <div class="sub-tabs">
+        <button class="sub-tab on" onclick="switchSubject('math',this)">📐 رياضيات</button>
+        <button class="sub-tab" onclick="switchSubject('phys',this)">⚡ فيزياء</button>
+        <button class="sub-tab" onclick="switchSubject('bio',this)">🧬 أحياء</button>
+        <button class="sub-tab" onclick="switchSubject('chem',this)">🧪 كيمياء</button>
+      </div>
+
+      <!-- Wizard: مرحلتين -->
+      <div class="wizard" id="wz-tahsili">
+        <div class="wz-step on" onclick="goTahsiliStep(1)">
+          <div class="wz-icon">📹</div>
+          <div class="wz-num">١</div>
+          <div class="wz-label">محتوى الدرس</div>
+        </div>
+        <div class="wz-step" onclick="goTahsiliStep(2)">
+          <div class="wz-icon">📝</div>
+          <div class="wz-num">٢</div>
+          <div class="wz-label">اختبار بعدي</div>
+        </div>
+      </div>
+
+      <!-- مرحلة ١: المحتوى -->
+      <div class="panel on" id="tahsili-step1">
+        <div class="card">
+          <div class="ch">
+            <span class="ct"><span class="ct-dot" style="background:var(--orange)"></span> محتوى الدرس — <span id="tahsili-subject-label">رياضيات</span></span>
+          </div>
+          <div class="cb">
+            <div class="g2" style="margin-bottom:14px">
+              <div class="fg"><label class="fl">عنوان الدرس *</label><input class="fi" id="tahsili-title" placeholder="مثال: قوانين نيوتن" required></div>
+              <div class="fg"><label class="fl">الفصل المستهدف</label>
+                <select class="fi" id="tahsili-class">
+                  <option value="جميع الفصول">📌 جميع الفصول</option>
+                  {% for cls in school_classrooms %}
+                  <option value="{{ cls.name }}">{{ cls.name }}</option>
+                  {% endfor %}
+                </select>
               </div>
             </div>
+
+            <div class="cnt-tabs">
+              <button class="cnt-tab on" onclick="switchContentType('tahsili',0,this)">🎬 YouTube</button>
+              <button class="cnt-tab" onclick="switchContentType('tahsili',1,this)">🔗 رابط فيديو</button>
+              <button class="cnt-tab" onclick="switchContentType('tahsili',2,this)">📄 PDF</button>
+              <button class="cnt-tab" onclick="switchContentType('tahsili',3,this)">✍️ نصي</button>
+            </div>
+
+            <div class="cnt-panel" id="tahsili-cnt-0">
+              <div class="fg"><label class="fl">رابط YouTube</label><input class="fi" id="tahsili-yt-url" placeholder="https://youtube.com/watch?v=..." oninput="updateYouTubePreview('tahsili')"></div>
+              <iframe id="tahsili-yt-preview" class="yt-preview" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <div class="cnt-panel" id="tahsili-cnt-1" style="display:none">
+              <div class="fg"><label class="fl">رابط فيديو</label><input class="fi" placeholder="https://..."></div>
+            </div>
+            <div class="cnt-panel" id="tahsili-cnt-2" style="display:none">
+              <div class="fg"><label class="fl">ملف PDF</label><input class="fi" type="file" accept=".pdf" style="padding:6px"></div>
+            </div>
+            <div class="cnt-panel" id="tahsili-cnt-3" style="display:none">
+              <div class="q-editor">
+                <div class="sym-bar">
+                  <button type="button" class="sym-b" style="color:var(--teal)" onclick="iSym('س','tahsili-text-area')">س</button>
+                  <button type="button" class="sym-b" style="color:var(--teal)" onclick="iSym('ص','tahsili-text-area')">ص</button>
+                  <button type="button" class="sym-b" onclick="iSym('×','tahsili-text-area')">×</button>
+                  <button type="button" class="sym-b" onclick="iSym('÷','tahsili-text-area')">÷</button>
+                  <button type="button" class="sym-b" onclick="iSym('√','tahsili-text-area')">√</button>
+                  <button type="button" class="sym-b" onclick="iSym('²','tahsili-text-area')">²</button>
+                  <button type="button" class="sym-b" onclick="iSym('π','tahsili-text-area')">π</button>
+                  <button type="button" class="sym-b" onclick="iSym('Δ','tahsili-text-area')">Δ</button>
+                </div>
+                <div class="q-area" id="tahsili-text-area" contenteditable="true" placeholder="اكتبي شرح الدرس هنا..." style="min-height:120px"></div>
+              </div>
+            </div>
+
+            <div class="btn-row" style="justify-content:flex-end">
+              <button type="button" class="btn btn-b" onclick="goTahsiliStep(2)">التالي — الاختبار البعدي ←</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- مرحلة ٢: الاختبار البعدي -->
+      <div class="panel" id="tahsili-step2">
+        <div class="card">
+          <div class="ch">
+            <span class="ct"><span class="ct-dot" style="background:var(--green)"></span> الاختبار البعدي — <span id="tahsili-subject-label2">رياضيات</span></span>
+            <span class="bd bp">بعد الدرس</span>
+          </div>
+          <div class="cb">
+            <div class="g3">
+              <div class="fg"><label class="fl">عدد الأسئلة</label><input class="fi" type="number" id="t-post-count" value="10"></div>
+              <div class="fg"><label class="fl">الوقت (دقيقة)</label><input class="fi" type="number" id="t-post-time" value="15"></div>
+              <div class="fg"><label class="fl">درجة النجاح %</label><input class="fi" type="number" id="t-post-pass" value="70"></div>
+            </div>
+
+            <div style="margin-top:14px">
+              <div class="tabs-row">
+                <button class="tab on" onclick="swQTab('t-post','manual',this)">✏️ إضافة يدوية</button>
+                <button class="tab" onclick="swQTab('t-post','excel',this)">📤 رفع Excel</button>
+              </div>
+
+              <div class="tab-content on" id="t-post-manual">
+                <div class="q-editor">
+                  <div class="q-toolbar">
+                    <button type="button" class="q-tb-btn math" onclick="smartLatexOpen('t-post-q-area')">∑ معادلة</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--orange)" onclick="smartOcrOpen('t-post-q-area')">📷 OCR</button>
+                    <div class="q-tb-sep"></div>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('س','t-post-q-area')">س</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ص','t-post-q-area')">ص</button>
+                    <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ع','t-post-q-area')">ع</button>
+                    <div class="q-tb-sep"></div>
+                    <button type="button" class="q-tb-btn" onclick="iSym('×','t-post-q-area')">×</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('÷','t-post-q-area')">÷</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('√','t-post-q-area')">√</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('²','t-post-q-area')">²</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('π','t-post-q-area')">π</button>
+                    <button type="button" class="q-tb-btn" onclick="iSym('Δ','t-post-q-area')">Δ</button>
+                  </div>
+                  <div class="math-inline" id="t-post-math" style="display:none">
+                    <input type="text" class="math-inp" id="t-post-math-inp" placeholder="\frac{3}{4}" oninput="prevMath('t-post-math-prev','t-post-math-inp')">
+                    <div class="math-prev" id="t-post-math-prev"></div>
+                    <button type="button" class="ins-btn" onclick="insMath('t-post-math-inp','t-post-q-area')">إدراج ←</button>
+                  </div>
+                  <div class="q-area" id="t-post-q-area" contenteditable="true" placeholder="نص السؤال..."></div>
+                </div>
+
+                <div class="opts-grid">
+                  <div class="opt-box" id="t-post-opt-A"><div class="opt-head"><div class="opt-letter" id="t-post-letter-A">أ</div><span class="opt-name">الخيار أ</span><button type="button" class="opt-set-btn" id="t-post-setbtn-A" onclick="setAns('t-post','A')">✓ صحيح</button></div><div class="opt-area" id="t-post-opt-area-A" contenteditable="true" placeholder="أ..."></div></div>
+                  <div class="opt-box" id="t-post-opt-B"><div class="opt-head"><div class="opt-letter" id="t-post-letter-B">ب</div><span class="opt-name">الخيار ب</span><button type="button" class="opt-set-btn" id="t-post-setbtn-B" onclick="setAns('t-post','B')">✓ صحيح</button></div><div class="opt-area" id="t-post-opt-area-B" contenteditable="true" placeholder="ب..."></div></div>
+                  <div class="opt-box" id="t-post-opt-C"><div class="opt-head"><div class="opt-letter" id="t-post-letter-C">ج</div><span class="opt-name">الخيار ج</span><button type="button" class="opt-set-btn" id="t-post-setbtn-C" onclick="setAns('t-post','C')">✓ صحيح</button></div><div class="opt-area" id="t-post-opt-area-C" contenteditable="true" placeholder="ج..."></div></div>
+                  <div class="opt-box" id="t-post-opt-D"><div class="opt-head"><div class="opt-letter" id="t-post-letter-D">د</div><span class="opt-name">الخيار د</span><button type="button" class="opt-set-btn" id="t-post-setbtn-D" onclick="setAns('t-post','D')">✓ صحيح</button></div><div class="opt-area" id="t-post-opt-area-D" contenteditable="true" placeholder="د..."></div></div>
+                </div>
+
+                <div class="g2">
+                  <div class="fg"><label class="fl">المهارة المرتبطة</label><input class="fi" id="t-post-skill" placeholder="مثال: قوانين نيوتن"></div>
+                  <div class="fg"><label class="fl">تغذية راجعة</label><input class="fi" id="t-post-feedback" placeholder="شرح الإجابة..."></div>
+                </div>
+
+                <div style="display:flex;gap:7px;margin-top:8px">
+                  <button type="button" class="btn btn-g btn-sm" onclick="addQ('t-post')">➕ إضافة للقائمة</button>
+                  <button type="button" class="btn btn-b btn-sm" onclick="clearQForm('t-post')">🔄 مسح</button>
+                </div>
+              </div>
+
+              <div class="tab-content" id="t-post-excel">
+                <div class="excel-zone" onclick="document.getElementById('t-post-excel-file').click()">
+                  <div style="font-size:24px;margin-bottom:6px">📊</div>
+                  <div style="font-size:11px;color:var(--text2);font-weight:600">رفع أسئلة من Excel</div>
+                  <input type="file" id="t-post-excel-file" accept=".xlsx,.xls" style="display:none" onchange="loadExcel('t-post',this)">
+                </div>
+              </div>
+
+              <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border)">
+                <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:7px">الأسئلة: <span class="bd bp" id="t-post-count-badge">٠</span></div>
+                <div id="t-post-list"><div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد</div></div>
+              </div>
+            </div>
+
+            <div class="btn-row" style="justify-content:space-between">
+              <button type="button" class="btn btn-b btn-sm" onclick="goTahsiliStep(1)">→ السابق</button>
+              <button type="button" class="btn btn-g" onclick="saveSection('tahsili')">🚀 حفظ الدرس</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-        </form>
-<!-- ══════ عرض مهارة موجودة ══════ -->
-    <div id="panel-view" class="panel">
-      <div class="empty">
-        <div class="empty-icon">📚</div>
-        <div class="empty-text">اختاري مهارة من القائمة</div>
-        <div class="empty-sub">أو أضيفي مهارة جديدة بالضغط على ➕</div>
+
+    <!-- ╔══════════════════════════════════════════╗ -->
+    <!-- ║     SECTION 3: بنك الأسئلة (QUESTION BANK) ║ -->
+    <!-- ╚══════════════════════════════════════════╝ -->
+    <div class="section" id="sec-bank">
+      <div class="sec-header">
+        <h2 style="color:var(--purple)">🗃️ بنك الأسئلة</h2>
+        <p>أضيفي أسئلة مباشرة في أحد البنوك الستة — كل بنك مستقل ويمكنك السحب منه لاحقاً في الاختبارات</p>
+      </div>
+
+      <div class="bank-grid">
+        <button class="bank-btn on" onclick="switchBank(0,this)">🔢 قدرات كمي</button>
+        <button class="bank-btn" onclick="switchBank(1,this)">📝 قدرات لفظي</button>
+        <button class="bank-btn" onclick="switchBank(2,this)">📐 تحصيلي رياضيات</button>
+        <button class="bank-btn" onclick="switchBank(3,this)">⚡ تحصيلي فيزياء</button>
+        <button class="bank-btn" onclick="switchBank(4,this)">🧬 تحصيلي أحياء</button>
+        <button class="bank-btn" onclick="switchBank(5,this)">🧪 تحصيلي كيمياء</button>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <span class="ct"><span class="ct-dot" style="background:var(--purple)"></span> <span id="bank-title">قدرات كمي</span> — بنك الأسئلة</span>
+          <span class="bd be" id="bank-q-count-badge">٠ أسئلة</span>
+        </div>
+        <div class="cb">
+          <div class="tabs-row">
+            <button class="tab on" onclick="swQTab('bank','manual',this)">✏️ إضافة يدوية</button>
+            <button class="tab" onclick="swQTab('bank','excel',this)">📤 رفع Excel</button>
+          </div>
+
+          <div class="tab-content on" id="bank-manual">
+            <div class="q-editor">
+              <div class="q-toolbar">
+                <button type="button" class="q-tb-btn math" onclick="smartLatexOpen('bank-q-area')">∑ معادلة</button>
+                <button type="button" class="q-tb-btn" style="color:var(--orange)" onclick="smartOcrOpen('bank-q-area')">📷 OCR</button>
+                <div class="q-tb-sep"></div>
+                <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('س','bank-q-area')">س</button>
+                <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ص','bank-q-area')">ص</button>
+                <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ع','bank-q-area')">ع</button>
+                <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('م','bank-q-area')">م</button>
+                <button type="button" class="q-tb-btn" style="color:var(--teal)" onclick="iSym('ن','bank-q-area')">ن</button>
+                <div class="q-tb-sep"></div>
+                <button type="button" class="q-tb-btn" onclick="iSym('×','bank-q-area')">×</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('÷','bank-q-area')">÷</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('±','bank-q-area')">±</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('≠','bank-q-area')">≠</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('≤','bank-q-area')">≤</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('≥','bank-q-area')">≥</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('√','bank-q-area')">√</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('²','bank-q-area')">²</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('³','bank-q-area')">³</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('½','bank-q-area')">½</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('π','bank-q-area')">π</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('∞','bank-q-area')">∞</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('∠','bank-q-area')">∠</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('°','bank-q-area')">°</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('Δ','bank-q-area')">Δ</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('⊥','bank-q-area')">⊥</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('∥','bank-q-area')">∥</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('α','bank-q-area')">α</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('β','bank-q-area')">β</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('θ','bank-q-area')">θ</button>
+                <button type="button" class="q-tb-btn" onclick="iSym('Σ','bank-q-area')">Σ</button>
+              </div>
+              <div class="math-inline" id="bank-math" style="display:none">
+                <input type="text" class="math-inp" id="bank-math-inp" placeholder="\frac{3}{4} أو x^2+5x=0" oninput="prevMath('bank-math-prev','bank-math-inp')">
+                <div class="math-prev" id="bank-math-prev"></div>
+                <button type="button" class="ins-btn" onclick="insMath('bank-math-inp','bank-q-area')">إدراج ←</button>
+              </div>
+              <div class="q-area" id="bank-q-area" contenteditable="true" placeholder="اكتبي نص السؤال..."></div>
+            </div>
+
+            <div class="opts-grid">
+              <div class="opt-box" id="bank-opt-A"><div class="opt-head"><div class="opt-letter" id="bank-letter-A">أ</div><span class="opt-name">الخيار أ</span><button type="button" class="opt-set-btn" id="bank-setbtn-A" onclick="setAns('bank','A')">✓ صحيح</button></div><div class="opt-area" id="bank-opt-area-A" contenteditable="true" placeholder="أ..."></div></div>
+              <div class="opt-box" id="bank-opt-B"><div class="opt-head"><div class="opt-letter" id="bank-letter-B">ب</div><span class="opt-name">الخيار ب</span><button type="button" class="opt-set-btn" id="bank-setbtn-B" onclick="setAns('bank','B')">✓ صحيح</button></div><div class="opt-area" id="bank-opt-area-B" contenteditable="true" placeholder="ب..."></div></div>
+              <div class="opt-box" id="bank-opt-C"><div class="opt-head"><div class="opt-letter" id="bank-letter-C">ج</div><span class="opt-name">الخيار ج</span><button type="button" class="opt-set-btn" id="bank-setbtn-C" onclick="setAns('bank','C')">✓ صحيح</button></div><div class="opt-area" id="bank-opt-area-C" contenteditable="true" placeholder="ج..."></div></div>
+              <div class="opt-box" id="bank-opt-D"><div class="opt-head"><div class="opt-letter" id="bank-letter-D">د</div><span class="opt-name">الخيار د</span><button type="button" class="opt-set-btn" id="bank-setbtn-D" onclick="setAns('bank','D')">✓ صحيح</button></div><div class="opt-area" id="bank-opt-area-D" contenteditable="true" placeholder="د..."></div></div>
+            </div>
+
+            <div class="g2">
+              <div class="fg"><label class="fl">المهارة المرتبطة</label><input class="fi" id="bank-skill" placeholder="مثال: التناسب"></div>
+              <div class="fg"><label class="fl">تغذية راجعة</label><input class="fi" id="bank-feedback" placeholder="شرح الإجابة..."></div>
+            </div>
+
+            <div style="display:flex;gap:7px;margin-top:8px">
+              <button type="button" class="btn btn-g btn-sm" onclick="addQ('bank')">➕ إضافة للقائمة</button>
+              <button type="button" class="btn btn-b btn-sm" onclick="clearQForm('bank')">🔄 مسح</button>
+            </div>
+          </div>
+
+          <div class="tab-content" id="bank-excel">
+            <div style="background:var(--bg3);border-radius:8px;padding:10px;margin-bottom:10px;font-size:10px;color:var(--text3);line-height:2">
+              <strong style="color:var(--green)">شكل ملف Excel:</strong><br>
+              A: نص السؤال | B: خيار أ | C: خيار ب | D: خيار ج | E: خيار د | F: الإجابة (A/B/C/D) | G: المهارة | H: التغذية
+            </div>
+            <div class="excel-zone" onclick="document.getElementById('bank-excel-file').click()">
+              <div style="font-size:24px;margin-bottom:6px">📊</div>
+              <div style="font-size:11px;color:var(--text2);font-weight:600">رفع أسئلة من Excel</div>
+              <input type="file" id="bank-excel-file" accept=".xlsx,.xls" style="display:none" onchange="loadExcel('bank',this)">
+            </div>
+          </div>
+
+          <div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:7px">أسئلة البنك:</div>
+            <div id="bank-list"><div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد — أضيفي سؤالاً أعلاه</div></div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- ══════ معاينة الطباعة ══════ -->
-    <div id="panel-print" class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div style="font-size:15px;font-weight:800">🖨️ معاينة الطباعة</div>
-        <div style="display:flex;gap:8px">
-          <select id="print-type-select" class="fi" style="width:auto" onchange="updatePrintPreview()">
-            <option value="pre">الاختبار القبلي</option>
-            <option value="post">الاختبار البعدي</option>
-          </select>
-          <button class="btn btn-g" onclick="window.print()">🖨️ طباعة الآن</button>
-        </div>
-      </div>
-
-      <!-- ورقة الطباعة -->
-      <div id="print-doc" style="background:white;color:#1e293b;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;font-family:'Tajawal',sans-serif">
-        <!-- الهيدر -->
-        <div style="background:linear-gradient(135deg,#0d4f35,#1a3a6b);padding:16px 22px;color:white">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <div style="width:50px;height:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px">🏛️</div>
-            <div style="text-align:center;flex:1;padding:0 14px">
-              <div style="font-size:10px;opacity:0.75;margin-bottom:2px">المملكة العربية السعودية — وزارة التعليم</div>
-              <div style="font-size:10px;opacity:0.75;margin-bottom:4px">الإدارة العامة للتعليم بمنطقة الحدود الشمالية</div>
-              <div style="font-size:14px;font-weight:800" id="print-school-name">مدرسة النور الثانوية</div>
-              <div style="font-size:10px;opacity:0.75;margin-top:2px" id="print-principal">مديرة المدرسة: —</div>
-            </div>
-            <div style="width:50px;height:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px">📚</div>
-          </div>
-          <div style="height:1px;background:rgba(255,255,255,0.2);margin:10px 0"></div>
-          <div style="font-size:14px;font-weight:800;text-align:center;margin-bottom:10px" id="print-title">اختبار — —</div>
-          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px">
-              <div style="font-size:8px;opacity:0.65">القسم</div>
-              <div style="font-size:10px;font-weight:700" id="print-section">—</div>
-            </div>
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px">
-              <div style="font-size:8px;opacity:0.65">نوع الاختبار</div>
-              <div style="font-size:10px;font-weight:700" id="print-exam-type">—</div>
-            </div>
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px">
-              <div style="font-size:8px;opacity:0.65">عدد الأسئلة</div>
-              <div style="font-size:10px;font-weight:700" id="print-q-count">—</div>
-            </div>
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px">
-              <div style="font-size:8px;opacity:0.65">الزمن</div>
-              <div style="font-size:10px;font-weight:700" id="print-time">— دقيقة</div>
-            </div>
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px">
-              <div style="font-size:8px;opacity:0.65">درجة النجاح</div>
-              <div style="font-size:10px;font-weight:700" id="print-pass">—%</div>
-            </div>
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px">
-              <div style="font-size:8px;opacity:0.65">المعلمة</div>
-              <div style="font-size:10px;font-weight:700" id="print-teacher-name">—</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- بيانات الطالبة -->
-        <div style="padding:14px 22px;background:white">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px;padding:10px;border:1px solid #e2e8f0;border-radius:7px;background:#f8fafc">
-            <div><div style="font-size:9px;color:#64748b;font-weight:600">اسم الطالبة</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px;min-height:20px"></div></div>
-            <div><div style="font-size:9px;color:#64748b;font-weight:600">الفصل</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px;font-size:11px" id="print-class">—</div></div>
-            <div><div style="font-size:9px;color:#64748b;font-weight:600">التاريخ</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px;min-height:20px"></div></div>
-            <div><div style="font-size:9px;color:#64748b;font-weight:600">الدرجة</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px;font-size:11px">......... / <span id="print-total">10</span></div></div>
-          </div>
-
-          <!-- التعليمات -->
-          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:#1e40af;border-right:3px solid #3b82f6">
-            <strong>تعليمات:</strong> اقرئي كل سؤال بعناية واختاري الإجابة الصحيحة. لا يُسمح باستخدام الآلة الحاسبة.
-          </div>
-
-          <!-- الأسئلة -->
-          <div id="print-questions"></div>
-        </div>
-
-        <!-- الفوتر -->
-        <div style="background:#f8fafc;border-top:2px solid #e2e8f0;padding:10px 22px;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#64748b">
-          <div>منصة آمنة التعليمية</div>
-          <div style="text-align:center">توقيع المعلمة: ________________________<br><span style="font-size:8px" id="print-teacher-sig">—</span></div>
-          <div id="print-date-footer">—</div>
-        </div>
-      </div>
-    </div>
-    <!-- ══════ معاينة الطباعة ══════ -->
-    <div id="panel-print" class="panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <div style="font-size:15px;font-weight:800">🖨️ معاينة الطباعة</div>
-        <div style="display:flex;gap:8px">
-          <select id="print-type-select" class="fi" style="width:auto" onchange="updatePrintPreview()">
-            <option value="pre">الاختبار القبلي</option>
-            <option value="post">الاختبار البعدي</option>
-          </select>
-          <button class="btn btn-g" onclick="window.print()">🖨️ طباعة الآن</button>
-          <button class="btn btn-b" onclick="document.getElementById('panel-print').classList.remove('on');document.getElementById('panel-view').classList.add('on')">← رجوع</button>
-        </div>
-      </div>
-
-      <div id="print-doc" style="background:white;color:#1e293b;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;font-family:'Tajawal',sans-serif">
-        <div style="background:linear-gradient(135deg,#0d4f35,#1a3a6b);padding:16px 22px;color:white">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <div style="width:50px;height:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px">🏛️</div>
-            <div style="text-align:center;flex:1;padding:0 14px">
-              <div style="font-size:10px;opacity:0.75;margin-bottom:2px">المملكة العربية السعودية — وزارة التعليم</div>
-              <div style="font-size:10px;opacity:0.75;margin-bottom:4px">الإدارة العامة للتعليم بمنطقة الحدود الشمالية</div>
-              <div style="font-size:14px;font-weight:800">مدرسة النور الثانوية</div>
-              <div style="font-size:10px;opacity:0.75;margin-top:2px">مديرة المدرسة: —</div>
-            </div>
-            <div style="width:50px;height:50px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:22px">📚</div>
-          </div>
-          <div style="height:1px;background:rgba(255,255,255,0.2);margin:10px 0"></div>
-          <div style="font-size:14px;font-weight:800;text-align:center;margin-bottom:10px" id="print-title">اختبار — —</div>
-          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px">
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">القسم</div><div style="font-size:10px;font-weight:700" id="print-section">—</div></div>
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">نوع الاختبار</div><div style="font-size:10px;font-weight:700" id="print-exam-type">—</div></div>
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">عدد الأسئلة</div><div style="font-size:10px;font-weight:700" id="print-q-count">—</div></div>
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">الزمن</div><div style="font-size:10px;font-weight:700" id="print-time">—</div></div>
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">درجة النجاح</div><div style="font-size:10px;font-weight:700" id="print-pass">—</div></div>
-            <div style="text-align:center;background:rgba(255,255,255,0.08);border-radius:6px;padding:5px"><div style="font-size:8px;opacity:0.65">المعلمة</div><div style="font-size:10px;font-weight:700" id="print-teacher-name">—</div></div>
-          </div>
-        </div>
-
-        <div style="padding:14px 22px;background:white">
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px;padding:10px;border:1px solid #e2e8f0;border-radius:7px;background:#f8fafc">
-            <div><div style="font-size:9px;color:#64748b;font-weight:600">اسم الطالبة</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px;min-height:20px"></div></div>
-            <div><div style="font-size:9px;color:#64748b;font-weight:600">الفصل</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px;font-size:11px" id="print-class">—</div></div>
-            <div><div style="font-size:9px;color:#64748b;font-weight:600">التاريخ</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px;min-height:20px"></div></div>
-            <div><div style="font-size:9px;color:#64748b;font-weight:600">الدرجة</div><div style="border-bottom:1.5px solid #cbd5e1;padding-bottom:3px;margin-top:3px">......... / <span id="print-total">10</span></div></div>
-          </div>
-
-          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:#1e40af;border-right:3px solid #3b82f6">
-            <strong>تعليمات:</strong> اقرئي كل سؤال بعناية واختاري الإجابة الصحيحة. لا يُسمح باستخدام الآلة الحاسبة.
-          </div>
-
-          <div id="print-questions">
-            <div style="text-align:center;padding:20px;color:#94a3b8;font-size:11px">أسئلة الاختبار ستظهر هنا</div>
-          </div>
-        </div>
-
-        <div style="background:#f8fafc;border-top:2px solid #e2e8f0;padding:10px 22px;display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#64748b">
-          <div>منصة آمنة التعليمية</div>
-          <div style="text-align:center">توقيع المعلمة: ________________________<br><span id="print-teacher-sig">—</span></div>
-          <div id="print-date-footer">—</div>
-        </div>
-      </div>
-    </div>
   </div><!-- end content -->
 </div><!-- end wrap -->
 
-<script>
-// ═══════════════════
-// CLOCK
-// ═══════════════════
-function upClk(){
-  const n=new Date();
-  document.getElementById('clk').textContent=
-    String(n.getHours()).padStart(2,'0')+':'+
-    String(n.getMinutes()).padStart(2,'0')+':'+
-    String(n.getSeconds()).padStart(2,'0');
-}
-setInterval(upClk,1000);upClk();
+<!-- ══════════════ FORM (hidden) ══════════════ -->
+<form method="post" action="/teachers/skills/add-complete/" id="mainForm" style="display:none">
+  {% csrf_token %}
+  <input type="hidden" name="content_type" id="form-content-type">
+  <input type="hidden" name="data" id="form-data">
+</form>
 
-// ═══════════════════
-// TYPE SELECTOR
-// ═══════════════════
-let currentType = 'skill';
-function setType(t){
-  currentType = t;
-  ['skill','lesson','bank'].forEach(x=>{
-    document.getElementById('type-'+x).classList.toggle('on', x===t);
-  });
-  document.getElementById('content_type_input').value = t;
-
-  // إظهار/إخفاء الحقول المناسبة
-  const isLesson = t==='lesson';
-  const isSkill = t==='skill';
-  document.getElementById('skill-type-group').style.display = isSkill ? 'block' : 'none';
-  document.getElementById('subject-group').style.display = isLesson ? 'block' : 'none';
-
-  // تحديث wizard للبنك
-  if(t==='bank'){
-    document.getElementById('wz2').style.display='none';
-    document.getElementById('wz3').innerHTML='<div class="wz-icon">❓</div><div class="wz-num">٣</div><div class="wz-label">الأسئلة</div>';
-    document.getElementById('wz4').style.display='none';
-    // تحديث عناوين الـ panels داخلياً
-    _updatePanelTitles('بنك أسئلة');
-  } else if(t==='lesson'){
-    // التحصيلي = شرح ثم بعدي فقط (لا قبلي)
-    document.getElementById('wz2').style.display='';
-    document.getElementById('wz3').innerHTML='<div class="wz-icon">📝</div><div class="wz-num">٣</div><div class="wz-label">الاختبار البعدي</div>';
-    document.getElementById('wz4').style.display='none';
-    _updatePanelTitles('الاختبار البعدي');
-  } else {
-    // قدرات = قبلي + شرح + بعدي
-    document.getElementById('wz2').style.display='';
-    document.getElementById('wz3').innerHTML='<div class="wz-icon">📝</div><div class="wz-num">٣</div><div class="wz-label">الاختبار القبلي</div>';
-    document.getElementById('wz4').style.display='';
-    _updatePanelTitles('الاختبار القبلي');
-  }
-}
-
-/* يحدّث كل العناوين داخل step 3 panel ليطابق نوع المحتوى */
-function _updatePanelTitles(title){
-  document.querySelectorAll('#step3 .ct, #step3 h3, #step3 .step-title-pre').forEach(el => {
-    if (el.textContent.includes('القبلي') || el.textContent.includes('الاختبار')) {
-      // نحافظ على prefix الإيقونة (إن وُجد قبل النص)
-      el.innerHTML = el.innerHTML.replace(/الاختبار القبلي|الاختبار البعدي|بنك أسئلة|الاختبار/g, title);
-    }
-  });
-}
-
-// ═══════════════════
-// WIZARD STEPS
-// ═══════════════════
-let currentStep = 1;
-function goStep(n){
-  // تحديث wizard
-  for(let i=1;i<=5;i++){
-    const wz = document.getElementById('wz'+i);
-    if(!wz) continue;
-    wz.classList.remove('on','done','locked');
-    if(i < n) wz.classList.add('done');
-    else if(i === n) wz.classList.add('on');
-    else wz.classList.add('locked');
-  }
-  // إظهار الخطوة
-  for(let i=1;i<=5;i++){
-    const s = document.getElementById('step'+i);
-    if(s) s.classList.toggle('on', i===n);
-  }
-  currentStep = n;
-  // تحديث الملخص
-  if(n===5) updateSummary();
-}
-
-function updateSummary(){
-  const type = document.getElementById('type-'+currentType);
-  if(type) document.getElementById('summary-type').textContent='🏷️ النوع: '+type.querySelector('.tc-name').textContent;
-  document.getElementById('pre-count-summary').textContent = preQuestions.length;
-  document.getElementById('post-count-summary').textContent = postQuestions.length;
-}
-
-// ═══════════════════
-// PANELS
-// ═══════════════════
-function showNewSkill(){
-  document.getElementById('panel-new').classList.add('on');
-  document.getElementById('panel-view').classList.remove('on');
-  document.querySelectorAll('.sk-item').forEach(i=>i.classList.remove('active'));
-  goStep(1);
-}
-
-function selectSkill(id, el){
-  document.querySelectorAll('.sk-item').forEach(i=>i.classList.remove('active'));
-  el.classList.add('active');
-
-  const skillName = el.querySelector('.sk-name').textContent;
-  const teacherName = '{{ teacher.full_name|default:"المعلمة" }}';
-  const targetClass = el.querySelector('.sk-meta span:nth-child(2)')?.textContent || '';
-
-  document.getElementById('panel-new').classList.remove('on');
-  document.getElementById('panel-print').classList.remove('on');
-  document.getElementById('panel-view').classList.add('on');
-
-  document.getElementById('panel-view').innerHTML = `
-    <div style="font-size:15px;font-weight:800;margin-bottom:14px">📚 ${skillName}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
-      <div class="card" style="cursor:pointer" onclick="showPrintPreview(${id},'${skillName}','pre','${teacherName}','${targetClass}')">
-        <div class="cb" style="text-align:center;padding:20px">
-          <div style="font-size:28px;margin-bottom:8px">🖨️</div>
-          <div style="font-size:12px;font-weight:700;color:var(--orange)">طباعة القبلي</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:4px">ورقة اختبار بديباجة رسمية</div>
-        </div>
-      </div>
-      <div class="card" style="cursor:pointer" onclick="showPrintPreview(${id},'${skillName}','post','${teacherName}','${targetClass}')">
-        <div class="cb" style="text-align:center;padding:20px">
-          <div style="font-size:28px;margin-bottom:8px">🖨️</div>
-          <div style="font-size:12px;font-weight:700;color:var(--green)">طباعة البعدي</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:4px">ورقة اختبار بديباجة رسمية</div>
-        </div>
-      </div>
-      <div class="card" style="cursor:pointer" onclick="alert('قيد التطوير')">
-        <div class="cb" style="text-align:center;padding:20px">
-          <div style="font-size:28px;margin-bottom:8px">📊</div>
-          <div style="font-size:12px;font-weight:700;color:var(--blue)">نتائج الطالبات</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:4px">تقارير الأداء والتحسن</div>
-        </div>
-      </div>
-      <div class="card" style="cursor:pointer" onclick="alert('قيد التطوير')">
-        <div class="cb" style="text-align:center;padding:20px">
-          <div style="font-size:28px;margin-bottom:8px">🔔</div>
-          <div style="font-size:12px;font-weight:700;color:var(--purple)">تفعيل الاختبار</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:4px">تحديد وقت وفصل</div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-function showPrintPreview(skillId, skillTitle, examType, teacherName, targetClass){
-  document.getElementById('panel-new').classList.remove('on');
-  document.getElementById('panel-view').classList.remove('on');
-  document.getElementById('panel-print').classList.add('on');
-
-  const typeLabel = examType==='pre' ? 'قبلي' : 'بعدي';
-  document.getElementById('print-title').textContent = `اختبار ${typeLabel} — ${skillTitle}`;
-  document.getElementById('print-exam-type').textContent = typeLabel;
-  document.getElementById('print-teacher-name').textContent = teacherName;
-  document.getElementById('print-teacher-sig').textContent = teacherName;
-  document.getElementById('print-class').textContent = targetClass;
-  document.getElementById('print-date-footer').textContent = new Date().toLocaleDateString('ar-SA');
-
-  fetch(`/teachers/skill/${skillId}/questions/`)
-    .then(r => r.json())
-    .then(data => {
-      const exam = data.exams.find(e => e.type === examType);
-      if(!exam){
-        document.getElementById('print-questions').innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8">لا توجد أسئلة لهذا الاختبار</div>';
-        return;
-      }
-      document.getElementById('print-q-count').textContent = exam.count;
-      document.getElementById('print-time').textContent = exam.time + ' دقيقة';
-      document.getElementById('print-pass').textContent = exam.pass_score + '%';
-      document.getElementById('print-total').textContent = exam.count;
-
-      const letters = {A:'أ', B:'ب', C:'ج', D:'د'};
-      let html = '';
-      exam.questions.forEach((q, i) => {
-        html += `
-          <div style="margin-bottom:16px;padding:12px;border:1px solid #e2e8f0;border-radius:8px;background:white">
-            <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:8px;display:flex;gap:8px">
-              <span style="background:#1e3a6b;color:white;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0">${i+1}</span>
-              <span>${q.text}</span>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-              ${['A','B','C','D'].map(opt => `
-                <div style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:5px;border:1px solid #e2e8f0;font-size:10px">
-                  <span style="width:18px;height:18px;border-radius:50%;border:1.5px solid #94a3b8;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">${letters[opt]}</span>
-                  ${q[opt.toLowerCase()] || '—'}
-                </div>
-              `).join('')}
-            </div>
-          </div>`;
-      });
-      document.getElementById('print-questions').innerHTML = html;
-    })
-    .catch(() => {
-      document.getElementById('print-questions').innerHTML = '<div style="text-align:center;padding:20px;color:#ef4444">خطأ في تحميل الأسئلة</div>';
-    });
-}
-  
-
-function updatePrintPreview(){
-  const t = document.getElementById('print-type-select').value;
-  const title = document.getElementById('print-title').textContent;
-  const typeLabel = t==='pre' ? 'قبلي' : 'بعدي';
-  document.getElementById('print-exam-type').textContent = typeLabel;
-}
-function useSharedSkill(id){
-  if(confirm('هل تريدين إضافة هذه المهارة لفصلك؟\nسيتم الاحتفاظ باسم المعلمة المنشئة.')){
-    alert('تم إضافة المهارة لفصلك! ✅');
-  }
-}
-
-// ═══════════════════
-// SYMBOLS & MATH
-// ═══════════════════
-function iSym(sym, fieldId){
-  const el = document.getElementById(fieldId);
-  if(!el) return;
-  el.focus();
-  const sel = window.getSelection();
-  if(sel && sel.rangeCount){
-    const r = sel.getRangeAt(0);
-    r.deleteContents();
-    r.insertNode(document.createTextNode(sym));
-    r.collapse(false);
-  } else {
-    el.textContent += sym;
-  }
-  triggerPreview(fieldId);
-}
-
-function toggleMathBar(id){
-  const bar = document.getElementById(id);
-  bar.style.display = bar.style.display==='none' ? 'flex' : 'none';
-}
-
-let mathTimer;
-function prevMath(prevId, inpId){
-  clearTimeout(mathTimer);
-  mathTimer = setTimeout(()=>{
-    const latex = document.getElementById(inpId).value;
-    const prev = document.getElementById(prevId);
-    if(!latex){ prev.innerHTML=''; return; }
-    prev.innerHTML = `\\(${latex}\\)`;
-    if(window.MathJax) MathJax.typesetPromise([prev]);
-  }, 400);
-}
-
-function insMath(inpId, fieldId){
-  const latex = document.getElementById(inpId).value.trim();
-  if(!latex) return;
-  iSym(` $${latex}$ `, fieldId);
-  document.getElementById(inpId).value = '';
-}
-
-// ═══════════════════
-// QUESTION PREVIEW
-// ═══════════════════
-let prevTimers = {};
-function triggerPreview(fieldId){
-  const previewId = fieldId.replace('-area','-prev').replace('-q-','-q-');
-  if(!document.getElementById(previewId)) return;
-  clearTimeout(prevTimers[fieldId]);
-  prevTimers[fieldId] = setTimeout(()=>{
-    const text = document.getElementById(fieldId).innerText || '';
-    const prev = document.getElementById(previewId);
-    prev.innerHTML = text || '<span style="color:var(--text3);font-size:10px">المعاينة...</span>';
-    if(window.MathJax) MathJax.typesetPromise([prev]);
-  }, 600);
-}
-
-document.addEventListener('input', e=>{
-  if(e.target.classList.contains('q-area')) triggerPreview(e.target.id);
-});
-
-// ═══════════════════
-// CORRECT ANSWER
-// ═══════════════════
-const answers = {pre:'A', post:'A'};
-const letters = {A:'أ', B:'ب', C:'ج', D:'د'};
-
-function setAns(exam, opt){
-  ['A','B','C','D'].forEach(o=>{
-    document.getElementById(exam+'-opt-'+o).classList.remove('correct');
-    document.getElementById(exam+'-letter-'+o).classList.remove('c');
-    document.getElementById(exam+'-setbtn-'+o).classList.remove('c');
-  });
-  document.getElementById(exam+'-opt-'+opt).classList.add('correct');
-  document.getElementById(exam+'-letter-'+opt).classList.add('c');
-  document.getElementById(exam+'-setbtn-'+opt).classList.add('c');
-  answers[exam] = opt;
-}
-setAns('pre','A');
-setAns('post','A');
-
-// ═══════════════════
-// QUESTIONS
-// ═══════════════════
-let preQuestions = [];
-let postQuestions = [];
-
-function addQ(exam){
-  const areaEl = document.getElementById(exam+'-q-area');
-  const text = areaEl ? (areaEl.innerText||'').trim() : '';
-  if(!text){ alert('يرجى كتابة نص السؤال أولاً'); return; }
-
-  const q = {
-    text,
-    a: (document.getElementById(exam+'-opt-area-A')||{}).innerText||'',
-    b: (document.getElementById(exam+'-opt-area-B')||{}).innerText||'',
-    c: (document.getElementById(exam+'-opt-area-C')||{}).innerText||'',
-    d: (document.getElementById(exam+'-opt-area-D')||{}).innerText||'',
-    correct: answers[exam],
-    feedback: (document.getElementById(exam+'-feedback')||{}).value||''
-  };
-
-  if(exam==='pre') preQuestions.push(q);
-  else postQuestions.push(q);
-
-  renderQList(exam);
-  clearQForm(exam);
-}
-
-function removeQ(exam, idx){
-  if(exam==='pre') preQuestions.splice(idx,1);
-  else postQuestions.splice(idx,1);
-  renderQList(exam);
-}
-
-function renderQList(exam){
-  const qs = exam==='pre' ? preQuestions : postQuestions;
-  const listEl = document.getElementById(exam+'-q-list');
-  const countEl = document.getElementById(exam+'-q-count');
-
-  countEl.textContent = qs.length + ' أسئلة';
-
-  if(qs.length===0){
-    listEl.innerHTML='<div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد</div>';
-    return;
-  }
-
-  listEl.innerHTML = qs.map((q,i)=>`
-    <div class="qi">
-      <div class="qi-head">
-        <div class="qi-num">${i+1}</div>
-        <div class="qi-text">${q.text.substring(0,80)}${q.text.length>80?'...':''}</div>
-        <span class="qi-correct">${letters[q.correct]} ✓</span>
-        <button class="qi-del" onclick="removeQ('${exam}',${i})">🗑️</button>
-      </div>
-    </div>
-  `).join('');
-
-  if(window.MathJax) MathJax.typesetPromise([listEl]);
-}
-
-function clearQForm(exam){
-  const area = document.getElementById(exam+'-q-area');
-  if(area) area.innerHTML='';
-  ['A','B','C','D'].forEach(o=>{
-    const a = document.getElementById(exam+'-opt-area-'+o);
-    if(a) a.innerHTML='';
-  });
-  const fb = document.getElementById(exam+'-feedback');
-  if(fb) fb.value='';
-  setAns(exam,'A');
-}
-
-// ═══════════════════
-// TAB SWITCHER
-// ═══════════════════
-function swQTab(exam, tab, btn){
-  ['manual','excel','mysc'].forEach(t=>{
-    const el = document.getElementById(exam+'-'+t);
-    if(el) el.classList.toggle('on', t===tab);
-  });
-  btn.closest('.tabs-row').querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-}
-
-// ═══════════════════
-// EXCEL LOAD (Preview)
-// ═══════════════════
-function loadExcel(exam, input){
-  if(!input.files[0]) return;
-  const prev = document.getElementById(exam+'-excel-preview');
-  prev.innerHTML=`<div style="padding:8px;background:rgba(15,186,129,0.06);border-radius:6px;font-size:10px;color:var(--green)">✅ تم اختيار: ${input.files[0].name} — سيتم الاستيراد عند الحفظ</div>`;
-  const zone = input.closest('.excel-zone');
-  if(zone) zone.classList.add('active');
-}
-
-// ═══════════════════
-// SAVE
-// ═══════════════════
-function saveSkill(activate){
-  const title = document.querySelector('input[name="title"]').value.trim();
-  if(!title){ alert('يرجى إدخال عنوان المهارة أولاً'); goStep(1); return; }
-
-  // جمع البيانات وإرسالها
-  const form = document.getElementById('skillForm');
-  const isActiveInput = document.createElement('input');
-  isActiveInput.type='hidden';
-  isActiveInput.name='is_active';
-  isActiveInput.value= activate ? 'on' : '';
-  form.appendChild(isActiveInput);
-
-  // حفظ الأسئلة في hidden fields
-  const preHidden = document.createElement('input');
-  preHidden.type='hidden';
-  preHidden.name='pre_questions';
-  preHidden.value=JSON.stringify(preQuestions);
-  form.appendChild(preHidden);
-
-  const postHidden = document.createElement('input');
-  postHidden.type='hidden';
-  postHidden.name='post_questions';
-  postHidden.value=JSON.stringify(postQuestions);
-  form.appendChild(postHidden);
-
-  const explainEl = document.getElementById('explain-area');
-  if(explainEl) document.getElementById('explain-hidden').value = explainEl.innerText||'';
-
-  form.submit();
-}
-
-/* ═══════════════════════════════════════════════════════════
-   ✨ المحرّر الذكي للأسئلة — مماثل لصفحة المديرة
-═══════════════════════════════════════════════════════════ */
-let smartTargetField = null;
-
-function smartLatex(targetId){
-  smartTargetField = targetId;
-  document.getElementById('smartLatexModal').style.display = 'flex';
-  document.getElementById('smartLatexPaste').value = '';
-  setTimeout(() => {
-    const ml = document.getElementById('smartMlField');
-    if (ml && ml.focus) ml.focus();
-  }, 60);
-}
-function smartLatexClose(){ document.getElementById('smartLatexModal').style.display = 'none'; }
-
-function smartLatexApply(){
-  const code = document.getElementById('smartLatexPaste').value.trim();
-  if (!code) { alert('انسخي كود المعادلة من المحرّر ثم الصقيه هنا'); return; }
-  const wrapped = code.startsWith('$') ? code : ('$' + code + '$');
-  if (!smartTargetField) { smartLatexClose(); return; }
-  const el = document.getElementById(smartTargetField);
-  if (el && el.contentEditable === 'true') {
-    el.focus(); document.execCommand('insertText', false, wrapped);
-  } else if (el) {
-    const s = el.selectionStart || 0, e = el.selectionEnd || 0;
-    el.value = el.value.slice(0,s) + wrapped + el.value.slice(e);
-  }
-  smartLatexClose();
-}
-function smartLatexTab(btn, panelId){
-  document.querySelectorAll('.smart-latex-tab').forEach(t => {
-    t.style.background='var(--card2)';t.style.color='var(--text)';t.style.fontWeight='700';
-  });
-  btn.style.background='linear-gradient(135deg,var(--green2),var(--blue2))';
-  btn.style.color='white';btn.style.fontWeight='800';
-  ['smart-mathlive','smart-myscript','smart-hostmath'].forEach(id => {
-    const f = document.getElementById(id);
-    if (!f) return;
-    f.style.display = (id === panelId) ? (id === 'smart-mathlive' ? 'flex' : 'block') : 'none';
-  });
-}
-function smartCopyMl(){
-  const ml = document.getElementById('smartMlField');
-  if (!ml) return;
-  const code = ml.getValue('latex') || ml.value || '';
-  if (!code.trim()) { alert('اكتبي معادلة أولاً'); return; }
-  document.getElementById('smartLatexPaste').value = code;
-}
-
-/* OCR للمحرر الذكي */
-let smartOcrFile = null, smartOcrText = null;
-function smartOcrOpen(targetId){
-  smartTargetField = targetId;
-  document.getElementById('smartOcrModal').style.display = 'flex';
-  document.getElementById('smartOcrPreview').style.display = 'none';
-  document.getElementById('smartOcrResult').style.display = 'none';
-  document.getElementById('smartOcrApply').style.display = 'none';
-  document.getElementById('smartOcrAsImg').style.display = 'none';
-  document.getElementById('smartOcrStart').style.display = 'none';
-  document.getElementById('smartOcrProgress').style.display = 'none';
-}
-function smartOcrClose(){ document.getElementById('smartOcrModal').style.display = 'none'; }
-
-function smartOcrFileChange(f){
-  smartOcrFile = f;
-  document.getElementById('smartOcrPreview').src = URL.createObjectURL(f);
-  document.getElementById('smartOcrPreview').style.display = 'block';
-  document.getElementById('smartOcrStart').style.display = 'inline-flex';
-  document.getElementById('smartOcrAsImg').style.display = 'inline-flex';
-}
-
-async function smartOcrRun(){
-  if (!smartOcrFile) return;
-  document.getElementById('smartOcrProgress').style.display = 'block';
-  document.getElementById('smartOcrStart').style.display = 'none';
-  const bar = document.getElementById('smartOcrBar');
-  const pct = document.getElementById('smartOcrPct');
-  bar.style.width = '0%'; pct.textContent = '0%';
-  try {
-    const { data } = await Tesseract.recognize(smartOcrFile, 'ara+eng', {
-      logger: m => {
-        if (m.status === 'recognizing text') {
-          const p = Math.round(m.progress*100);
-          bar.style.width = p+'%'; pct.textContent = p+'%';
-        }
-      }
-    });
-    smartOcrText = (data.text || '').trim();
-    document.getElementById('smartOcrResult').style.display = 'block';
-    document.getElementById('smartOcrResult').textContent = smartOcrText || '(لم يُستخرج نص)';
-    document.getElementById('smartOcrApply').style.display = 'inline-flex';
-    document.getElementById('smartOcrProgress').style.display = 'none';
-  } catch (e) {
-    document.getElementById('smartOcrResult').style.display = 'block';
-    document.getElementById('smartOcrResult').textContent = '❌ ' + (e.message || e);
-  }
-}
-
-function smartOcrApplyText(){
-  if (!smartOcrText || !smartTargetField) { smartOcrClose(); return; }
-  const el = document.getElementById(smartTargetField);
-  if (el && el.contentEditable === 'true') {
-    el.focus(); document.execCommand('insertText', false, smartOcrText);
-  } else if (el) {
-    const s = el.selectionStart || 0, e = el.selectionEnd || 0;
-    el.value = el.value.slice(0,s) + smartOcrText + el.value.slice(e);
-  }
-  smartOcrClose();
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const inp = document.getElementById('smartOcrFileInp');
-  if (inp) inp.addEventListener('change', e => { if (e.target.files[0]) smartOcrFileChange(e.target.files[0]); });
-});
-</script>
-
-<!-- Modal: LaTeX (مع MathLive + MyScript + HostMath) -->
-<div id="smartLatexModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(6px)">
+<!-- ══════════════ MODAL: SMART LATEX ══════════════ -->
+<div class="modal-overlay" id="smartLatexModal">
   <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:1000px;height:660px;display:flex;flex-direction:column;overflow:hidden;margin:auto">
-    <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg2)">
+    <div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,var(--bg2),var(--bg3))">
       <div style="font-size:13px;font-weight:800">∑ محرّر المعادلات الذكي</div>
-      <button onclick="smartLatexClose()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 12px;cursor:pointer">✕</button>
+      <button onclick="smartLatexClose()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:14px">✕</button>
     </div>
     <div style="display:flex;gap:4px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap">
-      <button type="button" class="smart-latex-tab" onclick="smartLatexTab(this,'smart-mathlive')" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:none;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800">✏️ MathLive (مثل Word)</button>
+      <button type="button" class="smart-latex-tab" onclick="smartLatexTab(this,'smart-mathlive')" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:none;padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800">✏️ MathLive</button>
       <button type="button" class="smart-latex-tab" onclick="smartLatexTab(this,'smart-myscript')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">✍️ MyScript</button>
       <button type="button" class="smart-latex-tab" onclick="smartLatexTab(this,'smart-hostmath')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">🧮 HostMath</button>
     </div>
     <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
       <div id="smart-mathlive" style="display:flex;flex-direction:column;flex:1;padding:20px;background:white;color:#111;overflow-y:auto">
-        <div style="font-size:12px;color:#1e293b;margin-bottom:10px;font-weight:700">📝 اكتبي المعادلة كما في Word — اختصارات: <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">1/2</code> كسر، <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">x^2</code> أس، <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">sqrt 2</code> جذر</div>
+        <div style="font-size:12px;color:#1e293b;margin-bottom:10px;font-weight:700">اكتبي المعادلة — اختصارات: <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">1/2</code> كسر، <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">x^2</code> أس، <code style="background:#f1f5f9;padding:1px 5px;border-radius:3px">sqrt 2</code> جذر</div>
         <math-field id="smartMlField" virtual-keyboard-mode="manual" style="min-height:160px;font-size:22px;border:2px solid #cbd5e1;border-radius:11px;padding:18px;background:#fff;color:#0f172a;direction:ltr"></math-field>
-        <button type="button" onclick="smartCopyMl()" style="margin-top:12px;background:linear-gradient(135deg,#10b981,#3b82f6);color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;align-self:flex-start">📋 نسخ الكود إلى أسفل</button>
+        <button type="button" onclick="smartCopyMl()" style="margin-top:12px;background:linear-gradient(135deg,#10b981,#3b82f6);color:white;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;align-self:flex-start">📋 نسخ الكود</button>
       </div>
       <iframe id="smart-myscript" src="https://webdemo.myscript.com/views/math/index.html" style="display:none;flex:1;border:none"></iframe>
       <iframe id="smart-hostmath" src="https://www.hostmath.com/" style="display:none;flex:1;border:none"></iframe>
       <div style="padding:10px 14px;background:var(--bg3);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
         <input id="smartLatexPaste" placeholder="الصقي كود المعادلة هنا" style="flex:1;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:monospace;font-size:12px;padding:7px 10px;border-radius:7px;outline:none;direction:ltr;text-align:left">
-        <button type="button" onclick="smartLatexApply()" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);padding:8px 16px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;white-space:nowrap">✅ إدراج</button>
+        <button type="button" onclick="smartLatexApply()" style="background:linear-gradient(135deg,var(--green),var(--blue));color:white;border:none;padding:8px 16px;border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;white-space:nowrap">✅ إدراج</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal: OCR -->
-<div id="smartOcrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(6px)">
+<!-- ══════════════ MODAL: SMART OCR ══════════════ -->
+<div class="modal-overlay" id="smartOcrModal">
   <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:20px;width:100%;max-width:520px;margin:auto">
     <div style="font-size:13px;font-weight:800;margin-bottom:14px">📷 المسح الضوئي الذكي</div>
     <div onclick="document.getElementById('smartOcrFileInp').click()" style="border:2px dashed var(--border2);border-radius:11px;padding:30px 20px;text-align:center;background:var(--bg3);cursor:pointer;margin-bottom:14px">
@@ -1594,13 +1012,421 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
     <div id="smartOcrResult" style="display:none;background:var(--card2);border:1px solid var(--border2);border-radius:9px;padding:11px 13px;font-size:11px;line-height:1.8;white-space:pre-wrap;direction:rtl;text-align:right;color:var(--text);margin-bottom:10px"></div>
     <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
-      <button type="button" onclick="smartOcrClose()" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.3);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Tajawal',sans-serif">إلغاء</button>
-      <button type="button" id="smartOcrAsImg" onclick="smartOcrClose()" style="display:none;background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.3);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Tajawal',sans-serif">🖼️ احتفظي بالصورة</button>
-      <button type="button" id="smartOcrApply" onclick="smartOcrApplyText()" style="display:none;background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Tajawal',sans-serif">✅ إدراج النص</button>
-      <button type="button" id="smartOcrStart" onclick="smartOcrRun()" style="display:none;background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.3);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;font-family:'Tajawal',sans-serif">🔍 بدء المسح</button>
+      <button type="button" onclick="smartOcrClose()" class="btn btn-r btn-sm">إلغاء</button>
+      <button type="button" id="smartOcrStart" onclick="smartOcrRun()" style="display:none" class="btn btn-o btn-sm">🔍 بدء المسح</button>
+      <button type="button" id="smartOcrApply" onclick="smartOcrApplyText()" style="display:none" class="btn btn-g btn-sm">✅ إدراج النص</button>
     </div>
   </div>
 </div>
+
+<script>
+// ═══════════════════════════════════════
+// CLOCK
+// ═══════════════════════════════════════
+function upClk(){
+  const n=new Date();
+  document.getElementById('clk').textContent=
+    String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0')+':'+String(n.getSeconds()).padStart(2,'0');
+}
+setInterval(upClk,1000);upClk();
+
+// ═══════════════════════════════════════
+// SECTION SWITCHING
+// ═══════════════════════════════════════
+function switchSection(name, btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('sec-'+name).classList.add('on');
+  btn.classList.add('on');
+}
+
+// ═══════════════════════════════════════
+// QODRAT: ABILITY TYPE + WIZARD
+// ═══════════════════════════════════════
+let qodratType = 'lafzy';
+function switchAbilityType(type, btn){
+  qodratType = type;
+  document.querySelectorAll('#ability-type-tabs .sub-tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  const label = type==='lafzy' ? 'لفظي' : 'كمي';
+  const el1 = document.getElementById('qodrat-type-label');
+  const el2 = document.getElementById('qodrat-type-label2');
+  if(el1) el1.textContent = label;
+  if(el2) el2.textContent = label;
+}
+
+function goQodratStep(n){
+  for(let i=1;i<=3;i++){
+    const wz = document.querySelectorAll('#wz-qodrat .wz-step')[i-1];
+    const panel = document.getElementById('qodrat-step'+i);
+    if(wz){wz.classList.remove('on','done','locked');if(i<n)wz.classList.add('done');else if(i===n)wz.classList.add('on');else wz.classList.add('locked')}
+    if(panel) panel.classList.toggle('on',i===n);
+  }
+}
+
+// ═══════════════════════════════════════
+// TAHSILI: SUBJECT + WIZARD
+// ═══════════════════════════════════════
+let tahsiliSubject = 'math';
+const subjectNames = {math:'رياضيات',phys:'فيزياء',bio:'أحياء',chem:'كيمياء'};
+function switchSubject(subj, btn){
+  tahsiliSubject = subj;
+  document.querySelectorAll('#sec-tahsili .sub-tabs .sub-tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  const el1 = document.getElementById('tahsili-subject-label');
+  const el2 = document.getElementById('tahsili-subject-label2');
+  if(el1) el1.textContent = subjectNames[subj];
+  if(el2) el2.textContent = subjectNames[subj];
+}
+
+function goTahsiliStep(n){
+  for(let i=1;i<=2;i++){
+    const wz = document.querySelectorAll('#wz-tahsili .wz-step')[i-1];
+    const panel = document.getElementById('tahsili-step'+i);
+    if(wz){wz.classList.remove('on','done','locked');if(i<n)wz.classList.add('done');else if(i===n)wz.classList.add('on');else wz.classList.add('locked')}
+    if(panel) panel.classList.toggle('on',i===n);
+  }
+}
+
+// ═══════════════════════════════════════
+// BANK SWITCHING
+// ═══════════════════════════════════════
+const bankNames = ['قدرات كمي','قدرات لفظي','تحصيلي رياضيات','تحصيلي فيزياء','تحصيلي أحياء','تحصيلي كيمياء'];
+let currentBank = 0;
+function switchBank(idx, btn){
+  currentBank = idx;
+  document.querySelectorAll('.bank-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('bank-title').textContent = bankNames[idx];
+}
+
+// ═══════════════════════════════════════
+// CONTENT TYPE SWITCHING
+// ═══════════════════════════════════════
+function switchContentType(section, idx, btn){
+  const parent = btn.closest('.cb') || btn.parentElement.parentElement;
+  parent.querySelectorAll('.cnt-tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  for(let i=0;i<4;i++){
+    const panel = document.getElementById(section+'-cnt-'+i);
+    if(panel) panel.style.display = (i===idx) ? 'block' : 'none';
+  }
+}
+
+// ═══════════════════════════════════════
+// YOUTUBE PREVIEW
+// ═══════════════════════════════════════
+function extractYouTubeId(url){
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function updateYouTubePreview(section){
+  const input = document.getElementById(section+'-yt-url');
+  const preview = document.getElementById(section+'-yt-preview');
+  if(!input||!preview) return;
+  const id = extractYouTubeId(input.value);
+  if(id){
+    preview.src = 'https://www.youtube.com/embed/'+id;
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+    preview.src = '';
+  }
+}
+
+// ═══════════════════════════════════════
+// SYMBOL INSERTION
+// ═══════════════════════════════════════
+function iSym(sym, areaId){
+  const el = document.getElementById(areaId);
+  if(!el) return;
+  el.focus();
+  document.execCommand('insertText', false, sym);
+}
+
+// ═══════════════════════════════════════
+// MATH PREVIEW + INSERT
+// ═══════════════════════════════════════
+function toggleMathBar(id){
+  const el = document.getElementById(id);
+  if(el) el.style.display = el.style.display==='none'?'flex':'none';
+}
+function prevMath(prevId, inpId){
+  const inp = document.getElementById(inpId);
+  const prev = document.getElementById(prevId);
+  if(!inp||!prev) return;
+  prev.innerHTML = '\\('+inp.value+'\\)';
+  if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([prev]);
+}
+function insMath(inpId, areaId){
+  const inp = document.getElementById(inpId);
+  const area = document.getElementById(areaId);
+  if(!inp||!area||!inp.value.trim()) return;
+  area.focus();
+  document.execCommand('insertText', false, ' $'+inp.value.trim()+'$ ');
+  inp.value='';
+}
+
+// ═══════════════════════════════════════
+// ANSWER SELECTION
+// ═══════════════════════════════════════
+const answers = {};
+function setAns(prefix, letter){
+  answers[prefix] = letter;
+  ['A','B','C','D'].forEach(l=>{
+    const box = document.getElementById(prefix+'-opt-'+l);
+    const lt = document.getElementById(prefix+'-letter-'+l);
+    const btn = document.getElementById(prefix+'-setbtn-'+l);
+    if(box){box.classList.toggle('correct',l===letter)}
+    if(lt){lt.classList.toggle('c',l===letter)}
+    if(btn){btn.classList.toggle('c',l===letter)}
+  });
+}
+
+// ═══════════════════════════════════════
+// QUESTION STORAGE + CRUD
+// ═══════════════════════════════════════
+const questions = {};
+function getQList(prefix){ if(!questions[prefix]) questions[prefix]=[]; return questions[prefix]; }
+
+function addQ(prefix){
+  const area = document.getElementById(prefix+'-q-area');
+  if(!area || !area.innerHTML.trim()){alert('اكتبي نص السؤال أولاً');return;}
+  const q = {
+    text: area.innerHTML,
+    options: {},
+    correct: answers[prefix]||'',
+    skill: (document.getElementById(prefix+'-skill')||{}).value||'',
+    feedback: (document.getElementById(prefix+'-feedback')||{}).value||''
+  };
+  ['A','B','C','D'].forEach(l=>{
+    const oa = document.getElementById(prefix+'-opt-area-'+l);
+    q.options[l] = oa ? oa.innerHTML : '';
+  });
+  const list = getQList(prefix);
+  list.push(q);
+  renderQList(prefix);
+  clearQForm(prefix);
+}
+
+function clearQForm(prefix){
+  const area = document.getElementById(prefix+'-q-area');
+  if(area) area.innerHTML='';
+  ['A','B','C','D'].forEach(l=>{
+    const oa = document.getElementById(prefix+'-opt-area-'+l);
+    if(oa) oa.innerHTML='';
+    const box = document.getElementById(prefix+'-opt-'+l);
+    if(box) box.classList.remove('correct');
+    const lt = document.getElementById(prefix+'-letter-'+l);
+    if(lt) lt.classList.remove('c');
+    const btn = document.getElementById(prefix+'-setbtn-'+l);
+    if(btn) btn.classList.remove('c');
+  });
+  answers[prefix]='';
+  const sk = document.getElementById(prefix+'-skill'); if(sk) sk.value='';
+  const fb = document.getElementById(prefix+'-feedback'); if(fb) fb.value='';
+}
+
+function deleteQ(prefix, idx){
+  const list = getQList(prefix);
+  list.splice(idx,1);
+  renderQList(prefix);
+}
+
+const letterMap = {A:'أ',B:'ب',C:'ج',D:'د'};
+function renderQList(prefix){
+  const list = getQList(prefix);
+  const container = document.getElementById(prefix+'-list');
+  const badge = document.getElementById(prefix+'-count-badge');
+  if(badge) badge.textContent = list.length;
+  if(!container) return;
+  if(list.length === 0){
+    container.innerHTML = '<div style="text-align:center;padding:14px;color:var(--text3);font-size:10px">لا توجد أسئلة بعد</div>';
+    return;
+  }
+  container.innerHTML = list.map((q,i)=>`
+    <div class="qi">
+      <div class="qi-head">
+        <div class="qi-num">${i+1}</div>
+        <div class="qi-text">${q.text.replace(/<[^>]+>/g,'').substring(0,80)}</div>
+        ${q.correct ? '<span class="qi-correct">✓ '+letterMap[q.correct]+'</span>' : ''}
+        <button class="qi-del" onclick="deleteQ('${prefix}',${i})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════
+// TAB SWITCHING (manual/excel)
+// ═══════════════════════════════════════
+function swQTab(prefix, tab, btn){
+  const parent = btn.closest('.cb') || btn.parentElement.parentElement;
+  parent.querySelectorAll('.tabs-row .tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  parent.querySelectorAll('.tab-content').forEach(tc=>tc.classList.remove('on'));
+  const target = document.getElementById(prefix+'-'+tab);
+  if(target) target.classList.add('on');
+}
+
+// ═══════════════════════════════════════
+// EXCEL UPLOAD
+// ═══════════════════════════════════════
+function loadExcel(prefix, input){
+  if(!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {header:'A'});
+      const list = getQList(prefix);
+      data.forEach(row=>{
+        if(!row.A) return;
+        list.push({
+          text: String(row.A||''),
+          options: {A:String(row.B||''),B:String(row.C||''),C:String(row.D||''),D:String(row.E||'')},
+          correct: String(row.F||'').toUpperCase(),
+          skill: String(row.G||''),
+          feedback: String(row.H||'')
+        });
+      });
+      renderQList(prefix);
+      alert('تم رفع '+data.length+' سؤال بنجاح');
+    } catch(err){alert('خطأ في قراءة الملف: '+err.message)}
+  };
+  reader.readAsArrayBuffer(input.files[0]);
+}
+
+// ═══════════════════════════════════════
+// SIDEBAR ACTIONS
+// ═══════════════════════════════════════
+function showNewSkill(){
+  document.querySelectorAll('.sk-item').forEach(i=>i.classList.remove('active'));
+  switchSection('qodrat', document.querySelector('.main-tab'));
+  goQodratStep(1);
+}
+
+function selectSkill(id, el){
+  document.querySelectorAll('.sk-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function useSharedSkill(id){
+  if(confirm('استخدام هذه المهارة لفصلك؟')){
+    fetch('/teachers/skill/'+id+'/toggle/', {method:'POST', headers:{'X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value}})
+      .then(()=>location.reload()).catch(e=>alert('خطأ: '+e.message));
+  }
+}
+
+// ═══════════════════════════════════════
+// SAVE
+// ═══════════════════════════════════════
+function saveSection(section){
+  const formData = {
+    section: section,
+    questions: questions,
+    type: section==='qodrat' ? qodratType : tahsiliSubject,
+  };
+  document.getElementById('form-content-type').value = section;
+  document.getElementById('form-data').value = JSON.stringify(formData);
+  document.getElementById('mainForm').submit();
+}
+
+// ═══════════════════════════════════════
+// SMART LATEX MODAL
+// ═══════════════════════════════════════
+let smartTargetField = null;
+
+function smartLatexOpen(fieldId){
+  smartTargetField = fieldId;
+  document.getElementById('smartLatexModal').classList.add('on');
+}
+function smartLatexClose(){
+  document.getElementById('smartLatexModal').classList.remove('on');
+}
+function smartLatexTab(btn, panelId){
+  document.querySelectorAll('.smart-latex-tab').forEach(t=>{t.style.background='var(--card2)';t.style.color='var(--text)'});
+  btn.style.background='linear-gradient(135deg,var(--green2),var(--blue2))';
+  btn.style.color='white';
+  ['smart-mathlive','smart-myscript','smart-hostmath'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.display = (id===panelId) ? (id.includes('iframe')||id.includes('script')||id.includes('hostmath') ? 'block' : 'flex') : 'none';
+  });
+}
+function smartCopyMl(){
+  const mf = document.getElementById('smartMlField');
+  if(!mf) return;
+  const latex = mf.getValue ? mf.getValue() : mf.value || '';
+  document.getElementById('smartLatexPaste').value = latex;
+}
+function smartLatexApply(){
+  const code = document.getElementById('smartLatexPaste').value.trim();
+  if(!code || !smartTargetField) {smartLatexClose();return;}
+  const el = document.getElementById(smartTargetField);
+  if(el){el.focus();document.execCommand('insertText',false,' $'+code+'$ ');}
+  smartLatexClose();
+}
+
+// ═══════════════════════════════════════
+// SMART OCR MODAL
+// ═══════════════════════════════════════
+let smartOcrFile = null, smartOcrText = '';
+
+function smartOcrOpen(fieldId){
+  smartTargetField = fieldId;
+  document.getElementById('smartOcrModal').classList.add('on');
+  smartOcrFile = null; smartOcrText = '';
+  document.getElementById('smartOcrPreview').style.display='none';
+  document.getElementById('smartOcrProgress').style.display='none';
+  document.getElementById('smartOcrResult').style.display='none';
+  document.getElementById('smartOcrStart').style.display='none';
+  document.getElementById('smartOcrApply').style.display='none';
+}
+function smartOcrClose(){
+  document.getElementById('smartOcrModal').classList.remove('on');
+}
+function smartOcrFileChange(file){
+  smartOcrFile = file;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    document.getElementById('smartOcrPreview').src = e.target.result;
+    document.getElementById('smartOcrPreview').style.display='block';
+    document.getElementById('smartOcrStart').style.display='inline-flex';
+  };
+  reader.readAsDataURL(file);
+}
+async function smartOcrRun(){
+  if(!smartOcrFile) return;
+  document.getElementById('smartOcrProgress').style.display='block';
+  document.getElementById('smartOcrStart').style.display='none';
+  const bar = document.getElementById('smartOcrBar');
+  const pct = document.getElementById('smartOcrPct');
+  bar.style.width='0%'; pct.textContent='0%';
+  try {
+    const {data} = await Tesseract.recognize(smartOcrFile,'ara+eng',{
+      logger:m=>{if(m.status==='recognizing text'){const p=Math.round(m.progress*100);bar.style.width=p+'%';pct.textContent=p+'%';}}
+    });
+    smartOcrText = (data.text||'').trim();
+    document.getElementById('smartOcrResult').style.display='block';
+    document.getElementById('smartOcrResult').textContent = smartOcrText || '(لم يُستخرج نص)';
+    document.getElementById('smartOcrApply').style.display='inline-flex';
+    document.getElementById('smartOcrProgress').style.display='none';
+  } catch(e){
+    document.getElementById('smartOcrResult').style.display='block';
+    document.getElementById('smartOcrResult').textContent='❌ '+(e.message||e);
+  }
+}
+function smartOcrApplyText(){
+  if(!smartOcrText || !smartTargetField){smartOcrClose();return;}
+  const el = document.getElementById(smartTargetField);
+  if(el && el.contentEditable==='true'){el.focus();document.execCommand('insertText',false,smartOcrText);}
+  smartOcrClose();
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  const inp = document.getElementById('smartOcrFileInp');
+  if(inp) inp.addEventListener('change', e=>{if(e.target.files[0]) smartOcrFileChange(e.target.files[0]);});
+});
+</script>
 
 {% include "core/_theme_toggle.html" %}
 </body>
