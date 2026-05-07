@@ -619,6 +619,12 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     <div class="panel on" id="bank-step0">
       <div class="card"><div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--purple)"></span> اختر نوع البنك</span></div>
         <div class="cb">
+          <div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:8px">🧮 القدرات</div>
+          <div class="bank-grid" style="margin-bottom:14px">
+            <button class="bank-btn" onclick="selectBank('qodrat_kamy','قدرات — كمي')">🔢 قدرات كمي</button>
+            <button class="bank-btn" onclick="selectBank('qodrat_lafzy','قدرات — لفظي')">📚 قدرات لفظي</button>
+          </div>
+          <div style="font-size:10px;font-weight:700;color:var(--orange);margin-bottom:8px">📖 التحصيلي</div>
           <div class="bank-grid">
             <button class="bank-btn" onclick="selectBank('math','الرياضيات')">📐 الرياضيات</button>
             <button class="bank-btn" onclick="selectBank('physics','الفيزياء')">⚛️ الفيزياء</button>
@@ -787,20 +793,37 @@ function switchSection(sec, btn){
 }
 
 // ════ SKILL SELECTION FLOW ════
+let selectedQodratCategory = null;
 function selectSkillCategory(category){
+  selectedQodratCategory = category;
   const container = document.getElementById('q-skill-dropdown');
   const form = document.getElementById('q-new-skill-form');
   container.classList.add('show');
   form.style.display = 'none';
 
+  // Set skill type automatically
+  const typeSelect = document.getElementById('q-skill-type');
+  if(typeSelect) typeSelect.value = category === 'kamy' ? 'qodrat_kamy' : 'qodrat_lafzy';
+
+  // Highlight selected card
+  document.querySelectorAll('.skill-select-card').forEach((c, i) => {
+    c.style.borderColor = (category === 'kamy' && i === 0) || (category === 'lafzy' && i === 1) ? 'var(--purple)' : 'var(--border)';
+  });
+
   const select = document.getElementById('q-skill-select');
   select.innerHTML = '<option value="">-- اختر مهارة موجودة --</option>';
-  skillsData[category].forEach(skill => {
-    let opt = document.createElement('option');
-    opt.value = skill;
-    opt.textContent = skill;
-    select.appendChild(opt);
-  });
+
+  if(skillsData[category].length === 0){
+    select.innerHTML = '<option value="" disabled>⚠️ لا توجد مهارات — أضف من زر ⚙️ المهارات أعلاه</option>';
+    document.getElementById('q-proceed-btn').disabled = true;
+  } else {
+    skillsData[category].forEach(skill => {
+      let opt = document.createElement('option');
+      opt.value = skill;
+      opt.textContent = skill;
+      select.appendChild(opt);
+    });
+  }
 }
 
 function selectExistingSkill(mode){
@@ -906,6 +929,17 @@ function selectBank(type, name){
   questions['bank'] = [];
 
   buildQEditor('bank', 'bank-editor');
+
+  // Populate skill dropdown based on bank type
+  const select = document.getElementById('bank-skill-select');
+  if(select){
+    let skills = [];
+    if(type === 'qodrat_kamy') skills = skillsData.kamy;
+    else if(type === 'qodrat_lafzy') skills = skillsData.lafzy;
+    else skills = skillsData.kamy.concat(skillsData.lafzy);
+    select.innerHTML = '<option value="">-- اختر المهارة المستهدفة --</option>' +
+      skills.map(s => `<option value="${s}">${s}</option>`).join('');
+  }
 }
 
 function goBackFromBank(){
@@ -1005,8 +1039,22 @@ function switchQTab(prefix, tab, btn){
 function populateSkillDropdown(prefix){
   const select = document.getElementById(`${prefix}-skill-select`);
   if(!select) return;
-  const skills = skillsData.kamy.concat(skillsData.lafzy);
-  select.innerHTML = '<option value="">-- اختر مهارة --</option>' +
+  let skills = [];
+  // Show relevant skills based on context
+  if(prefix === 'q-pre' || prefix === 'q-post'){
+    // In qodrat wizard — show skills from the selected category
+    if(selectedQodratCategory === 'kamy') skills = skillsData.kamy;
+    else if(selectedQodratCategory === 'lafzy') skills = skillsData.lafzy;
+    else skills = skillsData.kamy.concat(skillsData.lafzy);
+  } else if(prefix === 'bank'){
+    // In bank — show based on bank type
+    if(selectedBankType === 'qodrat_kamy') skills = skillsData.kamy;
+    else if(selectedBankType === 'qodrat_lafzy') skills = skillsData.lafzy;
+    else skills = skillsData.kamy.concat(skillsData.lafzy);
+  } else {
+    skills = skillsData.kamy.concat(skillsData.lafzy);
+  }
+  select.innerHTML = '<option value="">-- اختر المهارة المستهدفة --</option>' +
     skills.map(s => `<option value="${s}">${s}</option>`).join('');
 }
 
@@ -1286,191 +1334,235 @@ function openPrintWindow(skillTitle, examType, qs, qCount){
 function generatePrintPage(skillTitle, examType, questionsData, examId, qCount){
   const totalQ = qCount || questionsData.length || 10;
   const today = new Date().toLocaleDateString('ar-SA', {year:'numeric',month:'long',day:'numeric'});
-  return `
-    <!DOCTYPE html>
-    <html lang="ar" dir="rtl">
-    <head>
-      <meta charset="UTF-8">
-      <title>اختبار — ${skillTitle}</title>
-      <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Tajawal', sans-serif; color: #1a1a2e; background: #fff; line-height: 1.7; font-size: 12px; }
-        .page { max-width: 210mm; margin: 0 auto; padding: 15mm 18mm; position: relative; }
+  const hijriYear = '١٤٤٧';
+  return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>${skillTitle} — منصة آمنة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Tajawal',sans-serif;color:#1a1a2e;background:#fff;font-size:11px;line-height:1.6}
 
-        /* Decorative Border */
-        .page::before { content: ''; position: absolute; inset: 8mm; border: 2.5px solid #1a3060; border-radius: 8px; pointer-events: none; }
-        .page::after { content: ''; position: absolute; inset: 10mm; border: 1px solid #e0e6f0; border-radius: 6px; pointer-events: none; }
+.page{max-width:210mm;margin:0 auto;padding:10mm 14mm;position:relative;min-height:297mm}
 
-        /* Header with 3-column layout: ministry | title | school */
-        .header { display: grid; grid-template-columns: 1fr 2fr 1fr; align-items: center; padding-bottom: 15px; margin-bottom: 15px; border-bottom: 3px double #1a3060; position: relative; }
-        .header::after { content: ''; position: absolute; bottom: -1px; right: 20%; left: 20%; height: 3px; background: linear-gradient(90deg, transparent, #0fba81, #4f8ef7, transparent); border-radius: 2px; }
+/* ═══ DECORATIVE CORNER BORDERS ═══ */
+.corner{position:absolute;width:40px;height:40px;pointer-events:none}
+.corner svg{width:100%;height:100%}
+.c-tr{top:6mm;right:6mm}.c-tl{top:6mm;left:6mm;transform:scaleX(-1)}
+.c-br{bottom:6mm;right:6mm;transform:scaleY(-1)}.c-bl{bottom:6mm;left:6mm;transform:scale(-1)}
 
-        .h-right, .h-left { text-align: center; }
-        .h-right .ministry { font-size: 9px; font-weight: 700; color: #333; line-height: 1.5; }
-        .h-left .school { font-size: 10px; font-weight: 700; color: #333; line-height: 1.5; }
+/* Side decorative lines */
+.page::before{content:'';position:absolute;top:20mm;bottom:20mm;right:7mm;width:2px;background:linear-gradient(180deg,transparent,#0fba81,#4f8ef7,#9b72f5,transparent);border-radius:2px}
+.page::after{content:'';position:absolute;top:20mm;bottom:20mm;left:7mm;width:2px;background:linear-gradient(180deg,transparent,#9b72f5,#4f8ef7,#0fba81,transparent);border-radius:2px}
 
-        .h-center { text-align: center; }
-        .h-logo { font-size: 28px; margin-bottom: 4px; }
-        .h-platform { font-size: 14px; font-weight: 900; color: #1a3060; letter-spacing: 1px; }
-        .h-sub { font-size: 9px; color: #666; margin-top: 2px; }
+/* ═══ HEADER ═══ */
+.header{display:grid;grid-template-columns:120px 1fr 120px;align-items:center;gap:10px;padding-bottom:12px;margin-bottom:0;position:relative}
 
-        /* Exam Title Bar */
-        .exam-title-bar { background: linear-gradient(135deg, #1a3060, #2a4a80); color: #fff; text-align: center; padding: 10px 20px; border-radius: 8px; margin: 12px 0; position: relative; overflow: hidden; }
-        .exam-title-bar::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,.03) 10px, rgba(255,255,255,.03) 20px); }
-        .exam-title-bar h1 { font-size: 16px; font-weight: 900; position: relative; }
-        .exam-title-bar .subtitle { font-size: 10px; opacity: .8; margin-top: 2px; position: relative; }
+.h-side{text-align:center}
+.ministry-badge{width:65px;height:65px;border-radius:50%;border:2.5px solid #1a3060;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;background:linear-gradient(135deg,#f8faff,#e8eeff)}
+.ministry-badge svg{width:35px;height:35px}
+.ministry-text{font-size:7.5px;font-weight:700;color:#333;line-height:1.4}
 
-        /* Meta Info */
-        .meta-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin: 12px 0; }
-        .meta-box { padding: 8px 10px; border: 1.5px solid #d0d8e8; border-radius: 6px; text-align: center; background: #f8faff; }
-        .meta-box .label { font-size: 8px; color: #666; font-weight: 600; margin-bottom: 2px; }
-        .meta-box .value { font-size: 11px; font-weight: 800; color: #1a3060; }
+.h-center{text-align:center}
+.platform-logo{width:55px;height:55px;border-radius:14px;background:linear-gradient(135deg,#0fba81,#4f8ef7);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;box-shadow:0 4px 15px rgba(15,186,129,.3)}
+.platform-logo span{font-size:22px;font-weight:900;color:#fff}
+.platform-name{font-size:16px;font-weight:900;background:linear-gradient(135deg,#0fba81,#4f8ef7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:.5px}
+.platform-sub{font-size:8px;color:#888;margin-top:1px}
 
-        /* Student Info */
-        .student-info { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin: 12px 0; padding: 12px 15px; border: 2px solid #1a3060; border-radius: 8px; background: #fafbff; }
-        .s-field { display: flex; align-items: center; gap: 8px; }
-        .s-label { font-size: 10px; font-weight: 800; color: #1a3060; white-space: nowrap; }
-        .s-line { flex: 1; border-bottom: 1.5px dotted #333; height: 20px; }
+.school-badge{width:65px;height:65px;border-radius:50%;border:2.5px solid #0fba81;display:flex;align-items:center;justify-content:center;margin:0 auto 5px;background:linear-gradient(135deg,#f0fdf8,#e8fff5)}
+.school-text{font-size:8px;font-weight:600;color:#444;line-height:1.4}
 
-        /* Instructions */
-        .instructions { background: #f0f7f4; border: 1px solid #c8e6d8; border-radius: 6px; padding: 10px 14px; margin: 12px 0; }
-        .instructions h3 { font-size: 10px; font-weight: 800; color: #059669; margin-bottom: 5px; }
-        .instructions ul { list-style: none; font-size: 9px; color: #333; }
-        .instructions li { padding: 2px 0; padding-right: 12px; position: relative; }
-        .instructions li::before { content: '●'; position: absolute; right: 0; color: #059669; font-size: 6px; top: 5px; }
+/* Gradient divider */
+.header-divider{height:3px;background:linear-gradient(90deg,#0fba81,#4f8ef7,#9b72f5,#f5a623,#0fba81);border-radius:3px;margin:8px 0 10px}
 
-        /* Questions */
-        .questions { margin: 15px 0; }
-        .question { margin-bottom: 14px; page-break-inside: avoid; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; position: relative; background: #fff; }
-        .question:nth-child(even) { background: #fafcff; }
-        .q-head { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
-        .q-num { min-width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #1a3060, #2a5090); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; flex-shrink: 0; }
-        .q-text { font-size: 12px; font-weight: 600; line-height: 1.8; color: #111; flex: 1; }
-        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; margin-right: 38px; }
-        .option { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1.5px solid #d0d8e8; border-radius: 6px; background: #fff; transition: .2s; }
-        .option-bubble { width: 18px; height: 18px; border: 2px solid #1a3060; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .option-bubble span { font-size: 9px; font-weight: 900; color: #1a3060; }
-        .option-text { font-size: 11px; color: #333; }
+/* ═══ TITLE BAR ═══ */
+.title-bar{background:linear-gradient(135deg,#0c1b3a,#1a3060,#2a4a80);color:#fff;padding:12px 24px;border-radius:10px;text-align:center;position:relative;overflow:hidden;margin-bottom:10px}
+.title-bar::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30 0L60 30L30 60L0 30Z' fill='none' stroke='%23ffffff08' stroke-width='1'/%3E%3C/svg%3E")}
+.title-bar::after{content:'';position:absolute;top:-50%;right:-20%;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(15,186,129,.15),transparent 70%)}
+.title-bar h1{font-size:18px;font-weight:900;position:relative;text-shadow:0 2px 8px rgba(0,0,0,.2)}
+.title-bar .exam-type{display:inline-block;margin-top:5px;padding:3px 16px;background:rgba(255,255,255,.15);border-radius:20px;font-size:9px;font-weight:700;letter-spacing:.5px;position:relative;backdrop-filter:blur(4px)}
 
-        /* Answer Sheet */
-        .answer-sheet { margin-top: 25px; padding: 15px; border: 2px solid #1a3060; border-radius: 8px; page-break-inside: avoid; }
-        .answer-sheet-title { text-align: center; font-size: 12px; font-weight: 900; color: #1a3060; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #d0d8e8; }
-        .answer-table { width: 100%; border-collapse: collapse; }
-        .answer-table th { background: #1a3060; color: #fff; font-size: 9px; padding: 5px 3px; font-weight: 700; }
-        .answer-table td { border: 1px solid #ccc; padding: 4px 2px; text-align: center; vertical-align: middle; }
-        .answer-table .q-col { font-weight: 800; font-size: 10px; background: #f0f4ff; width: 30px; }
-        .bubble { width: 14px; height: 14px; border: 1.5px solid #333; border-radius: 50%; display: inline-block; }
+/* ═══ META CARDS ═══ */
+.meta-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.meta-card{text-align:center;padding:7px 6px;border-radius:8px;position:relative;overflow:hidden}
+.meta-card:nth-child(1){background:linear-gradient(135deg,#e8fff5,#d1fae5);border:1.5px solid #86efac}
+.meta-card:nth-child(2){background:linear-gradient(135deg,#e8f0ff,#dbeafe);border:1.5px solid #93bbfd}
+.meta-card:nth-child(3){background:linear-gradient(135deg,#f5f0ff,#ede9fe);border:1.5px solid #c4b5fd}
+.meta-card:nth-child(4){background:linear-gradient(135deg,#fff8e8,#fef3c7);border:1.5px solid #fcd34d}
+.meta-icon{font-size:16px;margin-bottom:2px}
+.meta-label{font-size:7px;color:#666;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.meta-value{font-size:12px;font-weight:900;color:#1a1a2e}
 
-        /* Footer */
-        .footer { margin-top: 20px; padding-top: 10px; border-top: 2px solid #1a3060; display: flex; justify-content: space-between; align-items: center; }
-        .footer-text { font-size: 9px; color: #666; }
-        .footer-wish { font-size: 11px; font-weight: 800; color: #1a3060; }
+/* ═══ STUDENT INFO ═══ */
+.student-box{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;padding:10px 14px;margin-bottom:10px;border:2px solid #1a3060;border-radius:10px;background:linear-gradient(135deg,#fafbff,#f0f4ff);position:relative}
+.student-box::before{content:'بيانات الطالبة';position:absolute;top:-8px;right:15px;background:#1a3060;color:#fff;font-size:7px;font-weight:700;padding:1px 10px;border-radius:4px}
+.sf{display:flex;align-items:center;gap:6px}
+.sf-label{font-size:9px;font-weight:800;color:#1a3060;white-space:nowrap}
+.sf-line{flex:1;border-bottom:1.5px dotted #666;height:18px}
 
-        @media print {
-          body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-          .page { max-width: 100%; padding: 12mm 15mm; }
-          .question { break-inside: avoid; }
-          .answer-sheet { break-inside: avoid; }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="page">
-        <!-- Header -->
-        <div class="header">
-          <div class="h-right">
-            <div class="ministry">المملكة العربية السعودية<br>وزارة التعليم<br>إدارة التعليم</div>
-          </div>
-          <div class="h-center">
-            <div class="h-logo">🎓</div>
-            <div class="h-platform">منصة آمنة التعليمية</div>
-            <div class="h-sub">نظام التقييم الذكي</div>
-          </div>
-          <div class="h-left">
-            <div class="school">المدرسة: _______________<br>العام الدراسي: ١٤٤٦هـ<br>الفصل الدراسي: _______</div>
-          </div>
-        </div>
+/* ═══ INSTRUCTIONS ═══ */
+.instr{display:flex;gap:6px;padding:8px 12px;margin-bottom:10px;background:linear-gradient(135deg,#f0f9f5,#e8fff5);border:1px solid #a7f3d0;border-radius:8px;align-items:center}
+.instr-icon{font-size:18px;flex-shrink:0}
+.instr-list{font-size:8px;color:#333;display:flex;flex-wrap:wrap;gap:4px 12px}
+.instr-item{display:flex;align-items:center;gap:3px}
+.instr-dot{width:4px;height:4px;border-radius:50%;background:#059669;flex-shrink:0}
 
-        <!-- Exam Title -->
-        <div class="exam-title-bar">
-          <h1>${skillTitle}</h1>
-          <div class="subtitle">${examType}</div>
-        </div>
+/* ═══ QUESTIONS ═══ */
+.questions{margin:8px 0}
+.q{margin-bottom:10px;padding:10px 12px;border-radius:8px;position:relative;page-break-inside:avoid;border-right:4px solid}
+.q:nth-child(4n+1){border-color:#0fba81;background:linear-gradient(135deg,#fafffe,#f0fdf8)}
+.q:nth-child(4n+2){border-color:#4f8ef7;background:linear-gradient(135deg,#fafcff,#f0f5ff)}
+.q:nth-child(4n+3){border-color:#9b72f5;background:linear-gradient(135deg,#fcfaff,#f5f0ff)}
+.q:nth-child(4n+4){border-color:#f5a623;background:linear-gradient(135deg,#fffcf5,#fff8e8)}
+.q-top{display:flex;align-items:flex-start;gap:8px;margin-bottom:6px}
+.q-badge{min-width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#fff;flex-shrink:0}
+.q:nth-child(4n+1) .q-badge{background:linear-gradient(135deg,#059669,#0fba81)}
+.q:nth-child(4n+2) .q-badge{background:linear-gradient(135deg,#2563eb,#4f8ef7)}
+.q:nth-child(4n+3) .q-badge{background:linear-gradient(135deg,#7c3aed,#9b72f5)}
+.q:nth-child(4n+4) .q-badge{background:linear-gradient(135deg,#d97706,#f5a623)}
+.q-txt{font-size:11.5px;font-weight:600;line-height:1.8;color:#111;flex:1}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-right:34px}
+.opt{display:flex;align-items:center;gap:6px;padding:5px 8px;border:1.5px solid #dde3ed;border-radius:6px;background:#fff}
+.opt-circle{width:20px;height:20px;border:2px solid #1a3060;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;font-weight:900;color:#1a3060}
+.opt-txt{font-size:10.5px;color:#333;line-height:1.5}
 
-        <!-- Meta -->
-        <div class="meta-grid">
-          <div class="meta-box"><div class="label">عدد الأسئلة</div><div class="value">${totalQ}</div></div>
-          <div class="meta-box"><div class="label">نوع الاختبار</div><div class="value">${examType}</div></div>
-          <div class="meta-box"><div class="label">الزمن</div><div class="value">___ دقيقة</div></div>
-          <div class="meta-box"><div class="label">الدرجة</div><div class="value">${totalQ} من ${totalQ}</div></div>
-        </div>
+/* ═══ ANSWER SHEET ═══ */
+.ans-sheet{margin-top:15px;padding:12px;border:2.5px solid #1a3060;border-radius:10px;page-break-inside:avoid;position:relative;background:linear-gradient(135deg,#fafbff,#f5f7ff)}
+.ans-sheet::before{content:'ورقة الإجابة';position:absolute;top:-9px;right:50%;transform:translateX(50%);background:linear-gradient(135deg,#1a3060,#2a4a80);color:#fff;font-size:9px;font-weight:800;padding:2px 18px;border-radius:6px;letter-spacing:.5px}
+.ans-note{text-align:center;font-size:8px;color:#666;margin:8px 0 10px;font-weight:600}
+.ans-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.ans-item{border:1.5px solid #c8d0e0;border-radius:8px;padding:5px 3px;text-align:center;background:#fff}
+.ans-num{font-size:9px;font-weight:900;color:#1a3060;margin-bottom:4px}
+.ans-bubbles{display:flex;justify-content:center;gap:4px}
+.ans-b{width:16px;height:16px;border:1.5px solid #444;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:#555}
 
-        <!-- Student Info -->
-        <div class="student-info">
-          <div class="s-field"><span class="s-label">اسم الطالبة:</span><div class="s-line"></div></div>
-          <div class="s-field"><span class="s-label">الفصل:</span><div class="s-line"></div></div>
-          <div class="s-field"><span class="s-label">التاريخ:</span><div class="s-line"></div></div>
-        </div>
+/* ═══ FOOTER ═══ */
+.footer-divider{height:2px;background:linear-gradient(90deg,#0fba81,#4f8ef7,#9b72f5);border-radius:2px;margin:12px 0 8px}
+.foot{display:flex;justify-content:space-between;align-items:center}
+.foot-right{font-size:8px;color:#888}
+.foot-center{font-size:12px;font-weight:900;color:#1a3060}
+.foot-left{font-size:8px;color:#888}
 
-        <!-- Instructions -->
-        <div class="instructions">
-          <h3>تعليمات الاختبار:</h3>
-          <ul>
-            <li>اقرئي كل سؤال بعناية قبل الإجابة</li>
-            <li>ظللي الدائرة المقابلة للإجابة الصحيحة في ورقة الإجابة</li>
-            <li>لا يُسمح باستخدام الآلة الحاسبة إلا بإذن المعلمة</li>
-            <li>عند الانتهاء راجعي إجاباتك جيداً</li>
-          </ul>
-        </div>
+@media print{
+  body{margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{max-width:100%;padding:8mm 12mm;min-height:auto}
+  .q{break-inside:avoid}
+  .ans-sheet{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <!-- Decorative Corners -->
+  <div class="corner c-tr"><svg viewBox="0 0 40 40"><path d="M0 0 L40 0 L40 8 L8 8 L8 40 L0 40 Z" fill="#1a3060"/><path d="M12 0 L40 0 L40 4 L12 4 Z" fill="#0fba81" opacity=".6"/><path d="M0 12 L4 12 L4 40 L0 40 Z" fill="#4f8ef7" opacity=".6"/></svg></div>
+  <div class="corner c-tl"><svg viewBox="0 0 40 40"><path d="M0 0 L40 0 L40 8 L8 8 L8 40 L0 40 Z" fill="#1a3060"/><path d="M12 0 L40 0 L40 4 L12 4 Z" fill="#0fba81" opacity=".6"/><path d="M0 12 L4 12 L4 40 L0 40 Z" fill="#4f8ef7" opacity=".6"/></svg></div>
+  <div class="corner c-br"><svg viewBox="0 0 40 40"><path d="M0 0 L40 0 L40 8 L8 8 L8 40 L0 40 Z" fill="#1a3060"/><path d="M12 0 L40 0 L40 4 L12 4 Z" fill="#9b72f5" opacity=".6"/><path d="M0 12 L4 12 L4 40 L0 40 Z" fill="#f5a623" opacity=".6"/></svg></div>
+  <div class="corner c-bl"><svg viewBox="0 0 40 40"><path d="M0 0 L40 0 L40 8 L8 8 L8 40 L0 40 Z" fill="#1a3060"/><path d="M12 0 L40 0 L40 4 L12 4 Z" fill="#9b72f5" opacity=".6"/><path d="M0 12 L4 12 L4 40 L0 40 Z" fill="#f5a623" opacity=".6"/></svg></div>
 
-        <!-- Questions -->
-        <div class="questions">
-          ${questionsData.length > 0 ? questionsData.map((q, idx) => `
-            <div class="question">
-              <div class="q-head">
-                <div class="q-num">${idx+1}</div>
-                <div class="q-text">${q.text || ''}</div>
-              </div>
-              <div class="options">
-                <div class="option"><div class="option-bubble"><span>أ</span></div><div class="option-text">${q.a || ''}</div></div>
-                <div class="option"><div class="option-bubble"><span>ب</span></div><div class="option-text">${q.b || ''}</div></div>
-                <div class="option"><div class="option-bubble"><span>ج</span></div><div class="option-text">${q.c || ''}</div></div>
-                <div class="option"><div class="option-bubble"><span>د</span></div><div class="option-text">${q.d || ''}</div></div>
-              </div>
-            </div>
-          `).join('') : `<div style="text-align:center;padding:40px;color:#999;font-size:14px">لا توجد أسئلة محفوظة لهذا الاختبار</div>`}
-        </div>
+  <!-- Header -->
+  <div class="header">
+    <div class="h-side">
+      <div class="ministry-badge">
+        <svg viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="45" stroke="#1a3060" stroke-width="3"/><path d="M50 15 L55 35 L75 35 L60 47 L65 67 L50 55 L35 67 L40 47 L25 35 L45 35 Z" fill="#1a3060"/><circle cx="50" cy="78" r="5" fill="#0fba81"/></svg>
+      </div>
+      <div class="ministry-text">المملكة العربية السعودية<br>وزارة التعليم<br>إدارة التعليم</div>
+    </div>
+    <div class="h-center">
+      <div class="platform-logo"><span>آ</span></div>
+      <div class="platform-name">منصة آمنة التعليمية</div>
+      <div class="platform-sub">نظام التقييم الذكي المتكامل</div>
+    </div>
+    <div class="h-side">
+      <div class="school-badge">
+        <svg viewBox="0 0 100 100" fill="none"><rect x="25" y="35" width="50" height="50" rx="4" stroke="#0fba81" stroke-width="3"/><path d="M50 15 L75 35 L25 35 Z" fill="#0fba81" opacity=".3" stroke="#0fba81" stroke-width="2"/><rect x="40" y="55" width="20" height="30" rx="2" stroke="#0fba81" stroke-width="2"/><circle cx="50" cy="28" r="4" fill="#0fba81"/></svg>
+      </div>
+      <div class="school-text">المدرسة: ____________<br>العام: ${hijriYear}هـ</div>
+    </div>
+  </div>
 
-        <!-- Answer Sheet -->
-        <div class="answer-sheet">
-          <div class="answer-sheet-title">ورقة الإجابة — ظللي الدائرة المناسبة</div>
-          <table class="answer-table">
-            <thead><tr><th>السؤال</th><th>أ</th><th>ب</th><th>ج</th><th>د</th><th style="width:20px"></th><th>السؤال</th><th>أ</th><th>ب</th><th>ج</th><th>د</th></tr></thead>
-            <tbody>
-              ${Array(Math.ceil(totalQ/2)).fill().map((_, i) => {
-                const left = i + 1;
-                const right = i + Math.ceil(totalQ/2) + 1;
-                return `<tr>
-                  <td class="q-col">${left}</td><td><span class="bubble"></span></td><td><span class="bubble"></span></td><td><span class="bubble"></span></td><td><span class="bubble"></span></td>
-                  <td style="background:#1a3060;width:3px"></td>
-                  ${right <= totalQ ? `<td class="q-col">${right}</td><td><span class="bubble"></span></td><td><span class="bubble"></span></td><td><span class="bubble"></span></td><td><span class="bubble"></span></td>` : '<td colspan="5"></td>'}
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
+  <div class="header-divider"></div>
 
-        <!-- Footer -->
-        <div class="footer">
-          <div class="footer-text">منصة آمنة التعليمية — ${today}</div>
-          <div class="footer-wish">بالتوفيق والنجاح ✨</div>
-          <div class="footer-text">صفحة ١ من ١</div>
+  <!-- Title -->
+  <div class="title-bar">
+    <h1>${skillTitle}</h1>
+    <div class="exam-type">${examType}</div>
+  </div>
+
+  <!-- Meta -->
+  <div class="meta-row">
+    <div class="meta-card"><div class="meta-icon">📝</div><div class="meta-label">عدد الأسئلة</div><div class="meta-value">${totalQ} سؤال</div></div>
+    <div class="meta-card"><div class="meta-icon">📋</div><div class="meta-label">نوع الاختبار</div><div class="meta-value">${examType}</div></div>
+    <div class="meta-card"><div class="meta-icon">⏱️</div><div class="meta-label">المدة الزمنية</div><div class="meta-value">___ دقيقة</div></div>
+    <div class="meta-card"><div class="meta-icon">🎯</div><div class="meta-label">الدرجة الكاملة</div><div class="meta-value">${totalQ}</div></div>
+  </div>
+
+  <!-- Student Info -->
+  <div class="student-box">
+    <div class="sf"><span class="sf-label">اسم الطالبة:</span><div class="sf-line"></div></div>
+    <div class="sf"><span class="sf-label">الفصل:</span><div class="sf-line"></div></div>
+    <div class="sf"><span class="sf-label">الشعبة:</span><div class="sf-line"></div></div>
+    <div class="sf"><span class="sf-label">التاريخ:</span><div class="sf-line"></div></div>
+  </div>
+
+  <!-- Instructions -->
+  <div class="instr">
+    <div class="instr-icon">📌</div>
+    <div class="instr-list">
+      <span class="instr-item"><span class="instr-dot"></span> اقرئي السؤال بعناية</span>
+      <span class="instr-item"><span class="instr-dot"></span> ظللي الإجابة في ورقة الإجابة</span>
+      <span class="instr-item"><span class="instr-dot"></span> لا تستخدمي الآلة الحاسبة</span>
+      <span class="instr-item"><span class="instr-dot"></span> راجعي إجاباتك قبل التسليم</span>
+    </div>
+  </div>
+
+  <!-- Questions -->
+  <div class="questions">
+    ${questionsData.length > 0 ? questionsData.map((q, idx) => `
+    <div class="q">
+      <div class="q-top">
+        <div class="q-badge">${idx+1}</div>
+        <div class="q-txt">${q.text || ''}</div>
+      </div>
+      <div class="opts">
+        <div class="opt"><div class="opt-circle">أ</div><div class="opt-txt">${q.a || ''}</div></div>
+        <div class="opt"><div class="opt-circle">ب</div><div class="opt-txt">${q.b || ''}</div></div>
+        <div class="opt"><div class="opt-circle">ج</div><div class="opt-txt">${q.c || ''}</div></div>
+        <div class="opt"><div class="opt-circle">د</div><div class="opt-txt">${q.d || ''}</div></div>
+      </div>
+    </div>
+    `).join('') : '<div style="text-align:center;padding:30px;color:#999">لا توجد أسئلة</div>'}
+  </div>
+
+  <!-- Answer Sheet -->
+  <div class="ans-sheet">
+    <div class="ans-note">ظللي الدائرة المقابلة للإجابة الصحيحة بقلم رصاص</div>
+    <div class="ans-grid">
+      ${Array(totalQ).fill().map((_, i) => `
+      <div class="ans-item">
+        <div class="ans-num">س${i+1}</div>
+        <div class="ans-bubbles">
+          <div class="ans-b">أ</div>
+          <div class="ans-b">ب</div>
+          <div class="ans-b">ج</div>
+          <div class="ans-b">د</div>
         </div>
       </div>
-    </body>
-    </html>
-  `;
+      `).join('')}
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-divider"></div>
+  <div class="foot">
+    <div class="foot-right">منصة آمنة التعليمية &copy; ${new Date().getFullYear()}</div>
+    <div class="foot-center">بالتوفيق والنجاح</div>
+    <div class="foot-left">${today}</div>
+  </div>
+</div>
+</body>
+</html>`;
 }
 
 function printContent(elementId, title){
@@ -1567,6 +1659,7 @@ function insertOCRText(){
 function openSkillsManager(){
   loadSkillsData();
   updateSkillsList('kamy');
+  updateSkillsList('lafzy');
   document.getElementById('skillsMgrModal').classList.add('on');
 }
 
@@ -1603,6 +1696,20 @@ function addSkillToList(category){
     updateSkillsList(category);
     input.value = '';
     populateSkillDropdowns();
+    // Also refresh the q-skill-select dropdown if a category is active
+    if(selectedQodratCategory){
+      const sel = document.getElementById('q-skill-select');
+      if(sel){
+        sel.innerHTML = '<option value="">-- اختر مهارة موجودة --</option>';
+        skillsData[selectedQodratCategory].forEach(s => {
+          let o = document.createElement('option');
+          o.value = s; o.textContent = s;
+          sel.appendChild(o);
+        });
+      }
+    }
+  } else {
+    alert('المهارة موجودة مسبقاً');
   }
 }
 
