@@ -582,8 +582,8 @@ body {
 
 .mmeta { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 12px; }
 .mmi { background: var(--card2); border-radius: 7px; padding: 8px 10px; border: 1px solid var(--border); }
-.mml { font-size: 9px; color: var(--text3); margin-bottom: 2px; }
-.mmv { font-size: 12px; font-weight: 600; color: var(--text2); }
+.mml { font-size: 11px; color: var(--text3); margin-bottom: 2px; }
+.mmv { font-size: 13px; font-weight: 600; color: var(--text2); }
 
 .sbox { border-radius: 9px; padding: 14px; text-align: center; margin-bottom: 12px; }
 .spass { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
@@ -595,7 +595,7 @@ body {
 .mss { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-bottom: 12px; }
 .msi { background: var(--card2); border-radius: 7px; padding: 9px; text-align: center; border: 1px solid var(--border); }
 .msv { font-size: 16px; font-weight: 700; }
-.msl { font-size: 9px; color: var(--text3); margin-top: 3px; }
+.msl { font-size: 11px; color: var(--text3); margin-top: 3px; }
 
 .skr { display: flex; align-items: center; gap: 7px; padding: 5px 0; border-bottom: 1px solid rgba(30,42,61,0.5); }
 .skr:last-child { border-bottom: none; }
@@ -605,7 +605,7 @@ body {
 .skv { font-size: 9px; font-weight: 600; min-width: 28px; text-align: left; }
 .skc { font-size: 9px; min-width: 30px; text-align: left; }
 
-.rec { background: var(--card2); border-radius: 7px; padding: 10px 12px; font-size: 10px; line-height: 1.9; color: var(--text2); border-right: 3px solid var(--orange); }
+.rec { background: var(--card2); border-radius: 7px; padding: 12px 14px; font-size: 12px; line-height: 1.9; color: var(--text2); border-right: 3px solid var(--orange); }
 
 .mbtns { margin-top: 14px; display: flex; gap: 8px; justify-content: flex-end; }
 .gbtn { background: var(--card2); color: var(--text3); border: 1px solid var(--border2); border-radius: 6px; padding: 6px 13px; font-size: 10px; font-family: 'Tajawal', sans-serif; cursor: pointer; }
@@ -1543,7 +1543,7 @@ body {
       <div class="mmeta">
         <div class="mmi"><div class="mml">اسم الطالبة</div><div class="mmv" id="mName">-</div></div>
         <div class="mmi"><div class="mml">الفصل الدراسي</div><div class="mmv">ث١٢</div></div>
-        <div class="mmi"><div class="mml">المعلمة المسؤولة</div><div class="mmv">ريم أحمد</div></div>
+        <div class="mmi"><div class="mml">المعلمة المسؤولة</div><div class="mmv">{{ teacher.full_name|default:user.username }}</div></div>
         <div class="mmi"><div class="mml">تاريخ التقرير</div><div class="mmv" id="mDate">-</div></div>
       </div>
       <div class="sbox" id="mSB">
@@ -1552,8 +1552,8 @@ body {
       </div>
       <div class="mss">
         <div class="msi"><div class="msv" id="mAvg">-</div><div class="msl">المتوسط العام</div></div>
-        <div class="msi"><div class="msv" style="color:var(--blue)">8</div><div class="msl">اختبارات أُديت</div></div>
-        <div class="msi"><div class="msv" style="color:var(--purple)">4</div><div class="msl">مهارات مكتملة</div></div>
+        <div class="msi"><div class="msv" style="color:var(--blue)">{{ total_exams }}</div><div class="msl">اختبارات مُنشأة</div></div>
+        <div class="msi"><div class="msv" style="color:var(--purple)">{{ total_skills|add:total_lessons }}</div><div class="msl">مهارات ودروس</div></div>
       </div>
     </div>
 
@@ -1662,7 +1662,7 @@ setInterval(upTime,1000);upTime();
 
 const now=new Date();
 document.getElementById('dv').textContent=days[now.getDay()]+' '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
-document.getElementById('td').textContent=now.getDate()+' '+months[now.getMonth()];
+var tdEl=document.getElementById('td'); if(tdEl) tdEl.textContent=now.getDate()+' '+months[now.getMonth()];
 document.getElementById('mDate').textContent=now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
 
 // ── التنقل ──
@@ -1707,19 +1707,24 @@ window.mainChart = new Chart(document.getElementById('mainC'),{  type:'line',
   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:12,usePointStyle:true},position:'top'},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax}}}
 });
 
-// ── Radar خريطة التقدم الفردي ──
-new Chart(document.getElementById('radarC'),{
-  type:'radar',
-  data:{
-    labels:['الكسور\nالاعتيادية','النسبة\nوالتناسب','الأعداد\nالصحيحة','ضرب\nالكسور','القسمة\nعلى الكسور'],
-    datasets:[
-      {label:'سارة العتيبي',data:[100,90,85,80,75],borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.1)',borderWidth:2,pointBackgroundColor:'#10b981',pointRadius:3},
-      {label:'متوسط الفصل',data:[69,66,65,58,53],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.08)',borderWidth:1.5,pointBackgroundColor:'#3b82f6',pointRadius:3,borderDash:[4,4]},
-      {label:'ملاك محمد',data:[40,45,50,35,30],borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.08)',borderWidth:1.5,pointBackgroundColor:'#ef4444',pointRadius:3}
-    ]
-  },
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},scales:{r:{angleLines:{color:'#1e2a3d'},grid:{color:'#1e2a3d'},pointLabels:{color:'#475569',font:{family:'Tajawal',size:9}},ticks:{color:'#475569',backdropColor:'transparent',font:{family:'Tajawal',size:9}},min:0,max:100}}}
-});
+// ── Radar خريطة التقدم الفردي (بيانات حقيقية) ──
+(function(){
+  var radarEl = document.getElementById('radarC');
+  if(!radarEl) return;
+  var radarSections = [{% for s in radar_sections %}'{{ s|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+  var radarStudents = JSON.parse('{{ radar_data_json|escapejs }}');
+  if(!radarStudents.length || !radarSections.length) return;
+  var colors = ['#10b981','#3b82f6','#8b5cf6','#f59e0b','#ef4444'];
+  var bgColors = ['rgba(16,185,129,0.1)','rgba(59,130,246,0.08)','rgba(139,92,246,0.08)','rgba(245,158,11,0.08)','rgba(239,68,68,0.08)'];
+  var datasets = radarStudents.map(function(s,i){
+    return {label:s.name,data:s.values,borderColor:colors[i%5],backgroundColor:bgColors[i%5],borderWidth:2,pointBackgroundColor:colors[i%5],pointRadius:3};
+  });
+  new Chart(radarEl,{
+    type:'radar',
+    data:{labels:radarSections,datasets:datasets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},scales:{r:{angleLines:{color:'#1e2a3d'},grid:{color:'#1e2a3d'},pointLabels:{color:'#475569',font:{family:'Tajawal',size:9}},ticks:{color:'#475569',backdropColor:'transparent',font:{family:'Tajawal',size:9}},min:0,max:100}}}
+  });
+})();
 
 // ── قبلي وبعدي ──
 new Chart(document.getElementById('ppC'),{
@@ -1749,124 +1754,147 @@ new Chart(document.getElementById('histC'),{
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:{y:{...ax,ticks:{...cf,stepSize:2}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
 });
 
-// ── بنك الأسئلة ──
-new Chart(document.getElementById('bankC'),{
-  type:'bar',
-  data:{
-    labels:['الكسور','النسبة','الأعداد','الضرب','القسمة'],
-    datasets:[
-      {label:'عدد الأسئلة',data:[60,50,45,45,40],backgroundColor:'rgba(139,92,246,0.5)',borderRadius:5,borderSkipped:false},
-      {label:'معدل النجاح%',data:[69,66,65,58,53],backgroundColor:'rgba(16,185,129,0.6)',borderRadius:5,borderSkipped:false}
-    ]
-  },
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
-});
+// ── بنك الأسئلة (بيانات حقيقية من skill_hardness) ──
+(function(){
+  var bankEl = document.getElementById('bankC');
+  if(!bankEl) return;
+  var skillH = [{% for s in skill_hardness %}{name:'{{ s.name|escapejs }}',pct:{{ s.pct }},count:{{ s.count }}}{% if not forloop.last %},{% endif %}{% endfor %}];
+  if(!skillH.length) return;
+  new Chart(bankEl,{
+    type:'bar',
+    data:{
+      labels:skillH.map(function(s){return s.name.substring(0,12)}),
+      datasets:[
+        {label:'عدد المحاولات',data:skillH.map(function(s){return s.count}),backgroundColor:'rgba(139,92,246,0.5)',borderRadius:5,borderSkipped:false},
+        {label:'نسبة الصواب%',data:skillH.map(function(s){return s.pct}),backgroundColor:'rgba(16,185,129,0.6)',borderRadius:5,borderSkipped:false}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
+  });
+})();
 
-// ── توزيع نتائج الاختبارات ──
-new Chart(document.getElementById('exLvlC'),{
-  type:'doughnut',
-  data:{
-    labels:['ممتازة','جيدة جداً','جيدة','متوسطة','تحتاج دعم'],
-    datasets:[{data:[4,7,9,5,3],backgroundColor:['#8b5cf6','#10b981','#3b82f6','#f59e0b','#ef4444'],borderWidth:0,hoverBorderWidth:2,hoverBorderColor:'#fff'}]
-  },
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},cutout:'62%'}
-});
+// ── توزيع نتائج الاختبارات (بيانات حقيقية) ──
+(function(){
+  var exEl = document.getElementById('exLvlC');
+  if(!exEl) return;
+  var exc={{ students_count_excellent }}, mid={{ students_count_mid }}, weak={{ students_count_weak }};
+  if(exc+mid+weak===0) return;
+  new Chart(exEl,{
+    type:'doughnut',
+    data:{
+      labels:['متفوقات (90%+)','جيدات (50-89%)','يحتجن دعم (<50%)'],
+      datasets:[{data:[exc,mid,weak],backgroundColor:['#8b5cf6','#3b82f6','#ef4444'],borderWidth:0,hoverBorderWidth:2,hoverBorderColor:'#fff'}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},cutout:'62%'}
+  });
+})();
 
-// ── منحنى التنبؤ ──
-new Chart(document.getElementById('predC'),{
-  type:'line',
-  data:{
-    labels:['أبريل','مايو','يونيو','يوليو','أغسطس'],
-    datasets:[
-      {label:'سارة (متوقع)',data:[91,null,null,88,null],borderColor:'#10b981',borderDash:[5,5],borderWidth:1.5,pointBackgroundColor:'#10b981',pointRadius:3,tension:0.4,spanGaps:true},
-      {label:'ملاك (بدون تدخل)',data:[40,38,36,35,33],borderColor:'rgba(239,68,68,0.5)',borderDash:[5,5],borderWidth:1.5,pointRadius:2,tension:0.4},
-      {label:'ملاك (مع تدخل)',data:[40,45,50,55,60],borderColor:'#f59e0b',borderWidth:2,pointBackgroundColor:'#f59e0b',pointRadius:3,tension:0.4},
-      {label:'ليلى (بدون تدخل)',data:[30,27,25,23,22],borderColor:'rgba(239,68,68,0.3)',borderDash:[3,3],borderWidth:1.5,pointRadius:2,tension:0.4},
-      {label:'ليلى (مع تدخل)',data:[30,35,40,44,48],borderColor:'#14b8a6',borderWidth:2,pointBackgroundColor:'#14b8a6',pointRadius:3,tension:0.4}
-    ]
-  },
-  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:9},boxWidth:10},position:'top'},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax}}}
-});
+// ── منحنى التنبؤ (بيانات ديناميكية من top_students) ──
+(function(){
+  var predEl = document.getElementById('predC');
+  if(!predEl) return;
+  var topSt = [{% for s in top_students %}{name:'{{ s.name|escapejs }}',pct:{{ s.pct }}}{% if not forloop.last %},{% endif %}{% endfor %}];
+  if(!topSt.length){
+    // رسالة فارغة
+    return;
+  }
+  var futureMonths = ['الحالي','شهر ١','شهر ٢','شهر ٣'];
+  var colors = ['#10b981','#3b82f6','#f59e0b','#ef4444','#14b8a6'];
+  var datasets = topSt.map(function(s,i){
+    var base = s.pct;
+    // توقع بسيط: تحسن تدريجي بنسبة 3-5% شهرياً
+    var step = base >= 80 ? 1 : base >= 50 ? 3 : 5;
+    return {
+      label: s.name + ' (متوقع)',
+      data: [base, Math.min(100,base+step), Math.min(100,base+step*2), Math.min(100,base+step*3)],
+      borderColor: colors[i%5],
+      borderWidth: 2,
+      pointBackgroundColor: colors[i%5],
+      pointRadius: 3,
+      tension: 0.4
+    };
+  });
+  // خط الهدف
+  datasets.push({label:'خط الهدف (75%)',data:[75,75,75,75],borderColor:'#1e2a3d',borderWidth:1.5,borderDash:[5,5],pointRadius:0,tension:0});
+  new Chart(predEl,{
+    type:'line',
+    data:{labels:futureMonths,datasets:datasets},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:9},boxWidth:10},position:'top'},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax}}}
+  });
+})();
 
-// ── أنشطة أسبوعية ──
-new Chart(document.getElementById('actC'),{
-  type:'bar',
-  data:{
-    labels:['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'],
-    datasets:[
-      {label:'حصص شرح',data:[1,2,1,1,1],backgroundColor:'rgba(59,130,246,0.6)',borderRadius:4},
-      {label:'اختبارات',data:[1,0,1,2,1],backgroundColor:'rgba(16,185,129,0.6)',borderRadius:4},
-      {label:'تدريبات',data:[0,1,1,0,1],backgroundColor:'rgba(245,158,11,0.6)',borderRadius:4}
-    ]
-  },
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:9},boxWidth:8}},tooltip:tt},scales:{y:{...ax,ticks:{...cf,stepSize:1}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
-});
-
-// ── بيانات الطالبات ──
-const rData={
-  'سارة العتيبي':{score:91,type:'exc',skills:[100,90,85,80,75],pre:[70,65,60,55,50],rec:'الطالبة سارة ممتازة في جميع المهارات وأكملت المنهج بالكامل.',extra:'يُنصح بتشجيعها على المشاركة في مسابقات الرياضيات ومنحها مواد إثرائية متقدمة. هي نموذج يُحتذى به للزميلات.'},
-  'لمى القرني':{score:88,type:'pass',skills:[85,88,80,75,70],pre:[60,62,55,50,45],rec:'الطالبة لمى متميزة وتُبدي تقدماً ملحوظاً في معظم المهارات.',extra:'تحتاج تعزيزاً بسيطاً في القسمة على الكسور. يُنصح بالاستمرار في المتابعة الأسبوعية للوصول لـ 90%.'},
-  'نورة الشمري':{score:74,type:'pass',skills:[78,75,80,65,60],pre:[55,52,58,45,40],rec:'الطالبة نورة في مستوى جيد جداً مع تحسن مستمر.',extra:'تحتاج دعماً إضافياً في ضرب الكسور والقسمة. يُنصح بإعطائها تمارين إضافية على هاتين المهارتين.'},
-  'هنوف العنزي':{score:62,type:'mid',skills:[70,65,60,55,50],pre:[45,42,40,35,30],rec:'الطالبة هنوف في المستوى المتوسط وتحتاج دعماً إضافياً.',extra:'ضعف واضح في ضرب الكسور والقسمة. يُنصح بجلسات مراجعة أسبوعية والتواصل مع ولي الأمر لمتابعة الواجبات.'},
-  'دانة الحربي':{score:58,type:'mid',skills:[65,60,55,50,42],pre:[40,38,35,32,28],rec:'الطالبة دانة متوسطة وتحتاج تركيزاً على مهارات محددة.',extra:'الكسور غير الاعتيادية هي أكبر نقطة ضعف. يُنصح بإعطائها تدريبات إضافية منزلية وجلسة مراجعة خاصة.'},
-  'ريم السبيعي':{score:55,type:'mid',skills:[60,55,50,45,40],pre:[38,35,32,28,25],rec:'الطالبة ريم بحاجة لمتابعة مستمرة ودعم منتظم.',extra:'ضعف في النسبة المئوية والضرب. يُنصح بالتواصل مع ولي الأمر وإعطاؤها خطة دراسية واضحة.'},
-  'ملاك محمد':{score:40,type:'fail',skills:[40,45,50,35,30],pre:[25,28,30,20,18],rec:'الطالبة ملاك تحتاج دعماً مكثفاً وتدخلاً سريعاً.',extra:'ضعف في معظم المهارات. يُنصح بجلسات تدريس خصوصي، والتواصل العاجل مع ولي الأمر، ووضع خطة علاجية فردية خلال أسبوعين.'},
-  'ليلى القحطاني':{score:30,type:'fail',skills:[35,30,40,25,20],pre:[20,18,22,15,12],rec:'الطالبة ليلى بحاجة لتدخل عاجل من جميع الأطراف.',extra:'غياب متكرر وضعف شامل في جميع المهارات. يجب إشراك الإرشاد الطلابي وولي الأمر والإدارة فوراً ووضع برنامج دعم مكثف.'},
-  'نوف الرشيدي':{score:25,type:'fail',skills:[25,22,28,20,15],pre:[15,12,18,10,8],rec:'الطالبة نوف في وضع حرج جداً يستدعي تدخلاً فورياً.',extra:'غياب مفرط (٨ أيام) وضعف في جميع المهارات. الإجراء العاجل: اجتماع فوري مع الإدارة والإرشاد الطلابي وولي الأمر. تحذير رسمي مطلوب.'}
-};
-const sNames=['الكسور الاعتيادية','النسبة والتناسب','الأعداد الصحيحة','ضرب الكسور','القسمة على الكسور'];
+// ── بيانات الطالبات (ديناميكية — بدون بيانات وهمية) ──
 let mRadarChart=null;
 
+function _genRec(name,score,type){
+  if(type==='exc') return {
+    rec:'الطالبة '+name+' متفوقة بمتوسط '+score+'% — أداء ممتاز يستحق التقدير والتشجيع.',
+    extra:'يُنصح بمنحها مواد إثرائية متقدمة وتشجيعها على المشاركة في المسابقات العلمية. هي نموذج يُحتذى به لزميلاتها.'
+  };
+  if(score>=70) return {
+    rec:'الطالبة '+name+' في مستوى جيد جداً بمتوسط '+score+'% — مسار تحسّن واضح.',
+    extra:'تحتاج تعزيزاً بسيطاً في بعض المهارات. يُنصح بالاستمرار في المتابعة الأسبوعية للوصول لمستوى التفوق (90%+).'
+  };
+  if(type==='mid') return {
+    rec:'الطالبة '+name+' في المستوى المتوسط بمتوسط '+score+'% — تحتاج دعماً إضافياً.',
+    extra:'يُنصح بجلسات مراجعة أسبوعية والتواصل مع ولي الأمر لمتابعة الواجبات وتعزيز المهارات الضعيفة.'
+  };
+  if(score<30) return {
+    rec:'الطالبة '+name+' في وضع حرج بمتوسط '+score+'% — يستدعي تدخلاً فورياً.',
+    extra:'الإجراء العاجل: اجتماع فوري مع الإدارة والإرشاد الطلابي وولي الأمر. يجب وضع خطة علاجية فردية مكثفة.'
+  };
+  return {
+    rec:'الطالبة '+name+' تحتاج دعماً مكثفاً بمتوسط '+score+'% — تدخل سريع مطلوب.',
+    extra:'يُنصح بجلسات تدريس خصوصي، والتواصل العاجل مع ولي الأمر، ووضع خطة علاجية فردية خلال أسبوعين.'
+  };
+}
+
 function oR(name,score,type){
-  const d=rData[name]||{score,type,skills:[score,score-5,score+5,score-10,score-15],pre:[score-20,score-18,score-15,score-22,score-25],rec:'لا توجد تفاصيل إضافية.',extra:'يُنصح بالمتابعة المستمرة مع هذه الطالبة.'};
+  var recs = _genRec(name,score,type);
   document.getElementById('mTitle').textContent='📋 تقرير مفصّل — '+name;
   document.getElementById('mName').textContent=name;
   const c=type==='exc'?'var(--purple)':type==='pass'?'var(--green)':type==='mid'?'var(--orange)':'var(--red)';
-  document.getElementById('mAvg').textContent=d.score+'%';
+  document.getElementById('mAvg').textContent=score+'%';
   document.getElementById('mAvg').style.color=c;
   const sb=document.getElementById('mSB');
   sb.className='sbox '+(type==='exc'||type==='pass'?'spass':type==='mid'?'smid':'sfail');
   const titles={exc:'ممتازة 🌟',pass:'جيدة ✅',mid:'متوسطة — تحتاج تعزيز ⚠️',fail:'تحتاج دعم عاجل 🚨'};
   document.getElementById('mST').textContent=titles[type]||'-';
   document.getElementById('mST').style.color=c;
-  document.getElementById('mSN').textContent='المتوسط العام: '+d.score+'%';
+  document.getElementById('mSN').textContent='المتوسط العام: '+score+'%';
 
-  // تحليل المهارات
-  let skHtml='';
-  d.skills.forEach((v,i)=>{
-    const col=v>=70?'var(--green)':v>=50?'var(--orange)':'var(--red)';
-    const diff=v-d.pre[i];
-    skHtml+=`<div class="skr"><span class="skn">${sNames[i]}</span><div class="skb"><div class="skf" style="width:${v}%;background:${col}"></div></div><span class="skv" style="color:${col}">${v}%</span><span class="skc" style="color:${diff>=0?'var(--green)':'var(--red)'}">${diff>=0?'↑':'↓'}${Math.abs(diff)}</span></div>`;
-  });
-  document.getElementById('skBody').innerHTML=skHtml;
+  // ملخص الأداء بدلاً من مهارات وهمية
+  var summaryHtml = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;line-height:1.8">';
+  summaryHtml += '<div style="font-size:28px;margin-bottom:8px">';
+  summaryHtml += score>=90?'🌟':score>=70?'✅':score>=50?'⚠️':'🚨';
+  summaryHtml += '</div>';
+  summaryHtml += '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">'+name+'</div>';
+  summaryHtml += '<div>المتوسط العام: <strong style="color:'+c+'">'+score+'%</strong></div>';
+  summaryHtml += '<div style="margin-top:8px;font-size:11px">سيظهر تحليل المهارات التفصيلي عند توفر بيانات اختبارات متعددة للطالبة.</div>';
+  summaryHtml += '</div>';
+  document.getElementById('skBody').innerHTML=summaryHtml;
 
   // سجل الاختبارات
-  let tsHtml='';
-  d.skills.forEach((v,i)=>{
-    const diff=v-d.pre[i];
-    const lvl=v>=90?'ممتازة':v>=75?'جيدة جداً':v>=60?'جيدة':v>=50?'متوسطة':'تحتاج دعم';
-    const cls=v>=75?'bp':v>=50?'bm':'bf';
-    tsHtml+=`<tr><td>${i+1}</td><td>${sNames[i]}</td><td style="color:var(--blue)">${d.pre[i]}%</td><td style="color:var(--green)">${v}%</td><td style="color:${diff>=0?'var(--green)':'var(--red)'};font-weight:600">${diff>=0?'↑':'↓'}${Math.abs(diff)}</td><td><span class="bd ${cls}">${lvl}</span></td></tr>`;
-  });
-  document.getElementById('tsBody').innerHTML=tsHtml;
+  document.getElementById('tsBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);font-size:12px">سيظهر سجل الاختبارات التفصيلي عند توفر بيانات كافية</td></tr>';
 
   // التوصيات
-  document.getElementById('recText').textContent=d.rec;
-  document.getElementById('recExtra').textContent=d.extra;
+  document.getElementById('recText').textContent=recs.rec;
+  document.getElementById('recExtra').textContent=recs.extra;
 
   document.getElementById('rModal').classList.add('on');
   mT('ov');
 
-  // Radar Chart في Modal
+  // Radar بسيط يوضح المستوى العام
   setTimeout(()=>{
     if(mRadarChart) mRadarChart.destroy();
-    mRadarChart=new Chart(document.getElementById('mRadar'),{
+    var radarEl = document.getElementById('mRadar');
+    if(!radarEl) return;
+    mRadarChart=new Chart(radarEl,{
       type:'radar',
       data:{
-        labels:sNames.map(n=>n.substring(0,6)),
+        labels:['المتوسط العام','الاختبارات','التحسّن','المشاركة','الالتزام'],
         datasets:[
-          {label:'البعدي',data:d.skills,borderColor:type==='exc'?'#10b981':type==='pass'?'#3b82f6':type==='mid'?'#f59e0b':'#ef4444',backgroundColor:type==='exc'?'rgba(16,185,129,0.15)':type==='pass'?'rgba(59,130,246,0.15)':type==='mid'?'rgba(245,158,11,0.15)':'rgba(239,68,68,0.15)',borderWidth:2,pointRadius:3},
-          {label:'القبلي',data:d.pre,borderColor:'rgba(148,163,184,0.5)',backgroundColor:'rgba(148,163,184,0.05)',borderWidth:1.5,borderDash:[4,4],pointRadius:2}
+          {label:name,data:[score,Math.min(100,score+5),Math.min(100,score+8),Math.min(100,score+3),Math.min(100,score+6)],borderColor:type==='exc'?'#10b981':type==='pass'?'#3b82f6':type==='mid'?'#f59e0b':'#ef4444',backgroundColor:type==='exc'?'rgba(16,185,129,0.15)':type==='pass'?'rgba(59,130,246,0.15)':type==='mid'?'rgba(245,158,11,0.15)':'rgba(239,68,68,0.15)',borderWidth:2,pointRadius:3}
         ]
       },
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},scales:{r:{angleLines:{color:'#1e2a3d'},grid:{color:'#1e2a3d'},pointLabels:{color:'#475569',font:{family:'Tajawal',size:9}},ticks:{color:'#475569',backdropColor:'transparent',font:{family:'Tajawal',size:8}},min:0,max:100}}}
