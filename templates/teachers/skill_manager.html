@@ -23,41 +23,41 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:300;backdrop-filter:blur(16px)}
 .logo{display:flex;align-items:center;gap:10px}
 .logo-mark{width:36px;height:36px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:#fff;box-shadow:0 4px 15px rgba(15,186,129,.3)}
-.logo-name{font-size:13px;font-weight:800;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.logo-sub{font-size:9px;color:var(--text3)}
+.logo-name{font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{font-size:11px;color:var(--text2);font-weight:500}
 .tnav{display:flex;gap:4px;align-items:center}
-.tnb{background:none;border:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;padding:6px 12px;border-radius:7px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:5px;transition:.2s}
-.tnb:hover{background:var(--bg3);color:var(--text2)}
-.tnb.on{background:rgba(79,142,247,.1);color:var(--blue);border:1px solid rgba(79,142,247,.2)}
+.tnb{background:none;border:1px solid transparent;color:var(--text2);font-family:'Tajawal',sans-serif;font-size:13px;font-weight:500;padding:7px 14px;border-radius:8px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:6px;transition:.25s}
+.tnb:hover{background:var(--bg3);color:var(--text);border-color:var(--border2)}
+.tnb.on{background:rgba(79,142,247,.12);color:var(--blue);border:1px solid rgba(79,142,247,.3);font-weight:600}
 
 .wrap{display:grid;grid-template-columns:270px 1fr;gap:0;min-height:calc(100vh - 56px)}
 
 /* SIDEBAR */
 .sidebar{background:var(--bg2);border-left:1px solid var(--border);padding:16px 14px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
 .sidebar::-webkit-scrollbar{width:3px}.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-.sb-title{font-size:10px;font-weight:700;color:var(--text3);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.sb-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
 .sk-item{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;cursor:pointer;transition:.25s;position:relative}
 .sk-item:hover{border-color:var(--border2);transform:translateX(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .sk-item.active{border-color:var(--blue);background:rgba(79,142,247,.06)}
 .sk-item.active::before{content:'';position:absolute;right:-1px;top:18%;bottom:18%;width:3px;background:linear-gradient(180deg,var(--blue),var(--green));border-radius:2px}
-.sk-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px}
-.sk-meta{font-size:9px;color:var(--text3);display:flex;gap:6px;flex-wrap:wrap}
+.sk-name{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.sk-meta{font-size:11px;color:var(--text2);display:flex;gap:6px;flex-wrap:wrap}
 .sk-progress{margin-top:7px;display:flex;gap:3px}
 .sk-step{flex:1;height:3px;border-radius:2px;background:var(--border)}
 .sk-step.done{background:var(--green)}
 .sk-actions{display:flex;gap:4px;margin-top:7px}
-.sk-act{flex:1;padding:4px;border-radius:6px;border:1px solid;font-family:'Tajawal',sans-serif;font-size:9px;text-decoration:none;text-align:center;font-weight:700;cursor:pointer;transition:.2s}
+.sk-act{flex:1;padding:5px;border-radius:6px;border:1px solid;font-family:'Tajawal',sans-serif;font-size:11px;text-decoration:none;text-align:center;font-weight:700;cursor:pointer;transition:.2s}
 .sk-act:hover{opacity:.8;transform:translateY(-1px)}
-.exam-row{margin-top:5px;padding:4px 8px;background:var(--bg3);border-radius:6px;font-size:9px;display:flex;justify-content:space-between;align-items:center}
-.add-skill-btn{width:100%;padding:9px;border-radius:9px;border:1.5px dashed var(--border2);background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;cursor:pointer;transition:.25s;display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:12px}
-.add-skill-btn:hover{border-color:var(--green);color:var(--green);background:rgba(15,186,129,.04)}
+.exam-row{margin-top:5px;padding:5px 9px;background:var(--bg3);border-radius:6px;font-size:11px;display:flex;justify-content:space-between;align-items:center}
+.add-skill-btn{width:100%;padding:10px;border-radius:9px;border:1.5px dashed var(--border2);background:none;color:var(--text2);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.25s;display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:12px}
+.add-skill-btn:hover{border-color:var(--green);color:var(--green);background:rgba(15,186,129,.06)}
 
 .content{padding:20px 24px;overflow-y:auto}
 
 /* MAIN TABS */
 .main-tabs{display:flex;gap:6px;margin-bottom:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:6px}
-.main-tab{flex:1;padding:12px 16px;border-radius:8px;border:none;background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center;gap:8px}
-.main-tab:hover{color:var(--text2);background:var(--bg3)}
+.main-tab{flex:1;padding:13px 18px;border-radius:8px;border:none;background:none;color:var(--text2);font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center;gap:8px}
+.main-tab:hover{color:var(--text);background:var(--bg3)}
 .main-tab.on{color:#fff;box-shadow:0 4px 15px rgba(0,0,0,.2)}
 .main-tab.on.t-blue{background:linear-gradient(135deg,#2563eb,#4f8ef7)}
 .main-tab.on.t-orange{background:linear-gradient(135deg,#d97706,#f5a623)}
@@ -75,7 +75,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .wz-step.done{background:rgba(15,186,129,.06);color:var(--green)}
 .wz-step.done::after{content:'';position:absolute;bottom:0;right:20%;left:20%;height:2px;background:var(--green);border-radius:2px}
 .wz-step.locked{opacity:.35;cursor:not-allowed}
-.wz-icon{font-size:16px;margin-bottom:4px}.wz-num{font-size:17px;font-weight:900;line-height:1;margin-bottom:3px}.wz-label{font-size:9px;font-weight:600;color:var(--text3)}
+.wz-icon{font-size:18px;margin-bottom:4px}.wz-num{font-size:18px;font-weight:900;line-height:1;margin-bottom:3px}.wz-label{font-size:11px;font-weight:600;color:var(--text2)}
 
 .panel{display:none;animation:fs .3s ease}.panel.on{display:block}
 
@@ -83,14 +83,14 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;transition:.2s}
 .card:hover{border-color:var(--border2)}
 .ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--bg2),var(--bg3))}
-.ct{font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:7px}
+.ct{font-size:13px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
 .ct-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .cb{padding:14px}
 
 /* FORMS */
 .fg{display:flex;flex-direction:column;gap:4px;margin-bottom:11px}
-.fl{font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.3px}
-.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;padding:9px 11px;border-radius:8px;outline:none;transition:.2s;width:100%}
+.fl{font-size:11px;color:var(--text2);font-weight:600;letter-spacing:.3px}
+.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;padding:10px 12px;border-radius:8px;outline:none;transition:.2s;width:100%}
 .fi:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,.1)}
 .fi::placeholder{color:var(--text3)}
 select.fi option{background:var(--card2)}
@@ -102,7 +102,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 .q-editor{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin-bottom:10px;transition:.2s}
 .q-editor:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,.06)}
 .q-toolbar{background:var(--card2);border-bottom:1px solid var(--border);padding:6px 9px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
-.q-tb-btn{background:none;border:none;color:var(--text3);font-size:11px;padding:3px 6px;border-radius:5px;cursor:pointer;font-family:'Tajawal',sans-serif;transition:.15s;white-space:nowrap}
+.q-tb-btn{background:none;border:none;color:var(--text2);font-size:12px;padding:4px 7px;border-radius:5px;cursor:pointer;font-family:'Tajawal',sans-serif;transition:.15s;white-space:nowrap}
 .q-tb-btn:hover{background:var(--card3);color:var(--text)}
 .q-tb-btn.math{color:var(--purple);font-weight:700}
 .q-tb-sep{width:1px;height:16px;background:var(--border2);margin:0 2px}
@@ -113,7 +113,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 .math-inp{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Courier New',monospace;font-size:11px;padding:6px 9px;border-radius:6px;outline:none;flex:1;direction:ltr;text-align:left}
 .math-inp:focus{border-color:var(--purple)}
 .math-prev{font-size:14px;min-width:60px;text-align:center;color:var(--text2)}
-.ins-btn{background:rgba(155,114,245,.1);color:var(--purple);border:1px solid rgba(155,114,245,.3);font-family:'Tajawal',sans-serif;font-size:9px;padding:5px 11px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:.2s}
+.ins-btn{background:rgba(155,114,245,.1);color:var(--purple);border:1px solid rgba(155,114,245,.3);font-family:'Tajawal',sans-serif;font-size:11px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;transition:.2s}
 .ins-btn:hover{background:rgba(155,114,245,.2)}
 
 /* OPTIONS */
@@ -123,29 +123,29 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 .opt-head{display:flex;align-items:center;gap:7px;padding:7px 10px;border-bottom:1px solid var(--border)}
 .opt-letter{width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--text2);flex-shrink:0;transition:.2s}
 .opt-letter.c{background:rgba(15,186,129,.15);border-color:var(--green);color:var(--green)}
-.opt-name{font-size:9px;color:var(--text3);flex:1}
-.opt-set-btn{font-size:8px;padding:2px 7px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:'Tajawal',sans-serif;transition:.2s}
+.opt-name{font-size:11px;color:var(--text2);flex:1}
+.opt-set-btn{font-size:10px;padding:3px 8px;border-radius:8px;border:1px solid var(--border2);background:none;color:var(--text2);cursor:pointer;font-family:'Tajawal',sans-serif;transition:.2s}
 .opt-set-btn.c{background:rgba(15,186,129,.1);color:var(--green);border-color:rgba(15,186,129,.3)}
 .opt-tools{display:flex;gap:3px;padding:4px 8px;background:var(--bg3);border-bottom:1px solid var(--border)}
-.opt-tool{background:none;border:1px solid var(--border2);color:var(--text3);font-family:'Tajawal',sans-serif;font-size:8px;font-weight:600;padding:3px 7px;border-radius:5px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:3px;white-space:nowrap}
+.opt-tool{background:none;border:1px solid var(--border2);color:var(--text2);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;padding:4px 8px;border-radius:5px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:3px;white-space:nowrap}
 .opt-tool:hover{color:var(--purple);border-color:rgba(155,114,245,.4);background:rgba(155,114,245,.06)}
-.opt-area{min-height:40px;padding:8px 10px;font-size:11px;outline:none;color:var(--text);direction:rtl;word-break:break-word;line-height:1.8}
-.opt-area[placeholder]:empty::before{content:attr(placeholder);color:var(--text3);font-size:10px}
+.opt-area{min-height:40px;padding:8px 10px;font-size:12px;outline:none;color:var(--text);direction:rtl;word-break:break-word;line-height:1.8}
+.opt-area[placeholder]:empty::before{content:attr(placeholder);color:var(--text3);font-size:11px}
 
 /* QUESTION LIST */
 .qi{background:var(--card2);border:1px solid var(--border);border-radius:9px;margin-bottom:8px;overflow:hidden;transition:.2s}
 .qi:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,.1)}
 .qi-head{display:flex;align-items:center;gap:8px;padding:9px 12px}
-.qi-num{width:24px;height:24px;border-radius:50%;background:var(--blue2);color:var(--blue);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.qi-text{font-size:11px;color:var(--text2);flex:1;line-height:1.6}
-.qi-correct{font-size:9px;color:var(--green);background:rgba(15,186,129,.1);padding:2px 8px;border-radius:8px;border:1px solid rgba(15,186,129,.2)}
-.qi-skill{font-size:9px;color:var(--purple);background:rgba(155,114,245,.1);padding:2px 8px;border-radius:8px;border:1px solid rgba(155,114,245,.2)}
+.qi-num{width:26px;height:26px;border-radius:50%;background:var(--blue2);color:var(--blue);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.qi-text{font-size:12px;color:var(--text);flex:1;line-height:1.6}
+.qi-correct{font-size:11px;color:var(--green);background:rgba(15,186,129,.1);padding:3px 9px;border-radius:8px;border:1px solid rgba(15,186,129,.2)}
+.qi-skill{font-size:11px;color:var(--purple);background:rgba(155,114,245,.1);padding:3px 9px;border-radius:8px;border:1px solid rgba(155,114,245,.2)}
 .qi-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:12px;padding:3px 6px;border-radius:5px;transition:.2s}
 .qi-del:hover{color:var(--red);background:rgba(240,82,82,.1)}
 
 /* Q TABS (manual/excel) */
 .q-tabs{display:flex;gap:4px;margin-bottom:12px;padding:4px;background:var(--bg3);border-radius:8px}
-.q-tab-btn{flex:1;padding:7px 12px;border-radius:6px;border:none;background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:.2s}
+.q-tab-btn{flex:1;padding:8px 12px;border-radius:6px;border:none;background:none;color:var(--text2);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
 .q-tab-btn.on{background:var(--card);color:var(--text);box-shadow:0 2px 6px rgba(0,0,0,.1)}
 
 /* EXCEL */
@@ -154,32 +154,32 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 
 /* CONTENT TABS */
 .cnt-tabs{display:flex;gap:4px;margin-bottom:14px;padding:4px;background:var(--bg3);border-radius:8px}
-.cnt-tab{padding:7px 14px;border-radius:6px;border:none;background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:5px}
+.cnt-tab{padding:8px 14px;border-radius:6px;border:none;background:none;color:var(--text2);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:5px}
 .cnt-tab.on{background:var(--card);color:var(--text);box-shadow:0 2px 6px rgba(0,0,0,.1)}
 
 .yt-preview{width:100%;aspect-ratio:16/9;border-radius:10px;border:1px solid var(--border);margin-top:10px;display:none}
 
 /* BADGES + BUTTONS */
-.bd{display:inline-flex;align-items:center;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:700}
+.bd{display:inline-flex;align-items:center;padding:3px 9px;border-radius:8px;font-size:11px;font-weight:700}
 .bp{background:rgba(15,186,129,.1);color:var(--green);border:1px solid rgba(15,186,129,.2)}
 .bb{background:rgba(79,142,247,.1);color:var(--blue);border:1px solid rgba(79,142,247,.2)}
 .be{background:rgba(155,114,245,.1);color:var(--purple);border:1px solid rgba(155,114,245,.2)}
 .bo{background:rgba(245,166,35,.1);color:var(--orange);border:1px solid rgba(245,166,35,.2)}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:9px 18px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:.25s;white-space:nowrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:.25s;white-space:nowrap}
 .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .btn-g{background:linear-gradient(135deg,var(--green),#059669);color:#fff}
 .btn-b{background:rgba(79,142,247,.1);color:var(--blue);border:1px solid rgba(79,142,247,.25)}
 .btn-p{background:rgba(155,114,245,.1);color:var(--purple);border:1px solid rgba(155,114,245,.25)}
 .btn-o{background:rgba(245,166,35,.1);color:var(--orange);border:1px solid rgba(245,166,35,.25)}
 .btn-r{background:rgba(240,82,82,.1);color:var(--red);border:1px solid rgba(240,82,82,.25)}
-.btn-sm{padding:5px 11px;font-size:10px}
+.btn-sm{padding:6px 13px;font-size:12px}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
 .tabs-row{display:flex;gap:4px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:0}
-.tab{background:none;border:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;padding:8px 14px;border-radius:7px 7px 0 0;cursor:pointer;transition:.2s;position:relative;bottom:-1px;border:1px solid transparent;border-bottom:none}
+.tab{background:none;border:none;color:var(--text2);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:600;padding:9px 15px;border-radius:7px 7px 0 0;cursor:pointer;transition:.2s;position:relative;bottom:-1px;border:1px solid transparent;border-bottom:none}
 .tab.on{background:var(--card);color:var(--blue);border-color:var(--border);border-bottom-color:var(--card)}
 .tab-content{display:none}.tab-content.on{display:block}
 
-.msg{padding:10px 13px;border-radius:8px;font-size:10px;margin-bottom:10px;border-right:3px solid;display:flex;align-items:center;gap:7px}
+.msg{padding:10px 13px;border-radius:8px;font-size:12px;margin-bottom:10px;border-right:3px solid;display:flex;align-items:center;gap:7px}
 .msg-s{background:rgba(15,186,129,.08);border-color:var(--green);color:#6ee7a0}
 .msg-e{background:rgba(240,82,82,.08);border-color:var(--red);color:#fca5a5}
 
@@ -187,28 +187,28 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 .modal-overlay.on{display:flex}
 
 .sec-header{margin-bottom:20px;padding:18px;background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:14px;position:relative;overflow:hidden}
-.sec-header h2{font-size:16px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px}
-.sec-header p{font-size:11px;color:var(--text3);line-height:1.7}
+.sec-header h2{font-size:18px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.sec-header p{font-size:13px;color:var(--text2);line-height:1.7}
 
 .bank-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
-.bank-btn{padding:10px;border-radius:9px;border:1px solid var(--border2);background:var(--card2);color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:700;cursor:pointer;transition:.25s;text-align:center}
+.bank-btn{padding:11px;border-radius:9px;border:1px solid var(--border2);background:var(--card2);color:var(--text2);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.25s;text-align:center}
 .bank-btn:hover{border-color:var(--purple);color:var(--purple)}
 .bank-btn.on{background:linear-gradient(135deg,var(--purple2),rgba(155,114,245,.15));color:var(--purple);border-color:var(--purple);box-shadow:0 4px 12px rgba(155,114,245,.15)}
 
 .skill-mgmt-modal{width:100%;max-width:600px}
 .skill-mgmt-modal .ch{display:flex;justify-content:space-between;align-items:center}
 .skill-tabs{display:flex;gap:4px;margin-bottom:12px;padding:4px;background:var(--bg3);border-radius:8px}
-.skill-tab{flex:1;padding:8px 12px;border-radius:6px;border:none;background:none;color:var(--text3);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;cursor:pointer;transition:.2s}
+.skill-tab{flex:1;padding:9px 12px;border-radius:6px;border:none;background:none;color:var(--text2);font-family:'Tajawal',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:.2s}
 .skill-tab.on{background:var(--card);color:var(--text)}
 .skill-list{display:flex;flex-direction:column;gap:7px}
-.skill-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--card2);border:1px solid var(--border);border-radius:7px;font-size:10px}
-.skill-item-text{color:var(--text2);flex:1}
+.skill-item{display:flex;justify-content:space-between;align-items:center;padding:9px 11px;background:var(--card2);border:1px solid var(--border);border-radius:7px;font-size:12px}
+.skill-item-text{color:var(--text);flex:1}
 .skill-del-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:12px;padding:2px 5px}
-.skill-input{width:100%;padding:8px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;border-radius:7px;outline:none}
+.skill-input{width:100%;padding:9px;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;border-radius:7px;outline:none}
 .skill-input:focus{border-color:var(--blue)}
 .skill-add-row{display:flex;gap:7px;margin-bottom:10px}
 .skill-add-row input{flex:1}
-.skill-add-row button{padding:8px 12px;background:rgba(79,142,247,.1);color:var(--blue);border:1px solid rgba(79,142,247,.25);border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-weight:700;font-size:10px}
+.skill-add-row button{padding:9px 13px;background:rgba(79,142,247,.1);color:var(--blue);border:1px solid rgba(79,142,247,.25);border-radius:7px;cursor:pointer;font-family:'Tajawal',sans-serif;font-weight:700;font-size:12px}
 
 .delivery-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:10px;background:var(--bg3);border-radius:8px;margin-bottom:12px}
 
@@ -218,7 +218,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 .skill-select-card:hover{border-color:var(--purple);transform:translateY(-2px);box-shadow:0 8px 24px rgba(155,114,245,.15)}
 .skill-select-card-icon{font-size:40px;margin-bottom:10px}
 .skill-select-card-title{font-size:14px;font-weight:800;color:var(--text);margin-bottom:5px}
-.skill-select-card-desc{font-size:10px;color:var(--text3)}
+.skill-select-card-desc{font-size:12px;color:var(--text2)}
 
 .skill-dropdown-container{margin-bottom:16px;display:none}
 .skill-dropdown-container.show{display:block}
@@ -269,7 +269,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     <button class="tnb" onclick="openSkillsManager()" title="إدارة قائمة المهارات">⚙️ المهارات</button>
     {% include "core/_theme_toggle.html" %}
   </div>
-  <div style="font-size:10px;color:var(--text3)" id="clk"></div>
+  <div style="font-size:12px;color:var(--text2);font-weight:500" id="clk"></div>
 </div>
 
 <div class="wrap">
@@ -308,7 +308,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
         <div style="display:flex;gap:5px">
           {% if e.is_active %}
             <a href="/students/exam/{{ e.id }}/" style="color:var(--green);font-weight:700;text-decoration:none" onclick="event.stopPropagation();navigator.clipboard.writeText(location.origin+'/students/exam/{{ e.id }}/');alert('تم نسخ الرابط!')">📋 نسخ</a>
-            <button onclick="printSavedExam({{ e.id }},'{{ skill.title|escapejs }}','{{ e.get_exam_type_display|escapejs }}',{{ e.questions.count }})" style="color:var(--orange);font-weight:700;background:none;border:none;cursor:pointer;font-size:9px" title="طباعة">🖨️ طباعة</button>
+            <button onclick="printSavedExam({{ e.id }},'{{ skill.title|escapejs }}','{{ e.get_exam_type_display|escapejs }}',{{ e.questions.count }})" style="color:var(--orange);font-weight:700;background:none;border:none;cursor:pointer;font-size:11px" title="طباعة">🖨️ طباعة</button>
           {% else %}<span style="color:var(--text3)">غير مفعّل</span>{% endif %}
         </div>
       </div>
@@ -317,16 +317,16 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     </div>
     {% endfor %}
   {% else %}
-    <div style="text-align:center;padding:25px 10px;color:var(--text3);font-size:10px"><div style="font-size:28px;margin-bottom:10px">📭</div>لا توجد مهارات بعد<br>اضغطي ➕ لإضافة أولى مهاراتك</div>
+    <div style="text-align:center;padding:25px 10px;color:var(--text2);font-size:12px"><div style="font-size:30px;margin-bottom:10px">📭</div>لا توجد مهارات بعد<br>اضغطي ➕ لإضافة أولى مهاراتك</div>
   {% endif %}
 
   <div style="height:1px;background:var(--border);margin:14px 0"></div>
   <div class="sb-title">🤝 من زميلاتك ({{ shared_skills|length }})</div>
   {% for skill in shared_skills %}
   <div class="sk-item" style="border-color:rgba(155,114,245,.2)">
-    <div class="sk-name" style="font-size:10px">{{ skill.title }}</div>
+    <div class="sk-name" style="font-size:12px">{{ skill.title }}</div>
     <div class="sk-meta"><span>{{ skill.created_by.full_name }}</span><span>{{ skill.get_content_type_display }}</span></div>
-    <button onclick="useSharedSkill({{ skill.id }})" style="margin-top:6px;width:100%;padding:4px;border-radius:6px;border:1px solid rgba(155,114,245,.3);background:rgba(155,114,245,.08);color:var(--purple);font-family:Tajawal;font-size:9px;cursor:pointer;font-weight:700">➕ استخدام لفصلي</button>
+    <button onclick="useSharedSkill({{ skill.id }})" style="margin-top:6px;width:100%;padding:5px;border-radius:6px;border:1px solid rgba(155,114,245,.3);background:rgba(155,114,245,.08);color:var(--purple);font-family:Tajawal;font-size:11px;cursor:pointer;font-weight:700">➕ استخدام لفصلي</button>
   </div>
   {% endfor %}
 </div>
@@ -424,7 +424,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     <div id="q-wizard-wrap" style="display:none">
       <div style="background:linear-gradient(135deg,rgba(79,142,247,.08),rgba(15,186,129,.05));border:1px solid var(--blue);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
         <span style="font-size:20px">🧮</span>
-        <div><div style="font-size:12px;font-weight:800;color:var(--blue)" id="q-skill-title-display">—</div><div style="font-size:9px;color:var(--text3)" id="q-skill-meta-display">—</div></div>
+        <div><div style="font-size:14px;font-weight:800;color:var(--blue)" id="q-skill-title-display">—</div><div style="font-size:11px;color:var(--text2)" id="q-skill-meta-display">—</div></div>
       </div>
 
       <div class="wizard" id="wz-q">
@@ -504,7 +504,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
             </div>
             <div style="background:rgba(15,186,129,.05);border:1px solid rgba(15,186,129,.15);border-radius:9px;padding:12px;margin-top:8px">
               <div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:8px">✅ ملخص</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px;color:var(--text2)" id="q-summary"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text2)" id="q-summary"></div>
             </div>
             <div class="btn-row" style="justify-content:space-between">
               <button type="button" class="btn btn-b btn-sm" onclick="goQStep(3)">→ السابق</button>
@@ -544,7 +544,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     <div id="t-wizard-wrap" style="display:none">
       <div style="background:linear-gradient(135deg,rgba(245,166,35,.08),rgba(217,119,6,.05));border:1px solid var(--orange);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
         <span style="font-size:20px">📖</span>
-        <div><div style="font-size:12px;font-weight:800;color:var(--orange)" id="t-skill-title-display">—</div><div style="font-size:9px;color:var(--text3)" id="t-skill-meta-display">—</div></div>
+        <div><div style="font-size:14px;font-weight:800;color:var(--orange)" id="t-skill-title-display">—</div><div style="font-size:11px;color:var(--text2)" id="t-skill-meta-display">—</div></div>
       </div>
 
       <div class="wizard" id="wz-t">
@@ -597,7 +597,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
             </div>
             <div style="background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.15);border-radius:9px;padding:12px;margin-top:8px">
               <div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:8px">✅ ملخص</div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:10px;color:var(--text2)" id="t-summary"></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text2)" id="t-summary"></div>
             </div>
             <div class="btn-row" style="justify-content:space-between">
               <button type="button" class="btn btn-b btn-sm" onclick="goTStep(2)">→ السابق</button>
@@ -619,12 +619,12 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     <div class="panel on" id="bank-step0">
       <div class="card"><div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--purple)"></span> اختر نوع البنك</span></div>
         <div class="cb">
-          <div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:8px">🧮 القدرات</div>
+          <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px">🧮 القدرات</div>
           <div class="bank-grid" style="margin-bottom:14px">
             <button class="bank-btn" onclick="selectBank('qodrat_kamy','قدرات — كمي')">🔢 قدرات كمي</button>
             <button class="bank-btn" onclick="selectBank('qodrat_lafzy','قدرات — لفظي')">📚 قدرات لفظي</button>
           </div>
-          <div style="font-size:10px;font-weight:700;color:var(--orange);margin-bottom:8px">📖 التحصيلي</div>
+          <div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:8px">📖 التحصيلي</div>
           <div class="bank-grid">
             <button class="bank-btn" onclick="selectBank('math','الرياضيات')">📐 الرياضيات</button>
             <button class="bank-btn" onclick="selectBank('physics','الفيزياء')">⚛️ الفيزياء</button>
@@ -640,7 +640,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     <div id="bank-wizard-wrap" style="display:none">
       <div style="background:linear-gradient(135deg,rgba(155,114,245,.08),rgba(147,51,234,.05));border:1px solid var(--purple);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
         <span style="font-size:20px">🗃️</span>
-        <div><div style="font-size:12px;font-weight:800;color:var(--purple)" id="bank-title-display">—</div><div style="font-size:9px;color:var(--text3)">بنك الأسئلة</div></div>
+        <div><div style="font-size:14px;font-weight:800;color:var(--purple)" id="bank-title-display">—</div><div style="font-size:11px;color:var(--text2)">بنك الأسئلة</div></div>
       </div>
 
       <div class="card"><div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--purple)"></span> أضف أسئلة للبنك</span></div>
@@ -677,7 +677,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
       <div id="mathlive-tab" class="math-tab-content">
         <p style="color:var(--text2);font-size:11px;margin-bottom:8px">اكتب المعادلة مباشرة باستخدام لوحة المفاتيح الرياضية</p>
         <math-field id="mathField" style="display:block;padding:12px;background:var(--bg2);border-radius:6px;min-height:60px;border:1px solid var(--border)"></math-field>
-        <div style="margin-top:8px;padding:8px;background:var(--bg3);border-radius:6px;font-size:9px;color:var(--text3)">💡 نصيحة: استخدم / للكسور، ^ للأُسس، _ للمنخفضات، \sqrt للجذر</div>
+        <div style="margin-top:8px;padding:9px;background:var(--bg3);border-radius:6px;font-size:11px;color:var(--text2)">💡 نصيحة: استخدم / للكسور، ^ للأُسس، _ للمنخفضات، \sqrt للجذر</div>
       </div>
 
       <!-- LaTeX Tab -->
@@ -685,9 +685,9 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
         <div class="fg"><label class="fl">أدخل صيغة LaTeX</label><input class="fi" id="mathInput" placeholder="��ثال: \frac{1}{2}x^2" oninput="updateMathPreview()"></div>
         <div class="math-inline"><span style="color:var(--text3)">معاينة:</span><div class="math-prev" id="mathPreview" style="padding:8px;background:var(--bg2);border-radius:4px;min-height:30px">—</div></div>
         <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
-          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\frac{}{}')" style="font-size:9px">كسر</button>
-          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\sqrt{}')" style="font-size:9px">جذر</button>
-          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('^{}')" style="font-size:9px">أُس</button>
+          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\frac{}{}')" style="font-size:11px">كسر</button>
+          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\sqrt{}')" style="font-size:11px">جذر</button>
+          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('^{}')" style="font-size:11px">أُس</button>
           <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\sum_{i=1}^{n}')" style="font-size:9px">مج��وع</button>
           <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\int_{a}^{b}')" style="font-size:9px">تكامل</button>
           <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\pi')" style="font-size:9px">π</button>
