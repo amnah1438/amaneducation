@@ -1647,6 +1647,15 @@ body {
 
 
 <script>
+// ── التنقل (يجب أن يكون أول شيء) ──
+function gp(name,btn){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+  var pg=document.getElementById('pg-'+name);
+  if(pg) pg.classList.add('on');
+  btn.classList.add('on');
+}
+
 // ── الوقت والتاريخ ──
 const days=['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 const months=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
@@ -1656,45 +1665,46 @@ function upTime(){
   const h=String(n.getHours()).padStart(2,'0');
   const m=String(n.getMinutes()).padStart(2,'0');
   const s=String(n.getSeconds()).padStart(2,'0');
-  document.getElementById('tv').textContent=h+':'+m+':'+s;
+  var tvEl=document.getElementById('tv');
+  if(tvEl) tvEl.textContent=h+':'+m+':'+s;
 }
 setInterval(upTime,1000);upTime();
 
-const now=new Date();
-document.getElementById('dv').textContent=days[now.getDay()]+' '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
-var tdEl=document.getElementById('td'); if(tdEl) tdEl.textContent=now.getDate()+' '+months[now.getMonth()];
-document.getElementById('mDate').textContent=now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
-
-// ── التنقل ──
-function gp(name,btn){
-  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  document.getElementById('pg-'+name).classList.add('on');
-  btn.classList.add('on');
-}
+try{
+  const now=new Date();
+  var dvEl=document.getElementById('dv');
+  if(dvEl) dvEl.textContent=days[now.getDay()]+' '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+  var tdEl=document.getElementById('td'); if(tdEl) tdEl.textContent=now.getDate()+' '+months[now.getMonth()];
+  var mdEl=document.getElementById('mDate'); if(mdEl) mdEl.textContent=now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
+}catch(e){ console.warn('date init:',e); }
 
 // ── Heatmap (بيانات حقيقية من الـ view) ──
-const hm=document.getElementById('hmap');
-const hmData = JSON.parse('{{ heatmap_json|escapejs }}');
-const lvlColors=['var(--bg3)','rgba(16,185,129,0.2)','rgba(16,185,129,0.4)','rgba(16,185,129,0.7)','var(--green)'];
-const lvlNames=['لا نشاط','نشاط منخفض','نشاط متوسط','نشاط جيد','نشاط عالٍ'];
-hmData.forEach(function(item){
-  const d=document.createElement('div');
-  d.className='hd';
-  d.style.background=lvlColors[item.level]||'var(--bg3)';
-  d.title=item.date+' — '+item.count+' محاولة — '+lvlNames[item.level];
-  hm.appendChild(d);
-});
+try{
+  const hm=document.getElementById('hmap');
+  const hmData = JSON.parse('{{ heatmap_json|escapejs }}' || '[]');
+  const lvlColors=['var(--bg3)','rgba(16,185,129,0.2)','rgba(16,185,129,0.4)','rgba(16,185,129,0.7)','var(--green)'];
+  const lvlNames=['لا نشاط','نشاط منخفض','نشاط متوسط','نشاط جيد','نشاط عالٍ'];
+  if(hm && hmData && hmData.length){
+    hmData.forEach(function(item){
+      const d=document.createElement('div');
+      d.className='hd';
+      d.style.background=lvlColors[item.level]||'var(--bg3)';
+      d.title=item.date+' — '+item.count+' محاولة — '+lvlNames[item.level];
+      hm.appendChild(d);
+    });
+  }
+}catch(e){ console.warn('heatmap:',e); }
 
 // ── إعدادات Charts ──
-const cf={font:{family:'Tajawal',size:10},color:'#475569'};
-const gc={color:'rgba(30,42,61,0.5)'};
-const tt={backgroundColor:'#111827',borderColor:'#1e2a3d',borderWidth:1,titleColor:'#f1f5f9',bodyColor:'#94a3b8',titleFont:{family:'Tajawal',size:11},bodyFont:{family:'Tajawal',size:10}};
-const ax={ticks:cf,grid:gc,border:{color:'#1e2a3d'}};
+var cf={font:{family:'Tajawal',size:10},color:'#475569'};
+var gc={color:'rgba(30,42,61,0.5)'};
+var tt={backgroundColor:'#111827',borderColor:'#1e2a3d',borderWidth:1,titleColor:'#f1f5f9',bodyColor:'#94a3b8',titleFont:{family:'Tajawal',size:11},bodyFont:{family:'Tajawal',size:10}};
+var ax={ticks:cf,grid:gc,border:{color:'#1e2a3d'}};
 
-Chart.defaults.color='#475569';
+try{ Chart.defaults.color='#475569'; }catch(e){}
 
 // ── منحنى تقدم الفصل ──
+try{
 window.mainChart = new Chart(document.getElementById('mainC'),{  type:'line',
   data:{
     labels:['يناير','فبراير','مارس','أبريل','مايو','يونيو'],
@@ -1706,6 +1716,7 @@ window.mainChart = new Chart(document.getElementById('mainC'),{  type:'line',
   },
   options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:12,usePointStyle:true},position:'top'},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax}}}
 });
+}catch(e){ console.warn('mainChart:',e); }
 
 // ── Radar خريطة التقدم الفردي (بيانات حقيقية) ──
 (function(){
@@ -1727,6 +1738,7 @@ window.mainChart = new Chart(document.getElementById('mainC'),{  type:'line',
 })();
 
 // ── قبلي وبعدي ──
+try{
 new Chart(document.getElementById('ppC'),{
   type:'bar',
   data:{
@@ -1738,8 +1750,10 @@ new Chart(document.getElementById('ppC'),{
   },
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
 });
+}catch(e){ console.warn('ppC:',e); }
 
 // ── Histogram ──
+try{
 new Chart(document.getElementById('histC'),{
   type:'bar',
   data:{
@@ -1753,6 +1767,7 @@ new Chart(document.getElementById('histC'),{
   },
   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:{y:{...ax,ticks:{...cf,stepSize:2}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
 });
+}catch(e){ console.warn('histC:',e); }
 
 // ── بنك الأسئلة (بيانات حقيقية من skill_hardness) ──
 (function(){
