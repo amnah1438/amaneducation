@@ -85,43 +85,51 @@ def teacher_dashboard(request):
 
     my_skills = TeacherSkill.objects.filter(created_by=teacher)
     my_exams = TeacherExam.objects.filter(skill__created_by=teacher)
-    my_results = ExamResult.objects.filter(exam__skill__created_by=teacher)
+    my_results = ExamResult.objects.filter(exam__skill__created_by=teacher).exclude(student=request.user)
 
     # ─── تجميع نتائج الطالبات (متوسط أداء كل طالبة) ───────────
-    # Group by student, compute avg(percentage) — يعطي صورة دقيقة للطالبة
-    # بدلاً من إظهار نتيجة فردية واحدة.
-    students_perf = (
-        my_results
-        .values('student__id', 'student__first_name', 'student__last_name', 'student__username')
-        .annotate(
-            avg_pct=Avg('percentage'),
-            results_count=Count('id'),
-            passed_count=Count('id', filter=Q(passed=True)),
-        )
-        .order_by('-avg_pct')
-    )
-    # نحوّل QuerySet إلى list مرة واحدة لتجنب تكرار الاستعلام
-    students_perf = list(students_perf)
+    # نجمع النتائج من مصدرين: طالبات بحساب User + طالبات بسجل Student (رصد يدوي)
+    from collections import defaultdict as _perf_dd
+    _perf_map = _perf_dd(lambda: {'name': '', 'total_pct': 0, 'count': 0, 'key': ''})
 
-    def _name(item):
-        return (
-            f"{item['student__first_name']} {item['student__last_name']}".strip()
-            or item['student__username']
-        )
+    for r in my_results.select_related('student', 'student_record'):
+        if r.student_record_id:
+            key = f'sr_{r.student_record_id}'
+            name = r.student_record.full_name
+        elif r.student_id:
+            key = f'u_{r.student_id}'
+            u = r.student
+            name = (u.get_full_name() or u.username) if u else '—'
+        else:
+            continue
+        _perf_map[key]['name'] = name
+        _perf_map[key]['total_pct'] += float(r.percentage or 0)
+        _perf_map[key]['count'] += 1
+        _perf_map[key]['key'] = key
+
+    students_perf = []
+    for k, v in _perf_map.items():
+        if v['count'] > 0:
+            avg = v['total_pct'] / v['count']
+            students_perf.append({
+                'name': v['name'], 'avg_pct': avg,
+                'results_count': v['count'], 'key': k,
+            })
+    students_perf.sort(key=lambda x: -(x['avg_pct'] or 0))
 
     excellent_students = [
-        {'name': _name(s), 'pct': int(round(s['avg_pct'] or 0)),
-         'count': s['results_count'], 'student_id': s['student__id']}
+        {'name': s['name'], 'pct': int(round(s['avg_pct'] or 0)),
+         'count': s['results_count']}
         for s in students_perf if (s['avg_pct'] or 0) >= 90
     ]
     mid_students = [
-        {'name': _name(s), 'pct': int(round(s['avg_pct'] or 0)),
-         'count': s['results_count'], 'student_id': s['student__id']}
+        {'name': s['name'], 'pct': int(round(s['avg_pct'] or 0)),
+         'count': s['results_count']}
         for s in students_perf if 50 <= (s['avg_pct'] or 0) < 90
     ]
     weak_students = [
-        {'name': _name(s), 'pct': int(round(s['avg_pct'] or 0)),
-         'count': s['results_count'], 'student_id': s['student__id']}
+        {'name': s['name'], 'pct': int(round(s['avg_pct'] or 0)),
+         'count': s['results_count']}
         for s in students_perf if (s['avg_pct'] or 0) < 50
     ]
 
@@ -248,6 +256,8 @@ def teacher_dashboard(request):
         'radar_sections': sections,
         'radar_data_json': _json.dumps(radar_data),
         'top_demand_skills': [{'name': k, 'count': v} for k, v in top_demand],
+        'my_classrooms': teacher.classrooms.all().prefetch_related('students'),
+        'my_exams_list': my_exams.select_related('skill'),
     })
 
 
@@ -648,13 +658,13 @@ def exam_results(request, exam_id):
         return redirect('home')
     teacher = get_teacher(request)
     exam = get_object_or_404(TeacherExam, id=exam_id, skill__created_by=teacher)
-    results = ExamResult.objects.filter(exam=exam).select_related('student').order_by('-percentage')
+    results = ExamResult.objects.filter(exam=exam).select_related('student', 'student_record').order_by('-percentage')
     avg = results.aggregate(avg=Avg('percentage'))['avg'] or 0
     passed = results.filter(passed=True).count()
     context = {
         'exam': exam,
         'results': results,
-        'avg': round(avg, 1),
+        'avg': int(round(avg)),
         'passed': passed,
         'failed': results.count()-passed,
         'teacher': teacher,
@@ -886,3 +896,113 @@ def get_skill_questions(request, skill_id):
             })
         data['exams'].append(exam_data)
     return JsonResponse(data)
+
+
+# ═══════════════════════════════════════════════════════════════
+# إدارة فصول المعلمة + الرصد اليدوي
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+def manage_classrooms(request):
+    """إدارة فصول المعلمة — ربط/فك ربط فصول."""
+    if not check_teacher(request):
+        return redirect('home')
+    teacher = get_teacher(request)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        classroom_id = request.POST.get('classroom_id')
+        if action == 'add' and classroom_id:
+            cr = ClassRoom.objects.filter(id=classroom_id).first()
+            if cr:
+                teacher.classrooms.add(cr)
+                messages.success(request, f'تم إضافة الفصل: {cr.name}')
+        elif action == 'remove' and classroom_id:
+            cr = ClassRoom.objects.filter(id=classroom_id).first()
+            if cr:
+                teacher.classrooms.remove(cr)
+                messages.success(request, f'تم إزالة الفصل: {cr.name}')
+        return redirect('manage_classrooms')
+
+    my_classrooms = teacher.classrooms.all().prefetch_related('students')
+    available = ClassRoom.objects.exclude(id__in=my_classrooms.values_list('id', flat=True))
+    return render(request, 'teachers/manage_classrooms.html', {
+        'teacher': teacher,
+        'my_classrooms': my_classrooms,
+        'available_classrooms': available,
+    })
+
+
+@login_required
+def get_classroom_students(request, classroom_id):
+    """API — جلب طالبات فصل معيّن (JSON)."""
+    teacher = get_teacher(request)
+    if not teacher:
+        return JsonResponse({'error': 'unauthorized'}, status=403)
+    cr = get_object_or_404(ClassRoom, id=classroom_id)
+    students = cr.students.all().order_by('full_name')
+    return JsonResponse({
+        'students': [{'id': s.id, 'name': s.full_name} for s in students]
+    })
+
+
+@login_required
+def manual_score_entry(request):
+    """رصد درجة يدوي — المعلمة تختار الاختبار والطالبة وتدخل الدرجة."""
+    if not check_teacher(request):
+        return redirect('home')
+    teacher = get_teacher(request)
+
+    if request.method == 'POST':
+        exam_id = request.POST.get('exam_id')
+        student_id = request.POST.get('student_id')
+        score = request.POST.get('score', '0')
+        exam = get_object_or_404(TeacherExam, id=exam_id, skill__created_by=teacher)
+        student_obj = get_object_or_404(Student, id=student_id)
+
+        try:
+            score = float(score)
+        except (ValueError, TypeError):
+            score = 0
+
+        total = exam.questions_count or exam.questions.count() or 10
+        percentage = (score / total * 100) if total > 0 else 0
+        passed = percentage >= exam.pass_score
+
+        # تحقق من عدم التكرار
+        existing = ExamResult.objects.filter(exam=exam, student_record=student_obj).first()
+        if existing:
+            existing.score = score
+            existing.total = total
+            existing.percentage = percentage
+            existing.passed = passed
+            existing.manually_corrected = True
+            existing.corrected_by = teacher
+            existing.save()
+            messages.success(request, f'تم تحديث درجة {student_obj.full_name}: {score}/{total}')
+        else:
+            ExamResult.objects.create(
+                exam=exam,
+                student_record=student_obj,
+                score=score,
+                total=total,
+                percentage=percentage,
+                passed=passed,
+                manually_corrected=True,
+                corrected_by=teacher,
+            )
+            messages.success(request, f'تم رصد درجة {student_obj.full_name}: {score}/{total}')
+
+        # ارجع للصفحة اللي جاء منها
+        next_url = request.POST.get('next', '')
+        if next_url:
+            return redirect(next_url)
+        return redirect('teacher_dashboard')
+
+    # GET — عرض الفورم
+    my_classrooms = teacher.classrooms.all().prefetch_related('students')
+    my_exams = TeacherExam.objects.filter(skill__created_by=teacher).select_related('skill')
+    return render(request, 'teachers/manual_score.html', {
+        'teacher': teacher,
+        'classrooms': my_classrooms,
+        'exams': my_exams,
+    })

@@ -29,4 +29,11 @@ urlpatterns = [
 
     # ─── Sessions ─────────────────────────────────────────────
     path('sessions/add/', views.add_session, name='add_session'),
+
+    # ─── Classrooms ───────────────────────────────────────────
+    path('classrooms/', views.manage_classrooms, name='manage_classrooms'),
+    path('classrooms/<int:classroom_id>/students/', views.get_classroom_students, name='get_classroom_students'),
+
+    # ─── Manual Score Entry ───────────────────────────────────
+    path('manual-score/', views.manual_score_entry, name='manual_score_entry'),
 ]

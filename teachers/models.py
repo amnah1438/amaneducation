@@ -9,6 +9,10 @@ class Teacher(models.Model):
         related_name="teacher", verbose_name="حساب المستخدم"
     )
     full_name = models.CharField(max_length=200, verbose_name="اسم المعلمة")
+    classrooms = models.ManyToManyField(
+        'students.ClassRoom', blank=True,
+        related_name="teachers", verbose_name="الفصول"
+    )
 
     class Meta:
         verbose_name = "معلمة"
@@ -159,7 +163,11 @@ class TeacherQuestion(models.Model):
 
 class ExamResult(models.Model):
     exam = models.ForeignKey(TeacherExam, on_delete=models.CASCADE, related_name="results", verbose_name="الاختبار")
-    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="teacher_exam_results", verbose_name="الطالبة")
+    student = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name="teacher_exam_results", verbose_name="الطالبة (حساب)")
+    student_record = models.ForeignKey(
+        'students.Student', on_delete=models.CASCADE, null=True, blank=True,
+        related_name="exam_results", verbose_name="الطالبة (سجل)"
+    )
     score = models.FloatField(default=0, verbose_name="الدرجة")
     total = models.PositiveIntegerField(default=10, verbose_name="الدرجة الكاملة")
     percentage = models.FloatField(default=0, verbose_name="النسبة %")
@@ -172,10 +180,18 @@ class ExamResult(models.Model):
     class Meta:
         verbose_name = "نتيجة اختبار"
         verbose_name_plural = "نتائج الاختبارات"
-        unique_together = ['exam', 'student']
+
+    def get_student_name(self):
+        """اسم الطالبة — من السجل أو من حساب المستخدم"""
+        if self.student_record:
+            return self.student_record.full_name
+        if self.student:
+            return self.student.get_full_name() or self.student.username
+        return "—"
 
     def __str__(self):
-        return f"{self.student.username} — {self.exam} — {self.score}/{self.total}"
+        name = self.get_student_name()
+        return f"{name} — {self.exam} — {self.score}/{self.total}"
 
 
 class StudentAnswer(models.Model):

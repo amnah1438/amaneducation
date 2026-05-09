@@ -23,11 +23,18 @@
     .btn { display: inline-block; padding: 8px 14px; border-radius: 8px; text-decoration: none; font-size: 0.85rem; }
     .btn-primary { background: #1a7a4a; color: #fff; }
     .back { display: inline-block; margin-bottom: 16px; color: #1a4a8a; text-decoration: none; font-weight: 700; }
+    .btn-manual { background: #f59e0b; color: #fff; margin-right: 10px; font-weight: 700; }
+    .btn-manual:hover { background: #d97706; }
+    .top-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 16px; }
+    .manual-badge { display:inline-block;background:#fef3c7;color:#92400e;font-size:0.7rem;padding:2px 6px;border-radius:4px;margin-right:4px;font-weight:700 }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <a class="back" href="{% url 'teacher_dashboard' %}">← العودة للوحة التحكم</a>
+    <div class="top-actions">
+      <a class="back" href="{% url 'teacher_dashboard' %}">← العودة للوحة التحكم</a>
+      <a class="btn btn-manual" href="/teachers/manual-score/?next=/teachers/exam/{{ exam.id }}/results/">📝 رصد درجة يدوياً</a>
+    </div>
 
     <div class="header">
       <h1>📊 نتائج اختبار: {{ exam.skill.title }}</h1>
@@ -58,7 +65,16 @@
           {% for r in results %}
             <tr>
               <td>{{ forloop.counter }}</td>
-              <td>{{ r.student.get_full_name|default:r.student.username }}</td>
+              <td>
+                {% if r.student_record %}
+                  {{ r.student_record.full_name }}
+                {% elif r.student %}
+                  {{ r.student.get_full_name|default:r.student.username }}
+                {% else %}
+                  —
+                {% endif %}
+                {% if r.manually_corrected %}<span class="manual-badge">يدوي</span>{% endif %}
+              </td>
               <td>{{ r.score }}/{{ r.total }}</td>
               <td>{{ r.percentage }}%</td>
               <td>
@@ -68,7 +84,7 @@
                   <span class="fail">✗ متعثرة</span>
                 {% endif %}
               </td>
-              <td>{{ r.time_taken_seconds }} ث</td>
+              <td>{% if r.manually_corrected %}—{% elif r.time_taken_seconds %}{{ r.time_taken_seconds }} ث{% else %}—{% endif %}</td>
               <td><a class="btn btn-primary" href="{% url 'student_result' r.id %}">عرض</a></td>
             </tr>
           {% endfor %}

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة الفصول — منصة آمنة التعليمية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root, :root[data-theme="dark"] {
+  --bg:#0a0d14;--bg2:#0f1320;--bg3:#141928;
+  --card:#111827;--card2:#1a2235;
+  --border:#1e2a3d;--border2:#263245;
+  --green:#10b981;--green2:#065f46;
+  --blue:#3b82f6;--blue2:#1e3a5f;
+  --purple:#8b5cf6;--purple2:#4c1d95;
+  --orange:#f59e0b;--orange2:#78350f;
+  --red:#ef4444;--red2:#7f1d1d;
+  --teal:#14b8a6;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.logo-name{font-size:12px;font-weight:800}
+.back-link{color:var(--text3);font-size:11px;text-decoration:none;padding:5px 10px;border-radius:6px;transition:all 0.2s}
+.back-link:hover{background:var(--bg3);color:var(--text2)}
+
+.main{max-width:700px;margin:0 auto;padding:24px 16px}
+
+.page-title{font-size:18px;font-weight:800;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+
+.msg{padding:9px 12px;border-radius:7px;font-size:11px;margin-bottom:14px;border-right:3px solid;display:flex;align-items:center;gap:7px}
+.msg-s{background:rgba(16,185,129,0.08);border-color:var(--green);color:#6ee7a0}
+.msg-e{background:rgba(239,68,68,0.08);border-color:var(--red);color:#fca5a5}
+
+.section{margin-bottom:28px}
+.section-title{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+
+.classroom-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+
+.classroom-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;transition:border-color 0.2s}
+.classroom-card:hover{border-color:var(--border2)}
+.classroom-name{font-size:13px;font-weight:700}
+.classroom-count{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:4px}
+.classroom-count span{color:var(--blue);font-weight:700}
+
+.btn-remove{background:none;border:1px solid rgba(239,68,68,0.2);color:var(--red);font-family:'Tajawal',sans-serif;font-size:10px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;transition:all 0.2s;align-self:flex-start}
+.btn-remove:hover{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.4)}
+
+.empty{text-align:center;padding:30px;color:var(--text3);font-size:12px}
+
+.add-form{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.add-form .field{flex:1;min-width:180px}
+.add-form label{display:block;font-size:10px;font-weight:600;color:var(--text3);margin-bottom:5px}
+.add-form select{width:100%;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:11px;padding:9px 10px;border-radius:8px;outline:none;cursor:pointer}
+.add-form select:focus{border-color:var(--blue)}
+
+.btn-add{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;padding:9px 18px;border-radius:8px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.btn-add:hover{filter:brightness(1.15)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">أ</div>
+    <div class="logo-name">منصة آمنة التعليمية</div>
+  </div>
+  <a href="/teachers/dashboard/" class="back-link">← لوحة التحكم</a>
+</div>
+
+<div class="main">
+  <div class="page-title">📚 فصولي</div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="msg {% if message.tags == 'success' %}msg-s{% else %}msg-e{% endif %}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="section">
+    <div class="section-title">الفصول المرتبطة</div>
+    {% if my_classrooms %}
+      <div class="classroom-grid">
+        {% for classroom in my_classrooms %}
+          <div class="classroom-card">
+            <div class="classroom-name">{{ classroom.name }}</div>
+            <div class="classroom-count">عدد الطالبات: <span>{{ classroom.students.all|length }}</span></div>
+            <form method="POST" style="margin:0">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="remove">
+              <input type="hidden" name="classroom_id" value="{{ classroom.id }}">
+              <button type="submit" class="btn-remove" onclick="return confirm('هل تريدين إزالة هذا الفصل؟')">إزالة الفصل</button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">لا توجد فصول مرتبطة حالياً</div>
+    {% endif %}
+  </div>
+
+  {% if available_classrooms %}
+  <div class="section">
+    <div class="section-title">إضافة فصل جديد</div>
+    <form method="POST" class="add-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="add">
+      <div class="field">
+        <label for="classroom_id">اختاري الفصل</label>
+        <select name="classroom_id" id="classroom_id" required>
+          <option value="">— اختاري —</option>
+          {% for classroom in available_classrooms %}
+            <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn-add">إضافة الفصل</button>
+    </form>
+  </div>
+  {% endif %}
+
+</div>
+
+</body>
+</html>
