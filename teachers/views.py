@@ -110,22 +110,22 @@ def teacher_dashboard(request):
         )
 
     excellent_students = [
-        {'name': _name(s), 'pct': round(s['avg_pct'] or 0, 1),
+        {'name': _name(s), 'pct': int(round(s['avg_pct'] or 0)),
          'count': s['results_count'], 'student_id': s['student__id']}
         for s in students_perf if (s['avg_pct'] or 0) >= 90
     ]
     mid_students = [
-        {'name': _name(s), 'pct': round(s['avg_pct'] or 0, 1),
+        {'name': _name(s), 'pct': int(round(s['avg_pct'] or 0)),
          'count': s['results_count'], 'student_id': s['student__id']}
         for s in students_perf if 50 <= (s['avg_pct'] or 0) < 90
     ]
     weak_students = [
-        {'name': _name(s), 'pct': round(s['avg_pct'] or 0, 1),
+        {'name': _name(s), 'pct': int(round(s['avg_pct'] or 0)),
          'count': s['results_count'], 'student_id': s['student__id']}
         for s in students_perf if (s['avg_pct'] or 0) < 50
     ]
 
-    avg_score = my_results.aggregate(avg=Avg('percentage'))['avg'] or 0
+    avg_score = int(round(my_results.aggregate(avg=Avg('percentage'))['avg'] or 0))
 
     # ─── ترتيب أعلى 3 طالبات ──────────────────────────────────
     top_students = (excellent_students + mid_students)[:3]
@@ -177,7 +177,7 @@ def teacher_dashboard(request):
         name = (u.get_full_name() or u.username) if u else f'ID-{sid}'
         radar_data.append({
             'name': name,
-            'values': [round(sum(secs.get(s, [0])) / max(len(secs.get(s, [])), 1), 1) for s in sections],
+            'values': [int(round(sum(secs.get(s, [0])) / max(len(secs.get(s, [])), 1))) for s in sections],
         })
 
     # 4) الطالبات الـ "مُعالَجَات" — تحسّن من قبلي إلى بعدي ≥ 10%
@@ -219,7 +219,7 @@ def teacher_dashboard(request):
         'active_skills': my_skills.filter(is_active=True).count(),
         'total_exams': my_exams.count(),
         'active_exams': my_exams.filter(is_active=True).count(),
-        'avg_score': round(avg_score, 1),
+        'avg_score': avg_score,
         'total_results': my_results.count(),
         'passed_results': my_results.filter(passed=True).count(),
         'total_students': Student.objects.count(),
