@@ -186,6 +186,13 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(8px)}
 .modal-overlay.on{display:flex}
 
+.latex-modal{background:var(--card);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:1000px;height:680px;display:flex;flex-direction:column;overflow:hidden;margin:20px auto}
+.latex-modal-h{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg2)}
+.latex-modal-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.latex-modal iframe{flex:1;width:100%;border:none;background:white}
+.latex-paste-row{padding:10px 14px;background:var(--bg3);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center}
+.latex-paste-row input{flex:1;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:monospace;font-size:12px;padding:8px 11px;border-radius:7px;outline:none;direction:ltr;text-align:left}
+
 .sec-header{margin-bottom:20px;padding:18px;background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:14px;position:relative;overflow:hidden}
 .sec-header h2{font-size:18px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:8px}
 .sec-header p{font-size:13px;color:var(--text2);line-height:1.7}
@@ -298,7 +305,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
       </div>
       <div class="sk-actions">
         <a href="{% url 'view_skill' skill.id %}" class="sk-act" style="border-color:rgba(79,142,247,.3);background:rgba(79,142,247,.08);color:var(--blue)">📖 عرض</a>
-        <a href="{% url 'edit_skill' skill.id %}" class="sk-act" style="border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.08);color:var(--orange)">✏️ تعديل</a>
+        <a href="{% url 'edit_skill' skill.id %}" class="sk-act" style="border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.08);color:var(--orange)" onclick="event.preventDefault();editSkillInline({{ skill.id }},'{{ skill.title|escapejs }}','{{ skill.get_content_type_display|escapejs }}','{{ skill.skill_type|escapejs }}','{{ skill.target_classes|escapejs }}','{{ skill.description|escapejs }}','{{ skill.subject|escapejs }}')">✏️ تعديل</a>
         <form method="post" action="{% url 'delete_skill' skill.id %}" style="flex:0;margin:0" onsubmit="return confirm('حذف المهارة؟')">{% csrf_token %}<button type="submit" class="sk-act" style="width:100%;border-color:rgba(240,82,82,.3);background:rgba(240,82,82,.08);color:var(--red)">🗑️</button></form>
       </div>
       {% with exams=skill.exams.all %}
@@ -659,52 +666,67 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 
 <!-- ════════ MODALS ════════ -->
 
-<!-- LaTeX Modal -->
+<!-- Modal: محرّر LaTeX الذكي (4 محررات في تبويبات) -->
 <div class="modal-overlay" id="mathModal">
-  <div class="card" style="width:100%;max-width:700px;margin:40px 20px">
-    <div class="ch" style="justify-content:space-between">
-      <span class="ct"><span class="ct-dot" style="background:var(--purple)"></span> محرر المعادلات</span>
-      <button onclick="closeMathModal()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px">✕</button>
+  <div class="latex-modal">
+    <div class="latex-modal-h">
+      <div>
+        <div style="font-size:15px;font-weight:800">∑ محرّر المعادلات الذكي</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:2px">اختاري المحرّر المناسب، اكتبي معادلتك، انسخي الكود، الصقيه بالأسفل، ثم «إدراج»</div>
+      </div>
+      <button onclick="closeMathModal()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:14px">✕</button>
     </div>
-    <div class="cb">
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-        <button class="math-tab-btn on" onclick="switchMathTab('mathlive',this)" style="padding:8px 12px;background:var(--blue);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:11px">🖊️ MathLive</button>
-        <button class="math-tab-btn" onclick="switchMathTab('latex',this)" style="padding:8px 12px;background:var(--bg3);border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:11px">📝 LaTeX</button>
-        <button class="math-tab-btn" onclick="switchMathTab('hostmath',this)" style="padding:8px 12px;background:var(--bg3);border:none;border-radius:6px;cursor:pointer;font-weight:600;font-size:11px">🌐 HostMath</button>
-      </div>
 
-      <!-- MathLive Tab -->
-      <div id="mathlive-tab" class="math-tab-content">
-        <p style="color:var(--text2);font-size:11px;margin-bottom:8px">اكتب المعادلة مباشرة باستخدام لوحة المفاتيح الرياضية</p>
-        <math-field id="mathField" style="display:block;padding:12px;background:var(--bg2);border-radius:6px;min-height:60px;border:1px solid var(--border)"></math-field>
-        <div style="margin-top:8px;padding:9px;background:var(--bg3);border-radius:6px;font-size:11px;color:var(--text2)">💡 نصيحة: استخدم / للكسور، ^ للأُسس، _ للمنخفضات، \sqrt للجذر</div>
-      </div>
+    <!-- تبويبات المحررات الأربعة -->
+    <div style="display:flex;gap:4px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <button type="button" class="latex-tab on" data-eid="latex-mathlive" onclick="switchLatexEd(this,'latex-mathlive')" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800">✏️ MathLive (مثل Word)</button>
+      <button type="button" class="latex-tab" data-eid="latex-myscript" onclick="switchLatexEd(this,'latex-myscript')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">✍️ MyScript (يدوي)</button>
+      <button type="button" class="latex-tab" data-eid="latex-hostmath" onclick="switchLatexEd(this,'latex-hostmath')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">🧮 HostMath</button>
+      <button type="button" class="latex-tab" data-eid="latex-codecogs" onclick="switchLatexEd(this,'latex-codecogs')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">📝 CodeCogs</button>
+    </div>
 
-      <!-- LaTeX Tab -->
-      <div id="latex-tab" class="math-tab-content" style="display:none">
-        <div class="fg"><label class="fl">أدخل صيغة LaTeX</label><input class="fi" id="mathInput" placeholder="��ثال: \frac{1}{2}x^2" oninput="updateMathPreview()"></div>
-        <div class="math-inline"><span style="color:var(--text3)">معاينة:</span><div class="math-prev" id="mathPreview" style="padding:8px;background:var(--bg2);border-radius:4px;min-height:30px">—</div></div>
-        <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">
-          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\frac{}{}')" style="font-size:11px">كسر</button>
-          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\sqrt{}')" style="font-size:11px">جذر</button>
-          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('^{}')" style="font-size:11px">أُس</button>
-          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\sum_{i=1}^{n}')" style="font-size:9px">مج��وع</button>
-          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\int_{a}^{b}')" style="font-size:9px">تكامل</button>
-          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\pi')" style="font-size:9px">π</button>
-          <button type="button" class="btn btn-sm btn-b" onclick="insertLatexSnippet('\\\\infty')" style="font-size:9px">∞</button>
+    <div class="latex-modal-body" style="position:relative">
+      <!-- ✏️ MathLive — محرر داخلي بدون iframe (يُحاكي Word) -->
+      <div id="latex-mathlive" style="display:flex;flex-direction:column;flex:1;padding:24px;background:white;color:#111;overflow-y:auto">
+        <div style="font-size:14px;color:#1e293b;margin-bottom:10px;font-weight:700">
+          📝 اكتبي معادلتكِ كما في Word — مباشرة في الإطار أدناه:
+        </div>
+        <div style="font-size:12px;color:#64748b;line-height:1.9;background:#f1f5f9;padding:10px 14px;border-radius:8px;border-right:3px solid #4338ca;margin-bottom:14px">
+          💡 <strong>أمثلة سريعة:</strong> اكتبي
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">1/2</code> → كسر فوراً •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">sqrt 2</code> → جذر •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">x^2</code> → أس •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">pi</code> → π •
+          <code style="background:#fff;padding:1px 6px;border-radius:4px">sum</code> → ∑
+        </div>
+        <math-field id="mlField" virtual-keyboard-mode="manual"
+          style="min-height:180px;font-size:24px;border:2px solid #cbd5e1;border-radius:12px;padding:20px;background:#ffffff;color:#0f172a;direction:ltr"></math-field>
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" onclick="copyMlToPaste()" style="background:linear-gradient(135deg,#10b981,#3b82f6);color:white;border:none;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800">📋 نسخ الكود إلى أسفل</button>
+          <button type="button" onclick="var f=document.getElementById('mlField');if(f)f.setValue('')" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">🗑️ مسح</button>
+          <button type="button" onclick="var f=document.getElementById('mlField');if(f&&f.executeCommand)f.executeCommand('switchKeyboardLayer','symbols')" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">⌨️ لوحة الرموز</button>
+          <button type="button" onclick="insertMlExample()" style="background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">✨ مثال جاهز</button>
+        </div>
+        <div style="margin-top:12px;padding:10px 14px;background:#dcfce7;border:1px solid #86efac;border-radius:8px;font-size:12px;color:#166534;line-height:1.9">
+          ✅ <strong>تجربة مماثلة لـ Word تماماً</strong>: اكتبي بالعربي والإنجليزي والرموز الرياضية معاً. اضغط
+          <kbd style="background:#fff;padding:1px 5px;border-radius:3px;font-family:monospace">/</kbd> للكسر،
+          <kbd style="background:#fff;padding:1px 5px;border-radius:3px;font-family:monospace">^</kbd> للأس،
+          <kbd style="background:#fff;padding:1px 5px;border-radius:3px;font-family:monospace">_</kbd> للسفلي.
         </div>
       </div>
 
-      <!-- HostMath Tab -->
-      <div id="hostmath-tab" class="math-tab-content" style="display:none">
-        <p style="color:var(--text2);font-size:11px;margin-bottom:8px">محرر HostMath المتقدم — اكتب المعادلة ثم انسخ صيغة LaTeX أدناه</p>
-        <iframe src="https://www.hostmath.com" style="width:100%;height:300px;border:1px solid var(--border);border-radius:6px;background:#fff" id="hostmathFrame"></iframe>
-        <div class="fg" style="margin-top:8px"><label class="fl">الصق صيغة LaTeX من HostMath هنا</label><input class="fi" id="hostmathInput" placeholder="الصق صيغة LaTeX هنا..."></div>
-      </div>
+      <!-- iframe للمحررات الأخرى -->
+      <iframe id="latex-myscript" src="about:blank" data-src="https://webdemo.myscript.com/views/math/index.html" title="MyScript Math" style="display:none;flex:1;border:none"></iframe>
+      <iframe id="latex-hostmath" src="about:blank" data-src="https://www.hostmath.com/" title="HostMath" style="display:none;flex:1;border:none"></iframe>
+      <iframe id="latex-codecogs" src="about:blank" data-src="https://editor.codecogs.com/" title="CodeCogs" style="display:none;flex:1;border:none"></iframe>
 
-      <div class="btn-row" style="justify-content:flex-end;margin-top:14px">
-        <button type="button" class="btn btn-b" onclick="closeMathModal()">إلغاء</button>
-        <button type="button" class="btn btn-g" onclick="insertMathFormula()">إدراج $latex$</button>
+      <!-- شريط لصق وإدراج -->
+      <div class="latex-paste-row">
+        <input id="latexPasteInp" placeholder="الصقي كود المعادلة هنا، مثال: \frac{a}{b} أو x^2+5x=0">
+        <button class="btn btn-g" onclick="applyLatexCode()" style="white-space:nowrap">✅ إدراج في الحقل</button>
+      </div>
+      <div style="padding:8px 14px;background:var(--card2);font-size:11px;color:var(--text2);line-height:1.8;border-top:1px solid var(--border)">
+        💡 <strong>كيف تستخدمين MyScript؟</strong> اكتبي المعادلة بإصبعك أو الفأرة في الإطار أعلاه — يحوّلها تلقائياً إلى رياضيات. اضغطي زر «نسخ LaTeX» داخل MyScript ثم الصقي هنا.
       </div>
     </div>
   </div>
@@ -871,8 +893,8 @@ function startQodratWizard(){
   questions['q-pre'] = [];
   questions['q-post'] = [];
 
-  buildQEditor('q-pre', 'q-pre-editor');
-  buildQEditor('q-post', 'q-post-editor');
+  buildQEditor('q-pre', 'q-pre-editor', 'المهارة المرتبطة');
+  buildQEditor('q-post', 'q-post-editor', 'المهارة المرتبطة');
   goQStep(1);
 }
 
@@ -906,7 +928,10 @@ function startTahsiliWizard(){
   // Reset questions for this lesson
   questions['t-post'] = [];
 
-  buildQEditor('t-post', 't-post-editor');
+  buildQEditor('t-post', 't-post-editor', 'الدرس المرتبط');
+  // Hide skill select for tahsili - no skills, only lessons
+  var tSkillFg = document.getElementById('t-post-skill-select');
+  if(tSkillFg && tSkillFg.parentElement) tSkillFg.parentElement.style.display = 'none';
   goTStep(1);
 }
 
@@ -928,7 +953,9 @@ function selectBank(type, name){
   // Reset questions for this bank
   questions['bank'] = [];
 
-  buildQEditor('bank', 'bank-editor');
+  // Use "الدرس المرتبط" for tahsili banks, "المهارة المرتبطة" for qodrat banks
+  var isTahsiliBank = ['math','physics','chemistry','biology','english','arabic'].indexOf(type) !== -1;
+  buildQEditor('bank', 'bank-editor', isTahsiliBank ? 'الدرس المرتبط' : 'المهارة المرتبطة');
 
   // Populate skill dropdown based on bank type
   const select = document.getElementById('bank-skill-select');
@@ -949,7 +976,8 @@ function goBackFromBank(){
 }
 
 // ════ QUESTION EDITOR ════
-function buildQEditor(prefix, containerId){
+function buildQEditor(prefix, containerId, skillLabel){
+  if(!skillLabel) skillLabel = 'المهارة المرتبطة';
   const container = document.getElementById(containerId);
   container.innerHTML = `
     <div class="q-editor-wrap">
@@ -993,9 +1021,9 @@ function buildQEditor(prefix, containerId){
             </div>
 
             <div class="fg">
-              <label class="fl">المهارة المرتبطة</label>
+              <label class="fl">${skillLabel}</label>
               <select class="fi" id="${prefix}-skill-select">
-                <option value="">-- اختر مهارة --</option>
+                <option value="">-- اختر --</option>
               </select>
             </div>
 
@@ -1177,9 +1205,12 @@ function openMathEditor(qType, qIdx, part){
   smartLatexOpen(targetId);
 }
 
+/* ═══ محرّر المعادلات الذكي (4 تبويبات) ═══ */
 function smartLatexOpen(targetId){
   smartTarget = targetId;
   document.getElementById('mathModal').classList.add('on');
+  var inp = document.getElementById('latexPasteInp');
+  if(inp){ inp.value = ''; inp.focus(); }
 }
 
 function smartLatexClose(){
@@ -1191,68 +1222,92 @@ function closeMathModal(){
   smartLatexClose();
 }
 
-function switchMathTab(tab, btn){
-  document.querySelectorAll('.math-tab-content').forEach(el => el.style.display = 'none');
-  document.querySelectorAll('.math-tab-btn').forEach(b => b.classList.remove('on'));
-  document.getElementById(tab + '-tab').style.display = 'block';
+/* تبديل بين المحررات الأربعة (MathLive / MyScript / HostMath / CodeCogs) */
+function switchLatexEd(btn, panelId){
+  document.querySelectorAll('.latex-tab').forEach(function(t){
+    t.classList.remove('on');
+    t.style.background = 'var(--card2)';
+    t.style.color = 'var(--text)';
+    t.style.border = '1px solid var(--border)';
+    t.style.fontWeight = '700';
+  });
   btn.classList.add('on');
-  btn.style.background = 'var(--blue)';
+  btn.style.background = 'linear-gradient(135deg,var(--green2),var(--blue2))';
   btn.style.color = 'white';
-  document.querySelectorAll('.math-tab-btn').forEach(b => {
-    if(b !== btn){
-      b.style.background = 'var(--bg3)';
-      b.style.color = 'var(--text)';
+  btn.style.border = 'none';
+  btn.style.fontWeight = '800';
+  ['latex-mathlive','latex-myscript','latex-hostmath','latex-codecogs'].forEach(function(id){
+    var f = document.getElementById(id);
+    if(!f) return;
+    if(id === panelId){
+      f.style.display = (id === 'latex-mathlive') ? 'flex' : 'block';
+      // Lazy-load iframes
+      if(f.tagName === 'IFRAME' && f.dataset.src && f.src === 'about:blank'){
+        f.src = f.dataset.src;
+      }
+    } else {
+      f.style.display = 'none';
     }
   });
+  if(panelId === 'latex-mathlive'){
+    setTimeout(function(){
+      var ml = document.getElementById('mlField');
+      if(ml && ml.focus) ml.focus();
+    }, 60);
+  }
 }
 
-function insertMathFormula(){
-  if(!smartTarget) return;
-
-  // Try to get LaTeX from MathLive first, then LaTeX input, then HostMath
-  const mathField = document.getElementById('mathField');
-  let latex = '';
-
-  if(mathField && mathField.value){
-    latex = mathField.value;
-  }
-  if(!latex){
-    latex = document.getElementById('mathInput')?.value || '';
-  }
-  if(!latex){
-    latex = document.getElementById('hostmathInput')?.value || '';
-  }
-
-  if(!latex){ alert('أدخل المعادلة أولاً'); return; }
-
-  let target = document.getElementById(smartTarget);
-  if(target){
-    // Insert as rendered LaTeX span into contenteditable
-    target.innerHTML = (target.innerHTML || '') + ` <span class="math-rendered">$${latex}$</span> `;
-    // Trigger MathJax rendering
-    if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([target]);
-  }
-  // Clear fields
-  if(mathField) mathField.value = '';
-  const mi = document.getElementById('mathInput'); if(mi) mi.value = '';
-  const hi = document.getElementById('hostmathInput'); if(hi) hi.value = '';
-  smartLatexClose();
+/* MathLive: نسخ الكود الناتج إلى حقل اللصق */
+function copyMlToPaste(){
+  var ml = document.getElementById('mlField');
+  if(!ml) return;
+  var code = (ml.getValue ? ml.getValue('latex') : ml.value) || '';
+  if(!code.trim()){ alert('اكتبي معادلة أولاً في الإطار الأبيض'); return; }
+  document.getElementById('latexPasteInp').value = code;
+  flashMiniToast('📋 تم نسخ الكود — اضغطي «إدراج» الآن');
 }
 
-function updateMathPreview(){
-  const latex = document.getElementById('mathInput').value;
-  const prev = document.getElementById('mathPreview');
-  if(!latex){ prev.innerHTML = '—'; return; }
-  prev.innerHTML = `$${latex}$`;
-  if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([prev]);
+/* مثال جاهز يساعد المعلمة */
+function insertMlExample(){
+  var ml = document.getElementById('mlField');
+  if(!ml) return;
+  var examples = [
+    '\\frac{a+b}{c-d}',
+    'x = \\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}',
+    '\\sqrt[3]{27} = 3',
+    'x^2 + 5x - 6 = 0',
+    '\\sum_{i=1}^{n} i = \\frac{n(n+1)}{2}',
+    '\\int_{0}^{1} x^2 \\, dx = \\frac{1}{3}',
+  ];
+  ml.setValue(examples[Math.floor(Math.random() * examples.length)]);
 }
 
-function insertLatexSnippet(snippet){
-  const input = document.getElementById('mathInput');
-  const pos = input.selectionStart || input.value.length;
-  input.value = input.value.slice(0, pos) + snippet + input.value.slice(pos);
-  input.focus();
-  updateMathPreview();
+/* إدراج كود LaTeX من الحقل السفلي في المحقل المستهدف */
+function applyLatexCode(){
+  var code = document.getElementById('latexPasteInp').value.trim();
+  if(!code){ alert('انسخي كود المعادلة من المحرّر ثم الصقيه هنا'); return; }
+  var wrapped = code.startsWith('$') ? code : ('$' + code + '$');
+  if(smartTarget){
+    var target = document.getElementById(smartTarget);
+    if(target){
+      if(target.contentEditable === 'true'){
+        target.innerHTML = (target.innerHTML || '') + ' <span class="math-rendered">' + wrapped + '</span> ';
+      } else {
+        var start = target.selectionStart || target.value.length;
+        target.value = target.value.slice(0, start) + ' ' + wrapped + ' ' + target.value.slice(start);
+      }
+      if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([target]);
+    }
+  }
+  closeMathModal();
+}
+
+/* رسالة توست مصغرة */
+function flashMiniToast(msg){
+  var t = document.createElement('div');
+  t.style.cssText='position:fixed;bottom:80px;right:20px;background:var(--blue);color:white;padding:8px 14px;border-radius:7px;font-size:12px;font-weight:700;z-index:99999;box-shadow:0 4px 14px rgba(0,0,0,0.3)';
+  t.textContent=msg;document.body.appendChild(t);
+  setTimeout(function(){t.remove()},1800);
 }
 
 function smartOcrOpen(targetId){
@@ -1805,8 +1860,78 @@ function selectSkill(skillId, elem){
   elem.classList.add('active');
 }
 
+/* ═══ تعديل المهارة في نفس الصفحة ═══ */
+function editSkillInline(id, title, contentType, skillType, targetClasses, description, subject){
+  // Determine if it's qodrat or tahsili
+  var isQodrat = (skillType && skillType.indexOf('qodrat') !== -1);
+  var isTahsili = !isQodrat && (contentType === 'تحصيلي' || skillType === 'tahsili' || subject);
+
+  if(isQodrat){
+    // Switch to qodrat section
+    switchSection('qodrat', document.querySelector('.main-tab.t-blue'));
+    // Fill in qodrat form
+    var titleEl = document.getElementById('q-title');
+    if(titleEl) titleEl.value = title;
+    var typeEl = document.getElementById('q-skill-type');
+    if(typeEl) typeEl.value = skillType;
+    var targetEl = document.getElementById('q-target-class');
+    if(targetEl) targetEl.value = targetClasses || 'جميع الفصول';
+    var descEl = document.getElementById('q-desc');
+    if(descEl) descEl.value = description || '';
+    // Show new skill form and hide skill selection
+    document.getElementById('q-step0').classList.add('on');
+    var dropdown = document.getElementById('q-skill-dropdown');
+    if(dropdown) dropdown.classList.remove('show');
+    var newForm = document.getElementById('q-new-skill-form');
+    if(newForm) newForm.style.display = 'block';
+    // Show editing indicator
+    flashMiniToast('✏️ تعديل المهارة: ' + title + ' — عدّلي البيانات ثم اضغطي التالي');
+  } else {
+    // Switch to tahsili section
+    switchSection('tahsili', document.querySelector('.main-tab.t-orange'));
+    // Fill in tahsili form
+    var tTitleEl = document.getElementById('t-title');
+    if(tTitleEl) tTitleEl.value = title;
+    var tSubjectEl = document.getElementById('t-subject');
+    if(tSubjectEl && subject) tSubjectEl.value = subject;
+    var tTargetEl = document.getElementById('t-target-class');
+    if(tTargetEl) tTargetEl.value = targetClasses || 'جميع الفصول';
+    var tDescEl = document.getElementById('t-desc');
+    if(tDescEl) tDescEl.value = description || '';
+    flashMiniToast('✏️ تعديل الدرس: ' + title + ' — عدّلي البيانات ثم اضغطي التالي');
+  }
+  // Scroll to top of content area
+  document.querySelector('.content').scrollTo({top: 0, behavior: 'smooth'});
+}
+
 function useSharedSkill(skillId){
-  alert('تم نسخ المهارة، يمكنك الآن تعديلها');
+  // Send AJAX request to copy the skill
+  fetch('/teachers/skills/' + skillId + '/use/', {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  }).then(function(res){
+    if(res.ok){
+      flashMiniToast('✅ تم نسخ المهارة بنجاح! يتم إعادة تحميل الصفحة...');
+      setTimeout(function(){ location.reload(); }, 1200);
+    } else {
+      flashMiniToast('❌ حدث خطأ في نسخ المهارة');
+    }
+  }).catch(function(){
+    // Fallback: try simple form submission
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/teachers/skills/' + skillId + '/use/';
+    var csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = 'csrfmiddlewaretoken';
+    csrf.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+  });
 }
 
 // Initialize

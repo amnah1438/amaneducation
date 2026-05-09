@@ -14,6 +14,7 @@ urlpatterns = [
     path('skills/delete/<int:skill_id>/', views.delete_skill, name='delete_skill'),
     path('skill/<int:skill_id>/questions/', views.get_skill_questions, name='get_skill_questions'),
     path('skills/import/', views.import_skills_excel, name='import_skills_excel'),
+    path('skills/<int:skill_id>/use/', views.use_shared_skill, name='use_shared_skill'),
 
     # ─── Exams ─────────────────────────────────────────────────
     path('exam/<int:exam_id>/add-question/', views.add_question, name='add_question'),

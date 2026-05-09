@@ -460,6 +460,64 @@ def delete_skill(request, skill_id):
 
 
 @login_required
+def use_shared_skill(request, skill_id):
+    """نسخ مهارة من زميلة لاستخدامها في فصلي."""
+    if not check_teacher(request):
+        return redirect('home')
+    teacher = get_teacher(request)
+    original = get_object_or_404(TeacherSkill, id=skill_id, is_shared=True)
+
+    if request.method == 'POST':
+        # نسخ المهارة
+        new_skill = TeacherSkill.objects.create(
+            created_by=teacher,
+            title=original.title,
+            description=original.description,
+            content_type=original.content_type,
+            skill_type=original.skill_type,
+            subject=original.subject,
+            target_classes=original.target_classes,
+            is_shared=False,
+            is_active=False,
+        )
+        # نسخ المحتوى إن وجد
+        if hasattr(original, 'content') and original.content:
+            TeacherSkillContent.objects.create(
+                skill=new_skill,
+                plain_text=original.content.plain_text or '',
+                video_url=original.content.video_url or '',
+            )
+        # نسخ الاختبارات والأسئلة
+        for exam in original.exams.all():
+            new_exam = TeacherExam.objects.create(
+                skill=new_skill,
+                exam_type=exam.exam_type,
+                questions_count=exam.questions_count,
+                duration_minutes=exam.duration_minutes,
+                pass_score=exam.pass_score,
+                delivery=exam.delivery,
+                is_active=False,
+            )
+            for q in exam.questions.all():
+                TeacherQuestion.objects.create(
+                    exam=new_exam,
+                    order=q.order,
+                    question_plain=q.question_plain,
+                    option_a_plain=q.option_a_plain,
+                    option_b_plain=q.option_b_plain,
+                    option_c_plain=q.option_c_plain,
+                    option_d_plain=q.option_d_plain,
+                    correct_answer=q.correct_answer,
+                    target_skill_name=q.target_skill_name,
+                    feedback_plain=q.feedback_plain,
+                )
+        messages.success(request, f'✅ تم نسخ المهارة "{original.title}" — يمكنكِ الآن تعديلها وتفعيلها')
+        return redirect('skill_manager')
+
+    return redirect('skill_manager')
+
+
+@login_required
 def add_question(request, exam_id):
     if not check_teacher(request):
         return redirect('home')
