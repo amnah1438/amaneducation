@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>إضافة سؤال — منصة آمنة</title>
+<title>إضافة سؤال — {{ platform.platform_name|default:"منصة آمنة" }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 
 <!-- Tesseract.js للمسح الضوئي + MathLive -->
@@ -205,7 +205,7 @@ select.fi option{background:var(--card2)}
   <div class="logo">
     <div class="logo-mark">🎓</div>
     <div>
-      <div class="logo-name">منصة آمنة التعليمية</div>
+      <div class="logo-name">{{ platform.platform_name|default:"منصة آمنة التعليمية" }}</div>
       <div class="logo-sub">{{ teacher.full_name|default:"المعلمة" }} — إضافة سؤال</div>
     </div>
   </div>

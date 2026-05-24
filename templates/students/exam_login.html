@@ -39,8 +39,8 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   <!-- Logo -->
   <div class="logo">
     <div class="logo-mark">🎓</div>
-    <div class="logo-name">منصة آمنة التعليمية</div>
-    <div class="logo-sub">مدرسة النور</div>
+    <div class="logo-name">{{ platform.platform_name|default:"منصة آمنة التعليمية" }}</div>
+    <div class="logo-sub">{{ platform.header_line_4|default:"" }}</div>
   </div>
 
   <!-- Card -->

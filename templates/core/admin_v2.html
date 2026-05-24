@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>لوحة المديرة — منصة آمنة (Enterprise)</title>
+<title>لوحة المديرة — {{ platform.platform_name|default:"منصة آمنة" }} (Enterprise)</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea']}}</script>
@@ -435,7 +435,7 @@ body.display-mode .card-t { font-size: 18px; }
   <div class="tb-left">
     <div class="tb-logo">🎓</div>
     <div>
-      <div class="tb-title">منصة آمنة التعليمية</div>
+      <div class="tb-title">{{ platform.platform_name|default:"منصة آمنة التعليمية" }}</div>
       <div class="tb-sub">Enterprise Dashboard • {{ request.user.first_name|default:request.user.username }}</div>
     </div>
     <span class="live-status"><span class="live-dot"></span>متصل آنياً</span>
@@ -1118,7 +1118,7 @@ body.display-mode .card-t { font-size: 18px; }
 
   <!-- ═══════════ Footer ═══════════ -->
   <div style="text-align:center;margin-top:30px;font-size:10px;color:var(--text3);line-height:1.8">
-    منصة آمنة التعليمية · Enterprise Dashboard · {{ kpis.total_students }} طالبة · {{ kpis.total_teachers }} معلمة
+    {{ platform.platform_name|default:"منصة آمنة التعليمية" }} · Enterprise Dashboard · {{ kpis.total_students }} طالبة · {{ kpis.total_teachers }} معلمة
   </div>
 
 </div>

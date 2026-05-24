@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ skill.title }} — منصة آمنة</title>
+<title>{{ skill.title }} — {{ platform.platform_name|default:"منصة آمنة" }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea']}}</script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
@@ -104,7 +104,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:9px">
     <div style="width:30px;height:30px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px">🎓</div>
-    <div style="font-size:12px;font-weight:800">منصة آمنة التعليمية</div>
+    <div style="font-size:12px;font-weight:800">{{ platform.platform_name|default:"منصة آمنة التعليمية" }}</div>
   </div>
   <div style="display:flex;gap:6px;flex-wrap:wrap">
     <a href="/" class="btn btn-b">← الرئيسية</a>
@@ -458,7 +458,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
           {% endfor %}
         </div>
         <div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:8px 20px;display:flex;justify-content:space-between;font-size:9px;color:#64748b">
-          <span>منصة آمنة التعليمية</span>
+          <span>{{ platform.platform_name|default:"منصة آمنة التعليمية" }}</span>
           <span>توقيع المعلمة: _______________</span>
         </div>
       </div>
@@ -528,7 +528,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
           {% endfor %}
         </div>
         <div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:8px 20px;display:flex;justify-content:space-between;font-size:9px;color:#64748b">
-          <span>منصة آمنة التعليمية</span>
+          <span>{{ platform.platform_name|default:"منصة آمنة التعليمية" }}</span>
           <span>توقيع المعلمة: _______________</span>
         </div>
       </div>

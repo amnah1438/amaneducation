@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>إدارة المهارات — منصة آمنة</title>
+<title>إدارة المهارات — {{ platform.platform_name|default:"منصة آمنة" }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <script>
 window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea']}};
@@ -267,7 +267,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 <div class="topbar">
   <div class="logo">
     <div class="logo-mark">آ</div>
-    <div><div class="logo-name">منصة آمنة التعليمية</div><div class="logo-sub">{{ teacher.full_name|default:"المعلمة" }} — إدارة المهارات</div></div>
+    <div><div class="logo-name">{{ platform.platform_name|default:"منصة آمنة التعليمية" }}</div><div class="logo-sub">{{ teacher.full_name|default:"المعلمة" }} — إدارة المهارات</div></div>
   </div>
   <div class="tnav">
     <a href="/teachers/dashboard/" class="tnb">📊 الداشبورد</a>

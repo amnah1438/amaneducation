@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>داشبورد المعلمة — منصة آمنة التعليمية</title>
+<title>داشبورد المعلمة — {{ platform.platform_name|default:"منصة آمنة التعليمية" }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
@@ -664,8 +664,8 @@ body {
   <div class="logo">
     <div class="logo-icon">🎓</div>
     <div>
-      <div class="logo-text">منصة آمنة التعليمية</div>
-      <div class="logo-sub">مدرسة النور — {{ teacher.full_name|default:user.username }} — ث١٢</div>
+      <div class="logo-text">{{ platform.platform_name|default:"منصة آمنة التعليمية" }}</div>
+      <div class="logo-sub">{{ platform.header_line_4|default:"" }} — {{ teacher.full_name|default:user.username }}</div>
     </div>
   </div>
 

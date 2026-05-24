@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>الاختبارات الشاملة — منصة آمنة</title>
+<title>الاختبارات الشاملة — {{ platform.platform_name|default:"منصة آمنة" }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root, :root[data-theme="dark"] {--bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;--purple:#9b72f5;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
@@ -57,7 +57,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:9px">
     <div style="width:30px;height:30px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px">🎓</div>
-    <div style="font-size:12px;font-weight:800">منصة آمنة التعليمية</div>
+    <div style="font-size:12px;font-weight:800">{{ platform.platform_name|default:"منصة آمنة التعليمية" }}</div>
   </div>
   <div style="display:flex;gap:8px">
     <a href="{% url 'admin_dashboard' %}" class="btn btn-b">← لوحة المديرة</a>
