@@ -1,9 +1,3 @@
-databases:
-  - name: amaneducation-db
-    databaseName: amaneducation
-    user: amaneducation
-    plan: free
-
 services:
   - type: web
     name: amaneducation
@@ -12,13 +6,19 @@ services:
     buildCommand: "./build.sh"
     startCommand: "gunicorn amaneducation.wsgi:application"
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: amaneducation-db
-          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: PYTHON_VERSION
         value: 3.11.6
       - key: DEBUG
         value: "False"
+      - key: DB_HOST
+        value: dpg-d89nfsugvqtc73c5v6tg-a
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: db_amaneducation
+      - key: DB_USER
+        value: db_amaneducation_user
+      - key: DB_PASSWORD
+        value: 3QkrrTyfGPe4DTWCchQX9y9ldGM6KxFk
