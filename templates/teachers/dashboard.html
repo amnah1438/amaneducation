@@ -73,11 +73,13 @@ body {
 .topbar {
   background: var(--bg2);
   border-bottom: 1px solid var(--border);
-  padding: 0 20px;
+  padding: 8px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 52px;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 52px;
   position: sticky;
   top: 0;
   z-index: 200;
@@ -88,7 +90,8 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 200px;
+  min-width: 180px;
+  flex-shrink: 0;
 }
 
 .logo-icon {
@@ -111,11 +114,17 @@ body {
   gap: 2px;
   overflow-x: auto;
   flex: 1;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 0 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border2) transparent;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
-.nav::-webkit-scrollbar { display: none; }
+.nav::-webkit-scrollbar { height: 4px; }
+.nav::-webkit-scrollbar-track { background: transparent; }
+.nav::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
 .nb {
   background: none;
@@ -158,8 +167,9 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 200px;
+  min-width: 150px;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .clock {
