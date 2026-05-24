@@ -11,13 +11,14 @@ python manage.py collectstatic --no-input
 # Run migrations
 python manage.py migrate
 
-# Create superuser if not exists
+# Load data from local database dump (only if database is empty)
 python manage.py shell -c "
 from django.contrib.auth import get_user_model
 User = get_user_model()
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@amaneducation.com', 'Admin2026@')
-    print('Superuser created!')
+if User.objects.count() <= 1:
+    import subprocess
+    subprocess.run(['python', 'manage.py', 'loaddata', 'data_dump.json'], check=True)
+    print('Data loaded successfully!')
 else:
-    print('Superuser already exists.')
+    print('Data already exists, skipping load.')
 "

@@ -1,0 +1,2566 @@
+[
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$LNICG7FRF0PWpl1X6id8kj$s9m4juLtjGsgaIinAobfTmwiNp2Q1fhLxOQpH8u94tg=",
+    "last_login": "2026-05-21T06:30:12.740Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "aamnah1438@gmail.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-04-28T13:11:29.581Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$vpT9ZMB5Mv8Nf6ALmgQwOf$fn0y9z0cPuKeUML078XuW0DMiHi6dkEiiSrui7bUv7U=",
+    "last_login": "2026-04-28T17:50:14.677Z",
+    "is_superuser": false,
+    "username": "المديره",
+    "first_name": "",
+    "last_name": "",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-04-28T13:22:20.303Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$984ron1W0ErU1kCKLkm772$FpV/kIPpcdmuGElhj6OQr+XxBxX+uu+R4PphBkjG0u0=",
+    "last_login": "2026-05-21T06:31:05.901Z",
+    "is_superuser": false,
+    "username": "1078205208",
+    "first_name": "فاطمة",
+    "last_name": "محمد مؤنس العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-01T22:14:23.419Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$qTFYLsiYOi5IOoa9VKiP3E$dpxf0pWZ5lkOaVZcTT+pWknbA7neu0AcYDoq9z9VFRc=",
+    "last_login": "2026-05-03T23:25:55.249Z",
+    "is_superuser": false,
+    "username": "1062823602",
+    "first_name": "رحاب",
+    "last_name": "بنت عزيز بن مرضي الرويلي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-01T22:14:23.846Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$N9u50TGuHxYnutITcPFw5O$TRQo4duOGrZZl+wYJg/eLkTpa5NY4DykfJefqqio2fk=",
+    "last_login": "2026-05-09T01:06:15.125Z",
+    "is_superuser": false,
+    "username": "1035049038",
+    "first_name": "عواطف",
+    "last_name": "مبرد خلف العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-01T22:14:24.267Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$Axgln0HXVEp37FY8Md8w98$D/gW+L/zuUVMRudrqU2ts0pmB3lvmb7vLOoEK4UBAIk=",
+    "last_login": "2026-05-02T18:57:26.590Z",
+    "is_superuser": false,
+    "username": "1152785968",
+    "first_name": "أسرار",
+    "last_name": "بنت الحميدي بن شبيكان الدهمشي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:44.934Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$Y1gsiLiDQs9v4OeIR7OyXb$fYtg1kVOk8Z5TUSFy/gfKDjcMTblHQUFsj0twiOU9r0=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1152343271",
+    "first_name": "ألماس",
+    "last_name": "بنت ناصر بن فياض الدهمشي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:45.367Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$pGpEyvWmQXfdfHbkAUjFxo$Ax/tDtSqX81tHMTOSlJ2fX4rHqS+coXutvYixCR1Egg=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1150699609",
+    "first_name": "العنود",
+    "last_name": "بنت شجاع بن علي الداموكي الرشيدي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:45.784Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$369V5t63DgX0haRrp65sSP$yymwU/2WJQlkCOGser+QgLqSjybMZwOuVDRStsoJoK4=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1151786280",
+    "first_name": "تالين",
+    "last_name": "بنت منيزل بن مقبل المضياني العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:46.183Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$rkyhWe2gJMpYkDFPzYfKhN$A5NTk7d0g3G7xZBLZNklcusTZGLt8/ijn/Rlgcm8du0=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1150476347",
+    "first_name": "جوان",
+    "last_name": "بنت عبد الله بن سالم المضياني العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:46.582Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$sww9uxWoizWRx5E8E1TnlI$2ptb7B/bpsdrGL23jLwEZ4TsINrXtx1fXKme+reSQbc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1152009724",
+    "first_name": "جود",
+    "last_name": "بنت أحمد بن مهلي الدهمشي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:46.984Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$natrYllE1BYri8QljeyVcJ$+BBxg5PkV8BjOVId/hwOXUtSsFci3F3bwEqFyNr9rZQ=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1151759782",
+    "first_name": "جود",
+    "last_name": "بنت أنور بن عبد الله السويلمي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:47.393Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$a80dEXk9iiV16BK32zpxhF$osri+qiFulY1wjmRdVnI9uDTNftrjQ5FWGw//RzWF1s=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1149321273",
+    "first_name": "جوري",
+    "last_name": "بنت علي بن راضي الدهمشي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:47.794Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$UaJOOslhheQMB2LrJPReIA$YIIPYFAywkEHYIc8i8mePlGMluqhe4ajg3FtKNfLn4k=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1159241353",
+    "first_name": "حنين",
+    "last_name": "بنت بدر بن مهدي الشملاني العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:48.194Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$enAWF15wPN7IEmiBMlLWgT$iwYmUlV4JstVp8lEtD08KTHJc3+KNzc6jDEPzQ3nCWc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1148447780",
+    "first_name": "حنين",
+    "last_name": "عبد العزيز بن رخيص العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:48.598Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$TWEs8a3ZXrggEz0m1LhpPa$u3SE0Hfge4HH15VljQHOgEppX/xDjikBiYijjvw0k94=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1150922399",
+    "first_name": "حور",
+    "last_name": "بنت طلال بن فاحس الدهمشي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:49.003Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$yJfd6M81K5tJawjRhnGETR$M1hJ9tg6RlenQmcmMOoC/YLtdsvRaFFuwSJJhnvNPEU=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1151786330",
+    "first_name": "البندري",
+    "last_name": "بنت الحميدي بن بنيان المطرفي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:49.409Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$0rb5ZOm2U5gkhMjVGMrtBa$L77ZD3qWm3aEMsUYmMDZ8DlVO0B5SptfKjLtucpWufg=",
+    "last_login": "2026-05-02T11:04:07.649Z",
+    "is_superuser": false,
+    "username": "1151432075",
+    "first_name": "انوار",
+    "last_name": "بنت جديد بن رمضان السويلمي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:49.812Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$XF7alH2Wx9xR62iykMI135$Vahacormo7qAbIGe4yopMXjiZwLnfOX/DyF5HmpKTy4=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1152809339",
+    "first_name": "ترف",
+    "last_name": "فيصل نايف الدهمشي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:50.209Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$iWlmCZitpH0KUgyIaXLOkE$0NQM/RiCiq1bqMLBYJww3SfzqKQqW9d0Rmyqkk9dGaA=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1149887455",
+    "first_name": "تسنیم",
+    "last_name": "بنت احمد بن مسهوج السويلمي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:50.611Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$fXBop3vHIHmbiWQ6CwwVnG$OVPe3MkO+JUBPwqLbt3PaCeYUocpVSlxBaIUaZ/hGTM=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1150409132",
+    "first_name": "جوري",
+    "last_name": "بنت محمد بن عايد بن عقيل العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:51.016Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$CvimeNpDTzpDtdsjG20pjB$Dn6vRCbhFyx+5rN0JkoBxMWN+Q+eaf8oYfAisFU7CJc=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1154260317",
+    "first_name": "حلابنت",
+    "last_name": "علي بن قاطع الدهمشي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:51.423Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$qe7SaGjIm0CIoNG8jXfoO3$z1kdp1hhuX0k0AF39s+taDp5YYqXGt662VNyiOFuca0=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1152638142",
+    "first_name": "دانه",
+    "last_name": "بنت فيصل بن دخيل الدهمشي العنزي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:51.848Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$hnKGAq3aLjcUy8NgZ1HWb7$JhGkg4Zx23IkzhID70LfB9ZzeJpIdmFEXC6aijBFUeQ=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1149449884",
+    "first_name": "ديما",
+    "last_name": "بنت مطر بن عبيد الوهبي الحربي",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:52.251Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$870000$LJzIa2N2JZmjVErHqRvDHA$joe33SAOvRz/ffa5cPoKukjsi8dJBUKE8IwtEcci+ZE=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "1150922910",
+    "first_name": "رامابنت",
+    "last_name": "نايف بن مسدح بن فهد العميم",
+    "email": "",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-05-02T09:25:52.649Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "core.schoolsettings",
+  "pk": 1,
+  "fields": {
+    "platform_name": "بقدراتنا نحلم ونحقق",
+    "principal_name": "مغيضه سليمان الشمري",
+    "developer_name": "آمنه مالح العنزي",
+    "platform_vision": "",
+    "ministry_logo": "logos/ministry_R2HxTZ8.png",
+    "school_logo": "logos/new_logo_2026_Rr63RTE.png",
+    "primary_color": "#E6E6FA",
+    "header_line_1": "المملكة العربية السعودية",
+    "header_line_2": "وزارة التعليم",
+    "header_line_3": "الإدارة العامة للتعليم بمنطقة الحدود الشمالية",
+    "header_line_4": "الثانوية الثالثة عشر بعرعر",
+    "show_stats_to_public": true,
+    "updated_at": "2026-04-28T17:09:15.312Z"
+  }
+},
+{
+  "model": "core.teacher",
+  "pk": 1,
+  "fields": {
+    "name": "فاطمه بنت شباط العنزي",
+    "user": null
+  }
+},
+{
+  "model": "core.teacher",
+  "pk": 2,
+  "fields": {
+    "name": "آمنه بنت مالح العنزي",
+    "user": null
+  }
+},
+{
+  "model": "core.teacher",
+  "pk": 3,
+  "fields": {
+    "name": "عواطف مبرد",
+    "user": null
+  }
+},
+{
+  "model": "core.skill",
+  "pk": 3,
+  "fields": {
+    "title": "ترتيب العمليات الحسابية",
+    "category": "كمي",
+    "content_text": "<p>٢ترتيب العمليات الحسابية: ١) مابين قوسين ٢) الأسس ٣) الضرب والقسمة من اليمين ٤) الجمع والطرح من اليمين أمثلة: اوجدي الناتج: ١) ٢٥-٢&times;٣= ٢) (٥-٣)+٢&times;٥= ٣) ٢٤+٣ -٢&times;٥= قواعد الاشارات ( الجمع والطرح ) - الإشارات المتشابهة نضع الاشارة ونجمع - الاشارات المختلفة نضع إشارة الأكبر ونطرح الأعداد الزوجية: { ٠، ٢، ٤ ، ٦، ٨، ١٠، .........} الاعداد الفردية: { ١ ، ٣، ٥، ٧، ٩، ١١،..........} الأعداد الأوليةهي ( الأعداد التي تقبل القسمة على نفسها وعلى الواحد الصحيح فقط ) مثل { ٢ ، ٣، ٥، ٧، ١١، .......}&nbsp;</p>\r\n\r\n<p>&nbsp;</p>",
+    "video_url": "https://docs.google.com/presentation/d/1NC5yb9Wu7dhT0QqHVZTHIS6WkW9hQyeG/edit?usp=drivesdk&ouid=117472596240324832438&rtpof=true&sd=true",
+    "pdf_file": "",
+    "image_explainer": "",
+    "icon_image": "",
+    "short_description": "تدريب الطالبات",
+    "card_color": "#2D5A27",
+    "required_questions_count": 4,
+    "created_at": "2026-01-19T23:23:15.286Z",
+    "teachers": [
+      1
+    ]
+  }
+},
+{
+  "model": "core.skill",
+  "pk": 4,
+  "fields": {
+    "title": "مهارة التعامل مع الجذور",
+    "category": "كمي",
+    "content_text": "",
+    "video_url": "",
+    "pdf_file": "",
+    "image_explainer": "",
+    "icon_image": "",
+    "short_description": "",
+    "card_color": "#2D5A27",
+    "required_questions_count": 10,
+    "created_at": "2026-04-18T09:05:07.433Z",
+    "teachers": [
+      1
+    ]
+  }
+},
+{
+  "model": "core.question",
+  "pk": 1,
+  "fields": {
+    "skill": 3,
+    "test_type": "PRE",
+    "question_text": "<p>أوجد قيمة ١٠٠٠١&times; ٣٠٠٣=</p>\r\n\r\n<p>&nbsp;</p>",
+    "option_a": "<p>٣٠٠٦٣٠٠٠٠</p>",
+    "option_b": "<p>٣٠٠٠٦٠٠٠٣</p>",
+    "option_c": "<p>٣٠٠٠٦٠٠٣٠</p>",
+    "option_d": "<p>٣٦٠٠٠٠٠٣٠</p>",
+    "correct_answer": "B",
+    "feedback": "<p>للسرعة نضرب الآحاد</p>"
+  }
+},
+{
+  "model": "core.question",
+  "pk": 2,
+  "fields": {
+    "skill": 3,
+    "test_type": "PRE",
+    "question_text": "<p>إذا كانت س= -١ فأوجد س٣+س٢+٨س-١</p>",
+    "option_a": "<p>١١</p>",
+    "option_b": "<p>-١١</p>",
+    "option_c": "<p>١٢</p>",
+    "option_d": "<p>-١٢</p>",
+    "correct_answer": "B",
+    "feedback": ""
+  }
+},
+{
+  "model": "core.question",
+  "pk": 3,
+  "fields": {
+    "skill": 3,
+    "test_type": "PRE",
+    "question_text": "<p>إذا كان &nbsp; &nbsp;أ &nbsp; &nbsp; &nbsp; ٧ &nbsp; &nbsp; ماقيمة أ &nbsp; &nbsp;ب ؟&nbsp;</p>\r\n\r\n<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;٥ &nbsp; &nbsp; &nbsp; ب &nbsp; &nbsp;<span style=\"color:#6f42c1\">+</span>&nbsp;</p>\r\n\r\n<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ــــــــــــــــــــــ</p>\r\n\r\n<p>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ١٥٨</p>",
+    "option_a": "<p>٢</p>",
+    "option_b": "<p>٣</p>",
+    "option_c": "<p>٣</p>",
+    "option_d": "<p>٩</p>",
+    "correct_answer": "B",
+    "feedback": ""
+  }
+},
+{
+  "model": "core.question",
+  "pk": 4,
+  "fields": {
+    "skill": 4,
+    "test_type": "PRE",
+    "question_text": "<p>ااااابب</p>",
+    "option_a": "<p>للل</p>",
+    "option_b": "<p>لللل</p>",
+    "option_c": "<p>للل</p>",
+    "option_d": "<p>للل</p>",
+    "correct_answer": "A",
+    "feedback": ""
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 12,
+  "fields": {
+    "user": [
+      "المديره"
+    ],
+    "role": "ADMIN",
+    "pin_code": "",
+    "national_id": "5678904321"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 13,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "role": "ADMIN",
+    "pin_code": "",
+    "national_id": "0000000000"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 30,
+  "fields": {
+    "user": [
+      "1078205208"
+    ],
+    "role": "TEACHER",
+    "pin_code": "",
+    "national_id": "1078205208"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 31,
+  "fields": {
+    "user": [
+      "1062823602"
+    ],
+    "role": "TEACHER",
+    "pin_code": "",
+    "national_id": "1062823602"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 32,
+  "fields": {
+    "user": [
+      "1035049038"
+    ],
+    "role": "TEACHER",
+    "pin_code": "",
+    "national_id": "1035049038"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 44,
+  "fields": {
+    "user": [
+      "1152785968"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1152785968"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 45,
+  "fields": {
+    "user": [
+      "1152343271"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1152343271"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 46,
+  "fields": {
+    "user": [
+      "1150699609"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1150699609"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 47,
+  "fields": {
+    "user": [
+      "1151786280"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1151786280"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 48,
+  "fields": {
+    "user": [
+      "1150476347"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1150476347"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 49,
+  "fields": {
+    "user": [
+      "1152009724"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1152009724"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 50,
+  "fields": {
+    "user": [
+      "1151759782"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1151759782"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 51,
+  "fields": {
+    "user": [
+      "1149321273"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1149321273"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 52,
+  "fields": {
+    "user": [
+      "1159241353"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1159241353"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 53,
+  "fields": {
+    "user": [
+      "1148447780"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1148447780"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 54,
+  "fields": {
+    "user": [
+      "1150922399"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1150922399"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 55,
+  "fields": {
+    "user": [
+      "1151786330"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1151786330"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 56,
+  "fields": {
+    "user": [
+      "1151432075"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1151432075"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 57,
+  "fields": {
+    "user": [
+      "1152809339"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1152809339"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 58,
+  "fields": {
+    "user": [
+      "1149887455"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1149887455"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 59,
+  "fields": {
+    "user": [
+      "1150409132"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1150409132"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 60,
+  "fields": {
+    "user": [
+      "1154260317"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1154260317"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 61,
+  "fields": {
+    "user": [
+      "1152638142"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1152638142"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 62,
+  "fields": {
+    "user": [
+      "1149449884"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1149449884"
+  }
+},
+{
+  "model": "core.profile",
+  "pk": 63,
+  "fields": {
+    "user": [
+      "1150922910"
+    ],
+    "role": "STUDENT",
+    "pin_code": "",
+    "national_id": "1150922910"
+  }
+},
+{
+  "model": "students.classroom",
+  "pk": 15,
+  "fields": {
+    "name": "أول٣"
+  }
+},
+{
+  "model": "students.classroom",
+  "pk": 16,
+  "fields": {
+    "name": "أول٤"
+  }
+},
+{
+  "model": "students.student",
+  "pk": 33,
+  "fields": {
+    "full_name": "أسرار بنت الحميدي بن شبيكان الدهمشي العنزي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 34,
+  "fields": {
+    "full_name": "ألماس بنت ناصر بن فياض الدهمشي العنزي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 35,
+  "fields": {
+    "full_name": "العنود بنت شجاع بن علي الداموكي الرشيدي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 36,
+  "fields": {
+    "full_name": "تالين بنت منيزل بن مقبل المضياني العنزي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 37,
+  "fields": {
+    "full_name": "جوان بنت عبد الله بن سالم المضياني العنزي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 38,
+  "fields": {
+    "full_name": "جود بنت أحمد بن مهلي الدهمشي العنزي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 39,
+  "fields": {
+    "full_name": "جود بنت أنور بن عبد الله السويلمي العنزي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 40,
+  "fields": {
+    "full_name": "جوري بنت علي بن راضي الدهمشي العنزي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 41,
+  "fields": {
+    "full_name": "حنين بنت بدر بن مهدي الشملاني العنزي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 42,
+  "fields": {
+    "full_name": "حنين عبد العزيز بن رخيص العنزي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 43,
+  "fields": {
+    "full_name": "حور بنت طلال بن فاحس الدهمشي العنزي",
+    "classroom": 15
+  }
+},
+{
+  "model": "students.student",
+  "pk": 44,
+  "fields": {
+    "full_name": "البندري بنت الحميدي بن بنيان المطرفي العنزي",
+    "classroom": 16
+  }
+},
+{
+  "model": "students.student",
+  "pk": 45,
+  "fields": {
+    "full_name": "انوار بنت جديد بن رمضان السويلمي العنزي",
+    "classroom": 16
+  }
+},
+{
+  "model": "students.student",
+  "pk": 46,
+  "fields": {
+    "full_name": "ترف فيصل نايف الدهمشي العنزي",
+    "classroom": 16
+  }
+},
+{
+  "model": "students.student",
+  "pk": 47,
+  "fields": {
+    "full_name": "تسنیم بنت احمد بن مسهوج السويلمي العنزي",
+    "classroom": 16
+  }
+},
+{
+  "model": "students.student",
+  "pk": 48,
+  "fields": {
+    "full_name": "جوري بنت محمد بن عايد بن عقيل العنزي",
+    "classroom": 16
+  }
+},
+{
+  "model": "students.student",
+  "pk": 49,
+  "fields": {
+    "full_name": "حلابنت علي بن قاطع الدهمشي العنزي",
+    "classroom": 16
+  }
+},
+{
+  "model": "students.student",
+  "pk": 50,
+  "fields": {
+    "full_name": "دانه بنت فيصل بن دخيل الدهمشي العنزي",
+    "classroom": 16
+  }
+},
+{
+  "model": "students.student",
+  "pk": 51,
+  "fields": {
+    "full_name": "ديما بنت مطر بن عبيد الوهبي الحربي",
+    "classroom": 16
+  }
+},
+{
+  "model": "students.student",
+  "pk": 52,
+  "fields": {
+    "full_name": "رامابنت نايف بن مسدح بن فهد العميم",
+    "classroom": 16
+  }
+},
+{
+  "model": "teachers.teacher",
+  "pk": 5,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "full_name": "المديرة",
+    "classrooms": []
+  }
+},
+{
+  "model": "teachers.teacher",
+  "pk": 7,
+  "fields": {
+    "user": [
+      "1078205208"
+    ],
+    "full_name": "فاطمة محمد مؤنس العنزي",
+    "classrooms": []
+  }
+},
+{
+  "model": "teachers.teacher",
+  "pk": 8,
+  "fields": {
+    "user": [
+      "1062823602"
+    ],
+    "full_name": "رحاب بنت عزيز بن مرضي الرويلي",
+    "classrooms": []
+  }
+},
+{
+  "model": "teachers.teacher",
+  "pk": 9,
+  "fields": {
+    "user": [
+      "1035049038"
+    ],
+    "full_name": "عواطف مبرد خلف العنزي",
+    "classrooms": [
+      15,
+      16
+    ]
+  }
+},
+{
+  "model": "teachers.teacherskill",
+  "pk": 23,
+  "fields": {
+    "content_type": "skill",
+    "title": "كيمياء الحياه",
+    "skill_type": "qodrat_kamy",
+    "subject": "math",
+    "description": "",
+    "created_by": 8,
+    "target_classes": "جميع الفصول",
+    "is_shared": true,
+    "is_active": true,
+    "created_at": "2026-05-03T23:28:45.105Z",
+    "updated_at": "2026-05-03T23:28:45.105Z"
+  }
+},
+{
+  "model": "teachers.teacherskill",
+  "pk": 24,
+  "fields": {
+    "content_type": "skill",
+    "title": "تجربة",
+    "skill_type": "qodrat_kamy",
+    "subject": "math",
+    "description": "",
+    "created_by": 8,
+    "target_classes": "جميع الفصول",
+    "is_shared": true,
+    "is_active": true,
+    "created_at": "2026-05-03T23:32:30.682Z",
+    "updated_at": "2026-05-03T23:33:38.322Z"
+  }
+},
+{
+  "model": "teachers.teacherskill",
+  "pk": 25,
+  "fields": {
+    "content_type": "comprehensive",
+    "title": "تحصيلي ٥",
+    "skill_type": "tahsili",
+    "subject": "",
+    "description": "",
+    "created_by": 5,
+    "target_classes": "جميع الفصول",
+    "is_shared": true,
+    "is_active": false,
+    "created_at": "2026-05-04T05:38:45.336Z",
+    "updated_at": "2026-05-04T05:38:45.336Z"
+  }
+},
+{
+  "model": "teachers.teacherskill",
+  "pk": 27,
+  "fields": {
+    "content_type": "skill",
+    "title": "اللوغاريتمات",
+    "skill_type": "qodrat_kamy",
+    "subject": "",
+    "description": "",
+    "created_by": 9,
+    "target_classes": "أول٤",
+    "is_shared": true,
+    "is_active": true,
+    "created_at": "2026-05-04T12:00:18.770Z",
+    "updated_at": "2026-05-04T12:39:48.618Z"
+  }
+},
+{
+  "model": "teachers.teacherskill",
+  "pk": 28,
+  "fields": {
+    "content_type": "skill",
+    "title": "الوسيط",
+    "skill_type": "qodrat_kamy",
+    "subject": "",
+    "description": "",
+    "created_by": 9,
+    "target_classes": "أول٤",
+    "is_shared": true,
+    "is_active": true,
+    "created_at": "2026-05-04T12:44:41.234Z",
+    "updated_at": "2026-05-04T12:44:41.234Z"
+  }
+},
+{
+  "model": "teachers.teacherskill",
+  "pk": 30,
+  "fields": {
+    "content_type": "skill",
+    "title": "قوانين المثلث",
+    "skill_type": "qodrat_kamy",
+    "subject": "",
+    "description": "",
+    "created_by": 9,
+    "target_classes": "جميع الفصول",
+    "is_shared": false,
+    "is_active": false,
+    "created_at": "2026-05-09T00:33:27.838Z",
+    "updated_at": "2026-05-09T00:33:27.838Z"
+  }
+},
+{
+  "model": "teachers.teacherskill",
+  "pk": 31,
+  "fields": {
+    "content_type": "skill",
+    "title": "تجربة",
+    "skill_type": "qodrat_kamy",
+    "subject": "math",
+    "description": "",
+    "created_by": 9,
+    "target_classes": "جميع الفصول",
+    "is_shared": false,
+    "is_active": false,
+    "created_at": "2026-05-09T12:07:25.065Z",
+    "updated_at": "2026-05-09T12:07:25.065Z"
+  }
+},
+{
+  "model": "teachers.teacherskillcontent",
+  "pk": 6,
+  "fields": {
+    "skill": 24,
+    "text_content": null,
+    "plain_text": "",
+    "plain_image": "",
+    "video_url": "",
+    "pdf_file": ""
+  }
+},
+{
+  "model": "teachers.teacherskillcontent",
+  "pk": 7,
+  "fields": {
+    "skill": 27,
+    "text_content": null,
+    "plain_text": "",
+    "plain_image": "",
+    "video_url": "",
+    "pdf_file": ""
+  }
+},
+{
+  "model": "teachers.teacherskillcontent",
+  "pk": 8,
+  "fields": {
+    "skill": 28,
+    "text_content": null,
+    "plain_text": "نزرمكزا",
+    "plain_image": "",
+    "video_url": "",
+    "pdf_file": ""
+  }
+},
+{
+  "model": "teachers.teacherskillcontent",
+  "pk": 10,
+  "fields": {
+    "skill": 30,
+    "text_content": null,
+    "plain_text": "",
+    "plain_image": "",
+    "video_url": "",
+    "pdf_file": ""
+  }
+},
+{
+  "model": "teachers.teacherskillcontent",
+  "pk": 11,
+  "fields": {
+    "skill": 31,
+    "text_content": null,
+    "plain_text": "",
+    "plain_image": "",
+    "video_url": "",
+    "pdf_file": ""
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 25,
+  "fields": {
+    "skill": 23,
+    "exam_type": "pre",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 60,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": true,
+    "shuffle_questions": true,
+    "created_at": "2026-05-03T23:28:45.108Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 26,
+  "fields": {
+    "skill": 23,
+    "exam_type": "post",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 70,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": true,
+    "shuffle_questions": true,
+    "created_at": "2026-05-03T23:28:45.111Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 27,
+  "fields": {
+    "skill": 24,
+    "exam_type": "pre",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 60,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": true,
+    "shuffle_questions": true,
+    "created_at": "2026-05-03T23:32:30.684Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 28,
+  "fields": {
+    "skill": 24,
+    "exam_type": "post",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 70,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": true,
+    "shuffle_questions": true,
+    "created_at": "2026-05-03T23:32:30.686Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 29,
+  "fields": {
+    "skill": 25,
+    "exam_type": "comprehensive_tahsili",
+    "questions_count": 60,
+    "duration_minutes": 90,
+    "pass_score": 50,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": false,
+    "shuffle_questions": true,
+    "created_at": "2026-05-04T05:38:45.339Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 32,
+  "fields": {
+    "skill": 27,
+    "exam_type": "pre",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 60,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": true,
+    "shuffle_questions": true,
+    "created_at": "2026-05-04T12:00:18.776Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 33,
+  "fields": {
+    "skill": 27,
+    "exam_type": "post",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 70,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": true,
+    "shuffle_questions": true,
+    "created_at": "2026-05-04T12:00:18.781Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 34,
+  "fields": {
+    "skill": 28,
+    "exam_type": "pre",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 60,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": true,
+    "shuffle_questions": true,
+    "created_at": "2026-05-04T12:44:41.244Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 35,
+  "fields": {
+    "skill": 28,
+    "exam_type": "post",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 70,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": true,
+    "shuffle_questions": true,
+    "created_at": "2026-05-04T12:44:41.252Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 38,
+  "fields": {
+    "skill": 30,
+    "exam_type": "pre",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 60,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": false,
+    "shuffle_questions": true,
+    "created_at": "2026-05-09T00:33:27.846Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 39,
+  "fields": {
+    "skill": 30,
+    "exam_type": "post",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 70,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": false,
+    "shuffle_questions": true,
+    "created_at": "2026-05-09T00:33:27.852Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 40,
+  "fields": {
+    "skill": 31,
+    "exam_type": "pre",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 60,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": false,
+    "shuffle_questions": true,
+    "created_at": "2026-05-09T12:07:25.071Z"
+  }
+},
+{
+  "model": "teachers.teacherexam",
+  "pk": 41,
+  "fields": {
+    "skill": 31,
+    "exam_type": "post",
+    "questions_count": 10,
+    "duration_minutes": 15,
+    "pass_score": 70,
+    "start_date": null,
+    "end_date": null,
+    "delivery": "both",
+    "correction": "auto",
+    "is_active": false,
+    "shuffle_questions": true,
+    "created_at": "2026-05-09T12:07:25.075Z"
+  }
+},
+{
+  "model": "teachers.teacherquestion",
+  "pk": 42,
+  "fields": {
+    "exam": 32,
+    "target_skill_name": "",
+    "order": 1,
+    "question_text": null,
+    "option_a": null,
+    "option_b": null,
+    "option_c": null,
+    "option_d": null,
+    "feedback": null,
+    "question_plain": "$\\log _{3}x=6$",
+    "question_image": "",
+    "option_a_plain": "4",
+    "option_b_plain": "3",
+    "option_c_plain": "2",
+    "option_d_plain": "2",
+    "option_a_image": "",
+    "option_b_image": "",
+    "option_c_image": "",
+    "option_d_image": "",
+    "feedback_plain": "",
+    "correct_answer": "A"
+  }
+},
+{
+  "model": "teachers.teacherquestion",
+  "pk": 43,
+  "fields": {
+    "exam": 33,
+    "target_skill_name": "اللوغاريتمات",
+    "order": 1,
+    "question_text": null,
+    "option_a": null,
+    "option_b": null,
+    "option_c": null,
+    "option_d": null,
+    "feedback": null,
+    "question_plain": "•x^{2}=\\log 4",
+    "question_image": "",
+    "option_a_plain": "6",
+    "option_b_plain": "4",
+    "option_c_plain": "8",
+    "option_d_plain": "4",
+    "option_a_image": "",
+    "option_b_image": "",
+    "option_c_image": "",
+    "option_d_image": "",
+    "feedback_plain": "",
+    "correct_answer": "C"
+  }
+},
+{
+  "model": "teachers.teacherquestion",
+  "pk": 44,
+  "fields": {
+    "exam": 33,
+    "target_skill_name": "اللوغاريتمات",
+    "order": 2,
+    "question_text": null,
+    "option_a": null,
+    "option_b": null,
+    "option_c": null,
+    "option_d": null,
+    "feedback": null,
+    "question_plain": "",
+    "question_image": "",
+    "option_a_plain": "",
+    "option_b_plain": "",
+    "option_c_plain": "",
+    "option_d_plain": "",
+    "option_a_image": "",
+    "option_b_image": "",
+    "option_c_image": "",
+    "option_d_image": "",
+    "feedback_plain": "",
+    "correct_answer": "A"
+  }
+},
+{
+  "model": "teachers.teacherquestion",
+  "pk": 45,
+  "fields": {
+    "exam": 34,
+    "target_skill_name": "",
+    "order": 1,
+    "question_text": null,
+    "option_a": null,
+    "option_b": null,
+    "option_c": null,
+    "option_d": null,
+    "feedback": null,
+    "question_plain": "ادخال",
+    "question_image": "",
+    "option_a_plain": "",
+    "option_b_plain": "",
+    "option_c_plain": "",
+    "option_d_plain": "",
+    "option_a_image": "",
+    "option_b_image": "",
+    "option_c_image": "",
+    "option_d_image": "",
+    "feedback_plain": "",
+    "correct_answer": "A"
+  }
+},
+{
+  "model": "teachers.teacherquestion",
+  "pk": 47,
+  "fields": {
+    "exam": 38,
+    "target_skill_name": "قوانين المثلث",
+    "order": 1,
+    "question_text": null,
+    "option_a": null,
+    "option_b": null,
+    "option_c": null,
+    "option_d": null,
+    "feedback": null,
+    "question_plain": "بذددززر",
+    "question_image": "",
+    "option_a_plain": "رررر",
+    "option_b_plain": "غرر",
+    "option_c_plain": "لوو",
+    "option_d_plain": "رر",
+    "option_a_image": "",
+    "option_b_image": "",
+    "option_c_image": "",
+    "option_d_image": "",
+    "feedback_plain": "",
+    "correct_answer": "A"
+  }
+},
+{
+  "model": "teachers.examresult",
+  "pk": 22,
+  "fields": {
+    "exam": 34,
+    "student": [
+      "1035049038"
+    ],
+    "student_record": null,
+    "score": 1.0,
+    "total": 1,
+    "percentage": 100.0,
+    "passed": true,
+    "time_taken_seconds": 4,
+    "manually_corrected": false,
+    "corrected_by": null,
+    "submitted_at": "2026-05-04T12:44:56.533Z"
+  }
+},
+{
+  "model": "teachers.examresult",
+  "pk": 23,
+  "fields": {
+    "exam": 32,
+    "student": null,
+    "student_record": 43,
+    "score": 1.0,
+    "total": 10,
+    "percentage": 10.0,
+    "passed": false,
+    "time_taken_seconds": 0,
+    "manually_corrected": true,
+    "corrected_by": 9,
+    "submitted_at": "2026-05-09T13:03:09.009Z"
+  }
+},
+{
+  "model": "teachers.examresult",
+  "pk": 24,
+  "fields": {
+    "exam": 32,
+    "student": null,
+    "student_record": 35,
+    "score": 10.0,
+    "total": 10,
+    "percentage": 100.0,
+    "passed": true,
+    "time_taken_seconds": 0,
+    "manually_corrected": true,
+    "corrected_by": 9,
+    "submitted_at": "2026-05-12T07:22:39.207Z"
+  }
+},
+{
+  "model": "teachers.studentanswer",
+  "pk": 49,
+  "fields": {
+    "result": 22,
+    "question": 45,
+    "chosen_answer": "A",
+    "is_correct": true
+  }
+},
+{
+  "model": "teachers.classsession",
+  "pk": 18,
+  "fields": {
+    "teacher": 9,
+    "skill": 27,
+    "exam": null,
+    "session_type": "qodrat",
+    "target_class": "أول٣",
+    "session_date": "2026-05-04",
+    "session_time": "08:00:00",
+    "notes": "",
+    "created_at": "2026-05-04T12:37:57.368Z"
+  }
+},
+{
+  "model": "skills.skill",
+  "pk": 1,
+  "fields": {
+    "track": "qudurat",
+    "section": "quant",
+    "title": "ترتيب العمليات الحسابية",
+    "description": "تدريب الطالبات على ترتيب العمليات الرياضية وقواعد الاشارات، والاعداد الزوجيه ، والاعداد الفردية، والاعداد الأوليه",
+    "teacher_owner": null,
+    "is_active": true,
+    "created_at": "2026-01-19T21:37:47.880Z"
+  }
+},
+{
+  "model": "skills.skill",
+  "pk": 2,
+  "fields": {
+    "track": "qudurat",
+    "section": "quant",
+    "title": "ترتيب العمليات الحسابية",
+    "description": "",
+    "teacher_owner": null,
+    "is_active": true,
+    "created_at": "2026-01-19T22:55:07.085Z"
+  }
+},
+{
+  "model": "skills.skill",
+  "pk": 3,
+  "fields": {
+    "track": "qudurat",
+    "section": "quant",
+    "title": "قابلية القسمة",
+    "description": "",
+    "teacher_owner": null,
+    "is_active": true,
+    "created_at": "2026-01-19T23:04:19.972Z"
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 1,
+  "fields": {
+    "date": "2026-05-03",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 2,
+  "fields": {
+    "date": "2026-05-02",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 3,
+  "fields": {
+    "date": "2026-05-01",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 4,
+  "fields": {
+    "date": "2026-04-30",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 5,
+  "fields": {
+    "date": "2026-04-29",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 6,
+  "fields": {
+    "date": "2026-04-28",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 7,
+  "fields": {
+    "date": "2026-04-27",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 8,
+  "fields": {
+    "date": "2026-04-26",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 9,
+  "fields": {
+    "date": "2026-04-25",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 10,
+  "fields": {
+    "date": "2026-04-24",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 11,
+  "fields": {
+    "date": "2026-04-23",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 12,
+  "fields": {
+    "date": "2026-04-22",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 13,
+  "fields": {
+    "date": "2026-04-21",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 14,
+  "fields": {
+    "date": "2026-04-20",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 15,
+  "fields": {
+    "date": "2026-04-19",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 16,
+  "fields": {
+    "date": "2026-04-18",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 17,
+  "fields": {
+    "date": "2026-04-17",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 18,
+  "fields": {
+    "date": "2026-04-16",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 19,
+  "fields": {
+    "date": "2026-04-15",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 20,
+  "fields": {
+    "date": "2026-04-14",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 21,
+  "fields": {
+    "date": "2026-04-13",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 22,
+  "fields": {
+    "date": "2026-04-12",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 23,
+  "fields": {
+    "date": "2026-04-11",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 24,
+  "fields": {
+    "date": "2026-04-10",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 25,
+  "fields": {
+    "date": "2026-04-09",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 26,
+  "fields": {
+    "date": "2026-04-08",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 27,
+  "fields": {
+    "date": "2026-04-07",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 28,
+  "fields": {
+    "date": "2026-04-06",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 29,
+  "fields": {
+    "date": "2026-04-05",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 30,
+  "fields": {
+    "date": "2026-04-04",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 31,
+  "fields": {
+    "date": "2026-04-03",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 32,
+  "fields": {
+    "date": "2026-04-02",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 33,
+  "fields": {
+    "date": "2026-04-01",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 34,
+  "fields": {
+    "date": "2026-03-31",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 35,
+  "fields": {
+    "date": "2026-03-30",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 36,
+  "fields": {
+    "date": "2026-03-29",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 37,
+  "fields": {
+    "date": "2026-03-28",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 38,
+  "fields": {
+    "date": "2026-03-27",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 39,
+  "fields": {
+    "date": "2026-03-26",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 40,
+  "fields": {
+    "date": "2026-03-25",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 41,
+  "fields": {
+    "date": "2026-03-24",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 42,
+  "fields": {
+    "date": "2026-03-23",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 43,
+  "fields": {
+    "date": "2026-03-22",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 44,
+  "fields": {
+    "date": "2026-03-21",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 45,
+  "fields": {
+    "date": "2026-03-20",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 46,
+  "fields": {
+    "date": "2026-03-19",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 47,
+  "fields": {
+    "date": "2026-03-18",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 48,
+  "fields": {
+    "date": "2026-03-17",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 49,
+  "fields": {
+    "date": "2026-03-16",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 50,
+  "fields": {
+    "date": "2026-03-15",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 51,
+  "fields": {
+    "date": "2026-03-14",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 52,
+  "fields": {
+    "date": "2026-03-13",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 53,
+  "fields": {
+    "date": "2026-03-12",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 54,
+  "fields": {
+    "date": "2026-03-11",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 55,
+  "fields": {
+    "date": "2026-03-10",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 56,
+  "fields": {
+    "date": "2026-03-09",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 57,
+  "fields": {
+    "date": "2026-03-08",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 58,
+  "fields": {
+    "date": "2026-03-07",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 59,
+  "fields": {
+    "date": "2026-03-06",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 60,
+  "fields": {
+    "date": "2026-03-05",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 61,
+  "fields": {
+    "date": "2026-03-04",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 62,
+  "fields": {
+    "date": "2026-03-03",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 63,
+  "fields": {
+    "date": "2026-03-02",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 64,
+  "fields": {
+    "date": "2026-03-01",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 65,
+  "fields": {
+    "date": "2026-02-28",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 66,
+  "fields": {
+    "date": "2026-02-27",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 67,
+  "fields": {
+    "date": "2026-02-26",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 68,
+  "fields": {
+    "date": "2026-02-25",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 69,
+  "fields": {
+    "date": "2026-02-24",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 70,
+  "fields": {
+    "date": "2026-02-23",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 71,
+  "fields": {
+    "date": "2026-02-22",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 72,
+  "fields": {
+    "date": "2026-02-21",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 73,
+  "fields": {
+    "date": "2026-02-20",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 74,
+  "fields": {
+    "date": "2026-02-19",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 75,
+  "fields": {
+    "date": "2026-02-18",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 76,
+  "fields": {
+    "date": "2026-02-17",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 77,
+  "fields": {
+    "date": "2026-02-16",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 78,
+  "fields": {
+    "date": "2026-02-15",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 79,
+  "fields": {
+    "date": "2026-02-14",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 80,
+  "fields": {
+    "date": "2026-02-13",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 81,
+  "fields": {
+    "date": "2026-02-12",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 82,
+  "fields": {
+    "date": "2026-02-11",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 83,
+  "fields": {
+    "date": "2026-02-10",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 84,
+  "fields": {
+    "date": "2026-02-09",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 85,
+  "fields": {
+    "date": "2026-02-08",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 86,
+  "fields": {
+    "date": "2026-02-07",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 87,
+  "fields": {
+    "date": "2026-02-06",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 88,
+  "fields": {
+    "date": "2026-02-05",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 89,
+  "fields": {
+    "date": "2026-02-04",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+},
+{
+  "model": "analytics.dailystat",
+  "pk": 90,
+  "fields": {
+    "date": "2026-02-03",
+    "attempts_count": 0,
+    "avg_score": 0.0
+  }
+}
+]
