@@ -1,0 +1,12 @@
+Django>=5.2,<6.0
+django-ckeditor>=6.7
+django-js-asset>=3.1
+Pillow>=12.0
+sqlparse>=0.5
+asgiref>=3.11
+
+# Production (Render)
+gunicorn>=22.0
+dj-database-url>=2.1
+psycopg2-binary>=2.9
+whitenoise>=6.7

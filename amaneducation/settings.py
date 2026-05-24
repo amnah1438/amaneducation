@@ -1,13 +1,17 @@
 import os
 from pathlib import Path
+import dj_database_url
 
 # 1. المسارات الأساسية للمشروع
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # 2. إعدادات الأمان
-SECRET_KEY = 'django-insecure-f^#4+1-yrnoelle5gc++9#uq8$mqua6hi70p66_#@1#gk-z7lh'
-DEBUG = True
-ALLOWED_HOSTS = ['*'] # للسماح بالتشغيل المحلي
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-f^#4+1-yrnoelle5gc++9#uq8$mqua6hi70p66_#@1#gk-z7lh')
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
+ALLOWED_HOSTS = ['*']
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 # 3. التطبيقات المثبتة
 INSTALLED_APPS = [
@@ -39,6 +43,7 @@ INSTALLED_APPS = [
 # 4. الوسطاء (Middleware)
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -68,12 +73,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'amaneducation.wsgi.application'
 
-# 6. قاعدة البيانات (SQLite)
+# 6. قاعدة البيانات
+# في الإنتاج (Render): يستخدم PostgreSQL عبر DATABASE_URL
+# محلياً: يستخدم SQLite
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        conn_max_age=600,
+    )
 }
 
 # 7. كلمات المرور
@@ -159,3 +166,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+# ======================================================
+# إعدادات الإنتاج (Render)
+# ======================================================
+if not DEBUG:
+    # HTTPS settings
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # WhiteNoise for static files
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'

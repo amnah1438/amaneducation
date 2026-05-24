@@ -1,0 +1,24 @@
+databases:
+  - name: amaneducation-db
+    databaseName: amaneducation
+    user: amaneducation
+    plan: free
+
+services:
+  - type: web
+    name: amaneducation
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn amaneducation.wsgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: amaneducation-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.11.6
+      - key: DEBUG
+        value: "False"
