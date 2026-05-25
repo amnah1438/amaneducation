@@ -53,8 +53,8 @@
 <!-- ─── ترويسة الشعارات: شعار الوزارة (يمين) + ديباجة (وسط) + شعار المدرسة (يسار) ─── -->
 <div class="logos-header">
   <div class="logo-box">
-    {% if settings.ministry_logo %}
-      <img src="{{ settings.ministry_logo.url }}" alt="شعار وزارة التعليم">
+    {% if settings.ministry_logo_url %}
+      <img src="{{ settings.ministry_logo_url }}" alt="شعار وزارة التعليم">
     {% else %}
       <div style="text-align:center;color:#999;font-size:10px;border:1px dashed #ccc;padding:25px 8px;border-radius:8px">شعار<br>الوزارة</div>
     {% endif %}
@@ -66,8 +66,8 @@
     <div class="school-line">{{ settings.header_line_4|default:"" }}</div>
   </div>
   <div class="logo-box">
-    {% if settings.school_logo %}
-      <img src="{{ settings.school_logo.url }}" alt="شعار المدرسة">
+    {% if settings.school_logo_url %}
+      <img src="{{ settings.school_logo_url }}" alt="شعار المدرسة">
     {% else %}
       <div style="text-align:center;color:#999;font-size:10px;border:1px dashed #ccc;padding:25px 8px;border-radius:8px">شعار<br>المدرسة</div>
     {% endif %}

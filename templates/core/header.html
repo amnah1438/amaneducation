@@ -3,8 +3,8 @@
         <div class="row align-items-center">
             
             <div class="col-md-4 text-end">
-                {% if settings.ministry_logo %}
-                    <img src="{{ settings.ministry_logo.url }}" alt="شعار وزارة التعليم" style="height: 130px; width: auto; object-fit: contain;">
+                {% if settings.ministry_logo_url %}
+                    <img src="{{ settings.ministry_logo_url }}" alt="شعار وزارة التعليم" style="height: 130px; width: auto; object-fit: contain;">
                 {% else %}
                     <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار وزارة التعليم</div>
                 {% endif %}
@@ -25,8 +25,8 @@
             </div>
 
             <div class="col-md-4 text-start">
-                {% if settings.school_logo %}
-                    <img src="{{ settings.school_logo.url }}" alt="شعار المدرسة" style="height: 130px; width: auto; object-fit: contain;">
+                {% if settings.school_logo_url %}
+                    <img src="{{ settings.school_logo_url }}" alt="شعار المدرسة" style="height: 130px; width: auto; object-fit: contain;">
                 {% else %}
                     <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار المدرسة</div>
                 {% endif %}

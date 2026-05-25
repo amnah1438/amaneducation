@@ -19,10 +19,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-
-    # Cloudinary لتخزين الصور (يجب أن يكون قبل staticfiles)
-    'cloudinary_storage',
     'django.contrib.staticfiles',
+
+    # Cloudinary لتخزين الصور
+    'cloudinary_storage',
     'cloudinary',
 
     # تطبيقات المحرر المطور

@@ -66,7 +66,7 @@ tr:hover td{background:#f8fafc}
 <!-- ─── ترويسة الشعارات ─── -->
 <div class="logos-header">
   <div class="logo-box">
-    {% if settings.ministry_logo %}<img src="{{ settings.ministry_logo.url }}" alt="">
+    {% if settings.ministry_logo_url %}<img src="{{ settings.ministry_logo_url }}" alt="">
     {% else %}<div style="font-size:9px;color:#999;text-align:center">شعار<br>الوزارة</div>{% endif %}
   </div>
   <div class="ministry-block">
@@ -76,7 +76,7 @@ tr:hover td{background:#f8fafc}
     <div class="school-line">{{ settings.header_line_4|default:"" }}</div>
   </div>
   <div class="logo-box">
-    {% if settings.school_logo %}<img src="{{ settings.school_logo.url }}" alt="">
+    {% if settings.school_logo_url %}<img src="{{ settings.school_logo_url }}" alt="">
     {% else %}<div style="font-size:9px;color:#999;text-align:center">شعار<br>المدرسة</div>{% endif %}
   </div>
 </div>

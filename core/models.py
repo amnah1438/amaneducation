@@ -1,14 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import User
-from ckeditor_uploader.fields import RichTextUploadingField 
+from ckeditor_uploader.fields import RichTextUploadingField
+from cloudinary.models import CloudinaryField
 
 class SchoolSettings(models.Model):
     platform_name = models.CharField(max_length=200, default="آمنه مالح العنزي", verbose_name="اسم المنصة")
     principal_name = models.CharField(max_length=200, blank=True, default="", verbose_name="اسم المديرة")
     developer_name = models.CharField(max_length=200, default="آمنه مالح العنزي", verbose_name="اسم مبرمجة المنصة")
     platform_vision = models.TextField(blank=True, verbose_name="رؤية المنصة (تظهر في التذييل)")
-    ministry_logo = models.ImageField(upload_to="logos/", blank=True, null=True, verbose_name="شعار وزارة التعليم")
-    school_logo = models.ImageField(upload_to="logos/", blank=True, null=True, verbose_name="شعار المدرسة")
+    ministry_logo = CloudinaryField('شعار وزارة التعليم', folder='logos', blank=True, null=True)
+    school_logo = CloudinaryField('شعار المدرسة', folder='logos', blank=True, null=True)
     primary_color = models.CharField(max_length=7, default="#E6E6FA", verbose_name="اللون الأساسي (لافندر)")
     header_line_1 = models.CharField(max_length=200, default="المملكة العربية السعودية", verbose_name="سطر الديباجة 1")
     header_line_2 = models.CharField(max_length=200, default="وزارة التعليم", verbose_name="سطر الديباجة 2")

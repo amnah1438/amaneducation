@@ -101,40 +101,24 @@ def debug_images(request):
     ss = SchoolSettings.objects.first()
     if ss:
         html += '<table>'
-        # شعار الوزارة
-        if ss.ministry_logo and ss.ministry_logo.name:
-            try:
-                url = ss.ministry_logo.url
-                html += f'<tr><td>شعار الوزارة — الاسم</td><td>{ss.ministry_logo.name}</td></tr>'
-                html += f'<tr><td>شعار الوزارة — URL</td><td><a href="{url}" target="_blank">{url}</a></td></tr>'
-            except Exception as e:
-                html += f'<tr><td>شعار الوزارة — خطأ URL</td><td class="err">{e}</td></tr>'
-        else:
-            html += '<tr><td>شعار الوزارة</td><td class="err">فارغ — لم يتم رفع شعار</td></tr>'
-
-        # شعار المدرسة
-        if ss.school_logo and ss.school_logo.name:
-            try:
-                url = ss.school_logo.url
-                html += f'<tr><td>شعار المدرسة — الاسم</td><td>{ss.school_logo.name}</td></tr>'
-                html += f'<tr><td>شعار المدرسة — URL</td><td><a href="{url}" target="_blank">{url}</a></td></tr>'
-            except Exception as e:
-                html += f'<tr><td>شعار المدرسة — خطأ URL</td><td class="err">{e}</td></tr>'
-        else:
-            html += '<tr><td>شعار المدرسة</td><td class="err">فارغ — لم يتم رفع شعار</td></tr>'
+        from cloudinary.utils import cloudinary_url as _cu
+        for label, field in [('الوزارة', ss.ministry_logo), ('المدرسة', ss.school_logo)]:
+            val = str(field) if field else ''
+            html += f'<tr><td>شعار {label} — القيمة الخام</td><td><code>{val or "فارغ"}</code></td></tr>'
+            if val:
+                try:
+                    cu, _ = _cu(val)
+                    html += f'<tr><td>شعار {label} — Cloudinary URL</td><td><a href="{cu}" target="_blank">{cu}</a></td></tr>'
+                except Exception as e:
+                    html += f'<tr><td>شعار {label} — خطأ</td><td class="err">{e}</td></tr>'
         html += '</table>'
 
         # عرض الصور
-        if ss.ministry_logo and ss.ministry_logo.name:
-            try:
-                html += f'<h3>شعار الوزارة:</h3><img src="{ss.ministry_logo.url}" style="max-height:200px">'
-            except:
-                pass
-        if ss.school_logo and ss.school_logo.name:
-            try:
-                html += f'<h3>شعار المدرسة:</h3><img src="{ss.school_logo.url}" style="max-height:200px">'
-            except:
-                pass
+        for label, field in [('الوزارة', ss.ministry_logo), ('المدرسة', ss.school_logo)]:
+            val = str(field) if field else ''
+            if val:
+                cu, _ = _cu(val)
+                html += f'<h3>شعار {label}:</h3><img src="{cu}" style="max-height:200px">'
     else:
         html += '<p class="err">❌ لا يوجد سجل SchoolSettings في قاعدة البيانات</p>'
 
