@@ -272,7 +272,6 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
   <div class="tnav">
     <a href="/teachers/dashboard/" class="tnb">📊 الداشبورد</a>
     <span class="tnb on">📚 المهارات</span>
-    <a href="/teachers/skills/import/" class="tnb">📤 رفع Excel</a>
     <button class="tnb" onclick="openSkillsManager()" title="إدارة قائمة المهارات">⚙️ المهارات</button>
     {% include "core/_theme_toggle.html" %}
   </div>
@@ -637,8 +636,6 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
             <button class="bank-btn" onclick="selectBank('physics','الفيزياء')">⚛️ الفيزياء</button>
             <button class="bank-btn" onclick="selectBank('chemistry','الكيمياء')">🧪 الكيمياء</button>
             <button class="bank-btn" onclick="selectBank('biology','الأحياء')">🦠 الأحياء</button>
-            <button class="bank-btn" onclick="selectBank('english','الإنجليزية')">🌍 الإنجليزية</button>
-            <button class="bank-btn" onclick="selectBank('arabic','اللغة العربية')">🔤 العربية</button>
           </div>
         </div>
       </div>
@@ -1143,7 +1140,11 @@ function deleteQ(prefix, idx){
   renderQ(prefix);
 }
 
-function stripHtml(s){ return (s||'').replace(/<[^>]+>/g,'').trim(); }
+function stripHtml(s){
+  var tmp = document.createElement('div');
+  tmp.innerHTML = (s||'');
+  return (tmp.textContent || tmp.innerText || '').trim();
+}
 
 function renderQ(prefix){
   const listEl = document.getElementById(`${prefix}-q-list`);
