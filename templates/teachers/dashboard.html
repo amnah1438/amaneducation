@@ -53,8 +53,13 @@
   --red2: #fee2e2;
   --teal: #0d9488;
   --text: #0f172a;
-  --text2: #475569;
-  --text3: #94a3b8;
+  --text2: #334155;
+  --text3: #64748b;
+  /* ألوان نصوص الصناديق الملونة — تباين عالي للوضع الفاتح */
+  --hg-text: #065f46;
+  --ho-text: #92400e;
+  --hr-text: #991b1b;
+  --hbl-text: #1e40af;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -469,10 +474,10 @@ body {
    HIGHLIGHT BOXES
 ═══════════════════════════════ */
 .hb { border-radius: 7px; padding: 10px 12px; margin-bottom: 7px; border-right: 3px solid; font-size: 12px; line-height: 1.8; }
-.hg { background: rgba(16,185,129,0.06); border-color: var(--green); color: #6ee7a0; }
-.ho { background: rgba(245,158,11,0.06); border-color: var(--orange); color: #fcd34d; }
-.hr { background: rgba(239,68,68,0.06); border-color: var(--red); color: #fca5a5; }
-.hbl { background: rgba(59,130,246,0.06); border-color: var(--blue); color: #93c5fd; }
+.hg { background: rgba(16,185,129,0.06); border-color: var(--green); color: var(--hg-text, #6ee7a0); }
+.ho { background: rgba(245,158,11,0.06); border-color: var(--orange); color: var(--ho-text, #fcd34d); }
+.hr { background: rgba(239,68,68,0.06); border-color: var(--red); color: var(--hr-text, #fca5a5); }
+.hbl { background: rgba(59,130,246,0.06); border-color: var(--blue); color: var(--hbl-text, #93c5fd); }
 
 /* ═══════════════════════════════
    LEVEL ROWS
@@ -500,10 +505,10 @@ body {
 .albl .alt { color: var(--blue); }
 .alg2 .alt { color: var(--green); }
 .allist { list-style: none; font-size: 12px; line-height: 2; }
-.alr .allist { color: #fca5a5; }
-.alo .allist { color: #fcd34d; }
-.albl .allist { color: #93c5fd; }
-.alg2 .allist { color: #6ee7a0; }
+.alr .allist { color: var(--hr-text, #fca5a5); }
+.alo .allist { color: var(--ho-text, #fcd34d); }
+.albl .allist { color: var(--hbl-text, #93c5fd); }
+.alg2 .allist { color: var(--hg-text, #6ee7a0); }
 
 /* ═══════════════════════════════
    PREDICTION
@@ -653,6 +658,217 @@ body {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+/* ═══════════════════════════════
+   زر الهامبرغر (مخفي على الديسكتوب)
+═══════════════════════════════ */
+.menu-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s;
+  line-height: 1;
+}
+.menu-toggle:hover { background: var(--bg3); }
+
+/* ═══════════════════════════════
+   MOBILE RESPONSIVE (max-width: 768px)
+═══════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* --- زر الهامبرغر --- */
+  .menu-toggle { display: flex; }
+
+  /* --- الشريط العلوي --- */
+  .topbar {
+    padding: 8px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .logo { min-width: unset; }
+  .logo-text { font-size: 13px; }
+  .logo-sub { font-size: 10px; }
+  .logo-icon { width: 28px; height: 28px; font-size: 12px; }
+
+  /* --- القائمة تصبح منسدلة --- */
+  .nav {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    order: 10;
+    gap: 4px;
+    padding: 8px 0 4px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+    overflow-x: visible;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .nav.open {
+    display: flex;
+  }
+
+  .nb {
+    text-align: right;
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 8px;
+    width: 100%;
+  }
+
+  .nb:hover { background: var(--bg3); }
+
+  .nav a {
+    text-align: right !important;
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  /* --- الأزرار العلوية اليسرى --- */
+  .topright {
+    min-width: unset;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .topright .clock { display: none; }
+  .user-badge { font-size: 9px; padding: 3px 8px; }
+  .print-btn { font-size: 9px; padding: 4px 8px; }
+
+  /* --- الصفحات --- */
+  .pg { padding: 10px 10px; }
+
+  /* --- الفلتر --- */
+  .frow {
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .fsel { font-size: 11px; padding: 6px 8px; flex: 1; min-width: 0; }
+  .rbtn { font-size: 9px; padding: 4px 8px; }
+  .lupd { font-size: 10px; width: 100%; }
+
+  /* --- بطاقات KPI: 3 أعمدة بدل 6 --- */
+  .kg {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+
+  .kc { padding: 10px 8px; }
+  .kl { font-size: 10px; }
+  .kv { font-size: 20px; }
+  .kch { font-size: 9px; }
+
+  /* --- الشبكات الرئيسية --- */
+  .g2 { grid-template-columns: 1fr; }
+  .g3 { grid-template-columns: 1fr; }
+  .g2e { grid-template-columns: 1fr; }
+  .g3q { grid-template-columns: 1fr; }
+
+  /* --- الرسوم البيانية أوضح --- */
+  .card .cb canvas {
+    min-height: 200px !important;
+  }
+  .card .cb [style*="height:170px"],
+  .card .cb [style*="height: 170px"] {
+    height: 220px !important;
+  }
+
+  .card .cb { padding: 10px; }
+  .ch { padding: 8px 10px; flex-wrap: wrap; gap: 6px; }
+  .ct { font-size: 13px; }
+  .ca { flex-wrap: wrap; gap: 3px; }
+  .cab { font-size: 9px; padding: 3px 8px; }
+
+  /* --- الشبكات الداخلية --- */
+  .alg { grid-template-columns: 1fr; }
+  .predg { grid-template-columns: repeat(2, 1fr); }
+  .achg { grid-template-columns: repeat(2, 1fr); }
+  .comp-grid { grid-template-columns: repeat(2, 1fr); }
+  .stg { grid-template-columns: 1fr; }
+
+  /* --- الجدول --- */
+  .tb { font-size: 11px; }
+  .tb th, .tb td { padding: 6px 7px; }
+  .tb th { font-size: 10px; }
+
+  /* --- شريط التقدم --- */
+  .plb { min-width: 90px; font-size: 11px; }
+  .sn { min-width: 70px; font-size: 11px; }
+
+  /* --- المودال --- */
+  .mdl {
+    width: 96%;
+    padding: 14px;
+    max-height: 92vh;
+  }
+  .mmeta { grid-template-columns: 1fr; }
+  .mss { grid-template-columns: 1fr 1fr; }
+
+  /* --- Heatmap --- */
+  .hd { height: 14px; }
+  .hlbi { font-size: 9px; }
+
+  /* --- الأيقونات والنصوص العامة --- */
+  .qi { padding: 10px; }
+  .qn { font-size: 12px; }
+  .qv { font-size: 18px; }
+  .qd { font-size: 11px; }
+
+  /* --- Gauge أكبر --- */
+  .card .cb svg { width: 160px; height: 90px; }
+
+  /* --- الإنجازات --- */
+  .achi { padding: 10px; }
+  .achio { font-size: 22px; }
+  .achn { font-size: 11px; }
+
+  /* --- التنبيهات --- */
+  .ali { padding: 10px; }
+  .alt { font-size: 12px; }
+  .allist { font-size: 11px; }
+}
+
+/* ═══════════════════════════════
+   SMALL MOBILE (max-width: 480px)
+═══════════════════════════════ */
+@media (max-width: 480px) {
+  .topbar { padding: 6px 8px; }
+  .logo-text { font-size: 12px; }
+  .logo-sub { font-size: 9px; }
+
+  /* بطاقات KPI: عمودين على الشاشات الصغيرة جداً */
+  .kg {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+  }
+  .kv { font-size: 18px; }
+
+  .pg { padding: 8px 6px; }
+
+  .predg { grid-template-columns: 1fr 1fr; }
+  .achg { grid-template-columns: 1fr 1fr; }
+  .comp-grid { grid-template-columns: 1fr; }
+
+  .fsel { font-size: 10px; padding: 5px 6px; }
+
+  /* تحسين المسافة بين البطاقات */
+  .card { margin-bottom: 8px; }
+  .g2, .g3, .g2e { gap: 8px; margin-bottom: 8px; }
+}
 </style>
 </head>
 <body>
@@ -669,16 +885,17 @@ body {
     </div>
   </div>
 
+  <button class="menu-toggle" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.textContent==='☰'?'✕':'☰'" aria-label="القائمة">☰</button>
   <div class="nav">
-    <button class="nb on" onclick="gp('ov',this)">نظرة عامة</button>
-    <button class="nb" onclick="gp('st',this)">الطالبات</button>
-    <button class="nb" onclick="gp('sk',this)">المهارات</button>
-    <button class="nb" onclick="gp('ex',this)">الاختبارات</button>
-    <button class="nb" onclick="gp('an',this)">الإحصاءات</button>
-    <button class="nb" onclick="gp('al',this)">التنبيهات<span class="notif"></span></button>
-    <button class="nb" onclick="gp('pr',this)">التنبؤ 🔮</button>
-    <button class="nb" onclick="gp('ac',this)">الإنجازات 🏆</button>
-    <button class="nb" onclick="gp('lg',this)">السجل</button>
+    <button class="nb on" onclick="gp('ov',this);closeMobileMenu()">نظرة عامة</button>
+    <button class="nb" onclick="gp('st',this);closeMobileMenu()">الطالبات</button>
+    <button class="nb" onclick="gp('sk',this);closeMobileMenu()">المهارات</button>
+    <button class="nb" onclick="gp('ex',this);closeMobileMenu()">الاختبارات</button>
+    <button class="nb" onclick="gp('an',this);closeMobileMenu()">الإحصاءات</button>
+    <button class="nb" onclick="gp('al',this);closeMobileMenu()">التنبيهات<span class="notif"></span></button>
+    <button class="nb" onclick="gp('pr',this);closeMobileMenu()">التنبؤ 🔮</button>
+    <button class="nb" onclick="gp('ac',this);closeMobileMenu()">الإنجازات 🏆</button>
+    <button class="nb" onclick="gp('lg',this);closeMobileMenu()">السجل</button>
 <a href="/teachers/skills/" style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);font-family:'Tajawal',sans-serif;font-size:11px;padding:6px 10px;border-radius:6px;text-decoration:none;white-space:nowrap">📚 إدارة المهارات</a>
   <a href="/teachers/sessions/add/" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);font-family:'Tajawal',sans-serif;font-size:11px;padding:6px 10px;border-radius:6px;text-decoration:none;white-space:nowrap">➕ سجّل حصة</a>
   <a href="/students/manage/" style="background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.2);font-family:'Tajawal',sans-serif;font-size:11px;padding:6px 10px;border-radius:6px;text-decoration:none;white-space:nowrap">👩‍🎓 إدارة الطالبات</a>
@@ -1661,6 +1878,14 @@ body {
 
 {% localize off %}
 <script>
+// ── إغلاق القائمة على الجوال ──
+function closeMobileMenu(){
+  var nav=document.querySelector('.nav');
+  var btn=document.querySelector('.menu-toggle');
+  if(nav) nav.classList.remove('open');
+  if(btn) btn.textContent='☰';
+}
+
 // ── التنقل (يجب أن يكون أول شيء) ──
 function gp(name,btn){
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
