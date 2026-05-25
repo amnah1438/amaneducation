@@ -5,6 +5,10 @@ Pillow>=12.0
 sqlparse>=0.5
 asgiref>=3.11
 
+# Cloudinary (تخزين الصور)
+cloudinary>=1.36
+django-cloudinary-storage>=0.3
+
 # Production (Render)
 gunicorn>=22.0
 psycopg2-binary>=2.9

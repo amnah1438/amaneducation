@@ -23,7 +23,11 @@ INSTALLED_APPS = [
 
     # تطبيقات المحرر المطور
     'ckeditor',
-    'ckeditor_uploader', 
+    'ckeditor_uploader',
+
+    # Cloudinary لتخزين الصور
+    'cloudinary_storage',
+    'cloudinary',
 
     # تطبيقات المنصة الخاصة بك
     'core',
@@ -178,6 +182,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+# ======================================================
+# إعدادات Cloudinary (تخزين الصور والملفات)
+# ======================================================
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dyg4401o9'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '489947491336852'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'ybw_lynZTuhxcRbbQ1NfIVZT9r8'),
+}
+
+# في الإنتاج: استخدم Cloudinary لتخزين ملفات الوسائط
+# محلياً: استخدم التخزين المحلي العادي
+if os.environ.get('DB_HOST'):
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # ======================================================
 # إعدادات الإنتاج (Render)

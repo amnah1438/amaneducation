@@ -22,3 +22,9 @@ services:
         value: db_amaneducation_user
       - key: DB_PASSWORD
         value: 3QkrrTyfGPe4DTWCchQX9y9ldGM6KxFk
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dyg4401o9
+      - key: CLOUDINARY_API_KEY
+        value: "489947491336852"
+      - key: CLOUDINARY_API_SECRET
+        value: ybw_lynZTuhxcRbbQ1NfIVZT9r8
