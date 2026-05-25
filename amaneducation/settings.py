@@ -186,16 +186,26 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 # ======================================================
 # إعدادات Cloudinary (تخزين الصور والملفات)
 # ======================================================
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dyg4401o9'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '489947491336852'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'ybw_lynZTuhxcRbbQ1NfIVZT9r8'),
 }
 
-# في الإنتاج: استخدم Cloudinary لتخزين ملفات الوسائط
-# محلياً: استخدم التخزين المحلي العادي
-if os.environ.get('DB_HOST'):
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+# تهيئة Cloudinary مباشرة (مطلوب لعمل الرفع)
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+    api_key=CLOUDINARY_STORAGE['API_KEY'],
+    api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+    secure=True,
+)
+
+# استخدم Cloudinary دائماً لتخزين ملفات الوسائط (محلي + إنتاج)
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # ======================================================
 # إعدادات الإنتاج (Render)

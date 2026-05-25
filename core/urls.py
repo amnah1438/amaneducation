@@ -11,6 +11,8 @@ django_admin.site.site_header = "إدارة منصة آمنة التعليمية
 django_admin.site.site_title = "منصة آمنة"
 
 urlpatterns = [
+    # ── تشخيص الصور (مؤقت) ──
+    path('debug-images/', views.debug_images, name='debug_images'),
     # ── الصفحات العامة ─────────────────────────────────────────
     path('', views.home, name='home'),
     path('skill/<int:skill_id>/', views.skill_detail, name='skill_detail'),

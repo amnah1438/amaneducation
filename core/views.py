@@ -37,6 +37,72 @@ from teachers.models import (
 
 
 # ═══════════════════════════════════════════════════════════════
+# تشخيص الصور (صفحة مؤقتة)
+# ═══════════════════════════════════════════════════════════════
+
+def debug_images(request):
+    """صفحة تشخيص لفحص إعدادات الصور و Cloudinary"""
+    from django.conf import settings as django_settings
+    import cloudinary
+    info = {
+        'DEFAULT_FILE_STORAGE': getattr(django_settings, 'DEFAULT_FILE_STORAGE', 'غير محدد'),
+        'MEDIA_URL': django_settings.MEDIA_URL,
+        'CLOUDINARY_CLOUD_NAME': django_settings.CLOUDINARY_STORAGE.get('CLOUD_NAME', '؟'),
+        'DEBUG': django_settings.DEBUG,
+    }
+    # جلب بيانات SchoolSettings
+    ss = SchoolSettings.objects.first()
+    logos = {}
+    if ss:
+        logos['ministry_logo_name'] = str(ss.ministry_logo.name) if ss.ministry_logo else 'فارغ'
+        logos['ministry_logo_url'] = ss.ministry_logo.url if ss.ministry_logo else 'لا يوجد'
+        logos['school_logo_name'] = str(ss.school_logo.name) if ss.school_logo else 'فارغ'
+        logos['school_logo_url'] = ss.school_logo.url if ss.school_logo else 'لا يوجد'
+    else:
+        logos['error'] = 'لا يوجد سجل SchoolSettings'
+
+    # جلب صور الأسئلة
+    questions_with_images = TeacherQuestion.objects.exclude(question_image='').exclude(question_image__isnull=True)[:5]
+    q_images = []
+    for q in questions_with_images:
+        try:
+            q_images.append({'id': q.id, 'name': str(q.question_image.name), 'url': q.question_image.url})
+        except Exception as e:
+            q_images.append({'id': q.id, 'error': str(e)})
+
+    html = '<html dir="rtl"><head><meta charset="utf-8"><title>تشخيص الصور</title></head><body style="font-family:Tajawal,sans-serif;padding:20px;background:#f5f5f5">'
+    html += '<h1>🔍 تشخيص الصور و Cloudinary</h1>'
+    html += '<h2>الإعدادات</h2><table border="1" cellpadding="8" style="border-collapse:collapse">'
+    for k, v in info.items():
+        html += f'<tr><td><strong>{k}</strong></td><td>{v}</td></tr>'
+    html += '</table>'
+
+    html += '<h2>الشعارات</h2><table border="1" cellpadding="8" style="border-collapse:collapse">'
+    for k, v in logos.items():
+        html += f'<tr><td><strong>{k}</strong></td><td>{v}</td></tr>'
+    html += '</table>'
+
+    if logos.get('ministry_logo_url') and logos['ministry_logo_url'] != 'لا يوجد':
+        html += f'<h3>شعار الوزارة:</h3><img src="{logos["ministry_logo_url"]}" style="max-height:200px;border:2px solid #ccc">'
+    if logos.get('school_logo_url') and logos['school_logo_url'] != 'لا يوجد':
+        html += f'<h3>شعار المدرسة:</h3><img src="{logos["school_logo_url"]}" style="max-height:200px;border:2px solid #ccc">'
+
+    html += '<h2>صور الأسئلة (أول 5)</h2>'
+    if q_images:
+        for qi in q_images:
+            if 'error' in qi:
+                html += f'<p>سؤال #{qi["id"]}: خطأ — {qi["error"]}</p>'
+            else:
+                html += f'<p>سؤال #{qi["id"]}: {qi["name"]}<br>URL: <a href="{qi["url"]}" target="_blank">{qi["url"]}</a><br><img src="{qi["url"]}" style="max-height:150px;border:1px solid #ccc"></p>'
+    else:
+        html += '<p>لا توجد أسئلة بصور</p>'
+
+    html += '</body></html>'
+    from django.http import HttpResponse
+    return HttpResponse(html)
+
+
+# ═══════════════════════════════════════════════════════════════
 # Decorators وأدوات صلاحيات
 # ═══════════════════════════════════════════════════════════════
 
