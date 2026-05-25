@@ -25,6 +25,28 @@ class SchoolSettings(models.Model):
     def __str__(self):
         return self.platform_name
 
+    @property
+    def ministry_logo_url(self):
+        if self.ministry_logo:
+            from cloudinary.utils import cloudinary_url
+            val = str(self.ministry_logo)
+            if val.startswith('http'):
+                return val
+            url, _ = cloudinary_url(val)
+            return url or ''
+        return ''
+
+    @property
+    def school_logo_url(self):
+        if self.school_logo:
+            from cloudinary.utils import cloudinary_url
+            val = str(self.school_logo)
+            if val.startswith('http'):
+                return val
+            url, _ = cloudinary_url(val)
+            return url or ''
+        return ''
+
     def save(self, *args, **kwargs):
         if not self.pk and SchoolSettings.objects.exists():
             self.pk = SchoolSettings.objects.first().pk
