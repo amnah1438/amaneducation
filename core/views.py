@@ -43,62 +43,115 @@ from teachers.models import (
 def debug_images(request):
     """صفحة تشخيص لفحص إعدادات الصور و Cloudinary"""
     from django.conf import settings as django_settings
+    from django.http import HttpResponse
     import cloudinary
-    info = {
-        'DEFAULT_FILE_STORAGE': getattr(django_settings, 'DEFAULT_FILE_STORAGE', 'غير محدد'),
-        'MEDIA_URL': django_settings.MEDIA_URL,
-        'CLOUDINARY_CLOUD_NAME': django_settings.CLOUDINARY_STORAGE.get('CLOUD_NAME', '؟'),
-        'DEBUG': django_settings.DEBUG,
-    }
-    # جلب بيانات SchoolSettings
-    ss = SchoolSettings.objects.first()
-    logos = {}
-    if ss:
-        logos['ministry_logo_name'] = str(ss.ministry_logo.name) if ss.ministry_logo else 'فارغ'
-        logos['ministry_logo_url'] = ss.ministry_logo.url if ss.ministry_logo else 'لا يوجد'
-        logos['school_logo_name'] = str(ss.school_logo.name) if ss.school_logo else 'فارغ'
-        logos['school_logo_url'] = ss.school_logo.url if ss.school_logo else 'لا يوجد'
-    else:
-        logos['error'] = 'لا يوجد سجل SchoolSettings'
+    import cloudinary.api
 
-    # جلب صور الأسئلة
-    questions_with_images = TeacherQuestion.objects.exclude(question_image='').exclude(question_image__isnull=True)[:5]
-    q_images = []
-    for q in questions_with_images:
-        try:
-            q_images.append({'id': q.id, 'name': str(q.question_image.name), 'url': q.question_image.url})
-        except Exception as e:
-            q_images.append({'id': q.id, 'error': str(e)})
-
-    html = '<html dir="rtl"><head><meta charset="utf-8"><title>تشخيص الصور</title></head><body style="font-family:Tajawal,sans-serif;padding:20px;background:#f5f5f5">'
+    html = '<html dir="rtl"><head><meta charset="utf-8"><title>تشخيص الصور</title>'
+    html += '<style>body{font-family:sans-serif;padding:20px;background:#f5f5f5}table{border-collapse:collapse;margin:10px 0}td,th{border:1px solid #ccc;padding:8px 12px;text-align:right}.ok{color:green;font-weight:bold}.err{color:red;font-weight:bold}img{border:2px solid #ccc;margin:5px}</style>'
+    html += '</head><body>'
     html += '<h1>🔍 تشخيص الصور و Cloudinary</h1>'
-    html += '<h2>الإعدادات</h2><table border="1" cellpadding="8" style="border-collapse:collapse">'
-    for k, v in info.items():
-        html += f'<tr><td><strong>{k}</strong></td><td>{v}</td></tr>'
+
+    # 1) الإعدادات
+    html += '<h2>1. الإعدادات</h2><table>'
+    html += f'<tr><td>DEFAULT_FILE_STORAGE</td><td>{getattr(django_settings, "DEFAULT_FILE_STORAGE", "غير محدد")}</td></tr>'
+    html += f'<tr><td>MEDIA_URL</td><td>{django_settings.MEDIA_URL}</td></tr>'
+    html += f'<tr><td>CLOUD_NAME</td><td>{django_settings.CLOUDINARY_STORAGE.get("CLOUD_NAME", "؟")}</td></tr>'
+    html += f'<tr><td>API_KEY</td><td>{django_settings.CLOUDINARY_STORAGE.get("API_KEY", "؟")[:6]}...</td></tr>'
+    html += f'<tr><td>DEBUG</td><td>{django_settings.DEBUG}</td></tr>'
+
+    # ترتيب INSTALLED_APPS
+    apps = django_settings.INSTALLED_APPS
+    cs_idx = apps.index('cloudinary_storage') if 'cloudinary_storage' in apps else -1
+    sf_idx = apps.index('django.contrib.staticfiles') if 'django.contrib.staticfiles' in apps else -1
+    order_ok = cs_idx >= 0 and sf_idx >= 0 and cs_idx < sf_idx
+    html += f'<tr><td>ترتيب cloudinary_storage</td><td class="{"ok" if order_ok else "err"}">{"✅ قبل staticfiles (صحيح)" if order_ok else "❌ بعد staticfiles (خطأ!)"} — موقعه: {cs_idx}, staticfiles: {sf_idx}</td></tr>'
     html += '</table>'
 
-    html += '<h2>الشعارات</h2><table border="1" cellpadding="8" style="border-collapse:collapse">'
-    for k, v in logos.items():
-        html += f'<tr><td><strong>{k}</strong></td><td>{v}</td></tr>'
-    html += '</table>'
+    # 2) اختبار اتصال Cloudinary
+    html += '<h2>2. اختبار اتصال Cloudinary</h2>'
+    try:
+        result = cloudinary.api.ping()
+        html += f'<p class="ok">✅ الاتصال ناجح! النتيجة: {result}</p>'
+    except Exception as e:
+        html += f'<p class="err">❌ فشل الاتصال: {e}</p>'
 
-    if logos.get('ministry_logo_url') and logos['ministry_logo_url'] != 'لا يوجد':
-        html += f'<h3>شعار الوزارة:</h3><img src="{logos["ministry_logo_url"]}" style="max-height:200px;border:2px solid #ccc">'
-    if logos.get('school_logo_url') and logos['school_logo_url'] != 'لا يوجد':
-        html += f'<h3>شعار المدرسة:</h3><img src="{logos["school_logo_url"]}" style="max-height:200px;border:2px solid #ccc">'
+    # 3) اختبار رفع صورة تجريبية
+    html += '<h2>3. اختبار رفع صورة تجريبية</h2>'
+    try:
+        import cloudinary.uploader
+        # رفع صورة بسيطة من URL عام
+        test_result = cloudinary.uploader.upload(
+            "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+            public_id="test_amane_platform",
+            overwrite=True,
+            folder="test"
+        )
+        test_url = test_result.get('secure_url', '')
+        html += f'<p class="ok">✅ الرفع نجح!</p>'
+        html += f'<p>URL: <a href="{test_url}" target="_blank">{test_url}</a></p>'
+        html += f'<img src="{test_url}" style="max-height:100px">'
+        # حذف الصورة التجريبية
+        cloudinary.uploader.destroy("test/test_amane_platform")
+    except Exception as e:
+        html += f'<p class="err">❌ فشل الرفع: {e}</p>'
 
-    html += '<h2>صور الأسئلة (أول 5)</h2>'
-    if q_images:
-        for qi in q_images:
-            if 'error' in qi:
-                html += f'<p>سؤال #{qi["id"]}: خطأ — {qi["error"]}</p>'
-            else:
-                html += f'<p>سؤال #{qi["id"]}: {qi["name"]}<br>URL: <a href="{qi["url"]}" target="_blank">{qi["url"]}</a><br><img src="{qi["url"]}" style="max-height:150px;border:1px solid #ccc"></p>'
+    # 4) الشعارات
+    html += '<h2>4. الشعارات في قاعدة البيانات</h2>'
+    ss = SchoolSettings.objects.first()
+    if ss:
+        html += '<table>'
+        # شعار الوزارة
+        if ss.ministry_logo and ss.ministry_logo.name:
+            try:
+                url = ss.ministry_logo.url
+                html += f'<tr><td>شعار الوزارة — الاسم</td><td>{ss.ministry_logo.name}</td></tr>'
+                html += f'<tr><td>شعار الوزارة — URL</td><td><a href="{url}" target="_blank">{url}</a></td></tr>'
+            except Exception as e:
+                html += f'<tr><td>شعار الوزارة — خطأ URL</td><td class="err">{e}</td></tr>'
+        else:
+            html += '<tr><td>شعار الوزارة</td><td class="err">فارغ — لم يتم رفع شعار</td></tr>'
+
+        # شعار المدرسة
+        if ss.school_logo and ss.school_logo.name:
+            try:
+                url = ss.school_logo.url
+                html += f'<tr><td>شعار المدرسة — الاسم</td><td>{ss.school_logo.name}</td></tr>'
+                html += f'<tr><td>شعار المدرسة — URL</td><td><a href="{url}" target="_blank">{url}</a></td></tr>'
+            except Exception as e:
+                html += f'<tr><td>شعار المدرسة — خطأ URL</td><td class="err">{e}</td></tr>'
+        else:
+            html += '<tr><td>شعار المدرسة</td><td class="err">فارغ — لم يتم رفع شعار</td></tr>'
+        html += '</table>'
+
+        # عرض الصور
+        if ss.ministry_logo and ss.ministry_logo.name:
+            try:
+                html += f'<h3>شعار الوزارة:</h3><img src="{ss.ministry_logo.url}" style="max-height:200px">'
+            except:
+                pass
+        if ss.school_logo and ss.school_logo.name:
+            try:
+                html += f'<h3>شعار المدرسة:</h3><img src="{ss.school_logo.url}" style="max-height:200px">'
+            except:
+                pass
+    else:
+        html += '<p class="err">❌ لا يوجد سجل SchoolSettings في قاعدة البيانات</p>'
+
+    # 5) صور الأسئلة
+    html += '<h2>5. صور الأسئلة (أول 5)</h2>'
+    questions_with_images = TeacherQuestion.objects.exclude(question_image='').exclude(question_image__isnull=True)[:5]
+    if questions_with_images:
+        for q in questions_with_images:
+            try:
+                html += f'<p>سؤال #{q.id}: {q.question_image.name}<br>URL: <a href="{q.question_image.url}" target="_blank">{q.question_image.url}</a><br><img src="{q.question_image.url}" style="max-height:100px"></p>'
+            except Exception as e:
+                html += f'<p>سؤال #{q.id}: <span class="err">خطأ — {e}</span></p>'
     else:
         html += '<p>لا توجد أسئلة بصور</p>'
 
+    html += '<hr><p style="color:#999">بعد التأكد من عمل الصور، احذفي هذا المسار من urls.py</p>'
     html += '</body></html>'
-    from django.http import HttpResponse
     return HttpResponse(html)
 
 
