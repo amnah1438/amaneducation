@@ -219,6 +219,36 @@ def teacher_dashboard(request):
     lessons_count = my_skills.filter(content_type='lesson').count()
     banks_count = my_skills.filter(content_type='bank').count()
 
+    # 8) بيانات مقارنة القبلي والبعدي لكل مهارة (للرسم البياني)
+    pre_post_by_skill = _dd(lambda: {'pre_total': 0, 'pre_count': 0, 'post_total': 0, 'post_count': 0})
+    for r in my_results.select_related('exam', 'exam__skill'):
+        sk_name = r.exam.skill.title if r.exam.skill else 'بدون'
+        if r.exam.exam_type == 'pre':
+            pre_post_by_skill[sk_name]['pre_total'] += float(r.percentage or 0)
+            pre_post_by_skill[sk_name]['pre_count'] += 1
+        elif r.exam.exam_type == 'post':
+            pre_post_by_skill[sk_name]['post_total'] += float(r.percentage or 0)
+            pre_post_by_skill[sk_name]['post_count'] += 1
+    pre_post_chart = []
+    for sk_name, v in pre_post_by_skill.items():
+        pre_avg = round(v['pre_total'] / v['pre_count']) if v['pre_count'] else 0
+        post_avg = round(v['post_total'] / v['post_count']) if v['post_count'] else 0
+        if v['pre_count'] or v['post_count']:
+            pre_post_chart.append({'name': sk_name, 'pre': pre_avg, 'post': post_avg})
+
+    # 9) بيانات الهيستوغرام — توزيع درجات الطالبات
+    hist_bins = [0]*8  # 20-29, 30-39, 40-49, 50-59, 60-69, 70-79, 80-89, 90-100
+    for sp in students_perf:
+        pct = sp['avg_pct']
+        if pct >= 90: hist_bins[7] += 1
+        elif pct >= 80: hist_bins[6] += 1
+        elif pct >= 70: hist_bins[5] += 1
+        elif pct >= 60: hist_bins[4] += 1
+        elif pct >= 50: hist_bins[3] += 1
+        elif pct >= 40: hist_bins[2] += 1
+        elif pct >= 30: hist_bins[1] += 1
+        else: hist_bins[0] += 1
+
     return render(request, 'teachers/dashboard.html', {
         'teacher': teacher,
         'total_skills': skills_count,
@@ -256,6 +286,8 @@ def teacher_dashboard(request):
         'radar_sections': sections,
         'radar_data_json': _json.dumps(radar_data),
         'top_demand_skills': [{'name': k, 'count': v} for k, v in top_demand],
+        'pre_post_json': _json.dumps(pre_post_chart, ensure_ascii=False),
+        'hist_bins_json': _json.dumps(hist_bins),
         'my_classrooms': teacher.classrooms.all().prefetch_related('students'),
         'my_exams_list': my_exams.select_related('skill'),
     })

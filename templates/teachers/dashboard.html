@@ -60,6 +60,11 @@
   --ho-text: #92400e;
   --hr-text: #991b1b;
   --hbl-text: #1e40af;
+  /* خلفيات أقوى للوضع الفاتح */
+  --hg-bg: rgba(16,185,129,0.15);
+  --ho-bg: rgba(245,158,11,0.15);
+  --hr-bg: rgba(239,68,68,0.15);
+  --hbl-bg: rgba(59,130,246,0.12);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -474,10 +479,10 @@ body {
    HIGHLIGHT BOXES
 ═══════════════════════════════ */
 .hb { border-radius: 7px; padding: 10px 12px; margin-bottom: 7px; border-right: 3px solid; font-size: 12px; line-height: 1.8; }
-.hg { background: rgba(16,185,129,0.06); border-color: var(--green); color: var(--hg-text, #6ee7a0); }
-.ho { background: rgba(245,158,11,0.06); border-color: var(--orange); color: var(--ho-text, #fcd34d); }
-.hr { background: rgba(239,68,68,0.06); border-color: var(--red); color: var(--hr-text, #fca5a5); }
-.hbl { background: rgba(59,130,246,0.06); border-color: var(--blue); color: var(--hbl-text, #93c5fd); }
+.hg { background: var(--hg-bg, rgba(16,185,129,0.08)); border-color: var(--green); color: var(--hg-text, #6ee7a0); }
+.ho { background: var(--ho-bg, rgba(245,158,11,0.08)); border-color: var(--orange); color: var(--ho-text, #fcd34d); }
+.hr { background: var(--hr-bg, rgba(239,68,68,0.08)); border-color: var(--red); color: var(--hr-text, #fca5a5); }
+.hbl { background: var(--hbl-bg, rgba(59,130,246,0.08)); border-color: var(--blue); color: var(--hbl-text, #93c5fd); }
 
 /* ═══════════════════════════════
    LEVEL ROWS
@@ -495,15 +500,15 @@ body {
 ═══════════════════════════════ */
 .alg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
 .ali { border-radius: 9px; padding: 11px; border-right: 3px solid; }
-.alr { background: rgba(239,68,68,0.06); border-color: var(--red); }
-.alo { background: rgba(245,158,11,0.06); border-color: var(--orange); }
-.albl { background: rgba(59,130,246,0.06); border-color: var(--blue); }
-.alg2 { background: rgba(16,185,129,0.06); border-color: var(--green); }
+.alr { background: var(--hr-bg, rgba(239,68,68,0.08)); border-color: var(--red); }
+.alo { background: var(--ho-bg, rgba(245,158,11,0.08)); border-color: var(--orange); }
+.albl { background: var(--hbl-bg, rgba(59,130,246,0.08)); border-color: var(--blue); }
+.alg2 { background: var(--hg-bg, rgba(16,185,129,0.08)); border-color: var(--green); }
 .alt { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
-.alr .alt { color: var(--red); }
-.alo .alt { color: var(--orange); }
-.albl .alt { color: var(--blue); }
-.alg2 .alt { color: var(--green); }
+.alr .alt { color: var(--hr-text, var(--red)); }
+.alo .alt { color: var(--ho-text, var(--orange)); }
+.albl .alt { color: var(--hbl-text, var(--blue)); }
+.alg2 .alt { color: var(--hg-text, var(--green)); }
 .allist { list-style: none; font-size: 12px; line-height: 2; }
 .alr .allist { color: var(--hr-text, #fca5a5); }
 .alo .allist { color: var(--ho-text, #fcd34d); }
@@ -1947,18 +1952,26 @@ var ax={ticks:cf,grid:gc,border:{color:'#1e2a3d'}};
 
 try{ Chart.defaults.color='#475569'; }catch(e){}
 
-// ── منحنى تقدم الفصل ──
+// ── منحنى تقدم الفصل (بيانات حقيقية من heatmap) ──
 try{
+var hmRaw = JSON.parse('{{ heatmap_json|escapejs }}');
+// تجميع آخر 4 أسابيع
+var weekLabels=[], weekAvgs=[];
+for(var w=0;w<4;w++){
+  var slice=hmRaw.slice(w*7,(w+1)*7);
+  var total=0,cnt=0;
+  slice.forEach(function(d){total+=d.count;cnt++});
+  weekLabels.push('الأسبوع '+(w+1));
+  weekAvgs.push(cnt?Math.round(total/cnt):0);
+}
 window.mainChart = new Chart(document.getElementById('mainC'),{  type:'line',
   data:{
-    labels:['يناير','فبراير','مارس','أبريل','مايو','يونيو'],
+    labels:weekLabels,
     datasets:[
-      {label:'متوسط الفصل',data:[42,50,55,58,62,64],borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.05)',borderWidth:2.5,tension:0.4,fill:true,pointBackgroundColor:'#10b981',pointRadius:4,pointHoverRadius:6},
-      {label:'خط الهدف (75%)',data:[75,75,75,75,75,75],borderColor:'#1e2a3d',borderWidth:1.5,borderDash:[5,5],pointRadius:0,tension:0},
-      {label:'الطالبات الممتازات',data:[78,82,85,87,89,91],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.03)',borderWidth:1.5,tension:0.4,fill:true,pointRadius:2,pointHoverRadius:4}
+      {label:'نشاط الفصل (محاولات/يوم)',data:weekAvgs,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.05)',borderWidth:2.5,tension:0.4,fill:true,pointBackgroundColor:'#10b981',pointRadius:4,pointHoverRadius:6}
     ]
   },
-  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:12,usePointStyle:true},position:'top'},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax}}}
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:12,usePointStyle:true},position:'top'},tooltip:tt},scales:{y:{...ax,min:0,ticks:{...cf,stepSize:5}},x:{...ax}}}
 });
 }catch(e){ console.warn('mainChart:',e); }
 
@@ -1981,30 +1994,34 @@ window.mainChart = new Chart(document.getElementById('mainC'),{  type:'line',
   });
 })();
 
-// ── قبلي وبعدي ──
+// ── قبلي وبعدي (بيانات حقيقية) ──
 try{
-new Chart(document.getElementById('ppC'),{
-  type:'bar',
-  data:{
-    labels:['الكسور','النسبة','الأعداد','الضرب','القسمة'],
-    datasets:[
-      {label:'القبلي',data:[42,40,45,35,30],backgroundColor:'rgba(59,130,246,0.5)',borderRadius:5,borderSkipped:false},
-      {label:'البعدي',data:[69,66,65,58,53],backgroundColor:'rgba(16,185,129,0.7)',borderRadius:5,borderSkipped:false}
-    ]
-  },
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
-});
+var ppData = JSON.parse('{{ pre_post_json|escapejs }}');
+if(ppData.length){
+  new Chart(document.getElementById('ppC'),{
+    type:'bar',
+    data:{
+      labels:ppData.map(function(d){return d.name}),
+      datasets:[
+        {label:'القبلي',data:ppData.map(function(d){return d.pre}),backgroundColor:'rgba(59,130,246,0.5)',borderRadius:5,borderSkipped:false},
+        {label:'البعدي',data:ppData.map(function(d){return d.post}),backgroundColor:'rgba(16,185,129,0.7)',borderRadius:5,borderSkipped:false}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
+  });
+}
 }catch(e){ console.warn('ppC:',e); }
 
-// ── Histogram ──
+// ── Histogram (بيانات حقيقية) ──
 try{
+var histData = JSON.parse('{{ hist_bins_json|escapejs }}');
 new Chart(document.getElementById('histC'),{
   type:'bar',
   data:{
     labels:['20-29','30-39','40-49','50-59','60-69','70-79','80-89','90-100'],
     datasets:[{
       label:'عدد الطالبات',
-      data:[2,1,3,5,9,5,2,1],
+      data:histData,
       backgroundColor:['rgba(239,68,68,0.7)','rgba(239,68,68,0.7)','rgba(245,158,11,0.7)','rgba(245,158,11,0.5)','rgba(139,92,246,0.7)','rgba(59,130,246,0.7)','rgba(16,185,129,0.7)','rgba(16,185,129,0.9)'],
       borderRadius:5,borderSkipped:false
     }]

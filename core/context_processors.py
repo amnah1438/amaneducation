@@ -10,4 +10,5 @@ def platform_settings(request):
 
     return {
         'platform': settings_obj,
+        'settings': settings_obj,
     }
