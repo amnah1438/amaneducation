@@ -646,13 +646,18 @@ body {
 ═══════════════════════════════ */
 @media print {
   body { background: white !important; color: black !important; }
-  .topbar, .frow { display: none !important; }
-  .pg { display: block !important; }
+  .topbar, .frow, .menu-toggle, .mbg, .print-btn { display: none !important; }
+  /* فقط الصفحة المفتوحة تُطبع */
+  .pg { display: none !important; }
+  .pg.on { display: block !important; }
   .card, .kc, .qi, .ali, .predi, .achi { background: white !important; border: 1px solid #ddd !important; color: black !important; }
   .ct, .kl, .sn, .plb, .tlt, .qn { color: #333 !important; }
   .kv, .sv, .pv, .qv { color: black !important; }
   .up { color: #065f46 !important; }
   .dn { color: #7f1d1d !important; }
+  /* الشبكات تتحول لعمود واحد للطباعة */
+  .g2, .g3, .g2e { grid-template-columns: 1fr !important; }
+  .kg { grid-template-columns: repeat(3, 1fr) !important; }
 }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }

@@ -16,7 +16,7 @@ window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 :root,:root[data-theme="dark"]{--bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;--card:#0f1424;--card2:#161d30;--card3:#1c243d;--border:#1a2236;--border2:#223050;--border3:#2d3f60;--green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;--purple:#9b72f5;--purple2:#3d1d80;--orange:#f5a623;--orange2:#6b3f0a;--red:#f05252;--teal:#2dd4bf;--gold:#fbbf24;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070}
-:root[data-theme="light"]{--bg:#f8fafc;--bg2:#f1f5f9;--bg3:#e2e8f0;--card:#ffffff;--card2:#f8fafc;--card3:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--border3:#94a3b8;--green:#059669;--green2:#d1fae5;--blue:#2563eb;--blue2:#dbeafe;--purple:#9333ea;--purple2:#f3e8ff;--orange:#d97706;--orange2:#fef3c7;--red:#dc2626;--teal:#0d9488;--gold:#ca8a04;--text:#0f172a;--text2:#475569;--text3:#94a3b8}
+:root[data-theme="light"]{--bg:#f8fafc;--bg2:#f1f5f9;--bg3:#e2e8f0;--card:#ffffff;--card2:#f8fafc;--card3:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--border3:#94a3b8;--green:#059669;--green2:#d1fae5;--blue:#2563eb;--blue2:#dbeafe;--purple:#7c3aed;--purple2:#f3e8ff;--orange:#b45309;--orange2:#fef3c7;--red:#dc2626;--teal:#0d9488;--gold:#a16207;--text:#0f172a;--text2:#334155;--text3:#64748b}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 
@@ -257,8 +257,43 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 }
 
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
-@media(max-width:1024px){.wrap{grid-template-columns:1fr}.sidebar{display:none}}
-@media(max-width:768px){.g2,.opts-grid{grid-template-columns:1fr}.g3,.bank-grid{grid-template-columns:1fr 1fr}}
+/* زر عرض المهارات على الجوال */
+.mobile-sidebar-toggle{display:none;position:fixed;bottom:20px;right:20px;z-index:300;background:linear-gradient(135deg,var(--green),var(--blue));color:#fff;border:none;border-radius:50%;width:56px;height:56px;font-size:22px;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.2s}
+.mobile-sidebar-toggle:hover{transform:scale(1.1)}
+.sidebar-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:400;backdrop-filter:blur(3px)}
+.sidebar-overlay.open{display:block}
+
+@media(max-width:1024px){
+  .wrap{grid-template-columns:1fr}
+  .sidebar{
+    display:none;
+    position:fixed;
+    top:0;right:0;bottom:0;
+    width:300px;max-width:85vw;
+    z-index:500;
+    height:100vh;
+    box-shadow:-5px 0 25px rgba(0,0,0,0.3);
+    animation:slideInRight 0.3s ease;
+  }
+  .sidebar.open{display:block}
+  .mobile-sidebar-toggle{display:flex;align-items:center;justify-content:center}
+}
+@keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
+
+@media(max-width:768px){
+  .topbar{height:auto;min-height:56px;flex-wrap:wrap;padding:8px 12px;gap:6px}
+  .logo{min-width:unset}
+  .logo-name{font-size:13px}
+  .logo-sub{font-size:10px}
+  .tnav{flex-wrap:wrap;gap:3px}
+  .tnb{font-size:11px;padding:5px 10px}
+  .content{padding:12px 10px}
+  .g2,.opts-grid{grid-template-columns:1fr}
+  .g3,.bank-grid{grid-template-columns:1fr 1fr}
+  .main-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .main-tab{font-size:12px;padding:10px 12px;white-space:nowrap}
+  .cat-grid{grid-template-columns:1fr 1fr}
+}
 </style>
 </head>
 <body>
@@ -277,6 +312,9 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
   </div>
   <div style="font-size:12px;color:var(--text2);font-weight:500" id="clk"></div>
 </div>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+<button class="mobile-sidebar-toggle" onclick="openMobileSidebar()" title="مهاراتي">📚</button>
 
 <div class="wrap">
 <!-- ════════ SIDEBAR ════════ -->
@@ -785,6 +823,16 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 </div>
 
 <script>
+// ── سايدبار الجوال ──
+function openMobileSidebar(){
+  document.querySelector('.sidebar')?.classList.add('open');
+  document.getElementById('sidebarOverlay')?.classList.add('open');
+}
+function closeMobileSidebar(){
+  document.querySelector('.sidebar')?.classList.remove('open');
+  document.getElementById('sidebarOverlay')?.classList.remove('open');
+}
+
 let skillsData = { kamy: [], lafzy: [] };
 let questions = { 'q-pre': [], 'q-post': [], 't-post': [], 'bank': [] };
 let currentSection = 'qodrat';
