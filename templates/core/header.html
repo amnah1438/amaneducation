@@ -1,46 +1,100 @@
-<header class="py-3 border-bottom shadow-sm bg-white">
-    <div class="container-fluid px-5">
+<header class="site-header py-3 border-bottom shadow-sm bg-white">
+    <div class="container-fluid px-3 px-md-5">
         <div class="row align-items-center">
-            
-            <div class="col-md-4 text-end">
+
+            <!-- شعار الوزارة -->
+            <div class="col-4 col-md-4 text-center text-md-end">
                 {% if settings.ministry_logo_url %}
-                    <img src="{{ settings.ministry_logo_url }}" alt="شعار وزارة التعليم" style="height: 130px; width: auto; object-fit: contain;">
+                    <img src="{{ settings.ministry_logo_url }}" alt="شعار وزارة التعليم" class="header-logo">
                 {% else %}
                     <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار وزارة التعليم</div>
                 {% endif %}
-                
-                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.70rem;">
+
+                <div class="header-sub-text d-none d-md-block mt-2 lh-sm fw-bold text-secondary">
                     <div>{{ settings.header_line_1 }}</div>
                     <div>{{ settings.header_line_2 }}</div>
                 </div>
             </div>
 
-            <div class="col-md-4 text-center">
-                <h2 class="fw-bold mb-1" style="color: #4b0082; font-family: 'Tajawal', sans-serif; font-size: 1.8rem;">
+            <!-- اسم المنصة -->
+            <div class="col-4 col-md-4 text-center">
+                <h2 class="header-title fw-bold mb-1" style="color: #4b0082; font-family: 'Tajawal', sans-serif;">
                     {{ settings.platform_name }}
                 </h2>
-                <div class="badge bg-lavender text-dark border p-2 mt-1" style="font-size: 0.9rem;">
+                <div class="badge bg-lavender text-dark border header-badge mt-1">
                     مديرة المدرسة: {{ settings.principal_name }}
                 </div>
             </div>
 
-            <div class="col-md-4 text-start">
+            <!-- شعار المدرسة -->
+            <div class="col-4 col-md-4 text-center text-md-start">
                 {% if settings.school_logo_url %}
-                    <img src="{{ settings.school_logo_url }}" alt="شعار المدرسة" style="height: 130px; width: auto; object-fit: contain;">
+                    <img src="{{ settings.school_logo_url }}" alt="شعار المدرسة" class="header-logo">
                 {% else %}
                     <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار المدرسة</div>
                 {% endif %}
 
-                <div class="mt-2 lh-sm fw-bold text-secondary" style="font-size: 0.70rem;">
+                <div class="header-sub-text d-none d-md-block mt-2 lh-sm fw-bold text-secondary">
                     <div>{{ settings.header_line_3 }}</div>
                     <div>{{ settings.header_line_4 }}</div>
                 </div>
             </div>
 
         </div>
+
+        <!-- النصوص تحت الشعارات على الجوال فقط -->
+        <div class="d-md-none text-center mt-2 lh-sm fw-bold text-secondary" style="font-size:0.6rem">
+            <div>{{ settings.header_line_1 }} · {{ settings.header_line_2 }}</div>
+            <div>{{ settings.header_line_3 }} · {{ settings.header_line_4 }}</div>
+        </div>
     </div>
 </header>
 
 <style>
     .bg-lavender { background-color: #E6E6FA; }
+
+    .header-logo {
+        height: 130px;
+        width: auto;
+        max-width: 100%;
+        object-fit: contain;
+    }
+    .header-title {
+        font-size: 1.8rem;
+    }
+    .header-badge {
+        font-size: 0.9rem;
+    }
+    .header-sub-text {
+        font-size: 0.70rem;
+    }
+
+    /* ─── الجوال ─── */
+    @media (max-width: 767px) {
+        .site-header {
+            padding: 10px 0 !important;
+        }
+        .header-logo {
+            height: 55px;
+        }
+        .header-title {
+            font-size: 0.85rem;
+            margin-bottom: 0 !important;
+            line-height: 1.3;
+        }
+        .header-badge {
+            font-size: 0.55rem;
+            padding: 3px 6px !important;
+        }
+    }
+
+    /* تابلت */
+    @media (min-width: 768px) and (max-width: 991px) {
+        .header-logo {
+            height: 80px;
+        }
+        .header-title {
+            font-size: 1.2rem;
+        }
+    }
 </style>
