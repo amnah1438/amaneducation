@@ -401,10 +401,17 @@ def add_skill_complete(request):
     # ─── محتوى الشرح (اختياري) ────────────────────────────────
     video_url = request.POST.get('video_url', '').strip()
     plain_text = request.POST.get('plain_text', '').strip()
-    if video_url or plain_text:
-        TeacherSkillContent.objects.create(
+    plain_image = request.FILES.get('plain_image')
+    pdf_file = request.FILES.get('pdf_file')
+    if video_url or plain_text or plain_image or pdf_file:
+        content = TeacherSkillContent(
             skill=skill, video_url=video_url, plain_text=plain_text,
         )
+        if plain_image:
+            content.plain_image = plain_image
+        if pdf_file:
+            content.pdf_file = pdf_file
+        content.save()
 
     # ─── الاختبارات والأسئلة ──────────────────────────────────
     def _bulk_questions(exam, raw_json, key_prefix=''):
@@ -874,8 +881,10 @@ def edit_question(request, exam_id, q_id):
         q.correct_answer = request.POST.get('correct_answer', q.correct_answer).upper()[:1]
         q.target_skill_name = request.POST.get('target_skill_name', q.target_skill_name)
         q.feedback_plain = request.POST.get('feedback_plain', q.feedback_plain)
-        if 'question_image' in request.FILES:
-            q.question_image = request.FILES['question_image']
+        # دعم الصور للسؤال + الخيارات (ملف أو data:URL)
+        from core.views import _attach_image as _att
+        for fld in ('question_image', 'option_a_image', 'option_b_image', 'option_c_image', 'option_d_image'):
+            _att(q, fld, request)
         q.save()
         messages.success(request, '✅ تم حفظ السؤال')
         return redirect('view_skill', skill_id=exam.skill_id)

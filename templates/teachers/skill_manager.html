@@ -385,7 +385,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
   </div>
 
   <!-- ══════ HIDDEN FORM — يرسل البيانات للـ backend ══════ -->
-  <form method="post" action="/teachers/skills/add-complete/" id="mainForm" style="display:none">
+  <form method="post" action="/teachers/skills/add-complete/" id="mainForm" enctype="multipart/form-data" style="display:none">
     {% csrf_token %}
     <input type="hidden" name="content_type" id="f-content-type">
     <input type="hidden" name="title" id="f-title">
@@ -397,6 +397,9 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     <input type="hidden" name="is_active" id="f-is-active">
     <input type="hidden" name="video_url" id="f-video-url">
     <input type="hidden" name="plain_text" id="f-plain-text">
+    <!-- حقول الملفات (صورة + PDF) -->
+    <input type="file" name="plain_image" id="f-plain-image" style="display:none">
+    <input type="file" name="pdf_file" id="f-pdf-file" style="display:none">
     <input type="hidden" name="pre_count" id="f-pre-count" value="10">
     <input type="hidden" name="pre_time" id="f-pre-time" value="15">
     <input type="hidden" name="pre_pass" id="f-pre-pass" value="60">
@@ -506,12 +509,14 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
               <button class="cnt-tab on" onclick="swCnt('qodrat',0,this)">🎬 YouTube</button>
               <button class="cnt-tab" onclick="swCnt('qodrat',1,this)">🔗 رابط فيديو</button>
               <button class="cnt-tab" onclick="swCnt('qodrat',2,this)">📄 PDF</button>
-              <button class="cnt-tab" onclick="swCnt('qodrat',3,this)">✍️ نصي</button>
+              <button class="cnt-tab" onclick="swCnt('qodrat',3,this)">🖼️ صورة</button>
+              <button class="cnt-tab" onclick="swCnt('qodrat',4,this)">✍️ نصي</button>
             </div>
             <div id="qodrat-cnt-0"><div class="fg"><label class="fl">رابط YouTube</label><input class="fi" id="q-yt-url" placeholder="https://youtube.com/watch?v=..." oninput="ytPrev('q')"></div><iframe id="q-yt-preview" class="yt-preview" frameborder="0" allowfullscreen></iframe></div>
             <div id="qodrat-cnt-1" style="display:none"><div class="fg"><label class="fl">رابط فيديو</label><input class="fi" id="q-video-url" placeholder="https://..."></div></div>
-            <div id="qodrat-cnt-2" style="display:none"><div class="fg"><label class="fl">ملف PDF</label><input class="fi" type="file" accept=".pdf" style="padding:6px"></div></div>
-            <div id="qodrat-cnt-3" style="display:none"><div class="fg"><label class="fl">شرح نصي</label><div class="q-editor"><div class="q-area" id="q-text-area" contenteditable="true" placeholder="اكتبي الشرح هنا..." style="min-height:120px"></div></div><button type="button" class="btn btn-b btn-sm" onclick="printContent('q-text-area','محتوى المهارة')" style="margin-top:8px">🖨️ طباعة المحتوى</button></div></div>
+            <div id="qodrat-cnt-2" style="display:none"><div class="fg"><label class="fl">ملف PDF</label><input class="fi" type="file" id="q-pdf-file" accept=".pdf" style="padding:6px"></div></div>
+            <div id="qodrat-cnt-3" style="display:none"><div class="fg"><label class="fl">صورة توضيحية</label><input class="fi" type="file" id="q-plain-image" accept="image/*" style="padding:6px"><div id="q-img-preview" style="margin-top:8px;max-width:300px"></div></div></div>
+            <div id="qodrat-cnt-4" style="display:none"><div class="fg"><label class="fl">شرح نصي</label><div class="q-editor"><div class="q-area" id="q-text-area" contenteditable="true" placeholder="اكتبي الشرح هنا..." style="min-height:120px"></div></div><button type="button" class="btn btn-b btn-sm" onclick="printContent('q-text-area','محتوى المهارة')" style="margin-top:8px">🖨️ طباعة المحتوى</button></div></div>
             <div class="btn-row" style="justify-content:space-between">
               <button type="button" class="btn btn-b btn-sm" onclick="goQStep(1)">→ السابق</button>
               <button type="button" class="btn btn-b" onclick="goQStep(3)">التالي — البعدي ←</button>
@@ -604,12 +609,14 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
               <button class="cnt-tab on" onclick="swCnt('tahsili',0,this)">🎬 YouTube</button>
               <button class="cnt-tab" onclick="swCnt('tahsili',1,this)">🔗 رابط فيديو</button>
               <button class="cnt-tab" onclick="swCnt('tahsili',2,this)">📄 PDF</button>
-              <button class="cnt-tab" onclick="swCnt('tahsili',3,this)">✍️ نصي</button>
+              <button class="cnt-tab" onclick="swCnt('tahsili',3,this)">🖼️ صورة</button>
+              <button class="cnt-tab" onclick="swCnt('tahsili',4,this)">✍️ نصي</button>
             </div>
             <div id="tahsili-cnt-0"><div class="fg"><label class="fl">رابط YouTube</label><input class="fi" id="t-yt-url" placeholder="https://youtube.com/watch?v=..." oninput="ytPrev('t')"></div><iframe id="t-yt-preview" class="yt-preview" frameborder="0" allowfullscreen></iframe></div>
             <div id="tahsili-cnt-1" style="display:none"><div class="fg"><label class="fl">رابط فيديو</label><input class="fi" id="t-video-url" placeholder="https://..."></div></div>
-            <div id="tahsili-cnt-2" style="display:none"><div class="fg"><label class="fl">ملف PDF</label><input class="fi" type="file" accept=".pdf" style="padding:6px"></div></div>
-            <div id="tahsili-cnt-3" style="display:none"><div class="fg"><label class="fl">شرح نصي</label><div class="q-editor"><div class="q-area" id="t-text-area" contenteditable="true" placeholder="اكتبي الشرح هنا..." style="min-height:120px"></div></div><button type="button" class="btn btn-b btn-sm" onclick="printContent('t-text-area','محتوى الدرس')" style="margin-top:8px">🖨️ طباعة المحتوى</button></div></div>
+            <div id="tahsili-cnt-2" style="display:none"><div class="fg"><label class="fl">ملف PDF</label><input class="fi" type="file" id="t-pdf-file" accept=".pdf" style="padding:6px"></div></div>
+            <div id="tahsili-cnt-3" style="display:none"><div class="fg"><label class="fl">صورة توضيحية</label><input class="fi" type="file" id="t-plain-image" accept="image/*" style="padding:6px"><div id="t-img-preview" style="margin-top:8px;max-width:300px"></div></div></div>
+            <div id="tahsili-cnt-4" style="display:none"><div class="fg"><label class="fl">شرح نصي</label><div class="q-editor"><div class="q-area" id="t-text-area" contenteditable="true" placeholder="اكتبي الشرح هنا..." style="min-height:120px"></div></div><button type="button" class="btn btn-b btn-sm" onclick="printContent('t-text-area','محتوى الدرس')" style="margin-top:8px">🖨️ طباعة المحتوى</button></div></div>
             <div class="btn-row" style="justify-content:flex-end"><button type="button" class="btn btn-o" onclick="goTStep(2)">التالي — الاختبار ←</button></div>
           </div>
         </div>
@@ -1708,8 +1715,8 @@ function ytPrev(mode){
 }
 
 function swCnt(mode, tab, btn){
-  document.querySelectorAll(`#${mode}-cnt-0, #${mode}-cnt-1, #${mode}-cnt-2, #${mode}-cnt-3`).forEach(el => el.style.display = 'none');
-  document.querySelectorAll(`.cnt-tab`).forEach(b => b.classList.remove('on'));
+  for(let i=0;i<6;i++){ const el=document.getElementById(`${mode}-cnt-${i}`); if(el) el.style.display='none'; }
+  btn.closest('.cnt-tabs').querySelectorAll('.cnt-tab').forEach(b => b.classList.remove('on'));
   document.getElementById(`${mode}-cnt-${tab}`).style.display = 'block';
   btn.classList.add('on');
 }
@@ -1861,6 +1868,28 @@ function saveSkill(type, activate){
   document.getElementById('f-is-shared').value = getVal(isSkill ? 'q-shared' : 't-shared');
   document.getElementById('f-video-url').value = getVal(isSkill ? 'q-yt-url' : 't-yt-url') || getVal(isSkill ? 'q-video-url' : 't-video-url');
   document.getElementById('f-plain-text').value = getHtml(isSkill ? 'q-text-area' : 't-text-area');
+
+  // نسخ ملفات الصور و PDF إلى mainForm
+  function copyFileInput(srcId, dstId) {
+    const src = document.getElementById(srcId);
+    const dst = document.getElementById(dstId);
+    if (!src || !dst || src.files.length === 0) return;
+    try {
+      // الطريقة الحديثة
+      const dt = new DataTransfer();
+      for (const f of src.files) dt.items.add(f);
+      dst.files = dt.files;
+    } catch(e) {
+      // fallback: استبدال العنصر بنسخة من المصدر
+      const clone = src.cloneNode(true);
+      clone.id = dstId;
+      clone.name = dst.name;
+      clone.style.display = 'none';
+      dst.replaceWith(clone);
+    }
+  }
+  copyFileInput(isSkill ? 'q-pdf-file' : 't-pdf-file', 'f-pdf-file');
+  copyFileInput(isSkill ? 'q-plain-image' : 't-plain-image', 'f-plain-image');
 
   if(isSkill){
     document.getElementById('f-pre-count').value = getVal('q-pre-cnt');

@@ -177,6 +177,16 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
                    style="min-height:40px;padding:7px 10px;font-size:12px"
                    placeholder="خيار {% if opt_letter == 'A' %}أ{% elif opt_letter == 'B' %}ب{% elif opt_letter == 'C' %}ج{% else %}د{% endif %}">{% if opt_letter == "A" %}{{ q.option_a_plain }}{% elif opt_letter == "B" %}{{ q.option_b_plain }}{% elif opt_letter == "C" %}{{ q.option_c_plain }}{% else %}{{ q.option_d_plain }}{% endif %}</div>
             </div>
+            <!-- صورة الخيار -->
+            <div style="margin-top:6px">
+              <input type="file" name="option_{{ opt_letter|lower }}_image" accept="image/*"
+                     style="font-size:10px;color:var(--text3)">
+              {% if opt_letter == "A" and q.option_a_image %}<small style="color:var(--text3);font-size:9px">📌 صورة موجودة</small>
+              {% elif opt_letter == "B" and q.option_b_image %}<small style="color:var(--text3);font-size:9px">📌 صورة موجودة</small>
+              {% elif opt_letter == "C" and q.option_c_image %}<small style="color:var(--text3);font-size:9px">📌 صورة موجودة</small>
+              {% elif opt_letter == "D" and q.option_d_image %}<small style="color:var(--text3);font-size:9px">📌 صورة موجودة</small>
+              {% endif %}
+            </div>
             <input type="hidden" name="option_{{ opt_letter|lower }}_plain" id="opt-{{ opt_letter }}-hidden">
           </div>
           {% endif %}{% endfor %}
