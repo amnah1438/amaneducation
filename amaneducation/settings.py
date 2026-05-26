@@ -19,11 +19,12 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
 
-    # Cloudinary لتخزين الصور
+    # Cloudinary لتخزين الصور (يجب أن يكون قبل staticfiles)
     'cloudinary_storage',
     'cloudinary',
+
+    'django.contrib.staticfiles',
 
     # تطبيقات المحرر المطور
     'ckeditor',
