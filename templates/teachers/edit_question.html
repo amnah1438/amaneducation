@@ -6,87 +6,260 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تعديل سؤال — {{ exam.skill.title }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
+
+<!-- MathLive -->
+<script src="https://unpkg.com/mathlive@0.105.2/dist/mathlive.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/mathlive@0.105.2/dist/mathlive-fonts.css">
+
+<!-- MathJax -->
+<script>
+window.MathJax = {
+  tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$']], processEscapes:true },
+  options: { skipHtmlTags:['script','noscript','style','textarea'] },
+  startup: { ready(){ MathJax.startup.defaultReady(); } }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<!-- Math Editor الموحّد -->
+<script src="{% static 'js/math-editor.js' %}"></script>
+
 <style>
-:root, :root[data-theme="dark"] {--bg:#07090f;--bg2:#0c0f1a;--card:#0f1424;--card2:#161d30;--border:#1a2236;--border2:#223050;--green:#0fba81;--blue:#4f8ef7;--orange:#f5a623;--red:#f05252;--text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;}
-:root[data-theme="light"] {--bg:#f8fafc;--bg2:#f1f5f9;--card:#ffffff;--card2:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--green:#059669;--blue:#2563eb;--orange:#d97706;--red:#dc2626;--text:#0f172a;--text2:#475569;--text3:#94a3b8;}
+:root, :root[data-theme="dark"] {
+  --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;
+  --card:#0f1424;--card2:#161d30;--card3:#1c243d;
+  --border:#1a2236;--border2:#223050;--border3:#2d3f60;
+  --green:#0fba81;--green2:#065442;--blue:#4f8ef7;--blue2:#1a3060;
+  --purple:#9b72f5;--orange:#f5a623;--red:#f05252;--teal:#2dd4bf;
+  --text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;
+}
+:root[data-theme="light"] {
+  --bg:#f8fafc;--bg2:#f1f5f9;--bg3:#e9eef4;
+  --card:#ffffff;--card2:#f1f5f9;--card3:#f8fafc;
+  --border:#e2e8f0;--border2:#cbd5e1;--border3:#64748b;
+  --green:#059669;--green2:#a7f3d0;--blue:#2563eb;--blue2:#bfdbfe;
+  --purple:#7e22ce;--orange:#d97706;--red:#dc2626;--teal:#0f766e;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+}
+:root[data-theme="light"] .editor-area { background:#ffffff !important; color:#0f172a !important; }
+:root[data-theme="light"] .fi, :root[data-theme="light"] textarea.fi { background:#ffffff !important; color:#0f172a !important; border-color:#cbd5e1 !important; }
+:root[data-theme="light"] .preview-box { background:#ffffff !important; color:#0f172a !important; }
+
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
+
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none}
-.btn-g{background:linear-gradient(135deg,#065442,#1a3060);color:white;border:1px solid var(--green)}
-.btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
-.btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
-.main{max-width:760px;margin:0 auto;padding:18px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px}
+.main{max-width:800px;margin:0 auto;padding:18px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)}
+.ct{font-size:11px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px}
+.ct-dot{width:6px;height:6px;border-radius:50%}
+.cb{padding:14px}
 .fg{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
-.fl{font-size:11px;color:var(--text2);font-weight:700}
-.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:13px;padding:10px 12px;border-radius:8px;outline:none;width:100%}
+.fl{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:0.3px;display:flex;align-items:center;gap:5px}
+.fi{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:12px;padding:9px 11px;border-radius:8px;outline:none;width:100%;transition:border-color 0.2s}
 .fi:focus{border-color:var(--blue)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* Editor */
+.editor-wrap{position:relative;background:var(--card2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;transition:border-color 0.2s}
+.editor-wrap:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,142,247,0.08)}
+.editor-toolbar{background:var(--bg3);border-bottom:1px solid var(--border);padding:4px 8px;display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.editor-area{min-height:70px;padding:10px 12px;font-size:13px;line-height:2;outline:none;color:var(--text);direction:rtl;word-break:break-word}
+.editor-area[placeholder]:empty::before{content:attr(placeholder);color:var(--text3);pointer-events:none}
+
+.tb-btn-e{background:none;border:none;color:var(--text3);font-size:10px;padding:3px 7px;border-radius:5px;cursor:pointer;font-family:'Tajawal',sans-serif;transition:all 0.15s;display:flex;align-items:center;gap:3px;white-space:nowrap}
+.tb-btn-e:hover{background:var(--card3);color:var(--text)}
+.tb-btn-e.math-btn{color:var(--purple);font-weight:700;background:rgba(155,114,245,0.08);border:1px solid rgba(155,114,245,0.2);padding:3px 9px}
+.tb-btn-e.math-btn:hover{background:rgba(155,114,245,0.15)}
+.tb-sep{width:1px;height:18px;background:var(--border2);margin:0 2px}
+
+.preview-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:13px;line-height:2;color:var(--text2);min-height:36px;direction:rtl}
+
+/* Options */
+.opt-item{background:var(--card2);border:1px solid var(--border2);border-radius:9px;padding:10px;transition:all 0.2s;position:relative}
+.opt-label-row{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.opt-circle{width:26px;height:26px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text2);flex-shrink:0;transition:all 0.2s;cursor:pointer}
+.opt-circle.correct-mark{background:rgba(15,186,129,0.15);border-color:var(--green);color:var(--green)}
+.opt-correct-btn{font-size:8px;padding:2px 7px;border-radius:10px;border:1px solid var(--border2);background:none;color:var(--text3);cursor:pointer;font-family:'Tajawal',sans-serif;margin-right:auto;transition:all 0.2s}
+.opt-correct-btn.selected{background:rgba(15,186,129,0.1);color:var(--green);border-color:rgba(15,186,129,0.3)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;cursor:pointer;text-decoration:none;transition:all 0.15s}
+.btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
+.btn-g:hover{opacity:0.85;transform:translateY(-1px)}
+.btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
+.btn-r{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.25)}
+.btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+
 @media (max-width:680px){.row2{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="topbar">
-  <div style="font-size:13px;font-weight:800">✏️ تعديل سؤال</div>
+  <div style="font-size:13px;font-weight:800">✏️ تعديل سؤال — {{ exam.skill.title }}</div>
   <a href="{% url 'view_skill' exam.skill_id %}" class="btn btn-b">← عودة</a>
 </div>
 
 <div class="main">
-  {% if messages %}{% for m in messages %}<div class="card" style="color:#6ee7a0;border-color:var(--green)">{{ m }}</div>{% endfor %}{% endif %}
+  {% if messages %}{% for m in messages %}<div class="card"><div class="cb" style="color:var(--green)">{{ m }}</div></div>{% endfor %}{% endif %}
 
-  <form method="post" enctype="multipart/form-data" class="card">
+  <form method="post" enctype="multipart/form-data" id="editForm">
     {% csrf_token %}
-    <div class="fg">
-      <label class="fl">نص السؤال *</label>
-      <textarea class="fi" name="question_plain" rows="3" required>{{ q.question_plain }}</textarea>
-    </div>
-    <div class="fg">
-      <label class="fl">صورة السؤال (اختياري)</label>
-      <input class="fi" type="file" name="question_image" accept="image/*">
-      {% if q.question_image %}<small style="color:var(--text3)">📌 موجودة: {{ q.question_image.name }}</small>{% endif %}
-    </div>
-    <div class="row2">
-      <div class="fg">
-        <label class="fl">خيار أ</label>
-        <input class="fi" name="option_a_plain" value="{{ q.option_a_plain }}">
+
+    <!-- نص السؤال -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct"><span class="ct-dot" style="background:var(--purple)"></span>نص السؤال</span>
       </div>
-      <div class="fg">
-        <label class="fl">خيار ب</label>
-        <input class="fi" name="option_b_plain" value="{{ q.option_b_plain }}">
+      <div class="cb">
+        <div class="fg">
+          <label class="fl">نص السؤال * <span style="font-weight:400;color:var(--text3);font-size:9px">— يدعم المعادلات بين علامتي $ مثل: $\frac{3}{4}$</span></label>
+          <div class="editor-wrap">
+            <div class="editor-toolbar">
+              <button type="button" class="tb-btn-e math-btn" onclick="MathEditor.openFor('q-text')">∑ إدراج معادلة</button>
+              <div class="tb-sep"></div>
+              <button type="button" class="tb-btn-e" onclick="MathEditor.insertSymbol('×','q-text')">×</button>
+              <button type="button" class="tb-btn-e" onclick="MathEditor.insertSymbol('÷','q-text')">÷</button>
+              <button type="button" class="tb-btn-e" onclick="MathEditor.insertSymbol('±','q-text')">±</button>
+              <button type="button" class="tb-btn-e" onclick="MathEditor.insertSymbol('√','q-text')">√</button>
+              <button type="button" class="tb-btn-e" onclick="MathEditor.insertSymbol('²','q-text')">²</button>
+              <button type="button" class="tb-btn-e" onclick="MathEditor.insertSymbol('≤','q-text')">≤</button>
+              <button type="button" class="tb-btn-e" onclick="MathEditor.insertSymbol('≥','q-text')">≥</button>
+            </div>
+            <div class="editor-area" id="q-text" contenteditable="true" data-me-field
+                 placeholder="اكتبي نص السؤال... للمعادلات اضغطي زر ∑">{{ q.question_plain }}</div>
+          </div>
+          <input type="hidden" name="question_plain" id="q-text-hidden">
+        </div>
+
+        <div style="font-size:9px;color:var(--text3);margin-bottom:4px;font-weight:600">📐 معاينة المعادلات:</div>
+        <div class="preview-box" id="q-text-preview"></div>
+
+        <div class="fg" style="margin-top:10px">
+          <label class="fl">صورة السؤال (اختياري)</label>
+          <input class="fi" type="file" name="question_image" accept="image/*">
+          {% if q.question_image %}<small style="color:var(--text3);font-size:9px">📌 صورة موجودة حالياً</small>{% endif %}
+        </div>
       </div>
-      <div class="fg">
-        <label class="fl">خيار ج</label>
-        <input class="fi" name="option_c_plain" value="{{ q.option_c_plain }}">
+    </div>
+
+    <!-- الخيارات -->
+    <div class="card">
+      <div class="ch">
+        <span class="ct"><span class="ct-dot" style="background:var(--green)"></span>خيارات الإجابة</span>
       </div>
-      <div class="fg">
-        <label class="fl">خيار د</label>
-        <input class="fi" name="option_d_plain" value="{{ q.option_d_plain }}">
+      <div class="cb">
+        <div class="row2">
+          {% with opts="A,B,C,D" %}
+          {% for opt_letter in opts|make_list %}{% if opt_letter != "," %}
+          <div class="opt-item" id="opt-box-{{ opt_letter }}">
+            <div class="opt-label-row">
+              <div class="opt-circle{% if q.correct_answer == opt_letter %} correct-mark{% endif %}" id="opt-circle-{{ opt_letter }}">
+                {% if opt_letter == "A" %}أ{% elif opt_letter == "B" %}ب{% elif opt_letter == "C" %}ج{% else %}د{% endif %}
+              </div>
+              <span style="font-size:10px;color:var(--text3);font-weight:600">
+                خيار {% if opt_letter == "A" %}أ{% elif opt_letter == "B" %}ب{% elif opt_letter == "C" %}ج{% else %}د{% endif %}
+              </span>
+              <button type="button" class="opt-correct-btn{% if q.correct_answer == opt_letter %} selected{% endif %}" id="opt-btn-{{ opt_letter }}" onclick="setCorrect('{{ opt_letter }}')">تحديد كصحيح ✓</button>
+            </div>
+            <div class="editor-wrap">
+              <div class="editor-toolbar" style="padding:3px 6px">
+                <button type="button" class="tb-btn-e math-btn" style="font-size:9px;padding:2px 7px" onclick="MathEditor.openFor('opt-{{ opt_letter }}')">∑ معادلة</button>
+                <div class="tb-sep"></div>
+                <button type="button" class="tb-btn-e" style="font-size:11px;padding:2px 4px;width:22px" onclick="MathEditor.insertSymbol('×','opt-{{ opt_letter }}')">×</button>
+                <button type="button" class="tb-btn-e" style="font-size:11px;padding:2px 4px;width:22px" onclick="MathEditor.insertSymbol('÷','opt-{{ opt_letter }}')">÷</button>
+                <button type="button" class="tb-btn-e" style="font-size:11px;padding:2px 4px;width:22px" onclick="MathEditor.insertSymbol('√','opt-{{ opt_letter }}')">√</button>
+                <button type="button" class="tb-btn-e" style="font-size:11px;padding:2px 4px;width:22px" onclick="MathEditor.insertSymbol('²','opt-{{ opt_letter }}')">²</button>
+                <button type="button" class="tb-btn-e" style="font-size:11px;padding:2px 4px;width:22px" onclick="MathEditor.insertSymbol('≤','opt-{{ opt_letter }}')">≤</button>
+                <button type="button" class="tb-btn-e" style="font-size:11px;padding:2px 4px;width:22px" onclick="MathEditor.insertSymbol('≥','opt-{{ opt_letter }}')">≥</button>
+              </div>
+              <div class="editor-area" id="opt-{{ opt_letter }}" contenteditable="true" data-me-field
+                   style="min-height:40px;padding:7px 10px;font-size:12px"
+                   placeholder="خيار {% if opt_letter == 'A' %}أ{% elif opt_letter == 'B' %}ب{% elif opt_letter == 'C' %}ج{% else %}د{% endif %}">{% if opt_letter == "A" %}{{ q.option_a_plain }}{% elif opt_letter == "B" %}{{ q.option_b_plain }}{% elif opt_letter == "C" %}{{ q.option_c_plain }}{% else %}{{ q.option_d_plain }}{% endif %}</div>
+            </div>
+            <input type="hidden" name="option_{{ opt_letter|lower }}_plain" id="opt-{{ opt_letter }}-hidden">
+          </div>
+          {% endif %}{% endfor %}
+          {% endwith %}
+        </div>
+        <input type="hidden" name="correct_answer" id="correctInput" value="{{ q.correct_answer }}">
+        <div style="margin-top:10px;padding:8px 10px;background:rgba(15,186,129,0.05);border-radius:7px;font-size:10px;color:var(--text3);border-right:3px solid var(--green)" id="correctMsg">
+          ✅ الإجابة الصحيحة: <strong id="correctLabel" style="color:var(--green)">{% if q.correct_answer == 'A' %}الخيار أ{% elif q.correct_answer == 'B' %}الخيار ب{% elif q.correct_answer == 'C' %}الخيار ج{% else %}الخيار د{% endif %}</strong>
+        </div>
       </div>
     </div>
-    <div class="fg">
-      <label class="fl">الإجابة الصحيحة</label>
-      <select class="fi" name="correct_answer">
-        <option value="A" {% if q.correct_answer == 'A' %}selected{% endif %}>أ</option>
-        <option value="B" {% if q.correct_answer == 'B' %}selected{% endif %}>ب</option>
-        <option value="C" {% if q.correct_answer == 'C' %}selected{% endif %}>ج</option>
-        <option value="D" {% if q.correct_answer == 'D' %}selected{% endif %}>د</option>
-      </select>
+
+    <!-- تفاصيل إضافية -->
+    <div class="card">
+      <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--orange)"></span>تفاصيل إضافية</span></div>
+      <div class="cb">
+        <div class="fg">
+          <label class="fl">المهارة المرتبطة</label>
+          <input class="fi" name="target_skill_name" value="{{ q.target_skill_name }}">
+        </div>
+        <div class="fg">
+          <label class="fl">تغذية راجعة (اختياري)</label>
+          <div class="editor-wrap">
+            <div class="editor-toolbar" style="padding:3px 6px">
+              <button type="button" class="tb-btn-e math-btn" style="font-size:9px;padding:2px 7px" onclick="MathEditor.openFor('feedback-text')">∑ معادلة</button>
+            </div>
+            <div class="editor-area" id="feedback-text" contenteditable="true" data-me-field
+                 style="min-height:50px" placeholder="شرح الإجابة الصحيحة...">{{ q.feedback_plain }}</div>
+          </div>
+          <input type="hidden" name="feedback_plain" id="feedback-text-hidden">
+        </div>
+      </div>
     </div>
-    <div class="fg">
-      <label class="fl">المهارة المرتبطة (اختياري)</label>
-      <input class="fi" name="target_skill_name" value="{{ q.target_skill_name }}">
-    </div>
-    <div class="fg">
-      <label class="fl">تغذية راجعة (تعليق)</label>
-      <textarea class="fi" name="feedback_plain" rows="2">{{ q.feedback_plain }}</textarea>
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
+
+    <div class="btn-row">
       <a href="{% url 'view_skill' exam.skill_id %}" class="btn btn-r">إلغاء</a>
-      <button type="submit" class="btn btn-g">💾 حفظ السؤال</button>
+      <button type="submit" class="btn btn-g" onclick="prepareSubmit()">💾 حفظ التعديلات</button>
     </div>
   </form>
 </div>
+
+<script>
+// ── Correct answer ──
+const labels = {A:'الخيار أ', B:'الخيار ب', C:'الخيار ج', D:'الخيار د'};
+function setCorrect(opt){
+  ['A','B','C','D'].forEach(o=>{
+    document.getElementById('opt-circle-'+o).classList.remove('correct-mark');
+    document.getElementById('opt-btn-'+o).classList.remove('selected');
+    document.getElementById('opt-box-'+o).style.borderColor = 'var(--border2)';
+  });
+  document.getElementById('opt-circle-'+opt).classList.add('correct-mark');
+  document.getElementById('opt-btn-'+opt).classList.add('selected');
+  document.getElementById('opt-box-'+opt).style.borderColor = 'rgba(15,186,129,0.3)';
+  document.getElementById('correctInput').value = opt;
+  document.getElementById('correctLabel').textContent = labels[opt];
+}
+
+// ── Prepare submit: sync contenteditable → hidden inputs ──
+function prepareSubmit(){
+  MathEditor.syncField('q-text', 'q-text-hidden');
+  ['A','B','C','D'].forEach(o => MathEditor.syncField('opt-'+o, 'opt-'+o+'-hidden'));
+  MathEditor.syncField('feedback-text', 'feedback-text-hidden');
+}
+document.getElementById('editForm').addEventListener('submit', function(e){
+  prepareSubmit();
+});
+
+// ── Initialize preview on load ──
+document.addEventListener('DOMContentLoaded', () => {
+  // Show preview for question text
+  const qText = document.getElementById('q-text').innerText || '';
+  if (qText.trim()) {
+    const prev = document.getElementById('q-text-preview');
+    if (prev) {
+      prev.textContent = qText;
+      setTimeout(() => {
+        if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([prev]);
+      }, 500);
+    }
+  }
+});
+</script>
+
 {% include "core/_theme_toggle.html" %}
 </body>
 </html>

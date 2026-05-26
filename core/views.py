@@ -14,6 +14,10 @@ Core views — الواجهة الأمامية + لوحة المديرة.
 """
 from functools import wraps
 
+import json
+import logging
+import os
+
 from django.contrib import messages
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
@@ -22,6 +26,7 @@ from django.db.models import Avg, Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from core.models import Profile, SchoolSettings
@@ -1853,3 +1858,100 @@ def admin_comp_edit_question(request, skill_id, q_id):
     q.save()
     messages.success(request, f'✅ تم حفظ السؤال {q.order}')
     return redirect('admin_comp_questions', skill_id=skill.id)
+
+
+# ═══════════════════════════════════════════════════════════════
+# API: تحويل رسم المعادلة إلى LaTeX (Math OCR)
+# ═══════════════════════════════════════════════════════════════
+
+logger = logging.getLogger(__name__)
+
+
+@login_required
+@require_POST
+def math_ocr(request):
+    """
+    يستقبل صورة Canvas (base64 PNG) ويحولها إلى LaTeX
+    باستخدام Mathpix API.
+
+    POST JSON: {"image": "<base64 png data>"}
+    Response:  {"latex": "\\frac{3}{4}"} أو {"error": "..."}
+    """
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({'error': 'invalid_json'}, status=400)
+
+    image_b64 = body.get('image', '').strip()
+    if not image_b64:
+        return JsonResponse({'error': 'no_image'}, status=400)
+
+    # ── التحقق من مفاتيح Mathpix ──
+    app_id  = os.environ.get('MATHPIX_APP_ID', '').strip()
+    app_key = os.environ.get('MATHPIX_APP_KEY', '').strip()
+
+    if not app_id or not app_key:
+        return JsonResponse({
+            'error': 'not_configured',
+            'latex': '',
+            'message': 'Mathpix API keys not configured.'
+        })
+
+    # ── إرسال الطلب إلى Mathpix ──
+    import urllib.request
+    import urllib.error
+
+    api_url = 'https://api.mathpix.com/v3/text'
+    payload = json.dumps({
+        'src': f'data:image/png;base64,{image_b64}',
+        'formats': ['latex_simplified', 'asciimath'],
+        'data_options': {
+            'include_asciimath': True,
+        }
+    }).encode('utf-8')
+
+    req = urllib.request.Request(api_url, data=payload, method='POST')
+    req.add_header('Content-Type', 'application/json')
+    req.add_header('app_id', app_id)
+    req.add_header('app_key', app_key)
+
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read().decode('utf-8'))
+
+        latex = result.get('latex_simplified', '') or result.get('text', '')
+        if latex:
+            # تنظيف النتيجة
+            latex = latex.strip()
+            # إزالة أي $...$ خارجية إن وُجدت
+            if latex.startswith('$') and latex.endswith('$'):
+                latex = latex[1:-1].strip()
+            if latex.startswith('\\(') and latex.endswith('\\)'):
+                latex = latex[2:-2].strip()
+
+            logger.info(f'Math OCR success: {latex[:60]}')
+            return JsonResponse({'latex': latex})
+        else:
+            logger.warning(f'Math OCR empty result: {result}')
+            return JsonResponse({
+                'error': 'empty_result',
+                'latex': '',
+                'message': 'لم يتم التعرف على معادلة. حاولي الرسم بشكل أوضح.'
+            })
+
+    except urllib.error.HTTPError as e:
+        body_err = e.read().decode('utf-8', errors='replace')
+        logger.error(f'Mathpix HTTP error {e.code}: {body_err}')
+        return JsonResponse({
+            'error': 'api_error',
+            'latex': '',
+            'message': f'خطأ في Mathpix API ({e.code})'
+        }, status=502)
+
+    except Exception as e:
+        logger.error(f'Math OCR exception: {e}')
+        return JsonResponse({
+            'error': 'server_error',
+            'latex': '',
+            'message': 'حدث خطأ في السيرفر.'
+        }, status=500)

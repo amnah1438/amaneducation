@@ -11,6 +11,9 @@ django_admin.site.site_header = "إدارة منصة آمنة التعليمية
 django_admin.site.site_title = "منصة آمنة"
 
 urlpatterns = [
+    # ── API: تحويل رسم المعادلة إلى LaTeX ──
+    path('api/math-ocr/', views.math_ocr, name='math_ocr'),
+
     # ── تشخيص الصور (مؤقت) ──
     path('debug-images/', views.debug_images, name='debug_images'),
     # ── الصفحات العامة ─────────────────────────────────────────

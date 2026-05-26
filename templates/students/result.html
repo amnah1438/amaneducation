@@ -301,10 +301,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 </div>
 
 <script>
-{% if print_mode %}
-  // إن وصلت الطالبة برابط ?print=1 نفتح الطباعة فوراً
-  window.addEventListener('load', () => setTimeout(() => window.print(), 300));
-{% endif %}
+// تأكد من عرض المعادلات بعد تحميل الصفحة
+window.addEventListener('load', () => {
+  if(window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+  {% if print_mode %}
+  setTimeout(() => window.print(), 600);
+  {% endif %}
+});
 </script>
 {% include "core/_theme_toggle.html" %}
 </body>

@@ -7,25 +7,21 @@
 <title>إضافة سؤال — {{ platform.platform_name|default:"منصة آمنة" }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 
-<!-- Tesseract.js للمسح الضوئي + MathLive -->
+<!-- MathLive + MathJax + Tesseract -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://unpkg.com/mathlive@0.105.2/dist/mathlive.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/mathlive@0.105.2/dist/mathlive-fonts.css">
-
-<!-- MathJax -->
 <script>
 window.MathJax = {
-  tex: {
-    inlineMath: [['$','$'],['\\(','\\)']],
-    displayMath: [['$$','$$'],['\\[','\\]']],
-    processEscapes: true,
-    tags: 'ams'
-  },
-  options: { skipHtmlTags: ['script','noscript','style','textarea'] },
-  startup: { ready() { MathJax.startup.defaultReady(); } }
+  tex: { inlineMath:[['$','$'],['\\(','\\)']], displayMath:[['$$','$$']], processEscapes:true },
+  options: { skipHtmlTags:['script','noscript','style','textarea'] },
+  startup: { ready(){ MathJax.startup.defaultReady(); } }
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<!-- محرر المعادلات الموحّد -->
+<script src="{% static 'js/math-editor.js' %}"></script>
 
 <style>
 :root, :root[data-theme="dark"] {
@@ -301,53 +297,12 @@ select.fi option{background:var(--card2)}
       </div>
       <div class="cb">
 
-        <!-- رابط MyScript -->
-        <a href="https://webdemo.myscript.com/views/math/index.html#" target="_blank" class="mysite-link" style="margin-bottom:10px;display:flex">
-          <span style="font-size:16px">✍️</span>
-          <div>
-            <div style="font-weight:700;font-size:10px">MyScript — ارسمي المعادلة يدوياً</div>
-            <div style="font-size:9px;color:var(--text3);margin-top:1px">ارسمي ← انسخي LaTeX ← الصقيه في حقل المعادلة</div>
-          </div>
-          <span style="margin-right:auto;font-size:9px;opacity:0.6">↗ فتح</span>
-        </a>
-
-        <!-- لوحة المعادلات -->
-        <div style="margin-bottom:8px">
-          <button type="button" class="tb-btn-e math-btn" onclick="toggleMath()" id="mathToggle">
+        <!-- لوحة الرموز والمعادلات -->
+        <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap">
+          <button type="button" class="tb-btn-e math-btn" onclick="MathEditor.openFor('q-text')">
             <span>∑</span> إدراج معادلة رياضية
           </button>
-        </div>
-
-        <div class="math-panel" id="mathPanel">
-          <div style="font-size:10px;color:var(--text3);margin-bottom:8px;font-weight:600">اكتبي معادلة LaTeX أو الصقي من MyScript:</div>
-
-          <!-- قوالب سريعة -->
-          <div style="font-size:9px;color:var(--text3);margin-bottom:5px">قوالب سريعة:</div>
-          <div class="tpl-grid">
-            <button type="button" class="tpl-btn" onclick="setMath('\\frac{a}{b}')">كسر أ/ب</button>
-            <button type="button" class="tpl-btn" onclick="setMath('x^{2}')">أس</button>
-            <button type="button" class="tpl-btn" onclick="setMath('\\sqrt{x}')">جذر</button>
-            <button type="button" class="tpl-btn" onclick="setMath('\\frac{-b \\pm \\sqrt{b^2-4ac}}{2a}')">المعادلة التربيعية</button>
-            <button type="button" class="tpl-btn" onclick="setMath('\\sum_{i=1}^{n}')">مجموع</button>
-            <button type="button" class="tpl-btn" onclick="setMath('\\int_{a}^{b}')">تكامل</button>
-            <button type="button" class="tpl-btn" onclick="setMath('\\vec{v}')">متجه</button>
-            <button type="button" class="tpl-btn" onclick="setMath('\\angle ABC')">زاوية</button>
-            <button type="button" class="tpl-btn" onclick="setMath('\\triangle ABC')">مثلث</button>
-            <button type="button" class="tpl-btn" onclick="setMath('\\pi r^2')">مساحة دائرة</button>
-            <button type="button" class="tpl-btn" onclick="setMath('\\text{س}^2 + \\text{ص}^2')">س² + ص²</button>
-            <button type="button" class="tpl-btn" onclick="setMath('\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}')">مصفوفة</button>
-          </div>
-
-          <div class="math-input-row">
-            <div style="flex:1">
-              <div style="font-size:9px;color:var(--text3);margin-bottom:4px">كود LaTeX:</div>
-              <input type="text" id="mathInput" class="math-input" placeholder="مثال: \frac{3}{4} أو x^2+5x+6=0" oninput="previewMath()">
-            </div>
-            <button type="button" class="insert-btn" onclick="insertMath('q')">إدراج في السؤال ←</button>
-          </div>
-
-          <div class="math-preview-label">معاينة مباشرة:</div>
-          <div class="math-preview" id="mathPreview"><span style="color:var(--text3);font-size:11px">ستظهر المعادلة هنا...</span></div>
+          <span style="font-size:9px;color:var(--text3);align-self:center">اضغطي لفتح محرر المعادلات (مثل Word)</span>
         </div>
 
         <!-- لوحة الرموز -->
@@ -453,12 +408,12 @@ select.fi option{background:var(--card2)}
                 <button type="button" class="tb-btn-e" onclick="insertAtCursor('\n','q-text')">↵</button>
               </div>
               <div class="tb-sep"></div>
-              <button type="button" class="tb-btn-e math-btn" onclick="openLatexEditor('q-text')" title="محرّر معادلات (مثل Word)">∑ معادلة</button>
+              <button type="button" class="tb-btn-e math-btn" onclick="MathEditor.openFor('q-text')" title="محرّر معادلات (مثل Word)">∑ معادلة</button>
               <button type="button" class="tb-btn-e" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.3)" onclick="openOcr('q-text')" title="مسح ضوئي من صورة">📷 مسح</button>
               <button type="button" class="tb-btn-e img-btn" onclick="document.getElementById('imgModal').classList.add('show')">🖼️ صورة</button>
             </div>
-            <div class="editor-area" id="q-text" contenteditable="true"
-                 placeholder="اكتبي نص السؤال هنا... يمكنك كتابة نص عادي، ولصق معادلات مثل: $\frac{3}{4}$، أو إدراج رموز عربية"></div>
+            <div class="editor-area" id="q-text" contenteditable="true" data-me-field
+                 placeholder="اكتبي نص السؤال... اضغطي ∑ لإدراج معادلة مثل: $\frac{3}{4}$"></div>
           </div>
           <input type="hidden" name="question_plain" id="q-hidden">
         </div>
@@ -466,7 +421,7 @@ select.fi option{background:var(--card2)}
         <!-- معاينة مع تفسير المعادلات -->
         <div>
           <div style="font-size:9px;color:var(--text3);margin-bottom:5px;font-weight:600">📐 معاينة المعادلات:</div>
-          <div class="preview-box" id="q-preview"><span style="color:var(--text3);font-size:10px">ستظهر المعادلات هنا تلقائياً...</span></div>
+          <div class="preview-box" id="q-text-preview"><span style="color:var(--text3);font-size:10px">ستظهر المعادلات هنا تلقائياً...</span></div>
         </div>
 
         <!-- رفع صورة للسؤال -->
@@ -504,7 +459,7 @@ select.fi option{background:var(--card2)}
             </div>
             <div class="editor-wrap">
               <div class="editor-toolbar" style="padding:3px 6px;flex-wrap:wrap;gap:3px">
-                <button type="button" class="tb-btn-e math-btn" style="font-size:10px;padding:2px 6px;background:rgba(155,114,245,0.15);color:var(--purple);border:1px solid rgba(155,114,245,0.3)" onclick="openLatexEditor('opt-{{ opt }}')" title="محرّر LaTeX">∑ LaTeX</button>
+                <button type="button" class="tb-btn-e math-btn" style="font-size:10px;padding:2px 6px;background:rgba(155,114,245,0.15);color:var(--purple);border:1px solid rgba(155,114,245,0.3)" onclick="MathEditor.openFor('opt-{{ opt }}')" title="محرّر LaTeX">∑ LaTeX</button>
                 <button type="button" class="tb-btn-e" style="font-size:10px;padding:2px 6px;background:rgba(245,158,11,0.15);color:var(--orange);border:1px solid rgba(245,158,11,0.3)" onclick="openOcr('opt-{{ opt }}')" title="مسح ضوئي">📷 مسح</button>
                 <button type="button" class="tb-btn-e" style="font-size:10px;padding:2px 6px;background:rgba(15,186,129,0.15);color:var(--green);border:1px solid rgba(15,186,129,0.3)" onclick="document.getElementById('optImg{{ opt }}').click()" title="رفع صورة للخيار">🖼️ صورة</button>
                 <div class="tb-sep"></div>
@@ -625,44 +580,7 @@ function showSymTab(tab, btn){
   btn.classList.add('on');
 }
 
-// ── Math panel ──
-function toggleMath(){
-  const p = document.getElementById('mathPanel');
-  p.classList.toggle('show');
-  document.getElementById('mathToggle').classList.toggle('active');
-}
-
-function setMath(latex){
-  document.getElementById('mathInput').value = latex;
-  previewMath();
-}
-
-let mathPreviewTimer;
-function previewMath(){
-  clearTimeout(mathPreviewTimer);
-  mathPreviewTimer = setTimeout(()=>{
-    const latex = document.getElementById('mathInput').value;
-    const prev = document.getElementById('mathPreview');
-    if(!latex){ prev.innerHTML='<span style="color:var(--text3);font-size:11px">ستظهر المعادلة هنا...</span>'; return; }
-    prev.innerHTML = `\\(${latex}\\)`;
-    if(window.MathJax) MathJax.typesetPromise([prev]);
-  }, 400);
-}
-
-function insertMath(target){
-  const latex = document.getElementById('mathInput').value.trim();
-  if(!latex) return;
-  insertSym(` $${latex}$ `, target==='q' ? 'q-text' : 'q-text');
-  updatePreview();
-  document.getElementById('mathPanel').classList.remove('show');
-  document.getElementById('mathToggle').classList.remove('active');
-  document.getElementById('mathInput').value = '';
-}
-
-function insertOptMath(opt){
-  const latex = prompt('أدخلي كود LaTeX للمعادلة:');
-  if(latex) insertSym(` $${latex}$ `, 'opt-'+opt);
-}
+// ── Math: يستخدم MathEditor الموحّد الآن ──
 
 // ── Live preview ──
 let previewTimer;
@@ -670,7 +588,7 @@ function updatePreview(){
   clearTimeout(previewTimer);
   previewTimer = setTimeout(()=>{
     const text = document.getElementById('q-text').innerText || '';
-    const prev = document.getElementById('q-preview');
+    const prev = document.getElementById('q-text-preview');
     if(!text.trim()){ prev.innerHTML='<span style="color:var(--text3);font-size:10px">ستظهر المعادلات هنا تلقائياً...</span>'; return; }
     prev.innerHTML = text;
     if(window.MathJax) MathJax.typesetPromise([prev]);
@@ -778,67 +696,7 @@ function submitForm(mode){
   document.getElementById('qForm').submit();
 }
 
-/* ═══════════════════════════════════════════════════════════
-   ✨ المحرّر الذكي — مماثل لصفحة المديرة
-═══════════════════════════════════════════════════════════ */
-let latexTargetField = null;
-function openLatexEditor(targetId){
-  latexTargetField = targetId;
-  document.getElementById('latexModal').classList.add('show');
-  document.getElementById('latexPasteInp').value = '';
-  setTimeout(() => {
-    const ml = document.getElementById('mlField');
-    if (ml && ml.focus) ml.focus();
-  }, 60);
-}
-function closeLatexEditor(){ document.getElementById('latexModal').classList.remove('show'); }
-
-function applyLatexCode(){
-  const code = document.getElementById('latexPasteInp').value.trim();
-  if (!code) { alert('انسخي كود المعادلة من المحرّر ثم الصقيه هنا'); return; }
-  const wrapped = code.startsWith('$') ? code : ('$' + code + '$');
-  if (!latexTargetField) { closeLatexEditor(); return; }
-  const el = document.getElementById(latexTargetField);
-  if (el && el.contentEditable === 'true') {
-    el.focus();
-    document.execCommand('insertText', false, wrapped);
-  } else if (el) {
-    const start = el.selectionStart || 0;
-    const end = el.selectionEnd || 0;
-    el.value = el.value.slice(0, start) + wrapped + el.value.slice(end);
-  }
-  closeLatexEditor();
-}
-
-function switchLatexEd(btn, panelId){
-  document.querySelectorAll('.latex-tab').forEach(t => {
-    t.classList.remove('on');
-    t.style.background = 'var(--card2)'; t.style.color = 'var(--text)';
-    t.style.border = '1px solid var(--border)'; t.style.fontWeight = '700';
-  });
-  btn.classList.add('on');
-  btn.style.background = 'linear-gradient(135deg,var(--green2),var(--blue2))';
-  btn.style.color = 'white'; btn.style.border = 'none'; btn.style.fontWeight = '800';
-  ['latex-mathlive','latex-myscript','latex-hostmath','latex-codecogs'].forEach(id => {
-    const f = document.getElementById(id);
-    if (!f) return;
-    f.style.display = (id === panelId) ? (id === 'latex-mathlive' ? 'flex' : 'block') : 'none';
-  });
-}
-
-function copyMlToPaste(){
-  const ml = document.getElementById('mlField');
-  if (!ml) return;
-  const code = ml.getValue('latex') || ml.value || '';
-  if (!code.trim()) { alert('اكتبي معادلة في الإطار الأبيض أعلاه'); return; }
-  document.getElementById('latexPasteInp').value = code;
-}
-function insertMlExample(){
-  const ml = document.getElementById('mlField');
-  if (!ml) return;
-  const examples = ['\\frac{a+b}{c}', 'x^2 + 5x = 0', '\\sqrt{2}+\\sqrt{3}', '\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}'];
-  ml.setValue(examples[Math.floor(Math.random()*examples.length)]);
-}
+/* المحرّر الذكي الآن يعمل من math-editor.js الموحّد */
 
 /* OCR */
 let ocrTargetField = null, ocrSelectedFile = null, ocrLastResult = null, ocrOriginalDataUrl = null;
@@ -969,49 +827,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
-<!-- Modal: LaTeX (محرّر متعدد) -->
-<div class="modal-bg" id="latexModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(6px)">
-  <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:1000px;height:680px;display:flex;flex-direction:column;overflow:hidden;margin:auto">
-    <div style="padding:13px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--bg2)">
-      <div>
-        <div style="font-size:14px;font-weight:800">∑ محرّر المعادلات الذكي</div>
-        <div style="font-size:9px;color:var(--text3);margin-top:2px">اختاري المحرّر، اكتبي المعادلة، انسخي الكود، الصقيه ثم «إدراج»</div>
-      </div>
-      <button onclick="closeLatexEditor()" style="background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:5px 12px;cursor:pointer;font-size:14px">✕</button>
-    </div>
-    <div style="display:flex;gap:4px;padding:8px 14px;background:var(--bg2);border-bottom:1px solid var(--border);flex-wrap:wrap">
-      <button type="button" class="latex-tab on" onclick="switchLatexEd(this,'latex-mathlive')" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:800">✏️ MathLive (مثل Word)</button>
-      <button type="button" class="latex-tab" onclick="switchLatexEd(this,'latex-myscript')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">✍️ MyScript (يدوي)</button>
-      <button type="button" class="latex-tab" onclick="switchLatexEd(this,'latex-hostmath')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">🧮 HostMath</button>
-      <button type="button" class="latex-tab" onclick="switchLatexEd(this,'latex-codecogs')" style="background:var(--card2);color:var(--text);border:1px solid var(--border);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700">📝 CodeCogs</button>
-    </div>
-    <div style="position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden">
-      <div id="latex-mathlive" style="display:flex;flex-direction:column;flex:1;padding:24px;background:white;color:#111;overflow-y:auto">
-        <div style="font-size:13px;color:#1e293b;margin-bottom:10px;font-weight:700">📝 اكتبي معادلتكِ كما في Word — مباشرة في الإطار أدناه:</div>
-        <div style="font-size:11px;color:#64748b;line-height:1.9;background:#f1f5f9;padding:10px 14px;border-radius:8px;border-right:3px solid #4338ca;margin-bottom:14px">
-          💡 <strong>أمثلة:</strong>
-          <code style="background:#fff;padding:1px 6px;border-radius:4px">1/2</code> → كسر •
-          <code style="background:#fff;padding:1px 6px;border-radius:4px">sqrt 2</code> → جذر •
-          <code style="background:#fff;padding:1px 6px;border-radius:4px">x^2</code> → أس •
-          <code style="background:#fff;padding:1px 6px;border-radius:4px">pi</code> → π
-        </div>
-        <math-field id="mlField" virtual-keyboard-mode="manual" style="min-height:180px;font-size:24px;border:2px solid #cbd5e1;border-radius:12px;padding:20px;background:#ffffff;color:#0f172a;direction:ltr"></math-field>
-        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-          <button type="button" onclick="copyMlToPaste()" style="background:linear-gradient(135deg,#10b981,#3b82f6);color:white;border:none;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800">📋 نسخ الكود إلى أسفل</button>
-          <button type="button" onclick="document.getElementById('mlField').setValue('')" style="background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">🗑️ مسح</button>
-          <button type="button" onclick="insertMlExample()" style="background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe;padding:10px 18px;border-radius:9px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700">✨ مثال</button>
-        </div>
-      </div>
-      <iframe id="latex-myscript" src="https://webdemo.myscript.com/views/math/index.html" style="display:none;flex:1;border:none"></iframe>
-      <iframe id="latex-hostmath" src="https://www.hostmath.com/" style="display:none;flex:1;border:none"></iframe>
-      <iframe id="latex-codecogs" src="https://editor.codecogs.com/" style="display:none;flex:1;border:none"></iframe>
-      <div style="padding:10px 14px;background:var(--bg3);border-top:1px solid var(--border);display:flex;gap:8px;align-items:center">
-        <input id="latexPasteInp" placeholder="الصقي كود المعادلة هنا، مثال: \frac{a}{b}" style="flex:1;background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:monospace;font-size:12px;padding:8px 11px;border-radius:7px;outline:none;direction:ltr;text-align:left">
-        <button type="button" onclick="applyLatexCode()" style="background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);padding:9px 16px;border-radius:8px;cursor:pointer;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:800;white-space:nowrap">✅ إدراج</button>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- محرر المعادلات يتم إنشاؤه تلقائياً بواسطة math-editor.js -->
 
 <!-- Modal: OCR -->
 <div class="modal-bg" id="ocrModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(6px)">
