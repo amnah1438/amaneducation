@@ -437,7 +437,7 @@ def add_skill_complete(request):
             else:
                 try:
                     logger.info(f"📎 Uploading skill PDF: {pdf_file.name} ({pdf_size_mb}MB)")
-                    r = cloudinary.uploader.upload(pdf_file, folder='skill_pdfs', resource_type='raw')
+                    r = cloudinary.uploader.upload(pdf_file, folder='skill_pdfs', resource_type='raw', access_mode='public')
                     content.pdf_file = r['public_id']
                     logger.info(f"✅ Skill PDF uploaded: {r['public_id']} → {r.get('secure_url','')}")
                 except Exception as e:
@@ -966,7 +966,7 @@ def edit_skill(request, skill_id):
             else:
                 try:
                     import cloudinary.uploader
-                    r = cloudinary.uploader.upload(pdf_f, folder='skill_pdfs', resource_type='raw')
+                    r = cloudinary.uploader.upload(pdf_f, folder='skill_pdfs', resource_type='raw', access_mode='public')
                     content.pdf_file = r['public_id']
                 except Exception as e:
                     messages.warning(request, f'⚠️ فشل رفع PDF: {e}')
