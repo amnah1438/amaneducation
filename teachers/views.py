@@ -447,7 +447,8 @@ def add_skill_complete(request):
 
     # ─── الاختبارات والأسئلة ──────────────────────────────────
     def _bulk_questions(exam, raw_json, key_prefix=''):
-        """يحفظ قائمة أسئلة من JSON بدون فشل صامت."""
+        """يحفظ قائمة أسئلة من JSON بدون فشل صامت.
+        يدعم الآن صور الأسئلة والخيارات كـ data:URL."""
         try:
             items = json.loads(raw_json or '[]')
         except json.JSONDecodeError as exc:
@@ -456,6 +457,7 @@ def add_skill_complete(request):
         if not isinstance(items, list):
             return 0
         objs = []
+        img_data = []  # قائمة بالصور المطلوب رفعها بعد الإنشاء
         for i, q in enumerate(items, start=1):
             if not isinstance(q, dict):
                 continue
@@ -471,8 +473,46 @@ def add_skill_complete(request):
                 target_skill_name=q.get('skill', ''),
                 feedback_plain=q.get('feedback', ''),
             ))
+            # تجميع بيانات الصور (data:URL) إن وُجدت
+            imgs = {}
+            if q.get('q_img', '').startswith('data:image'):
+                imgs['question_image'] = q['q_img']
+            if q.get('a_img', '').startswith('data:image'):
+                imgs['option_a_image'] = q['a_img']
+            if q.get('b_img', '').startswith('data:image'):
+                imgs['option_b_image'] = q['b_img']
+            if q.get('c_img', '').startswith('data:image'):
+                imgs['option_c_image'] = q['c_img']
+            if q.get('d_img', '').startswith('data:image'):
+                imgs['option_d_image'] = q['d_img']
+            img_data.append(imgs)
+
         if objs:
             TeacherQuestion.objects.bulk_create(objs)
+
+        # رفع الصور إلى Cloudinary بعد الإنشاء
+        import cloudinary.uploader
+        for idx, imgs in enumerate(img_data):
+            if not imgs:
+                continue
+            q_obj = objs[idx]
+            # بعد bulk_create يكون للعنصر pk
+            if not q_obj.pk:
+                # في بعض قواعد البيانات bulk_create لا يرجع pk
+                try:
+                    q_obj = TeacherQuestion.objects.get(exam=exam, order=idx+1)
+                except TeacherQuestion.DoesNotExist:
+                    continue
+            for field_name, data_url in imgs.items():
+                try:
+                    folder = 'questions/options' if 'option_' in field_name else 'questions'
+                    result = cloudinary.uploader.upload(data_url, folder=folder)
+                    setattr(q_obj, field_name, result['public_id'])
+                    logger.info(f"✅ Wizard image upload: {field_name} → {result['public_id']}")
+                except Exception as e:
+                    logger.error(f"❌ Wizard image upload FAILED for {field_name}: {e}")
+            q_obj.save()
+
         return len(objs)
 
     pre_count = _safe_int(request.POST.get('pre_count'), default=10, minimum=1, maximum=100)

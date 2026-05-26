@@ -1075,6 +1075,13 @@ function populateSkillDropdowns(){
   ['q-pre','q-post','t-post','bank'].forEach(p => populateSkillDropdown(p));
 }
 
+// استخراج أول صورة data:URL من عنصر contenteditable
+function extractImgDataUrl(el){
+  if(!el) return null;
+  const img = el.querySelector('img[src^="data:image"]');
+  return img ? img.src : null;
+}
+
 function addQ(prefix){
   const textEl = document.getElementById(`${prefix}-text-input`);
   const text = textEl ? textEl.innerHTML.trim() : '';
@@ -1088,6 +1095,15 @@ function addQ(prefix){
     return el ? el.innerHTML.trim() : '';
   };
 
+  // استخراج الصور من النصوص (إن وُجدت)
+  const qImgData = extractImgDataUrl(textEl);
+  const optImgs = {};
+  ['a','b','c','d'].forEach(l => {
+    const el = document.getElementById(`${prefix}-optarea-${l}`);
+    const imgData = extractImgDataUrl(el);
+    if(imgData) optImgs[l.toUpperCase()] = imgData;
+  });
+
   const q = {
     text: text,
     options: { A: getOpt('a'), B: getOpt('b'), C: getOpt('c'), D: getOpt('d') },
@@ -1095,6 +1111,12 @@ function addQ(prefix){
     skill: skill,
     feedback: feedback
   };
+  // أضف الصور إن وُجدت
+  if(qImgData) q.q_img = qImgData;
+  if(optImgs.A) q.a_img = optImgs.A;
+  if(optImgs.B) q.b_img = optImgs.B;
+  if(optImgs.C) q.c_img = optImgs.C;
+  if(optImgs.D) q.d_img = optImgs.D;
 
   if(!questions[prefix]) questions[prefix] = [];
   questions[prefix].push(q);
@@ -1147,7 +1169,8 @@ function renderQ(prefix){
   listEl.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:7px">الأسئلة: <span class="bd bb">' + questions[prefix].length + '</span></div>' +
     questions[prefix].map((q, idx) => {
       const txt = stripHtml(q.text).substring(0,80);
-      return `<div class="qi"><div class="qi-head"><div class="qi-num">${idx+1}</div><div class="qi-text">${txt}</div>${q.correct?'<span class="qi-correct">✓ '+LM[q.correct]+'</span>':''}${q.skill?'<span class="qi-skill">'+q.skill+'</span>':''}<button class="qi-del" onclick="deleteQ('${prefix}',${idx})">🗑️</button></div></div>`;
+      const hasImgs = q.q_img || q.a_img || q.b_img || q.c_img || q.d_img;
+      return `<div class="qi"><div class="qi-head"><div class="qi-num">${idx+1}</div><div class="qi-text">${txt}</div>${hasImgs?'<span class="bd bo">🖼️</span>':''}${q.correct?'<span class="qi-correct">✓ '+LM[q.correct]+'</span>':''}${q.skill?'<span class="qi-skill">'+q.skill+'</span>':''}<button class="qi-del" onclick="deleteQ('${prefix}',${idx})">🗑️</button></div></div>`;
     }).join('');
 }
 
@@ -1671,16 +1694,25 @@ function deleteSkillFromList(category, skill){
 
 // ════ SAVE FUNCTION ════
 function formatQsForBackend(list){
-  return JSON.stringify((list||[]).map(q=>({
-    text: stripHtml(q.text),
-    a: stripHtml(q.options?.A || ''),
-    b: stripHtml(q.options?.B || ''),
-    c: stripHtml(q.options?.C || ''),
-    d: stripHtml(q.options?.D || ''),
-    correct: (q.correct||'A').toUpperCase(),
-    skill: q.skill||'',
-    feedback: q.feedback||''
-  })));
+  return JSON.stringify((list||[]).map(q=>{
+    const obj = {
+      text: stripHtml(q.text),
+      a: stripHtml(q.options?.A || ''),
+      b: stripHtml(q.options?.B || ''),
+      c: stripHtml(q.options?.C || ''),
+      d: stripHtml(q.options?.D || ''),
+      correct: (q.correct||'A').toUpperCase(),
+      skill: q.skill||'',
+      feedback: q.feedback||''
+    };
+    // أضف الصور كـ data:URL إن وُجدت
+    if(q.q_img) obj.q_img = q.q_img;
+    if(q.a_img) obj.a_img = q.a_img;
+    if(q.b_img) obj.b_img = q.b_img;
+    if(q.c_img) obj.c_img = q.c_img;
+    if(q.d_img) obj.d_img = q.d_img;
+    return obj;
+  }));
 }
 
 function saveSkill(type, activate){
