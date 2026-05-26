@@ -69,7 +69,7 @@ class TeacherSkillContent(models.Model):
     plain_text = models.TextField(blank=True, verbose_name="شرح نصي بسيط")
     plain_image = CloudinaryField('صورة توضيحية', folder='skill_content', blank=True, null=True)
     video_url = models.URLField(blank=True, verbose_name="رابط فيديو")
-    pdf_file = CloudinaryField('ملف PDF', folder='skill_pdfs', blank=True, null=True)
+    pdf_file = CloudinaryField('ملف PDF', resource_type='raw', folder='skill_pdfs', blank=True, null=True)
 
     class Meta:
         verbose_name = "محتوى الشرح"

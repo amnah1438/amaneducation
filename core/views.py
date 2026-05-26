@@ -1743,29 +1743,33 @@ def admin_comp_add_question(request, skill_id):
 
 
 def _attach_image(obj, field_name, request):
-    """يربط الصورة المرفوعة (file) أو data:URL ناتج من OCR/canvas بالحقل.
-    CloudinaryField يرفع تلقائياً على Cloudinary عند save()."""
+    """يرفع الصورة مباشرة على Cloudinary ويخزّن الـ public_id.
+    يدعم: ملف مرفوع عادي أو data:URL من الرسم/OCR."""
     import base64
-    from django.core.files.base import ContentFile
+    import cloudinary.uploader
+
+    file_obj = None
 
     # 1) ملف مرفوع عادي
     if field_name in request.FILES:
-        setattr(obj, field_name, request.FILES[field_name])
+        file_obj = request.FILES[field_name]
+
+    # 2) data: URL (للصور الملصقة من الرسم/OCR)
+    if not file_obj:
+        data_url = request.POST.get(field_name + '_data') or request.POST.get(field_name + '_dataurl')
+        if data_url and data_url.startswith('data:image'):
+            file_obj = data_url  # Cloudinary يقبل data URLs مباشرة
+
+    if not file_obj:
         return
 
-    # 2) data: URL (للصور الملصقة من OCR/Drag&Drop)
-    data_url = request.POST.get(field_name + '_data') or request.POST.get(field_name + '_dataurl')
-    if data_url and data_url.startswith('data:image'):
-        try:
-            header, b64 = data_url.split(',', 1)
-            ext = 'png'
-            if 'jpeg' in header or 'jpg' in header:
-                ext = 'jpg'
-            decoded = base64.b64decode(b64)
-            fname = f"{field_name}_{obj.pk or 'new'}.{ext}"
-            setattr(obj, field_name, ContentFile(decoded, name=fname))
-        except Exception:
-            pass
+    try:
+        folder = 'questions/options' if 'option_' in field_name else 'questions'
+        result = cloudinary.uploader.upload(file_obj, folder=folder)
+        setattr(obj, field_name, result['public_id'])
+        logger.info(f"✅ Cloudinary upload OK: {field_name} → {result['public_id']}")
+    except Exception as exc:
+        logger.error(f"❌ Cloudinary upload FAILED for {field_name}: {exc}")
 
 
 @admin_required

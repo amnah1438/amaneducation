@@ -92,7 +92,7 @@ img.cnt{max-width:100%;border-radius:8px;border:1px solid var(--border);margin:8
         {% if content.plain_image %}<img src="{{ content.plain_image|cloud_url }}" class="cnt" alt="">{% endif %}
         {% if content.plain_text %}<div class="prose">{{ content.plain_text|linebreaksbr }}</div>{% endif %}
         {% if content.text_content %}<div class="prose">{{ content.text_content|safe }}</div>{% endif %}
-        {% if content.pdf_file %}<a href="{{ content.pdf_file|cloud_url }}" target="_blank" class="btn btn-b" style="margin-top:8px">📄 فتح ملف PDF</a>{% endif %}
+        {% if content.pdf_file %}<a href="{{ content.pdf_file|cloud_raw_url }}" target="_blank" download class="btn btn-b" style="margin-top:8px">📄 تحميل ملف PDF</a>{% endif %}
         {% if not content.video_url and not content.plain_text and not content.text_content and not content.plain_image and not content.pdf_file %}
           <p style="color:var(--text3);font-size:12px;text-align:center;padding:20px">لم يُضَف محتوى بعد.</p>
         {% endif %}
