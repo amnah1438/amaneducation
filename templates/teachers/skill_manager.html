@@ -1217,6 +1217,61 @@ function openMathEditor(qType, qIdx, part){
   MathEditor.openFor(targetId);
 }
 
+/* ═══ إصلاح: فتح محرر المعادلات حتى لو MathLive لم يحمّل بعد ═══ */
+(function patchMathEditor(){
+  var tries = 0;
+  var timer = setInterval(function(){
+    tries++;
+    if(tries > 50){ clearInterval(timer); return; } // توقف بعد 10 ثواني
+    if(!window.MathEditor || !MathEditor.openFor) return;
+    clearInterval(timer);
+
+    // حفظ الدوال الأصلية
+    var origBuild = MathEditor._buildModal || null;
+    var origSwitch = MathEditor._switchTab || null;
+
+    // استبدال openFor بنسخة بدون فحص MathLive
+    MathEditor.openFor = function(fieldId){
+      console.log('🔧 patched openFor called for:', fieldId);
+      // تأكد من تهيئة المحرر
+      if(MathEditor.init) MathEditor.init();
+
+      MathEditor._activeFieldId = fieldId;
+
+      // بناء النافذة لو ما موجودة
+      if(!document.getElementById('me-modal')){
+        if(origBuild) origBuild();
+      }
+
+      var modal = document.getElementById('me-modal');
+      if(!modal){
+        console.error('❌ me-modal not found after build');
+        alert('⚠️ محرر المعادلات لم يحمّل. جربي تحديث الصفحة (Ctrl+Shift+R)');
+        return;
+      }
+
+      // إعادة ضبط
+      var ml = document.getElementById('me-mathlive');
+      if(ml && ml.setValue) setTimeout(function(){ ml.setValue(''); }, 50);
+      var li = document.getElementById('me-latex-input');
+      if(li) li.value = '';
+      var lp = document.getElementById('me-live-preview');
+      if(lp) lp.innerHTML = '<span class="me-placeholder">اكتبي في المحرر أعلاه...</span>';
+
+      // فتح النافذة
+      modal.classList.add('show');
+      modal.style.display = 'flex';
+      console.log('✅ Math editor modal opened');
+
+      setTimeout(function(){
+        var mf = document.getElementById('me-mathlive');
+        if(mf && mf.focus) mf.focus();
+      }, 150);
+    };
+    console.log('✅ MathEditor.openFor patched successfully');
+  }, 200);
+})();
+
 /* ═══ توجيه الدوال القديمة إلى محرّر المعادلات الجديد (math-editor.js) ═══ */
 function closeMathModal(){ if(window.MathEditor) MathEditor.close(); }
 

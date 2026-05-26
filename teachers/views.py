@@ -429,14 +429,20 @@ def add_skill_complete(request):
                 logger.error(f"❌ Image upload failed: {e}", exc_info=True)
                 messages.warning(request, f'⚠️ فشل رفع الصورة: {e}')
         if pdf_file:
-            try:
-                logger.info(f"📎 Uploading skill PDF: {pdf_file.name} ({pdf_file.size} bytes)")
-                r = cloudinary.uploader.upload(pdf_file, folder='skill_pdfs', resource_type='raw')
-                content.pdf_file = r['public_id']
-                logger.info(f"✅ Skill PDF uploaded: {r['public_id']} → {r.get('secure_url','')}")
-            except Exception as e:
-                logger.error(f"❌ PDF upload failed: {e}", exc_info=True)
-                messages.warning(request, f'⚠️ فشل رفع ملف PDF: {e}')
+            max_pdf_mb = 10
+            pdf_size_mb = round(pdf_file.size / (1024*1024), 1)
+            if pdf_file.size > max_pdf_mb * 1024 * 1024:
+                messages.warning(request, f'⚠️ ملف PDF كبير جداً ({pdf_size_mb} ميجا). الحد الأقصى {max_pdf_mb} ميجا. يرجى ضغط الملف وإعادة المحاولة.')
+                logger.warning(f"PDF too large: {pdf_file.name} = {pdf_size_mb}MB (max {max_pdf_mb}MB)")
+            else:
+                try:
+                    logger.info(f"📎 Uploading skill PDF: {pdf_file.name} ({pdf_size_mb}MB)")
+                    r = cloudinary.uploader.upload(pdf_file, folder='skill_pdfs', resource_type='raw')
+                    content.pdf_file = r['public_id']
+                    logger.info(f"✅ Skill PDF uploaded: {r['public_id']} → {r.get('secure_url','')}")
+                except Exception as e:
+                    logger.error(f"❌ PDF upload failed: {e}", exc_info=True)
+                    messages.warning(request, f'⚠️ فشل رفع ملف PDF: {e}')
         try:
             content.save()
             logger.info(f"💾 Content saved OK: id={content.id}, plain_image={content.plain_image}, pdf_file={content.pdf_file}, video_url={content.video_url}")
@@ -954,12 +960,16 @@ def edit_skill(request, skill_id):
             except Exception:
                 pass
         if 'pdf_file' in request.FILES:
-            try:
-                import cloudinary.uploader
-                r = cloudinary.uploader.upload(request.FILES['pdf_file'], folder='skill_pdfs', resource_type='raw')
-                content.pdf_file = r['public_id']
-            except Exception:
-                pass
+            pdf_f = request.FILES['pdf_file']
+            if pdf_f.size > 10 * 1024 * 1024:
+                messages.warning(request, f'⚠️ ملف PDF كبير ({round(pdf_f.size/1048576,1)} ميجا). الحد الأقصى 10 ميجا.')
+            else:
+                try:
+                    import cloudinary.uploader
+                    r = cloudinary.uploader.upload(pdf_f, folder='skill_pdfs', resource_type='raw')
+                    content.pdf_file = r['public_id']
+                except Exception as e:
+                    messages.warning(request, f'⚠️ فشل رفع PDF: {e}')
         content.save()
 
         messages.success(request, '✅ تم حفظ التعديلات')
