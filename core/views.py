@@ -133,7 +133,9 @@ def debug_images(request):
     if questions_with_images:
         for q in questions_with_images:
             try:
-                html += f'<p>سؤال #{q.id}: {q.question_image.name}<br>URL: <a href="{q.question_image.url}" target="_blank">{q.question_image.url}</a><br><img src="{q.question_image.url}" style="max-height:100px"></p>'
+                val = str(q.question_image)
+                img_url, _ = _cu(val) if val and not val.startswith('http') else (val, None)
+                html += f'<p>سؤال #{q.id}: {val}<br>URL: <a href="{img_url}" target="_blank">{img_url}</a><br><img src="{img_url}" style="max-height:100px"></p>'
             except Exception as e:
                 html += f'<p>سؤال #{q.id}: <span class="err">خطأ — {e}</span></p>'
     else:
@@ -1741,30 +1743,36 @@ def admin_comp_add_question(request, skill_id):
 
 
 def _attach_image(obj, field_name, request):
-    """يربط الصورة المرفوعة (file) أو data:URL ناتج من OCR/canvas بالحقل."""
-    import base64
-    from django.core.files.base import ContentFile
+    """يربط الصورة المرفوعة (file) أو data:URL ناتج من OCR/canvas بالحقل.
+    يرفع مباشرة إلى Cloudinary ويحفظ الـ public_id."""
+    import cloudinary.uploader
 
     # 1) ملف مرفوع عادي
     if field_name in request.FILES:
-        setattr(obj, field_name, request.FILES[field_name])
+        uploaded_file = request.FILES[field_name]
+        try:
+            result = cloudinary.uploader.upload(
+                uploaded_file,
+                folder=f"questions/{field_name}",
+                resource_type="image"
+            )
+            setattr(obj, field_name, result['public_id'])
+        except Exception as e:
+            logger.error(f"Cloudinary upload error for {field_name}: {e}")
         return
 
     # 2) data: URL (للصور الملصقة من OCR/Drag&Drop)
     data_url = request.POST.get(field_name + '_data') or request.POST.get(field_name + '_dataurl')
     if data_url and data_url.startswith('data:image'):
         try:
-            header, b64 = data_url.split(',', 1)
-            ext = 'png'
-            if 'jpeg' in header or 'jpg' in header:
-                ext = 'jpg'
-            elif 'webp' in header:
-                ext = 'webp'
-            decoded = base64.b64decode(b64)
-            fname = f"{field_name}_{obj.id or obj.pk or 'new'}.{ext}"
-            setattr(obj, field_name, ContentFile(decoded, name=fname))
-        except Exception:
-            pass
+            result = cloudinary.uploader.upload(
+                data_url,
+                folder=f"questions/{field_name}",
+                resource_type="image"
+            )
+            setattr(obj, field_name, result['public_id'])
+        except Exception as e:
+            logger.error(f"Cloudinary upload error (data URL) for {field_name}: {e}")
 
 
 @admin_required

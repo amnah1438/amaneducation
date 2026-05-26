@@ -85,9 +85,9 @@ class Skill(models.Model):
         verbose_name="شرح الدرس (كتابة)"
     )
     video_url = models.URLField(blank=True, verbose_name="رابط فيديو (YouTube/Drive)")
-    pdf_file = models.FileField(upload_to='skills_pdf/', blank=True, null=True, verbose_name="ملف PDF للشرح")
-    image_explainer = models.ImageField(upload_to='skills_images/', blank=True, null=True, verbose_name="صورة توضيحية للشرح")
-    icon_image = models.ImageField(upload_to="skills_icons/", blank=True, null=True, verbose_name="أيقونة المهارة (اختياري)")
+    pdf_file = CloudinaryField('ملف PDF للشرح', resource_type='raw', folder='skills_pdf', blank=True, null=True)
+    image_explainer = CloudinaryField('صورة توضيحية للشرح', folder='skills_images', blank=True, null=True)
+    icon_image = CloudinaryField('أيقونة المهارة', folder='skills_icons', blank=True, null=True)
     short_description = models.CharField(max_length=300, blank=True, verbose_name="وصف مختصر للبطاقة")
     card_color = models.CharField(max_length=7, default="#2D5A27", verbose_name="لون البطاقة")
     required_questions_count = models.PositiveIntegerField(default=10, verbose_name="عدد أسئلة الاختبار")

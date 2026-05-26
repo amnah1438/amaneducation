@@ -228,7 +228,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               {{ q.question_plain }}
               {% if q.target_skill_name %}<span style="font-size:9px;color:#64748b;margin-right:6px">[{{ q.target_skill_name }}]</span>{% endif %}
             </div>
-            {% if q.question_image %}<img src="{{ q.question_image.url }}" style="max-height:100px;margin-bottom:6px;border-radius:4px">{% endif %}
+            {% if q.question_image %}<img src="{{ q.question_image|cloud_url }}" style="max-height:100px;margin-bottom:6px;border-radius:4px">{% endif %}
             <div class="q-choices">
               <div class="q-choice"><strong>أ</strong> {{ q.option_a_plain }}</div>
               <div class="q-choice"><strong>ب</strong> {{ q.option_b_plain }}</div>
@@ -365,7 +365,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
         </div>
         {% endif %}
         {% if c.plain_image %}
-        <img src="{{ c.plain_image.url }}" class="content-img" alt="صورة توضيحية">
+        <img src="{{ c.plain_image|cloud_url }}" class="content-img" alt="صورة توضيحية">
         {% endif %}
         {% if c.plain_text %}
         <div class="content-text" style="margin-top:{% if c.video_url or c.plain_image %}12px{% else %}0{% endif %}">
@@ -379,7 +379,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
         {% endif %}
         {% if c.pdf_file %}
         <div style="margin-top:10px">
-          <a href="{{ c.pdf_file.url }}" target="_blank" class="btn btn-b">📄 فتح ملف PDF</a>
+          <a href="{{ c.pdf_file|cloud_raw_url }}" target="_blank" class="btn btn-b">📄 فتح ملف PDF</a>
         </div>
         {% endif %}
         {% if not c.video_url and not c.plain_text and not c.text_content and not c.plain_image and not c.pdf_file %}
@@ -445,7 +445,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               <span class="q-num">{{ forloop.counter }}</span>
               {{ q.question_plain }}
             </div>
-            {% if q.question_image %}<img src="{{ q.question_image.url }}" style="max-height:80px;margin-bottom:6px;border-radius:4px">{% endif %}
+            {% if q.question_image %}<img src="{{ q.question_image|cloud_url }}" style="max-height:80px;margin-bottom:6px;border-radius:4px">{% endif %}
             <div class="q-choices">
               <div class="q-choice"><strong>أ</strong> {{ q.option_a_plain }}</div>
               <div class="q-choice"><strong>ب</strong> {{ q.option_b_plain }}</div>
@@ -515,7 +515,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
               <span class="q-num">{{ forloop.counter }}</span>
               {{ q.question_plain }}
             </div>
-            {% if q.question_image %}<img src="{{ q.question_image.url }}" style="max-height:80px;margin-bottom:6px;border-radius:4px">{% endif %}
+            {% if q.question_image %}<img src="{{ q.question_image|cloud_url }}" style="max-height:80px;margin-bottom:6px;border-radius:4px">{% endif %}
             <div class="q-choices">
               <div class="q-choice"><strong>أ</strong> {{ q.option_a_plain }}</div>
               <div class="q-choice"><strong>ب</strong> {{ q.option_b_plain }}</div>

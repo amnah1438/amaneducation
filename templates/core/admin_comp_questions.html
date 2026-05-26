@@ -1,4 +1,4 @@
-{% load static %}
+{% load static media_filters %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-theme="dark">
 <head>
@@ -514,29 +514,29 @@ textarea.fi{min-height:60px;resize:vertical}
           {# صورة السؤال — احترافية وكبيرة #}
           {% if q.question_image %}
           <div class="q-image-wrap">
-            <img src="{{ q.question_image.url }}" class="q-image" alt="صورة السؤال">
+            <img src="{{ q.question_image|cloud_url }}" class="q-image" alt="صورة السؤال">
           </div>
           {% endif %}
 
           <div class="q-opts">
             <div class="q-opt {% if q.correct_answer == 'A' %}ok{% endif %}">
               <strong>أ</strong>
-              {% if q.option_a_image %}<img src="{{ q.option_a_image.url }}" class="q-opt-img">{% endif %}
+              {% if q.option_a_image %}<img src="{{ q.option_a_image|cloud_url }}" class="q-opt-img">{% endif %}
               <span class="math-aware">{{ q.option_a_plain|default:q.option_a|striptags|default:'—' }}</span>
             </div>
             <div class="q-opt {% if q.correct_answer == 'B' %}ok{% endif %}">
               <strong>ب</strong>
-              {% if q.option_b_image %}<img src="{{ q.option_b_image.url }}" class="q-opt-img">{% endif %}
+              {% if q.option_b_image %}<img src="{{ q.option_b_image|cloud_url }}" class="q-opt-img">{% endif %}
               <span class="math-aware">{{ q.option_b_plain|default:q.option_b|striptags|default:'—' }}</span>
             </div>
             <div class="q-opt {% if q.correct_answer == 'C' %}ok{% endif %}">
               <strong>ج</strong>
-              {% if q.option_c_image %}<img src="{{ q.option_c_image.url }}" class="q-opt-img">{% endif %}
+              {% if q.option_c_image %}<img src="{{ q.option_c_image|cloud_url }}" class="q-opt-img">{% endif %}
               <span class="math-aware">{{ q.option_c_plain|default:q.option_c|striptags|default:'—' }}</span>
             </div>
             <div class="q-opt {% if q.correct_answer == 'D' %}ok{% endif %}">
               <strong>د</strong>
-              {% if q.option_d_image %}<img src="{{ q.option_d_image.url }}" class="q-opt-img">{% endif %}
+              {% if q.option_d_image %}<img src="{{ q.option_d_image|cloud_url }}" class="q-opt-img">{% endif %}
               <span class="math-aware">{{ q.option_d_plain|default:q.option_d|striptags|default:'—' }}</span>
             </div>
           </div>

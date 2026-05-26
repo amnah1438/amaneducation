@@ -66,7 +66,7 @@
     {% if content %}
       {% if content.text_content %}{{ content.text_content|safe }}{% endif %}
       {% if content.plain_text %}<pre style="white-space:pre-wrap;font-family:inherit">{{ content.plain_text }}</pre>{% endif %}
-      {% if content.plain_image %}<img src="{{ content.plain_image.url }}" alt="">{% endif %}
+      {% if content.plain_image %}<img src="{{ content.plain_image|cloud_url }}" alt="">{% endif %}
       {% if content.video_url %}
         <p>🎬 رابط الفيديو: <a href="{{ content.video_url }}">{{ content.video_url }}</a></p>
       {% endif %}

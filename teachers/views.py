@@ -399,6 +399,7 @@ def add_skill_complete(request):
         return redirect('skill_manager')
 
     # ─── محتوى الشرح (اختياري) ────────────────────────────────
+    import cloudinary.uploader
     video_url = request.POST.get('video_url', '').strip()
     plain_text = request.POST.get('plain_text', '').strip()
     plain_image = request.FILES.get('plain_image')
@@ -408,9 +409,17 @@ def add_skill_complete(request):
             skill=skill, video_url=video_url, plain_text=plain_text,
         )
         if plain_image:
-            content.plain_image = plain_image
+            try:
+                result = cloudinary.uploader.upload(plain_image, folder='skill_content', resource_type='image')
+                content.plain_image = result['public_id']
+            except Exception:
+                pass
         if pdf_file:
-            content.pdf_file = pdf_file
+            try:
+                result = cloudinary.uploader.upload(pdf_file, folder='skill_pdfs', resource_type='raw')
+                content.pdf_file = result['public_id']
+            except Exception:
+                pass
         content.save()
 
     # ─── الاختبارات والأسئلة ──────────────────────────────────
@@ -848,9 +857,19 @@ def edit_skill(request, skill_id):
         if video_url:
             content.video_url = video_url
         if 'plain_image' in request.FILES:
-            content.plain_image = request.FILES['plain_image']
+            try:
+                import cloudinary.uploader
+                result = cloudinary.uploader.upload(request.FILES['plain_image'], folder='skill_content', resource_type='image')
+                content.plain_image = result['public_id']
+            except Exception:
+                pass
         if 'pdf_file' in request.FILES:
-            content.pdf_file = request.FILES['pdf_file']
+            try:
+                import cloudinary.uploader
+                result = cloudinary.uploader.upload(request.FILES['pdf_file'], folder='skill_pdfs', resource_type='raw')
+                content.pdf_file = result['public_id']
+            except Exception:
+                pass
         content.save()
 
         messages.success(request, '✅ تم حفظ التعديلات')

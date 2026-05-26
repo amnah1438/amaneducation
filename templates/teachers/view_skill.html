@@ -89,10 +89,10 @@ img.cnt{max-width:100%;border-radius:8px;border:1px solid var(--border);margin:8
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
           </div>
         {% endif %}
-        {% if content.plain_image %}<img src="{{ content.plain_image.url }}" class="cnt" alt="">{% endif %}
+        {% if content.plain_image %}<img src="{{ content.plain_image|cloud_url }}" class="cnt" alt="">{% endif %}
         {% if content.plain_text %}<div class="prose">{{ content.plain_text|linebreaksbr }}</div>{% endif %}
         {% if content.text_content %}<div class="prose">{{ content.text_content|safe }}</div>{% endif %}
-        {% if content.pdf_file %}<a href="{{ content.pdf_file.url }}" target="_blank" class="btn btn-b" style="margin-top:8px">📄 فتح ملف PDF</a>{% endif %}
+        {% if content.pdf_file %}<a href="{{ content.pdf_file|cloud_raw_url }}" target="_blank" class="btn btn-b" style="margin-top:8px">📄 فتح ملف PDF</a>{% endif %}
         {% if not content.video_url and not content.plain_text and not content.text_content and not content.plain_image and not content.pdf_file %}
           <p style="color:var(--text3);font-size:12px;text-align:center;padding:20px">لم يُضَف محتوى بعد.</p>
         {% endif %}
@@ -119,7 +119,7 @@ img.cnt{max-width:100%;border-radius:8px;border:1px solid var(--border);margin:8
       {% for q in exam.questions.all %}
       <div class="q-card">
         <div class="q-text">س{{ q.order|default:forloop.counter }}. {{ q.question_plain|default:q.question_text|striptags }}</div>
-        {% if q.question_image %}<img src="{{ q.question_image.url }}" class="cnt" style="max-height:160px">{% endif %}
+        {% if q.question_image %}<img src="{{ q.question_image|cloud_url }}" class="cnt" style="max-height:160px">{% endif %}
         <div class="q-options">
           <div class="q-opt {% if q.correct_answer == 'A' %}correct{% endif %}"><strong>أ.</strong> {{ q.option_a_plain|default:q.option_a|striptags }}</div>
           <div class="q-opt {% if q.correct_answer == 'B' %}correct{% endif %}"><strong>ب.</strong> {{ q.option_b_plain|default:q.option_b|striptags }}</div>

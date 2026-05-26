@@ -1,4 +1,4 @@
-{% load static %}
+{% load static media_filters %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -156,7 +156,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       <div class="q-body">
         {% if question.question_image %}
         <div style="text-align:center;background:white;padding:12px;border-radius:10px;margin-bottom:12px;border:1px solid var(--border)">
-          <img src="{{ question.question_image.url }}" alt="صورة السؤال" style="max-width:100%;max-height:320px;border-radius:6px">
+          <img src="{{ question.question_image|cloud_url }}" alt="صورة السؤال" style="max-width:100%;max-height:320px;border-radius:6px">
         </div>
         {% endif %}
         <div class="q-text math-aware">{{ question.question_plain }}</div>
@@ -165,7 +165,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             <input type="radio" name="q_{{ question.id }}" value="A">
             <div class="opt-circle">أ</div>
             <div class="opt-text">
-              {% if question.option_a_image %}<img src="{{ question.option_a_image.url }}" style="max-height:90px;max-width:100%;border-radius:5px;display:block;margin-bottom:5px">{% endif %}
+              {% if question.option_a_image %}<img src="{{ question.option_a_image|cloud_url }}" style="max-height:90px;max-width:100%;border-radius:5px;display:block;margin-bottom:5px">{% endif %}
               <span class="math-aware">{{ question.option_a_plain }}</span>
             </div>
           </label>
@@ -173,7 +173,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             <input type="radio" name="q_{{ question.id }}" value="B">
             <div class="opt-circle">ب</div>
             <div class="opt-text">
-              {% if question.option_b_image %}<img src="{{ question.option_b_image.url }}" style="max-height:90px;max-width:100%;border-radius:5px;display:block;margin-bottom:5px">{% endif %}
+              {% if question.option_b_image %}<img src="{{ question.option_b_image|cloud_url }}" style="max-height:90px;max-width:100%;border-radius:5px;display:block;margin-bottom:5px">{% endif %}
               <span class="math-aware">{{ question.option_b_plain }}</span>
             </div>
           </label>
@@ -181,7 +181,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             <input type="radio" name="q_{{ question.id }}" value="C">
             <div class="opt-circle">ج</div>
             <div class="opt-text">
-              {% if question.option_c_image %}<img src="{{ question.option_c_image.url }}" style="max-height:90px;max-width:100%;border-radius:5px;display:block;margin-bottom:5px">{% endif %}
+              {% if question.option_c_image %}<img src="{{ question.option_c_image|cloud_url }}" style="max-height:90px;max-width:100%;border-radius:5px;display:block;margin-bottom:5px">{% endif %}
               <span class="math-aware">{{ question.option_c_plain }}</span>
             </div>
           </label>
@@ -189,7 +189,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             <input type="radio" name="q_{{ question.id }}" value="D">
             <div class="opt-circle">د</div>
             <div class="opt-text">
-              {% if question.option_d_image %}<img src="{{ question.option_d_image.url }}" style="max-height:90px;max-width:100%;border-radius:5px;display:block;margin-bottom:5px">{% endif %}
+              {% if question.option_d_image %}<img src="{{ question.option_d_image|cloud_url }}" style="max-height:90px;max-width:100%;border-radius:5px;display:block;margin-bottom:5px">{% endif %}
               <span class="math-aware">{{ question.option_d_plain }}</span>
             </div>
           </label>

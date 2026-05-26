@@ -1,4 +1,4 @@
-{% load static %}
+{% load static media_filters %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-theme="dark">
 <head>
@@ -216,7 +216,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
         <div class="q-text math-aware">{{ q.question_plain|default:q.question_text|striptags|default:"—"|safe }}</div>
         {% if q.question_image %}
         <div style="text-align:center;background:white;padding:10px;border-radius:9px;margin-bottom:10px;border:1px solid var(--border)">
-          <img class="q-image" src="{{ q.question_image.url }}" alt="صورة السؤال" style="max-height:280px">
+          <img class="q-image" src="{{ q.question_image|cloud_url }}" alt="صورة السؤال" style="max-height:280px">
         </div>
         {% endif %}
 
@@ -231,7 +231,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             {% if ans.chosen_answer == 'A' and not ans.is_correct %}chosen-wrong{% endif %}">
             <span class="opt-letter">أ</span>
             <span style="flex:1" class="math-aware">{{ q.option_a_plain|default:q.option_a|striptags|default:"—" }}</span>
-            {% if q.option_a_image %}<img src="{{ q.option_a_image.url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
+            {% if q.option_a_image %}<img src="{{ q.option_a_image|cloud_url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
             {% if q.correct_answer == 'A' %}<span class="opt-mark">✓</span>{% endif %}
             {% if ans.chosen_answer == 'A' and q.correct_answer != 'A' %}<span class="opt-mark">✗</span>{% endif %}
             {% if ans.chosen_answer == 'A' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
@@ -242,7 +242,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             {% if ans.chosen_answer == 'B' and not ans.is_correct %}chosen-wrong{% endif %}">
             <span class="opt-letter">ب</span>
             <span style="flex:1" class="math-aware">{{ q.option_b_plain|default:q.option_b|striptags|default:"—" }}</span>
-            {% if q.option_b_image %}<img src="{{ q.option_b_image.url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
+            {% if q.option_b_image %}<img src="{{ q.option_b_image|cloud_url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
             {% if q.correct_answer == 'B' %}<span class="opt-mark">✓</span>{% endif %}
             {% if ans.chosen_answer == 'B' and q.correct_answer != 'B' %}<span class="opt-mark">✗</span>{% endif %}
             {% if ans.chosen_answer == 'B' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
@@ -253,7 +253,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             {% if ans.chosen_answer == 'C' and not ans.is_correct %}chosen-wrong{% endif %}">
             <span class="opt-letter">ج</span>
             <span style="flex:1" class="math-aware">{{ q.option_c_plain|default:q.option_c|striptags|default:"—" }}</span>
-            {% if q.option_c_image %}<img src="{{ q.option_c_image.url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
+            {% if q.option_c_image %}<img src="{{ q.option_c_image|cloud_url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
             {% if q.correct_answer == 'C' %}<span class="opt-mark">✓</span>{% endif %}
             {% if ans.chosen_answer == 'C' and q.correct_answer != 'C' %}<span class="opt-mark">✗</span>{% endif %}
             {% if ans.chosen_answer == 'C' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
@@ -264,7 +264,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             {% if ans.chosen_answer == 'D' and not ans.is_correct %}chosen-wrong{% endif %}">
             <span class="opt-letter">د</span>
             <span style="flex:1" class="math-aware">{{ q.option_d_plain|default:q.option_d|striptags|default:"—" }}</span>
-            {% if q.option_d_image %}<img src="{{ q.option_d_image.url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
+            {% if q.option_d_image %}<img src="{{ q.option_d_image|cloud_url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
             {% if q.correct_answer == 'D' %}<span class="opt-mark">✓</span>{% endif %}
             {% if ans.chosen_answer == 'D' and q.correct_answer != 'D' %}<span class="opt-mark">✗</span>{% endif %}
             {% if ans.chosen_answer == 'D' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}

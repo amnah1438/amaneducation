@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from ckeditor_uploader.fields import RichTextUploadingField
+from cloudinary.models import CloudinaryField
 
 
 class Teacher(models.Model):
@@ -66,9 +67,9 @@ class TeacherSkillContent(models.Model):
     skill = models.OneToOneField(TeacherSkill, on_delete=models.CASCADE, related_name="content", verbose_name="المهارة/الدرس")
     text_content = RichTextUploadingField(config_name='scientific_editor', blank=True, null=True, verbose_name="شرح نصي (مع رموز ومعادلات)")
     plain_text = models.TextField(blank=True, verbose_name="شرح نصي بسيط")
-    plain_image = models.ImageField(upload_to='skill_content/', blank=True, null=True, verbose_name="صورة توضيحية")
+    plain_image = CloudinaryField('صورة توضيحية', folder='skill_content', blank=True, null=True)
     video_url = models.URLField(blank=True, verbose_name="رابط فيديو")
-    pdf_file = models.FileField(upload_to='skill_pdfs/', blank=True, null=True, verbose_name="ملف PDF")
+    pdf_file = CloudinaryField('ملف PDF', resource_type='raw', folder='skill_pdfs', blank=True, null=True)
 
     class Meta:
         verbose_name = "محتوى الشرح"
@@ -136,16 +137,16 @@ class TeacherQuestion(models.Model):
     feedback = RichTextUploadingField(config_name='scientific_editor', blank=True, null=True, verbose_name="تغذية راجعة")
 
     question_plain = models.TextField(blank=True, verbose_name="نص السؤال البسيط")
-    question_image = models.ImageField(upload_to='questions/', blank=True, null=True, verbose_name="صورة السؤال")
+    question_image = CloudinaryField('صورة السؤال', folder='questions', blank=True, null=True)
     option_a_plain = models.CharField(max_length=500, blank=True, verbose_name="خيار أ (نص)")
     option_b_plain = models.CharField(max_length=500, blank=True, verbose_name="خيار ب (نص)")
     option_c_plain = models.CharField(max_length=500, blank=True, verbose_name="خيار ج (نص)")
     option_d_plain = models.CharField(max_length=500, blank=True, verbose_name="خيار د (نص)")
     # صور الخيارات (لأن بعض الإجابات صور/جداول/رسومات)
-    option_a_image = models.ImageField(upload_to='questions/options/', blank=True, null=True, verbose_name="صورة خيار أ")
-    option_b_image = models.ImageField(upload_to='questions/options/', blank=True, null=True, verbose_name="صورة خيار ب")
-    option_c_image = models.ImageField(upload_to='questions/options/', blank=True, null=True, verbose_name="صورة خيار ج")
-    option_d_image = models.ImageField(upload_to='questions/options/', blank=True, null=True, verbose_name="صورة خيار د")
+    option_a_image = CloudinaryField('صورة خيار أ', folder='questions/options', blank=True, null=True)
+    option_b_image = CloudinaryField('صورة خيار ب', folder='questions/options', blank=True, null=True)
+    option_c_image = CloudinaryField('صورة خيار ج', folder='questions/options', blank=True, null=True)
+    option_d_image = CloudinaryField('صورة خيار د', folder='questions/options', blank=True, null=True)
     feedback_plain = models.TextField(blank=True, verbose_name="تغذية راجعة بسيطة")
 
     correct_answer = models.CharField(max_length=1, choices=CORRECT_CHOICES, verbose_name="الإجابة الصحيحة")
