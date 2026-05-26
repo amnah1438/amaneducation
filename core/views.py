@@ -1744,35 +1744,28 @@ def admin_comp_add_question(request, skill_id):
 
 def _attach_image(obj, field_name, request):
     """يربط الصورة المرفوعة (file) أو data:URL ناتج من OCR/canvas بالحقل.
-    يرفع مباشرة إلى Cloudinary ويحفظ الـ public_id."""
-    import cloudinary.uploader
+    CloudinaryField يرفع تلقائياً على Cloudinary عند save()."""
+    import base64
+    from django.core.files.base import ContentFile
 
     # 1) ملف مرفوع عادي
     if field_name in request.FILES:
-        uploaded_file = request.FILES[field_name]
-        try:
-            result = cloudinary.uploader.upload(
-                uploaded_file,
-                folder=f"questions/{field_name}",
-                resource_type="image"
-            )
-            setattr(obj, field_name, result['public_id'])
-        except Exception as e:
-            logger.error(f"Cloudinary upload error for {field_name}: {e}")
+        setattr(obj, field_name, request.FILES[field_name])
         return
 
     # 2) data: URL (للصور الملصقة من OCR/Drag&Drop)
     data_url = request.POST.get(field_name + '_data') or request.POST.get(field_name + '_dataurl')
     if data_url and data_url.startswith('data:image'):
         try:
-            result = cloudinary.uploader.upload(
-                data_url,
-                folder=f"questions/{field_name}",
-                resource_type="image"
-            )
-            setattr(obj, field_name, result['public_id'])
-        except Exception as e:
-            logger.error(f"Cloudinary upload error (data URL) for {field_name}: {e}")
+            header, b64 = data_url.split(',', 1)
+            ext = 'png'
+            if 'jpeg' in header or 'jpg' in header:
+                ext = 'jpg'
+            decoded = base64.b64decode(b64)
+            fname = f"{field_name}_{obj.pk or 'new'}.{ext}"
+            setattr(obj, field_name, ContentFile(decoded, name=fname))
+        except Exception:
+            pass
 
 
 @admin_required

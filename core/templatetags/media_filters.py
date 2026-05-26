@@ -121,17 +121,22 @@ def youtube_embed(url):
 
 @register.filter(name='cloud_url')
 def cloud_url(field_value):
-    """يحوّل قيمة CloudinaryField إلى رابط Cloudinary كامل.
-    يدعم: public_id فقط، رابط كامل، أو كائن CloudinaryResource."""
+    """يحوّل قيمة CloudinaryField إلى رابط Cloudinary كامل."""
     if not field_value:
         return ''
-    val = str(field_value)
+    # محاولة 1: خاصية .url المدمجة في CloudinaryField
+    try:
+        url = field_value.url
+        if url and url != 'None':
+            return url
+    except (AttributeError, ValueError):
+        pass
+    # محاولة 2: تحويل القيمة كنص (public_id)
+    val = str(field_value).strip()
     if not val or val == 'None':
         return ''
-    # لو رابط كامل بالفعل
     if val.startswith('http'):
         return val
-    # تحويل public_id إلى رابط
     try:
         from cloudinary.utils import cloudinary_url
         url, _ = cloudinary_url(val)
@@ -145,7 +150,15 @@ def cloud_raw_url(field_value):
     """يحوّل قيمة CloudinaryField (resource_type=raw) إلى رابط Cloudinary."""
     if not field_value:
         return ''
-    val = str(field_value)
+    # محاولة 1: خاصية .url المدمجة
+    try:
+        url = field_value.url
+        if url and url != 'None':
+            return url
+    except (AttributeError, ValueError):
+        pass
+    # محاولة 2: تحويل public_id إلى رابط raw
+    val = str(field_value).strip()
     if not val or val == 'None':
         return ''
     if val.startswith('http'):
