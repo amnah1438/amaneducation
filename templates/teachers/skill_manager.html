@@ -1730,6 +1730,15 @@ function saveSkill(type, activate){
   copyFileInput(isSkill ? 'q-pdf-file' : 't-pdf-file', 'f-pdf-file');
   copyFileInput(isSkill ? 'q-plain-image' : 't-plain-image', 'f-plain-image');
 
+  // تشخيص: طباعة ما سيُرسل
+  const fPdf = document.getElementById('f-pdf-file');
+  const fImg = document.getElementById('f-plain-image');
+  console.log('🔍 saveSkill debug:');
+  console.log('  video_url:', document.getElementById('f-video-url').value);
+  console.log('  plain_text length:', document.getElementById('f-plain-text').value.length);
+  console.log('  pdf_file:', fPdf?.files?.length, fPdf?.files?.[0]?.name);
+  console.log('  plain_image:', fImg?.files?.length, fImg?.files?.[0]?.name);
+
   if(isSkill){
     document.getElementById('f-pre-count').value = getVal('q-pre-cnt');
     document.getElementById('f-pre-time').value = getVal('q-pre-time');

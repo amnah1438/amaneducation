@@ -190,19 +190,40 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 
+# دعم CLOUDINARY_URL (الصيغة اللي يستخدمها Render تلقائياً)
+# مثال: cloudinary://489947491336852:ybw_lynZTuhxcRbbQ1NfIVZT9r8@dyg4401o9
+_cld_url = os.environ.get('CLOUDINARY_URL', '')
+if _cld_url:
+    # CLOUDINARY_URL موجود — cloudinary.config يقرأها تلقائي
+    import re as _re
+    _m = _re.match(r'cloudinary://([^:]+):([^@]+)@(.+)', _cld_url)
+    if _m:
+        _cld_key, _cld_secret, _cld_name = _m.group(1), _m.group(2), _m.group(3)
+    else:
+        _cld_name = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dyg4401o9')
+        _cld_key = os.environ.get('CLOUDINARY_API_KEY', '489947491336852')
+        _cld_secret = os.environ.get('CLOUDINARY_API_SECRET', 'ybw_lynZTuhxcRbbQ1NfIVZT9r8')
+else:
+    _cld_name = os.environ.get('CLOUDINARY_CLOUD_NAME', 'dyg4401o9')
+    _cld_key = os.environ.get('CLOUDINARY_API_KEY', '489947491336852')
+    _cld_secret = os.environ.get('CLOUDINARY_API_SECRET', 'ybw_lynZTuhxcRbbQ1NfIVZT9r8')
+
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'dyg4401o9'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '489947491336852'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', 'ybw_lynZTuhxcRbbQ1NfIVZT9r8'),
+    'CLOUD_NAME': _cld_name,
+    'API_KEY': _cld_key,
+    'API_SECRET': _cld_secret,
 }
 
 # تهيئة Cloudinary مباشرة (مطلوب لعمل الرفع)
 cloudinary.config(
-    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
-    api_key=CLOUDINARY_STORAGE['API_KEY'],
-    api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+    cloud_name=_cld_name,
+    api_key=_cld_key,
+    api_secret=_cld_secret,
     secure=True,
 )
+
+# طباعة تشخيصية عند بدء التشغيل
+print(f"☁️ Cloudinary config: cloud={_cld_name}, key={_cld_key[:6]}..., CLOUDINARY_URL={'SET' if _cld_url else 'NOT SET'}")
 
 # استخدم Cloudinary دائماً لتخزين ملفات الوسائط (محلي + إنتاج)
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'

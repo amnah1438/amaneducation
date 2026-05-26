@@ -363,6 +363,17 @@ def add_skill_complete(request):
     if not check_teacher(request):
         return redirect('home')
 
+    # === تشخيص: سجّل كل شيء يوصل من الفورم ===
+    logger.info("=" * 60)
+    logger.info(f"📥 add_skill_complete called")
+    logger.info(f"📥 request.FILES keys: {list(request.FILES.keys())}")
+    for k, v in request.FILES.items():
+        logger.info(f"📥 FILE '{k}': name={v.name}, size={v.size}, content_type={v.content_type}")
+    logger.info(f"📥 request.POST keys: {list(request.POST.keys())}")
+    for k in ('video_url', 'plain_text', 'content_type', 'title'):
+        logger.info(f"📥 POST '{k}': {repr(request.POST.get(k, '')[:100])}")
+    logger.info("=" * 60)
+
     teacher = get_teacher(request)
     if not teacher:
         messages.error(request, 'لم يُربط حسابك بسجل معلمة. تواصلي مع المديرة.')
@@ -410,17 +421,29 @@ def add_skill_complete(request):
         )
         if plain_image:
             try:
+                logger.info(f"📎 Uploading skill image: {plain_image.name} ({plain_image.size} bytes)")
                 r = cloudinary.uploader.upload(plain_image, folder='skill_content')
                 content.plain_image = r['public_id']
+                logger.info(f"✅ Skill image uploaded: {r['public_id']} → {r.get('secure_url','')}")
             except Exception as e:
-                import logging; logging.getLogger(__name__).error(f"Image upload failed: {e}")
+                logger.error(f"❌ Image upload failed: {e}", exc_info=True)
+                messages.warning(request, f'⚠️ فشل رفع الصورة: {e}')
         if pdf_file:
             try:
+                logger.info(f"📎 Uploading skill PDF: {pdf_file.name} ({pdf_file.size} bytes)")
                 r = cloudinary.uploader.upload(pdf_file, folder='skill_pdfs', resource_type='raw')
                 content.pdf_file = r['public_id']
+                logger.info(f"✅ Skill PDF uploaded: {r['public_id']} → {r.get('secure_url','')}")
             except Exception as e:
-                import logging; logging.getLogger(__name__).error(f"PDF upload failed: {e}")
-        content.save()
+                logger.error(f"❌ PDF upload failed: {e}", exc_info=True)
+                messages.warning(request, f'⚠️ فشل رفع ملف PDF: {e}')
+        try:
+            content.save()
+            logger.info(f"💾 Content saved OK: id={content.id}, plain_image={content.plain_image}, pdf_file={content.pdf_file}, video_url={content.video_url}")
+            messages.info(request, f'📖 تم حفظ المحتوى (صورة: {"✅" if content.plain_image else "❌"}, PDF: {"✅" if content.pdf_file else "❌"}, فيديو: {"✅" if content.video_url else "❌"})')
+        except Exception as e:
+            logger.error(f"💥 Content save FAILED: {e}", exc_info=True)
+            messages.error(request, f'⚠️ فشل حفظ المحتوى: {e}')
 
     # ─── الاختبارات والأسئلة ──────────────────────────────────
     def _bulk_questions(exam, raw_json, key_prefix=''):
@@ -597,9 +620,16 @@ def add_question(request, exam_id):
         )
         # دعم الصور للسؤال + الخيارات (يقبل ملف أو data:URL من OCR)
         from core.views import _attach_image as _att
+        upload_results = {}
         for fld in ('question_image', 'option_a_image', 'option_b_image', 'option_c_image', 'option_d_image'):
-            _att(q, fld, request)
+            result = _att(q, fld, request)
+            if result is not None:
+                upload_results[fld] = result
         q.save()
+        # عرض نتائج الرفع للمستخدم
+        failed = [k for k, v in upload_results.items() if v is False]
+        if failed:
+            messages.warning(request, f'⚠️ فشل رفع بعض الصور: {", ".join(failed)}')
 
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'ok': True, 'order': order})
@@ -902,9 +932,15 @@ def edit_question(request, exam_id, q_id):
         q.feedback_plain = request.POST.get('feedback_plain', q.feedback_plain)
         # دعم الصور للسؤال + الخيارات (ملف أو data:URL)
         from core.views import _attach_image as _att
+        upload_results = {}
         for fld in ('question_image', 'option_a_image', 'option_b_image', 'option_c_image', 'option_d_image'):
-            _att(q, fld, request)
+            result = _att(q, fld, request)
+            if result is not None:
+                upload_results[fld] = result
         q.save()
+        failed = [k for k, v in upload_results.items() if v is False]
+        if failed:
+            messages.warning(request, f'⚠️ فشل رفع بعض الصور: {", ".join(failed)}')
         messages.success(request, '✅ تم حفظ السؤال')
         return redirect('view_skill', skill_id=exam.skill_id)
 

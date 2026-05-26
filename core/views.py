@@ -141,6 +141,48 @@ def debug_images(request):
     else:
         html += '<p>لا توجد أسئلة بصور</p>'
 
+    # 6) محتوى المهارات (صور + PDF)
+    html += '<h2>6. محتوى المهارات (أول 5)</h2>'
+    from teachers.models import TeacherSkillContent
+    contents = TeacherSkillContent.objects.all()[:5]
+    if contents:
+        for c in contents:
+            html += f'<div style="border:1px solid #ddd;padding:10px;margin:5px;background:white">'
+            html += f'<b>محتوى #{c.id} (مهارة: {c.skill_id})</b><br>'
+            # صورة
+            img_val = str(c.plain_image) if c.plain_image else ''
+            html += f'plain_image raw = <code>{img_val or "فارغ"}</code><br>'
+            if img_val and img_val != 'None':
+                try:
+                    iu, _ = _cu(img_val)
+                    html += f'URL: <a href="{iu}" target="_blank">{iu}</a><br><img src="{iu}" style="max-height:80px"><br>'
+                except Exception as e:
+                    html += f'<span class="err">خطأ: {e}</span><br>'
+            # PDF
+            pdf_val = str(c.pdf_file) if c.pdf_file else ''
+            html += f'pdf_file raw = <code>{pdf_val or "فارغ"}</code><br>'
+            if pdf_val and pdf_val != 'None':
+                try:
+                    from cloudinary.utils import cloudinary_url as _cu2
+                    pu, _ = _cu2(pdf_val, resource_type='raw')
+                    html += f'PDF URL: <a href="{pu}" target="_blank">{pu}</a><br>'
+                except Exception as e:
+                    html += f'<span class="err">خطأ: {e}</span><br>'
+            # فيديو
+            html += f'video_url = <code>{c.video_url or "فارغ"}</code><br>'
+            html += f'plain_text = <code>{(c.plain_text or "")[:100] or "فارغ"}</code>'
+            html += '</div>'
+    else:
+        html += '<p>لا يوجد محتوى</p>'
+
+    # 7) متغيرات البيئة المتعلقة بـ Cloudinary
+    html += '<h2>7. متغيرات البيئة</h2><table>'
+    for env_key in ['CLOUDINARY_URL', 'CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY']:
+        env_val = os.environ.get(env_key, '')
+        masked = env_val[:10] + '...' if env_val else 'غير موجود'
+        html += f'<tr><td>{env_key}</td><td><code>{masked}</code></td></tr>'
+    html += '</table>'
+
     html += '<hr><p style="color:#999">بعد التأكد من عمل الصور، احذفي هذا المسار من urls.py</p>'
     html += '</body></html>'
     return HttpResponse(html)
@@ -1744,7 +1786,8 @@ def admin_comp_add_question(request, skill_id):
 
 def _attach_image(obj, field_name, request):
     """يرفع الصورة مباشرة على Cloudinary ويخزّن الـ public_id.
-    يدعم: ملف مرفوع عادي أو data:URL من الرسم/OCR."""
+    يدعم: ملف مرفوع عادي أو data:URL من الرسم/OCR.
+    يُرجع True عند النجاح، False عند الفشل، None إذا لا يوجد ملف."""
     import base64
     import cloudinary.uploader
 
@@ -1753,23 +1796,28 @@ def _attach_image(obj, field_name, request):
     # 1) ملف مرفوع عادي
     if field_name in request.FILES:
         file_obj = request.FILES[field_name]
+        logger.info(f"📎 Found file upload for {field_name}: {file_obj.name} ({file_obj.size} bytes)")
 
     # 2) data: URL (للصور الملصقة من الرسم/OCR)
     if not file_obj:
         data_url = request.POST.get(field_name + '_data') or request.POST.get(field_name + '_dataurl')
         if data_url and data_url.startswith('data:image'):
             file_obj = data_url  # Cloudinary يقبل data URLs مباشرة
+            logger.info(f"📎 Found data URL for {field_name} (length={len(data_url)})")
 
     if not file_obj:
-        return
+        return None
 
     try:
         folder = 'questions/options' if 'option_' in field_name else 'questions'
         result = cloudinary.uploader.upload(file_obj, folder=folder)
-        setattr(obj, field_name, result['public_id'])
-        logger.info(f"✅ Cloudinary upload OK: {field_name} → {result['public_id']}")
+        public_id = result['public_id']
+        setattr(obj, field_name, public_id)
+        logger.info(f"✅ Cloudinary upload OK: {field_name} → {public_id} (url={result.get('secure_url','')})")
+        return True
     except Exception as exc:
-        logger.error(f"❌ Cloudinary upload FAILED for {field_name}: {exc}")
+        logger.error(f"❌ Cloudinary upload FAILED for {field_name}: {exc}", exc_info=True)
+        return False
 
 
 @admin_required
