@@ -606,6 +606,17 @@ def add_question(request, exam_id):
     teacher = get_teacher(request)
     exam = get_object_or_404(TeacherExam, id=exam_id, skill__created_by=teacher)
     if request.method == 'POST':
+        # ──────── تشخيص شامل ────────
+        import logging as _log
+        _lg = _log.getLogger('teachers.add_question')
+        _lg.warning(f"📥 add_question POST — exam_id={exam_id}")
+        _lg.warning(f"   Content-Type: {request.content_type}")
+        _lg.warning(f"   FILES keys: {list(request.FILES.keys())}")
+        _lg.warning(f"   POST keys: {list(request.POST.keys())}")
+        for k, f in request.FILES.items():
+            _lg.warning(f"   FILE [{k}]: name={f.name}, size={f.size}, type={f.content_type}")
+        # ────────────────────────────
+
         order = exam.questions.count() + 1
         q = TeacherQuestion.objects.create(
             exam=exam, order=order,
@@ -625,11 +636,20 @@ def add_question(request, exam_id):
             result = _att(q, fld, request)
             if result is not None:
                 upload_results[fld] = result
+            _lg.warning(f"   _attach_image({fld}) → {result}")
         q.save()
         # عرض نتائج الرفع للمستخدم
         failed = [k for k, v in upload_results.items() if v is False]
         if failed:
             messages.warning(request, f'⚠️ فشل رفع بعض الصور: {", ".join(failed)}')
+
+        # رسالة تشخيصية مرئية للمستخدم
+        file_keys = list(request.FILES.keys())
+        succeeded = [k for k, v in upload_results.items() if v is True]
+        if file_keys:
+            messages.info(request, f'📎 ملفات وصلت: {", ".join(file_keys)} | نجح: {", ".join(succeeded) if succeeded else "لا شيء"}')
+        elif not upload_results:
+            messages.info(request, '📎 لم تصل أي ملفات مع الطلب (request.FILES فارغ)')
 
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({'ok': True, 'order': order})
