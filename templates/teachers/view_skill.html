@@ -92,7 +92,16 @@ img.cnt{max-width:100%;border-radius:8px;border:1px solid var(--border);margin:8
         {% if content.plain_image %}<img src="{{ content.plain_image|cloud_url }}" class="cnt" alt="">{% endif %}
         {% if content.plain_text %}<div class="prose">{{ content.plain_text|linebreaksbr }}</div>{% endif %}
         {% if content.text_content %}<div class="prose">{{ content.text_content|safe }}</div>{% endif %}
-        {% if content.pdf_file %}<a href="{{ content.pdf_file|cloud_raw_url }}" target="_blank" download class="btn btn-b" style="margin-top:8px">📄 تحميل ملف PDF</a>{% endif %}
+        {% if content.pdf_file %}
+          {% with pdf_url=content.pdf_file|cloud_raw_url %}
+          {% if pdf_url %}
+          <div style="margin-top:10px">
+            <iframe src="https://docs.google.com/viewer?url={{ pdf_url|urlencode }}&embedded=true" style="width:100%;height:500px;border:1px solid var(--border);border-radius:8px" allowfullscreen></iframe>
+            <a href="{{ pdf_url }}" target="_blank" download class="btn btn-b" style="margin-top:8px">📥 تحميل ملف PDF</a>
+          </div>
+          {% endif %}
+          {% endwith %}
+        {% endif %}
         {% if not content.video_url and not content.plain_text and not content.text_content and not content.plain_image and not content.pdf_file %}
           <p style="color:var(--text3);font-size:12px;text-align:center;padding:20px">لم يُضَف محتوى بعد.</p>
         {% endif %}
@@ -118,13 +127,25 @@ img.cnt{max-width:100%;border-radius:8px;border:1px solid var(--border);margin:8
     <div class="cb">
       {% for q in exam.questions.all %}
       <div class="q-card">
-        <div class="q-text">س{{ q.order|default:forloop.counter }}. {{ q.question_plain|default:q.question_text|striptags }}</div>
+        <div class="q-text">س{{ q.order|default:forloop.counter }}. {{ q.question_plain|default_if_none:"" }}</div>
         {% if q.question_image %}<img src="{{ q.question_image|cloud_url }}" class="cnt" style="max-height:160px">{% endif %}
         <div class="q-options">
-          <div class="q-opt {% if q.correct_answer == 'A' %}correct{% endif %}"><strong>أ.</strong> {{ q.option_a_plain|default:q.option_a|striptags }}</div>
-          <div class="q-opt {% if q.correct_answer == 'B' %}correct{% endif %}"><strong>ب.</strong> {{ q.option_b_plain|default:q.option_b|striptags }}</div>
-          <div class="q-opt {% if q.correct_answer == 'C' %}correct{% endif %}"><strong>ج.</strong> {{ q.option_c_plain|default:q.option_c|striptags }}</div>
-          <div class="q-opt {% if q.correct_answer == 'D' %}correct{% endif %}"><strong>د.</strong> {{ q.option_d_plain|default:q.option_d|striptags }}</div>
+          <div class="q-opt {% if q.correct_answer == 'A' %}correct{% endif %}">
+            <strong>أ.</strong> {{ q.option_a_plain|default_if_none:"" }}
+            {% if q.option_a_image %}<img src="{{ q.option_a_image|cloud_url }}" style="max-height:80px;display:block;margin-top:4px">{% endif %}
+          </div>
+          <div class="q-opt {% if q.correct_answer == 'B' %}correct{% endif %}">
+            <strong>ب.</strong> {{ q.option_b_plain|default_if_none:"" }}
+            {% if q.option_b_image %}<img src="{{ q.option_b_image|cloud_url }}" style="max-height:80px;display:block;margin-top:4px">{% endif %}
+          </div>
+          <div class="q-opt {% if q.correct_answer == 'C' %}correct{% endif %}">
+            <strong>ج.</strong> {{ q.option_c_plain|default_if_none:"" }}
+            {% if q.option_c_image %}<img src="{{ q.option_c_image|cloud_url }}" style="max-height:80px;display:block;margin-top:4px">{% endif %}
+          </div>
+          <div class="q-opt {% if q.correct_answer == 'D' %}correct{% endif %}">
+            <strong>د.</strong> {{ q.option_d_plain|default_if_none:"" }}
+            {% if q.option_d_image %}<img src="{{ q.option_d_image|cloud_url }}" style="max-height:80px;display:block;margin-top:4px">{% endif %}
+          </div>
         </div>
         {% if q.feedback_plain %}<div style="font-size:11px;color:var(--purple);margin-top:6px">💡 {{ q.feedback_plain }}</div>{% endif %}
         {% if is_owner %}

@@ -595,11 +595,9 @@ const MathEditor = (() => {
   // ═══════════════════════════════════════════
 
   function openFor(fieldId) {
-    // تحقق من تحميل MathLive
+    // لا نمنع الفتح حتى لو MathLive لم يحمّل — النافذة تفتح مع LaTeX والرموز
     if (!customElements.get('math-field')) {
-      alert('⏳ محرر المعادلات لم يحمّل بعد. انتظري ثواني وجربي مرة ثانية.');
-      console.error('MathLive not loaded yet - math-field custom element not registered');
-      return;
+      console.warn('⏳ MathLive not loaded yet — modal will open without visual editor');
     }
     _activeFieldId = fieldId;
     _buildModal();
