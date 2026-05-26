@@ -595,6 +595,12 @@ const MathEditor = (() => {
   // ═══════════════════════════════════════════
 
   function openFor(fieldId) {
+    // تحقق من تحميل MathLive
+    if (!customElements.get('math-field')) {
+      alert('⏳ محرر المعادلات لم يحمّل بعد. انتظري ثواني وجربي مرة ثانية.');
+      console.error('MathLive not loaded yet - math-field custom element not registered');
+      return;
+    }
     _activeFieldId = fieldId;
     _buildModal();
 

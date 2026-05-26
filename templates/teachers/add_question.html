@@ -9,7 +9,7 @@
 
 <!-- MathLive + MathJax + Tesseract -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://unpkg.com/mathlive@0.105.2/dist/mathlive.min.js"></script>
+<script src="https://unpkg.com/mathlive@0.105.2/dist/mathlive.min.js" onerror="console.error('❌ MathLive CDN failed! Math editor will not work.')"></script>
 <link rel="stylesheet" href="https://unpkg.com/mathlive@0.105.2/dist/mathlive-fonts.css">
 <script>
 window.MathJax = {
@@ -682,6 +682,14 @@ function prepareSubmit(){
   });
   const fb = document.getElementById('feedback-text');
   if(fb) document.getElementById('feedback-hidden').value = fb.innerText || '';
+
+  // تشخيص: طباعة الملفات المرفقة قبل الإرسال
+  const qImg = document.getElementById('qImgInput');
+  console.log('📎 question_image:', qImg?.files?.length, qImg?.files?.[0]?.name);
+  ['A','B','C','D'].forEach(o=>{
+    const inp = document.getElementById('optImg' + o);
+    console.log('📎 option_' + o.toLowerCase() + '_image:', inp?.files?.length, inp?.files?.[0]?.name);
+  });
 }
 
 document.getElementById('qForm').addEventListener('submit', prepareSubmit);

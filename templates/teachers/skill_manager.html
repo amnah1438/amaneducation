@@ -1714,17 +1714,19 @@ function saveSkill(type, activate){
     const dst = document.getElementById(dstId);
     if (!src || !dst || src.files.length === 0) return;
     try {
-      // الطريقة الحديثة
+      // الطريقة الحديثة (تعمل في معظم المتصفحات الحديثة)
       const dt = new DataTransfer();
       for (const f of src.files) dt.items.add(f);
       dst.files = dt.files;
+      console.log('✅ copyFileInput OK (DataTransfer):', srcId, '→', dstId, dst.files.length, 'files');
     } catch(e) {
-      // fallback: استبدال العنصر بنسخة من المصدر
-      const clone = src.cloneNode(true);
-      clone.id = dstId;
-      clone.name = dst.name;
-      clone.style.display = 'none';
-      dst.replaceWith(clone);
+      // fallback: ننقل الـ input الأصلي (cloneNode لا ينسخ الملفات!)
+      console.log('⚠️ DataTransfer failed, moving original input:', srcId, '→', dstId);
+      const origName = dst.name;
+      src.name = origName;
+      src.style.display = 'none';
+      dst.parentNode.insertBefore(src, dst);
+      dst.remove();
     }
   }
   copyFileInput(isSkill ? 'q-pdf-file' : 't-pdf-file', 'f-pdf-file');
