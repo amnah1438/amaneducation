@@ -85,7 +85,7 @@ class Skill(models.Model):
         verbose_name="شرح الدرس (كتابة)"
     )
     video_url = models.URLField(blank=True, verbose_name="رابط فيديو (YouTube/Drive)")
-    pdf_file = CloudinaryField('ملف PDF للشرح', resource_type='raw', folder='skills_pdf', blank=True, null=True)
+    pdf_file = CloudinaryField('ملف PDF للشرح', folder='skills_pdf', blank=True, null=True)
     image_explainer = CloudinaryField('صورة توضيحية للشرح', folder='skills_images', blank=True, null=True)
     icon_image = CloudinaryField('أيقونة المهارة', folder='skills_icons', blank=True, null=True)
     short_description = models.CharField(max_length=300, blank=True, verbose_name="وصف مختصر للبطاقة")

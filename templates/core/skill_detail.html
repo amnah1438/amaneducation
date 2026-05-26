@@ -379,7 +379,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
         {% endif %}
         {% if c.pdf_file %}
         <div style="margin-top:10px">
-          <a href="{{ c.pdf_file|cloud_raw_url }}" target="_blank" class="btn btn-b">📄 فتح ملف PDF</a>
+          <a href="{{ c.pdf_file|cloud_url }}" target="_blank" class="btn btn-b">📄 فتح ملف PDF</a>
         </div>
         {% endif %}
         {% if not c.video_url and not c.plain_text and not c.text_content and not c.plain_image and not c.pdf_file %}
