@@ -1111,6 +1111,9 @@ const MathEditor = (() => {
   };
 })();
 
+// تصدير MathEditor على window حتى يكون متاحاً لكل السكربتات
+window.MathEditor = MathEditor;
+
 // Auto-init when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => MathEditor.init());

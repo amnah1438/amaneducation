@@ -1222,37 +1222,43 @@ function openMathEditor(qType, qIdx, part){
   var tries = 0;
   var timer = setInterval(function(){
     tries++;
-    if(tries > 50){ clearInterval(timer); return; } // توقف بعد 10 ثواني
-    if(!window.MathEditor || !MathEditor.openFor) return;
+    if(tries > 100){ clearInterval(timer); console.error('❌ MathEditor patch timeout'); return; }
+    // التحقق من وجود MathEditor على window (بعد إضافة window.MathEditor = MathEditor في الملف)
+    if(typeof MathEditor === 'undefined') return;
+    if(!MathEditor || !MathEditor.openFor) return;
     clearInterval(timer);
 
-    // حفظ الدوال الأصلية
-    var origBuild = MathEditor._buildModal || null;
-    var origSwitch = MathEditor._switchTab || null;
+    console.log('🔧 Patching MathEditor.openFor...');
 
-    // استبدال openFor بنسخة بدون فحص MathLive
+    // استبدال openFor بنسخة تعمل دائماً
     MathEditor.openFor = function(fieldId){
       console.log('🔧 patched openFor called for:', fieldId);
-      // تأكد من تهيئة المحرر
-      if(MathEditor.init) MathEditor.init();
 
-      MathEditor._activeFieldId = fieldId;
+      // تهيئة المحرر
+      try { MathEditor.init(); } catch(e){ console.warn('init error:', e); }
 
       // بناء النافذة لو ما موجودة
-      if(!document.getElementById('me-modal')){
-        if(origBuild) origBuild();
-      }
-
       var modal = document.getElementById('me-modal');
       if(!modal){
-        console.error('❌ me-modal not found after build');
+        // نحتاج نبني النافذة — نستدعي openFor الأصلي المخزّن داخلياً
+        // أو نبني يدوياً عبر إعادة استدعاء init
+        try { MathEditor.init(); } catch(e){}
+        modal = document.getElementById('me-modal');
+      }
+
+      if(!modal){
         alert('⚠️ محرر المعادلات لم يحمّل. جربي تحديث الصفحة (Ctrl+Shift+R)');
         return;
       }
 
-      // إعادة ضبط
+      // تعيين الحقل النشط
+      if(typeof MathEditor._activeFieldId !== 'undefined'){
+        MathEditor._activeFieldId = fieldId;
+      }
+
+      // إعادة ضبط الحقول
       var ml = document.getElementById('me-mathlive');
-      if(ml && ml.setValue) setTimeout(function(){ ml.setValue(''); }, 50);
+      if(ml && ml.setValue) setTimeout(function(){ try{ml.setValue('');}catch(e){} }, 50);
       var li = document.getElementById('me-latex-input');
       if(li) li.value = '';
       var lp = document.getElementById('me-live-preview');
