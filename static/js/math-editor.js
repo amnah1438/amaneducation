@@ -275,116 +275,61 @@ const MathEditor = (() => {
     if (active) active.classList.add('active');
   }
 
-  // ── تحويل الرسم إلى LaTeX ──
-  async function convertDrawing() {
+  // ── تحويل الرسم إلى صورة وعرض المعاينة ──
+  function convertDrawing() {
     if (!_canvas) return;
 
     const resultEl  = document.getElementById('me-draw-result');
     const insertBtn = document.getElementById('me-draw-insert-btn');
-    const convertBtn = document.getElementById('me-draw-convert-btn');
 
-    // حالة التحميل
-    if (resultEl) resultEl.innerHTML = '<div class="me-loading"><div class="me-spinner"></div> جاري التحويل...</div>';
-    if (convertBtn) { convertBtn.disabled = true; convertBtn.textContent = '⏳ جاري التحويل...'; }
+    // رسم على canvas أبيض (بدون الشبكة) للحصول على صورة نظيفة
+    const tempCanvas = document.createElement('canvas');
+    const tempCtx = tempCanvas.getContext('2d');
+    tempCanvas.width  = _canvas.width;
+    tempCanvas.height = _canvas.height;
+    tempCtx.fillStyle = '#ffffff';
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+    tempCtx.drawImage(_canvas, 0, 0);
 
-    try {
-      // تحويل Canvas إلى base64
-      // رسم على canvas أبيض (بدون الشبكة) للحصول على صورة نظيفة
-      const tempCanvas = document.createElement('canvas');
-      const tempCtx = tempCanvas.getContext('2d');
-      const dpr = window.devicePixelRatio || 1;
-      tempCanvas.width  = _canvas.width;
-      tempCanvas.height = _canvas.height;
-      tempCtx.fillStyle = '#ffffff';
-      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-      tempCtx.drawImage(_canvas, 0, 0);
+    // حفظ الصورة كـ data URL
+    _recognizedLatex = tempCanvas.toDataURL('image/png');
 
-      const dataUrl = tempCanvas.toDataURL('image/png');
-      const base64 = dataUrl.replace(/^data:image\/png;base64,/, '');
-
-      // إرسال للسيرفر
-      const csrfToken = _getCSRF();
-      const resp = await fetch('/api/math-ocr/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken
-        },
-        body: JSON.stringify({ image: base64 })
-      });
-
-      const data = await resp.json();
-
-      if (data.latex && data.latex.trim()) {
-        _recognizedLatex = data.latex.trim();
-        // عرض النتيجة
-        if (resultEl) {
-          resultEl.innerHTML = `
-            <div class="me-draw-success">
-              <div class="me-draw-latex-label">LaTeX:</div>
-              <div class="me-draw-latex-code" dir="ltr">${_escHtml(_recognizedLatex)}</div>
-              <div class="me-draw-latex-label">المعاينة:</div>
-              <div class="me-draw-latex-preview" id="me-draw-preview-math">\\(${_recognizedLatex}\\)</div>
-            </div>
-          `;
-          // عرض MathJax
-          const prevMath = document.getElementById('me-draw-preview-math');
-          if (prevMath && window.MathJax && MathJax.typesetPromise) {
-            MathJax.typesetPromise([prevMath]).catch(() => {});
-          }
-        }
-        if (insertBtn) insertBtn.style.display = '';
-
-        // أيضاً تعبئة MathLive
-        const ml = document.getElementById('me-mathlive');
-        if (ml && ml.setValue) {
-          try { ml.setValue(_recognizedLatex); } catch(e) {}
-        }
-      } else if (data.error) {
-        // OCR غير مفعل أو خطأ
-        if (resultEl) {
-          const isNotConfigured = data.error === 'not_configured';
-          resultEl.innerHTML = isNotConfigured
-            ? `<div class="me-draw-info">
-                 <strong>التحويل التلقائي غير مفعّل</strong><br>
-                 <span>لتفعيله، أضيفي مفتاح <code>MATHPIX_APP_ID</code> و <code>MATHPIX_APP_KEY</code> في إعدادات السيرفر.</span><br>
-                 <button type="button" class="me-btn me-btn-primary" style="margin-top:8px;font-size:11px"
-                         onclick="MathEditor._switchTab('keyboard')">⌨️ اكتبي المعادلة يدوياً</button>
-               </div>`
-            : `<div class="me-draw-error">حدث خطأ أثناء التحويل. حاولي مرة أخرى أو اكتبيها يدوياً.</div>`;
-        }
-      }
-    } catch (err) {
-      console.error('Math OCR error:', err);
-      if (resultEl) {
-        resultEl.innerHTML = '<div class="me-draw-error">تعذر الاتصال بالسيرفر. تأكدي من الاتصال بالإنترنت.</div>';
-      }
-    } finally {
-      if (convertBtn) { convertBtn.disabled = false; convertBtn.textContent = '🔄 تحويل إلى معادلة'; }
+    // عرض المعاينة
+    if (resultEl) {
+      resultEl.innerHTML = `
+        <div class="me-draw-success">
+          <div class="me-draw-latex-label">معاينة الرسم:</div>
+          <div style="text-align:center;padding:8px;background:#fff;border-radius:8px;border:1px solid #ddd">
+            <img src="${_recognizedLatex}" style="max-width:100%;max-height:120px;image-rendering:auto" alt="رسم المعادلة">
+          </div>
+        </div>
+      `;
     }
+    if (insertBtn) insertBtn.style.display = '';
   }
 
-  /** إدراج معادلة من الرسم */
+  /** إدراج صورة الرسم في الحقل المستهدف */
   function insertFromDraw() {
     if (!_recognizedLatex) return;
-    const wrapped = ` $${_recognizedLatex}$ `;
     if (_activeFieldId) {
       const el = document.getElementById(_activeFieldId);
       if (el) {
-        el.focus();
         if (el.contentEditable === 'true') {
-          document.execCommand('insertText', false, wrapped);
+          // إدراج كصورة داخل المحتوى
+          const img = `<img src="${_recognizedLatex}" class="math-drawn-img" style="max-height:60px;vertical-align:middle;margin:0 4px" alt="معادلة مرسومة"> `;
+          el.focus();
+          document.execCommand('insertHTML', false, img);
         } else {
+          // حقل عادي — إدراج الـ data URL كنص (يُستخدم لاحقاً)
           const start = el.selectionStart || el.value.length;
           const end   = el.selectionEnd   || el.value.length;
-          el.value = el.value.slice(0, start) + wrapped + el.value.slice(end);
-          el.selectionStart = el.selectionEnd = start + wrapped.length;
+          const tag = `[IMG:${_recognizedLatex}]`;
+          el.value = el.value.slice(0, start) + tag + el.value.slice(end);
           el.dispatchEvent(new Event('input', { bubbles: true }));
         }
       }
     }
     close();
-    _triggerPreview(_activeFieldId);
   }
 
   /** الحصول على CSRF token */
@@ -523,7 +468,7 @@ const MathEditor = (() => {
             <!-- زر التحويل -->
             <div class="me-draw-actions">
               <button type="button" class="me-btn me-btn-convert" id="me-draw-convert-btn"
-                      onclick="MathEditor.convertDrawing()">🔄 تحويل إلى معادلة</button>
+                      onclick="MathEditor.convertDrawing()">✅ جاهز — معاينة الرسم</button>
             </div>
 
             <!-- النتيجة -->
@@ -534,7 +479,7 @@ const MathEditor = (() => {
             <div class="me-footer-btns">
               <button type="button" class="me-btn me-btn-secondary" onclick="MathEditor.close()">إلغاء</button>
               <button type="button" class="me-btn me-btn-primary" id="me-draw-insert-btn"
-                      style="display:none" onclick="MathEditor.insertFromDraw()">✅ إدراج المعادلة</button>
+                      style="display:none" onclick="MathEditor.insertFromDraw()">📌 إدراج الرسم</button>
             </div>
           </div>
         </div>
