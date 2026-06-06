@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
+from django.db import models
 from django.db.models import Avg, Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
@@ -1184,13 +1185,107 @@ def get_classroom_students(request, classroom_id):
 def skill_standards_json(request):
     """يرجع المهارات المعيارية — يمكن فلترتها بالمسار."""
     track = request.GET.get('track', '')
-    qs = SkillStandard.objects.filter(is_active=True)
+    show_all = request.GET.get('all', '')  # لعرض المعطّلة أيضاً في صفحة الإدارة
+    if show_all:
+        qs = SkillStandard.objects.all()
+    else:
+        qs = SkillStandard.objects.filter(is_active=True)
     if track:
         qs = qs.filter(track=track)
     data = [{'id': s.id, 'code': s.code, 'name': s.name, 'track': s.track,
-             'track_label': s.track_label, 'description': s.description}
-            for s in qs]
+             'track_label': s.track_label, 'description': s.description,
+             'is_active': s.is_active}
+            for s in qs.order_by('track', 'order')]
     return JsonResponse({'skills': data})
+
+
+@login_required
+def manage_skill_standard(request):
+    """إضافة أو تعديل مهارة معيارية (POST JSON)."""
+    import json
+    if not check_teacher_or_admin(request):
+        return JsonResponse({'error': 'غير مصرّح'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST مطلوب'}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'بيانات غير صالحة'}, status=400)
+
+    action = body.get('action', 'add')  # add | edit | toggle | delete
+    skill_id = body.get('id')
+
+    if action == 'add':
+        code = (body.get('code') or '').strip()
+        name = (body.get('name') or '').strip()
+        track = body.get('track', '')
+        if not code or not name or not track:
+            return JsonResponse({'error': 'الرمز والاسم والمسار مطلوبة'}, status=400)
+        if SkillStandard.objects.filter(code=code).exists():
+            return JsonResponse({'error': f'الرمز {code} موجود مسبقاً'}, status=400)
+        # حساب الترتيب التالي في المسار
+        max_order = SkillStandard.objects.filter(track=track).aggregate(
+            m=models.Max('order'))['m'] or 0
+        ss = SkillStandard.objects.create(
+            code=code, name=name, track=track,
+            description=body.get('description', ''),
+            order=max_order + 1, is_active=True,
+        )
+        return JsonResponse({'ok': True, 'id': ss.id, 'message': f'تم إضافة "{name}"'})
+
+    elif action == 'edit':
+        if not skill_id:
+            return JsonResponse({'error': 'معرّف المهارة مطلوب'}, status=400)
+        try:
+            ss = SkillStandard.objects.get(id=skill_id)
+        except SkillStandard.DoesNotExist:
+            return JsonResponse({'error': 'المهارة غير موجودة'}, status=404)
+        if body.get('name'):
+            ss.name = body['name'].strip()
+        if body.get('description') is not None:
+            ss.description = body['description']
+        if body.get('code'):
+            new_code = body['code'].strip()
+            if new_code != ss.code and SkillStandard.objects.filter(code=new_code).exists():
+                return JsonResponse({'error': f'الرمز {new_code} موجود مسبقاً'}, status=400)
+            ss.code = new_code
+        if body.get('track'):
+            ss.track = body['track']
+        ss.save()
+        return JsonResponse({'ok': True, 'message': f'تم تعديل "{ss.name}"'})
+
+    elif action == 'toggle':
+        if not skill_id:
+            return JsonResponse({'error': 'معرّف المهارة مطلوب'}, status=400)
+        try:
+            ss = SkillStandard.objects.get(id=skill_id)
+        except SkillStandard.DoesNotExist:
+            return JsonResponse({'error': 'المهارة غير موجودة'}, status=404)
+        ss.is_active = not ss.is_active
+        ss.save()
+        state = 'مفعّلة' if ss.is_active else 'معطّلة'
+        return JsonResponse({'ok': True, 'is_active': ss.is_active,
+                             'message': f'"{ss.name}" الآن {state}'})
+
+    elif action == 'delete':
+        if not skill_id:
+            return JsonResponse({'error': 'معرّف المهارة مطلوب'}, status=400)
+        try:
+            ss = SkillStandard.objects.get(id=skill_id)
+        except SkillStandard.DoesNotExist:
+            return JsonResponse({'error': 'المهارة غير موجودة'}, status=404)
+        # تحقق أن المهارة ما عليها أسئلة مرتبطة
+        q_count = ss.questions.count()
+        if q_count > 0:
+            return JsonResponse({
+                'error': f'لا يمكن حذف المهارة — مرتبطة بـ {q_count} سؤال. عطّليها بدل الحذف.',
+            }, status=400)
+        name = ss.name
+        ss.delete()
+        return JsonResponse({'ok': True, 'message': f'تم حذف "{name}"'})
+
+    return JsonResponse({'error': 'إجراء غير معروف'}, status=400)
 
 
 @login_required

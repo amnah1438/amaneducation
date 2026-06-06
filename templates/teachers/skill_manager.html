@@ -66,8 +66,36 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .main-tab.on.t-blue{background:linear-gradient(135deg,#2563eb,#4f8ef7)}
 .main-tab.on.t-orange{background:linear-gradient(135deg,#d97706,#f5a623)}
 .main-tab.on.t-purple{background:linear-gradient(135deg,#7c3aed,#9b72f5)}
+.main-tab.on.t-teal{background:linear-gradient(135deg,#0d9488,#2dd4bf)}
 
 .section{display:none;animation:fs .35s ease}.section.on{display:block}
+
+/* ── Standards Management ── */
+.std-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.std-filter{background:var(--card2);border:1px solid var(--border2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:12px;padding:8px 12px;border-radius:8px;outline:none;min-width:150px}
+.std-search{flex:1;min-width:180px}
+.std-btn-add{background:linear-gradient(135deg,var(--green),var(--teal));color:white;border:none;font-family:'Tajawal',sans-serif;font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.2s;white-space:nowrap}
+.std-btn-add:hover{opacity:.9;transform:translateY(-1px)}
+.std-table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.std-table th{background:var(--bg3);color:var(--text2);font-size:11px;font-weight:700;padding:10px 12px;text-align:right;white-space:nowrap}
+.std-table td{padding:9px 12px;border-top:1px solid var(--border);font-size:12px;color:var(--text);vertical-align:middle}
+.std-table tr:hover td{background:var(--card2)}
+.std-table .inactive{opacity:.5}
+.std-act{background:none;border:none;cursor:pointer;font-size:14px;padding:3px 6px;border-radius:5px;transition:.15s}
+.std-act:hover{background:var(--bg3)}
+.std-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700}
+.std-badge.active{background:rgba(15,186,129,.12);color:var(--green)}
+.std-badge.disabled{background:rgba(240,82,82,.12);color:var(--red)}
+.std-summary{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.std-summary-card{flex:1;min-width:120px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.std-summary-num{font-size:22px;font-weight:900}
+.std-summary-label{font-size:10px;color:var(--text2);font-weight:600;margin-top:2px}
+.std-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.std-modal-overlay.show{display:flex}
+.std-modal{background:var(--card);border:1px solid var(--border);border-radius:14px;width:100%;max-width:500px;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.std-modal h3{font-size:16px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.std-modal .fg{margin-bottom:12px}
+.std-modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 @keyframes fs{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* WIZARD */
@@ -382,6 +410,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     <button class="main-tab on t-blue" onclick="switchSection('qodrat',this)"><span>🧮</span> قسم القدرات</button>
     <button class="main-tab t-orange" onclick="switchSection('tahsili',this)"><span>📖</span> قسم التحصيلي</button>
     <button class="main-tab t-purple" onclick="switchSection('bank',this)"><span>🗃️</span> بنك الأسئلة</button>
+    <button class="main-tab t-teal" onclick="switchSection('standards',this)"><span>🎯</span> المهارات المعيارية</button>
   </div>
 
   <!-- ══════ HIDDEN FORM — يرسل البيانات للـ backend ══════ -->
@@ -703,7 +732,85 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
       </div>
     </div>
   </div>
+
+  <!-- ══════════════ SECTION 4: المهارات المعيارية ══════════════ -->
+  <div class="section" id="sec-standards">
+    <div class="sec-header"><h2 style="color:var(--teal)">🎯 المهارات المعيارية</h2><p>هذه المهارات المشتركة بين جميع المعلمات — تظهر في تحليل الفجوات وقوائم الأسئلة. أضيفي، عدّلي، أو عطّلي أي مهارة.</p></div>
+
+    <!-- ملخص -->
+    <div class="std-summary" id="std-summary"></div>
+
+    <!-- شريط الأدوات -->
+    <div class="std-toolbar">
+      <select class="std-filter" id="std-track-filter" onchange="loadStandards()">
+        <option value="">كل المسارات</option>
+        <option value="qodrat_kamy">قدرات — كمي</option>
+        <option value="qodrat_lafzy">قدرات — لفظي</option>
+        <option value="tahsili_math">تحصيلي — رياضيات</option>
+        <option value="tahsili_bio">تحصيلي — أحياء</option>
+        <option value="tahsili_chem">تحصيلي — كيمياء</option>
+        <option value="tahsili_phys">تحصيلي — فيزياء</option>
+      </select>
+      <input type="text" class="std-filter std-search" id="std-search" placeholder="🔍 ابحثي بالاسم أو الرمز..." oninput="filterStandardsTable()">
+      <button class="std-btn-add" onclick="openStdModal('add')">➕ إضافة مهارة جديدة</button>
+    </div>
+
+    <!-- الجدول -->
+    <div style="overflow-x:auto;border-radius:10px">
+      <table class="std-table">
+        <thead>
+          <tr>
+            <th>الرمز</th>
+            <th>المهارة</th>
+            <th>المسار</th>
+            <th>الحالة</th>
+            <th style="text-align:center">إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="std-table-body">
+          <tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">جاري التحميل...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
+</div>
+
+<!-- ════════ Standard Modal ════════ -->
+<div class="std-modal-overlay" id="stdModal">
+  <div class="std-modal">
+    <h3 id="stdModalTitle">➕ إضافة مهارة معيارية</h3>
+    <input type="hidden" id="std-edit-id">
+    <div class="fg">
+      <label class="fl">المسار *</label>
+      <select class="fi" id="std-m-track">
+        <option value="">اختاري المسار</option>
+        <option value="qodrat_kamy">قدرات — كمي</option>
+        <option value="qodrat_lafzy">قدرات — لفظي</option>
+        <option value="tahsili_math">تحصيلي — رياضيات</option>
+        <option value="tahsili_bio">تحصيلي — أحياء</option>
+        <option value="tahsili_chem">تحصيلي — كيمياء</option>
+        <option value="tahsili_phys">تحصيلي — فيزياء</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">رمز المهارة * (مثل: QK16, TM11)</label>
+      <input type="text" class="fi" id="std-m-code" placeholder="QK16" dir="ltr" style="text-align:left">
+    </div>
+    <div class="fg">
+      <label class="fl">اسم المهارة *</label>
+      <input type="text" class="fi" id="std-m-name" placeholder="مثال: اللوغاريتمات">
+    </div>
+    <div class="fg">
+      <label class="fl">وصف المهارة (اختياري)</label>
+      <textarea class="fi" id="std-m-desc" rows="2" placeholder="وصف مختصر للمهارة..."></textarea>
+    </div>
+    <div class="std-modal-btns">
+      <button type="button" class="btn btn-b" onclick="closeStdModal()">إلغاء</button>
+      <button type="button" class="btn btn-g" id="std-m-save" onclick="saveStandard()">💾 حفظ</button>
+    </div>
+  </div>
 </div>
 
 <!-- ════════ MODALS ════════ -->
@@ -800,6 +907,8 @@ function switchSection(sec, btn){
   document.getElementById('sec-'+sec).classList.add('on');
   btn.classList.add('on');
   currentSection = sec;
+  // تحميل المهارات المعيارية عند فتح التبويب
+  if(sec === 'standards' && typeof loadStandards === 'function') loadStandards();
 }
 
 // ════ SKILL SELECTION FLOW ════
@@ -1959,6 +2068,197 @@ function useSharedSkill(skillId){
     document.body.appendChild(form);
     form.submit();
   });
+}
+
+// ═══════════════════════════════════════════════
+// ═══ إدارة المهارات المعيارية (SkillStandard) ═══
+// ═══════════════════════════════════════════════
+let _allStandards = [];
+const TRACK_LABELS = {
+  'qodrat_kamy': 'قدرات — كمي',
+  'qodrat_lafzy': 'قدرات — لفظي',
+  'tahsili_math': 'تحصيلي — رياضيات',
+  'tahsili_bio': 'تحصيلي — أحياء',
+  'tahsili_chem': 'تحصيلي — كيمياء',
+  'tahsili_phys': 'تحصيلي — فيزياء',
+};
+
+async function loadStandards(){
+  const track = document.getElementById('std-track-filter')?.value || '';
+  const url = `/teachers/api/skill-standards.json?all=1${track ? '&track='+track : ''}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    _allStandards = data.skills || [];
+    renderStandardsTable(_allStandards);
+    renderStandardsSummary(_allStandards);
+  } catch(e) {
+    console.error('Failed to load standards:', e);
+  }
+}
+
+function renderStandardsSummary(skills){
+  const el = document.getElementById('std-summary');
+  if(!el) return;
+  const total = skills.length;
+  const active = skills.filter(s => s.is_active).length;
+  const disabled = total - active;
+  const tracks = new Set(skills.map(s => s.track));
+  el.innerHTML = `
+    <div class="std-summary-card"><div class="std-summary-num" style="color:var(--blue)">${total}</div><div class="std-summary-label">إجمالي المهارات</div></div>
+    <div class="std-summary-card"><div class="std-summary-num" style="color:var(--green)">${active}</div><div class="std-summary-label">مفعّلة</div></div>
+    <div class="std-summary-card"><div class="std-summary-num" style="color:var(--red)">${disabled}</div><div class="std-summary-label">معطّلة</div></div>
+    <div class="std-summary-card"><div class="std-summary-num" style="color:var(--purple)">${tracks.size}</div><div class="std-summary-label">مسارات</div></div>
+  `;
+}
+
+function renderStandardsTable(skills){
+  const tbody = document.getElementById('std-table-body');
+  if(!tbody) return;
+  if(skills.length === 0){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3)">لا توجد مهارات بهذا المسار</td></tr>';
+    return;
+  }
+  tbody.innerHTML = skills.map(s => `
+    <tr class="${s.is_active ? '' : 'inactive'}" data-id="${s.id}" data-code="${s.code}" data-name="${s.name}" data-track="${s.track}" data-desc="${(s.description||'').replace(/"/g,'&quot;')}">
+      <td><strong style="color:var(--blue);font-family:monospace">${s.code}</strong></td>
+      <td>
+        <div style="font-weight:700">${s.name}</div>
+        ${s.description ? '<div style="font-size:10px;color:var(--text3);margin-top:2px">'+s.description+'</div>' : ''}
+      </td>
+      <td style="white-space:nowrap;font-size:11px">${TRACK_LABELS[s.track] || s.track}</td>
+      <td>${s.is_active
+        ? '<span class="std-badge active">مفعّلة</span>'
+        : '<span class="std-badge disabled">معطّلة</span>'}</td>
+      <td style="text-align:center;white-space:nowrap">
+        <button class="std-act" onclick="openStdModal('edit',${s.id})" title="تعديل">✏️</button>
+        <button class="std-act" onclick="toggleStandard(${s.id})" title="${s.is_active ? 'تعطيل' : 'تفعيل'}">${s.is_active ? '⏸️' : '▶️'}</button>
+        <button class="std-act" onclick="deleteStandard(${s.id},'${s.name.replace(/'/g,"\\'")}')" title="حذف" style="color:var(--red)">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterStandardsTable(){
+  const q = (document.getElementById('std-search')?.value || '').trim().toLowerCase();
+  if(!q){
+    renderStandardsTable(_allStandards);
+    return;
+  }
+  const filtered = _allStandards.filter(s =>
+    s.name.toLowerCase().includes(q) ||
+    s.code.toLowerCase().includes(q) ||
+    (s.description||'').toLowerCase().includes(q)
+  );
+  renderStandardsTable(filtered);
+}
+
+function openStdModal(mode, id){
+  const modal = document.getElementById('stdModal');
+  const title = document.getElementById('stdModalTitle');
+  document.getElementById('std-edit-id').value = '';
+  document.getElementById('std-m-track').value = '';
+  document.getElementById('std-m-code').value = '';
+  document.getElementById('std-m-name').value = '';
+  document.getElementById('std-m-desc').value = '';
+
+  if(mode === 'edit' && id){
+    const s = _allStandards.find(x => x.id === id);
+    if(!s) return;
+    title.textContent = '✏️ تعديل مهارة معيارية';
+    document.getElementById('std-edit-id').value = s.id;
+    document.getElementById('std-m-track').value = s.track;
+    document.getElementById('std-m-code').value = s.code;
+    document.getElementById('std-m-name').value = s.name;
+    document.getElementById('std-m-desc').value = s.description || '';
+  } else {
+    title.textContent = '➕ إضافة مهارة معيارية جديدة';
+    // Pre-fill track from filter
+    const trackFilter = document.getElementById('std-track-filter')?.value;
+    if(trackFilter) document.getElementById('std-m-track').value = trackFilter;
+  }
+  modal.classList.add('show');
+}
+
+function closeStdModal(){
+  document.getElementById('stdModal')?.classList.remove('show');
+}
+
+async function saveStandard(){
+  const editId = document.getElementById('std-edit-id').value;
+  const track = document.getElementById('std-m-track').value;
+  const code = document.getElementById('std-m-code').value.trim();
+  const name = document.getElementById('std-m-name').value.trim();
+  const desc = document.getElementById('std-m-desc').value.trim();
+
+  if(!track || !code || !name){
+    alert('المسار والرمز والاسم مطلوبة');
+    return;
+  }
+
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+  const body = editId
+    ? { action: 'edit', id: parseInt(editId), track, code, name, description: desc }
+    : { action: 'add', track, code, name, description: desc };
+
+  try {
+    const res = await fetch('/teachers/api/skill-standards/manage/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if(data.ok){
+      flashMiniToast('✅ ' + data.message);
+      closeStdModal();
+      loadStandards();
+    } else {
+      alert('❌ ' + (data.error || 'حدث خطأ'));
+    }
+  } catch(e) {
+    alert('❌ فشل الاتصال بالسيرفر');
+  }
+}
+
+async function toggleStandard(id){
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+  try {
+    const res = await fetch('/teachers/api/skill-standards/manage/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({ action: 'toggle', id })
+    });
+    const data = await res.json();
+    if(data.ok){
+      flashMiniToast('✅ ' + data.message);
+      loadStandards();
+    } else {
+      alert('❌ ' + (data.error || 'حدث خطأ'));
+    }
+  } catch(e) {
+    alert('❌ فشل الاتصال بالسيرفر');
+  }
+}
+
+async function deleteStandard(id, name){
+  if(!confirm(`هل تريدين حذف المهارة "${name}" نهائياً؟\n\nملاحظة: إذا كانت مرتبطة بأسئلة، عطّليها بدل الحذف.`)) return;
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+  try {
+    const res = await fetch('/teachers/api/skill-standards/manage/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+      body: JSON.stringify({ action: 'delete', id })
+    });
+    const data = await res.json();
+    if(data.ok){
+      flashMiniToast('✅ ' + data.message);
+      loadStandards();
+    } else {
+      alert('❌ ' + (data.error || 'حدث خطأ'));
+    }
+  } catch(e) {
+    alert('❌ فشل الاتصال بالسيرفر');
+  }
 }
 
 // Initialize
