@@ -931,11 +931,23 @@ body {
 <div class="pg on" id="pg-ov">
   <div class="frow">
     <span style="font-size:10px;color:var(--text3)">فلتر:</span>
-    <select class="fsel fon"><option>الفصل الثاني ١٤٤٧</option><option>الفصل الأول ١٤٤٧</option></select>
-    <select class="fsel"><option>جميع المهارات</option><option>القدرات</option><option>التحصيلي</option></select>
-    <select class="fsel"><option>جميع الطالبات</option><option>الممتازات</option><option>يحتجن دعم</option></select>
-    <button class="rbtn">↻ تحديث</button>
-    <span class="lupd">آخر تحديث: منذ ٣ دقائق</span>
+    <select class="fsel" id="fClassroom" onchange="applyDashFilter()">
+      <option value="all" {% if not f_classroom or f_classroom == 'all' %}selected{% endif %}>جميع الفصول</option>
+      {% for cls in all_classrooms %}
+      <option value="{{ cls.name }}" {% if f_classroom == cls.name %}selected{% endif %}>{{ cls.name }}</option>
+      {% endfor %}
+    </select>
+    <select class="fsel" id="fSkillType" onchange="applyDashFilter()">
+      <option value="all" {% if not f_skill_type or f_skill_type == 'all' %}selected{% endif %}>جميع المهارات</option>
+      <option value="qodrat" {% if f_skill_type == 'qodrat' %}selected{% endif %}>القدرات</option>
+      <option value="tahsili" {% if f_skill_type == 'tahsili' %}selected{% endif %}>التحصيلي</option>
+    </select>
+    <select class="fsel" id="fStudentLevel" onchange="filterStudentLevel()">
+      <option value="all">جميع الطالبات</option>
+      <option value="exc">الممتازات</option>
+      <option value="weak">يحتجن دعم</option>
+    </select>
+    <button class="rbtn" onclick="applyDashFilter()">↻ تحديث</button>
   </div>
 
 <!-- KPI -->
@@ -1115,7 +1127,7 @@ body {
      صفحة: الطالبات
 ═══════════════════════════════════════════════ -->
 <div class="pg" id="pg-st">
-  <div class="g2e">
+  <div class="g2e" id="secExcellent">
     <!-- الطالبات الممتازات (بيانات حقيقية) -->
     <div class="card">
       <div class="ch"><span class="ct" style="color:var(--green)">الطالبات المتفوقات (90%+)</span><span class="bd be">{{ excellent_students|length }} طالبة</span></div>
@@ -1128,7 +1140,7 @@ body {
               <td style="font-weight:600">{{ s.name }}</td>
               <td style="color:var(--green);font-weight:600">{{ s.pct }}%</td>
               <td style="color:var(--text3)">{{ s.count }}</td>
-              <td><button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'exc')" style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
+              <td><button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'exc','{{ s.key }}')" style="background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
             </tr>
             {% empty %}
             <tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px;font-size:10px">لا توجد طالبات في هذه الفئة بعد</td></tr>
@@ -1139,7 +1151,7 @@ body {
     </div>
 
     <!-- الجيدات / المتوسطات -->
-    <div class="card">
+    <div class="card" id="secMid">
       <div class="ch"><span class="ct" style="color:var(--orange)">الجيدات (50-89%)</span><span class="bd bm">{{ mid_students|length }} طالبة</span></div>
       <div class="cb" style="padding:0">
         <table class="tb">
@@ -1150,7 +1162,7 @@ body {
               <td>{{ s.name }}</td>
               <td style="color:var(--orange)">{{ s.pct }}%</td>
               <td style="color:var(--text3)">{{ s.count }}</td>
-              <td><button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'mid')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
+              <td><button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'mid','{{ s.key }}')" style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
             </tr>
             {% empty %}
             <tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px;font-size:10px">لا توجد طالبات في هذه الفئة بعد</td></tr>
@@ -1161,7 +1173,7 @@ body {
     </div>
   </div>
 
-  <div class="card">
+  <div class="card" id="secWeak">
     <div class="ch"><span class="ct" style="color:var(--red)">يحتجن دعم عاجل (&lt;50%)</span><span class="bd bf">{{ weak_students|length }} طالبة</span></div>
     <div class="cb" style="padding:0">
       <table class="tb">
@@ -1173,7 +1185,7 @@ body {
             <td style="color:{% if s.pct < 30 %}var(--red){% else %}var(--orange){% endif %}">{{ s.pct }}%</td>
             <td>{{ s.count }}</td>
             <td><span class="bd {% if s.pct < 30 %}bf{% else %}bm{% endif %}">{% if s.pct < 30 %}عاجلة جداً{% else %}عاجلة{% endif %}</span></td>
-            <td><button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'fail')" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
+            <td><button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'fail','{{ s.key }}')" style="background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:2px 8px;font-size:9px;cursor:pointer;font-family:Tajawal">تقرير</button></td>
           </tr>
           {% empty %}
           <tr><td colspan="5" style="text-align:center;color:var(--text3);padding:20px;font-size:11px">
@@ -1525,7 +1537,7 @@ body {
           <div style="font-size:18px;margin-bottom:4px">📄</div>
           <div style="font-size:12px;color:var(--text2);font-weight:600">{{ s.name }}</div>
           <div style="font-size:11px;color:var(--red);margin-top:2px">{{ s.pct }}% — تحتاج دعم</div>
-          <button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'fail')" style="margin-top:6px;background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer;font-family:Tajawal;width:100%">عرض التقرير</button>
+          <button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'fail','{{ s.key }}')" style="margin-top:6px;background:rgba(239,68,68,0.1);color:var(--red);border:1px solid rgba(239,68,68,0.2);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer;font-family:Tajawal;width:100%">عرض التقرير</button>
         </div>
         {% endfor %}
         {% for s in excellent_students|slice:":3" %}
@@ -1533,7 +1545,7 @@ body {
           <div style="font-size:18px;margin-bottom:4px">📄</div>
           <div style="font-size:12px;color:var(--text2);font-weight:600">{{ s.name }}</div>
           <div style="font-size:11px;color:var(--green);margin-top:2px">{{ s.pct }}% — متفوقة</div>
-          <button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'exc')" style="margin-top:6px;background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer;font-family:Tajawal;width:100%">عرض التقرير</button>
+          <button onclick="oR('{{ s.name|escapejs }}',{{ s.pct }},'exc','{{ s.key }}')" style="margin-top:6px;background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer;font-family:Tajawal;width:100%">عرض التقرير</button>
         </div>
         {% endfor %}
       </div>
@@ -1805,7 +1817,7 @@ body {
     <!-- سجل الاختبارات -->
     <div class="mp" id="mp-ts">
       <table class="tb">
-        <thead><tr><th>#</th><th>المهارة</th><th>القبلي</th><th>البعدي</th><th>التحسن</th><th>التقييم</th></tr></thead>
+        <thead><tr><th>#</th><th>الاختبار</th><th>النوع</th><th>النسبة</th><th>الدرجة</th><th>التقييم</th><th>التاريخ</th></tr></thead>
         <tbody id="tsBody"></tbody>
       </table>
     </div>
@@ -2125,7 +2137,7 @@ function _genRec(name,score,type){
   };
 }
 
-function oR(name,score,type){
+function oR(name,score,type,key){
   var recs = _genRec(name,score,type);
   document.getElementById('mTitle').textContent='📋 تقرير مفصّل — '+name;
   document.getElementById('mName').textContent=name;
@@ -2139,19 +2151,9 @@ function oR(name,score,type){
   document.getElementById('mST').style.color=c;
   document.getElementById('mSN').textContent='المتوسط العام: '+score+'%';
 
-  // ملخص الأداء بدلاً من مهارات وهمية
-  var summaryHtml = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;line-height:1.8">';
-  summaryHtml += '<div style="font-size:28px;margin-bottom:8px">';
-  summaryHtml += score>=90?'🌟':score>=70?'✅':score>=50?'⚠️':'🚨';
-  summaryHtml += '</div>';
-  summaryHtml += '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">'+name+'</div>';
-  summaryHtml += '<div>المتوسط العام: <strong style="color:'+c+'">'+score+'%</strong></div>';
-  summaryHtml += '<div style="margin-top:8px;font-size:11px">سيظهر تحليل المهارات التفصيلي عند توفر بيانات اختبارات متعددة للطالبة.</div>';
-  summaryHtml += '</div>';
-  document.getElementById('skBody').innerHTML=summaryHtml;
-
-  // سجل الاختبارات
-  document.getElementById('tsBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3);font-size:12px">سيظهر سجل الاختبارات التفصيلي عند توفر بيانات كافية</td></tr>';
+  // حالة تحميل
+  document.getElementById('skBody').innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">⏳ جاري تحميل البيانات...</div>';
+  document.getElementById('tsBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">⏳ جاري التحميل...</td></tr>';
 
   // التوصيات
   document.getElementById('recText').textContent=recs.rec;
@@ -2160,19 +2162,83 @@ function oR(name,score,type){
   document.getElementById('rModal').classList.add('on');
   mT('ov');
 
-  // Radar بسيط يوضح المستوى العام
-  setTimeout(()=>{
+  // جلب البيانات الحقيقية من السيرفر
+  if(key){
+    fetch('/teachers/dashboard/student-report.json?key='+encodeURIComponent(key),{
+      credentials:'same-origin',
+      headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}
+    })
+    .then(r=>{if(!r.ok) throw new Error('HTTP '+r.status); return r.json();})
+    .then(d=>{
+      // ── تحليل المهارات ──
+      if(d.skills && d.skills.length){
+        var skHtml='<div style="margin-bottom:10px"><span style="color:var(--green);font-weight:600">✅ متقنة: '+d.mastered+'</span> &nbsp; <span style="color:var(--orange);font-weight:600">⚠️ تحتاج: '+d.needs+'</span></div>';
+        d.skills.forEach(function(s){
+          var col=s.pct>=70?'var(--green)':s.pct>=50?'var(--orange)':'var(--red)';
+          skHtml+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px">';
+          skHtml+='<span style="min-width:100px;text-align:right;color:var(--text2)">'+s.name+'</span>';
+          skHtml+='<div style="flex:1;background:var(--bg3);border-radius:4px;height:14px;overflow:hidden"><div style="width:'+s.pct+'%;height:100%;background:'+col+';border-radius:4px;transition:width .5s"></div></div>';
+          skHtml+='<span style="min-width:40px;text-align:left;font-weight:600;color:'+col+'">'+s.pct+'%</span>';
+          skHtml+='<span style="font-size:10px;color:var(--text3)">('+s.correct+'/'+s.total+')</span>';
+          skHtml+='</div>';
+        });
+        document.getElementById('skBody').innerHTML=skHtml;
+      } else {
+        document.getElementById('skBody').innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">لا توجد بيانات تفصيلية للمهارات بعد — تظهر عند وجود إجابات مفصّلة (StudentAnswer)</div>';
+      }
+
+      // ── سجل الاختبارات ──
+      if(d.exams && d.exams.length){
+        var rows='';
+        d.exams.forEach(function(e,i){
+          var passCol=e.passed?'var(--green)':'var(--red)';
+          var passText=e.passed?'ناجحة':'راسبة';
+          rows+='<tr>';
+          rows+='<td style="color:var(--text3)">'+(i+1)+'</td>';
+          rows+='<td>'+e.exam_name+'</td>';
+          rows+='<td>'+e.exam_type+'</td>';
+          rows+='<td style="font-weight:600;color:'+passCol+'">'+e.percentage+'%</td>';
+          rows+='<td>'+e.score+'</td>';
+          rows+='<td style="color:'+passCol+'">'+passText+'</td>';
+          rows+='<td style="font-size:10px;color:var(--text3)">'+e.date+'</td>';
+          rows+='</tr>';
+        });
+        document.getElementById('tsBody').innerHTML=rows;
+      } else {
+        document.getElementById('tsBody').innerHTML='<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3);font-size:12px">لا توجد اختبارات مسجلة بعد</td></tr>';
+      }
+
+      // ── تحديث Radar بالبيانات الحقيقية ──
+      _buildRadar(name,type,d);
+    })
+    .catch(function(err){
+      document.getElementById('skBody').innerHTML='<div style="text-align:center;padding:20px;color:var(--red)">❌ تعذّر تحميل البيانات: '+err.message+'</div>';
+      _buildRadar(name,type,null);
+    });
+  } else {
+    _buildRadar(name,type,null);
+  }
+}
+
+function _buildRadar(name,type,data){
+  setTimeout(function(){
     if(mRadarChart) mRadarChart.destroy();
     var radarEl = document.getElementById('mRadar');
     if(!radarEl) return;
+    var labels,values;
+    if(data && data.skills && data.skills.length){
+      labels=data.skills.slice(0,6).map(function(s){return s.name;});
+      values=data.skills.slice(0,6).map(function(s){return s.pct;});
+    } else {
+      var score=parseInt(document.getElementById('mAvg').textContent)||0;
+      labels=['المتوسط العام','الاختبارات','التحسّن','المشاركة','الالتزام'];
+      values=[score,Math.min(100,score+5),Math.min(100,score+8),Math.min(100,score+3),Math.min(100,score+6)];
+    }
+    var borderCol=type==='exc'?'#10b981':type==='pass'?'#3b82f6':type==='mid'?'#f59e0b':'#ef4444';
+    var bgCol=type==='exc'?'rgba(16,185,129,0.15)':type==='pass'?'rgba(59,130,246,0.15)':type==='mid'?'rgba(245,158,11,0.15)':'rgba(239,68,68,0.15)';
     mRadarChart=new Chart(radarEl,{
       type:'radar',
-      data:{
-        labels:['المتوسط العام','الاختبارات','التحسّن','المشاركة','الالتزام'],
-        datasets:[
-          {label:name,data:[score,Math.min(100,score+5),Math.min(100,score+8),Math.min(100,score+3),Math.min(100,score+6)],borderColor:type==='exc'?'#10b981':type==='pass'?'#3b82f6':type==='mid'?'#f59e0b':'#ef4444',backgroundColor:type==='exc'?'rgba(16,185,129,0.15)':type==='pass'?'rgba(59,130,246,0.15)':type==='mid'?'rgba(245,158,11,0.15)':'rgba(239,68,68,0.15)',borderWidth:2,pointRadius:3}
-        ]
-      },
+      data:{labels:labels,datasets:[{label:name,data:values,borderColor:borderCol,backgroundColor:bgCol,borderWidth:2,pointRadius:3}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},scales:{r:{angleLines:{color:'#1e2a3d'},grid:{color:'#1e2a3d'},pointLabels:{color:'#475569',font:{family:'Tajawal',size:9}},ticks:{color:'#475569',backdropColor:'transparent',font:{family:'Tajawal',size:8}},min:0,max:100}}}
     });
   },200);
@@ -2189,6 +2255,34 @@ function mT(t){
   document.querySelectorAll('.mp').forEach(p=>p.classList.remove('on'));
   document.getElementById('mp-'+t).classList.add('on');
 }
+// ═══════════════════════════════════
+// فلاتر الداشبورد
+// ═══════════════════════════════════
+function applyDashFilter(){
+  var params = new URLSearchParams();
+  var cls = document.getElementById('fClassroom').value;
+  var sk = document.getElementById('fSkillType').value;
+  if(cls && cls!=='all') params.set('classroom', cls);
+  if(sk && sk!=='all') params.set('skill_type', sk);
+  var qs = params.toString();
+  window.location.href = '/teachers/dashboard/' + (qs ? '?' + qs : '');
+}
+
+function filterStudentLevel(){
+  var level = document.getElementById('fStudentLevel').value;
+  var excSec = document.getElementById('secExcellent');
+  var midSec = document.getElementById('secMid');
+  var weakSec = document.getElementById('secWeak');
+  if(!excSec) return;
+  if(level==='all'){
+    excSec.style.display=''; midSec.style.display=''; weakSec.style.display='';
+  } else if(level==='exc'){
+    excSec.style.display=''; midSec.style.display='none'; weakSec.style.display='none';
+  } else if(level==='weak'){
+    excSec.style.display='none'; midSec.style.display='none'; weakSec.style.display='';
+  }
+}
+
 // ═══════════════════════════════════
 // إعدادات العرض
 // ═══════════════════════════════════

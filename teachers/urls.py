@@ -34,6 +34,9 @@ urlpatterns = [
     path('classrooms/', views.manage_classrooms, name='manage_classrooms'),
     path('classrooms/<int:classroom_id>/students/', views.get_classroom_students, name='get_classroom_students'),
 
+    # ─── Student Report API ────────────────────────────────────
+    path('dashboard/student-report.json', views.teacher_student_report_json, name='teacher_student_report_json'),
+
     # ─── Manual Score Entry ───────────────────────────────────
     path('manual-score/', views.manual_score_entry, name='manual_score_entry'),
 ]

@@ -83,9 +83,38 @@ def teacher_dashboard(request):
         messages.warning(request, 'تم إنشاء حساب معلمة جديد لربطه ببياناتك.')
         return redirect('teacher_dashboard')
 
+    # ─── فلاتر ───────────────────────────────────────────────
+    f_classroom = request.GET.get('classroom', '')
+    f_skill_type = request.GET.get('skill_type', '')
+
     my_skills = TeacherSkill.objects.filter(created_by=teacher)
     my_exams = TeacherExam.objects.filter(skill__created_by=teacher)
     my_results = ExamResult.objects.filter(exam__skill__created_by=teacher).exclude(student=request.user)
+
+    # تطبيق فلتر نوع المهارة
+    if f_skill_type and f_skill_type != 'all':
+        type_map = {'qodrat': 'skill', 'tahsili': 'lesson'}
+        mapped = type_map.get(f_skill_type, f_skill_type)
+        my_skills = my_skills.filter(content_type=mapped)
+        my_exams = my_exams.filter(skill__content_type=mapped)
+        my_results = my_results.filter(exam__skill__content_type=mapped)
+
+    # تطبيق فلتر الفصل (classroom)
+    if f_classroom and f_classroom != 'all':
+        student_names = list(Student.objects.filter(classroom__name=f_classroom).values_list('full_name', flat=True))
+        if student_names:
+            from django.db.models import Q as _Q
+            cond = _Q()
+            for n in student_names:
+                parts = n.split()
+                if parts and parts[0]:
+                    cond |= _Q(student__first_name=parts[0]) | _Q(student__username=n)
+            if cond:
+                my_results = my_results.filter(cond)
+            else:
+                my_results = my_results.none()
+        else:
+            my_results = my_results.none()
 
     # ─── تجميع نتائج الطالبات (متوسط أداء كل طالبة) ───────────
     # نجمع النتائج من مصدرين: طالبات بحساب User + طالبات بسجل Student (رصد يدوي)
@@ -119,17 +148,17 @@ def teacher_dashboard(request):
 
     excellent_students = [
         {'name': s['name'], 'pct': int(round(s['avg_pct'] or 0)),
-         'count': s['results_count']}
+         'count': s['results_count'], 'key': s['key']}
         for s in students_perf if (s['avg_pct'] or 0) >= 90
     ]
     mid_students = [
         {'name': s['name'], 'pct': int(round(s['avg_pct'] or 0)),
-         'count': s['results_count']}
+         'count': s['results_count'], 'key': s['key']}
         for s in students_perf if 50 <= (s['avg_pct'] or 0) < 90
     ]
     weak_students = [
         {'name': s['name'], 'pct': int(round(s['avg_pct'] or 0)),
-         'count': s['results_count']}
+         'count': s['results_count'], 'key': s['key']}
         for s in students_perf if (s['avg_pct'] or 0) < 50
     ]
 
@@ -290,6 +319,10 @@ def teacher_dashboard(request):
         'hist_bins_json': _json.dumps(hist_bins),
         'my_classrooms': teacher.classrooms.all().prefetch_related('students'),
         'my_exams_list': my_exams.select_related('skill'),
+        # ─── بيانات الفلاتر ───
+        'all_classrooms': ClassRoom.objects.all().order_by('name'),
+        'f_classroom': f_classroom,
+        'f_skill_type': f_skill_type,
     })
 
 
@@ -1108,6 +1141,98 @@ def get_classroom_students(request, classroom_id):
     students = cr.students.all().order_by('full_name')
     return JsonResponse({
         'students': [{'id': s.id, 'name': s.full_name} for s in students]
+    })
+
+
+@login_required
+def teacher_student_report_json(request):
+    """يرجع بيانات تقرير طالبة معيّنة — تحليل مهارات + سجل اختبارات."""
+    if not check_teacher(request):
+        return JsonResponse({'error': 'غير مصرّح'}, status=403)
+
+    teacher = get_teacher(request)
+    key = request.GET.get('key', '')  # u_123 or sr_456
+
+    if not key:
+        return JsonResponse({'error': 'مفتاح الطالبة مطلوب'}, status=400)
+
+    # بناء queryset النتائج حسب نوع المفتاح
+    my_results = ExamResult.objects.filter(exam__skill__created_by=teacher)
+
+    if key.startswith('u_'):
+        try:
+            student_id = int(key[2:])
+        except ValueError:
+            return JsonResponse({'error': 'مفتاح غير صالح'}, status=400)
+        qs = my_results.filter(student_id=student_id).select_related('exam', 'exam__skill')
+    elif key.startswith('sr_'):
+        try:
+            sr_id = int(key[3:])
+        except ValueError:
+            return JsonResponse({'error': 'مفتاح غير صالح'}, status=400)
+        qs = my_results.filter(student_record_id=sr_id).select_related('exam', 'exam__skill')
+    else:
+        return JsonResponse({'error': 'مفتاح غير معروف'}, status=400)
+
+    # ── سجل الاختبارات ──
+    exams_list = []
+    for r in qs.order_by('-submitted_at'):
+        exams_list.append({
+            'exam_name': r.exam.skill.title if r.exam.skill else (r.exam.title or '—'),
+            'exam_type': r.exam.get_exam_type_display() if hasattr(r.exam, 'get_exam_type_display') else r.exam.exam_type,
+            'percentage': float(r.percentage or 0),
+            'passed': r.passed,
+            'date': r.submitted_at.strftime('%Y-%m-%d') if r.submitted_at else '—',
+            'score': f'{r.score or 0}/{r.total or 0}',
+        })
+
+    # ── تحليل المهارات ──
+    from collections import defaultdict
+    skill_bucket = defaultdict(lambda: {'correct': 0, 'total': 0})
+    for ans in StudentAnswer.objects.filter(result__in=qs).select_related('question'):
+        name = (ans.question.target_skill_name or 'غير محدّدة').strip() or 'غير محدّدة'
+        skill_bucket[name]['total'] += 1
+        if ans.is_correct:
+            skill_bucket[name]['correct'] += 1
+
+    skills = []
+    mastered = 0
+    needs = 0
+    for name, v in skill_bucket.items():
+        if v['total'] == 0:
+            continue
+        pct = round(100 * v['correct'] / v['total'])
+        skills.append({'name': name, 'pct': pct, 'correct': v['correct'], 'total': v['total']})
+        if pct >= 70:
+            mastered += 1
+        else:
+            needs += 1
+    skills.sort(key=lambda r: -r['pct'])
+
+    # ── مقارنة قبلي/بعدي ──
+    pre_post = {}
+    for r in qs:
+        sk_name = r.exam.skill.title if r.exam.skill else '—'
+        if sk_name not in pre_post:
+            pre_post[sk_name] = {'pre': None, 'post': None}
+        if r.exam.exam_type == 'pre':
+            pre_post[sk_name]['pre'] = float(r.percentage or 0)
+        elif r.exam.exam_type == 'post':
+            pre_post[sk_name]['post'] = float(r.percentage or 0)
+    pre_post_list = [
+        {'skill': k, 'pre': v['pre'], 'post': v['post'],
+         'improvement': round(v['post'] - v['pre'], 1) if v['pre'] is not None and v['post'] is not None else None}
+        for k, v in pre_post.items()
+        if v['pre'] is not None or v['post'] is not None
+    ]
+
+    return JsonResponse({
+        'exams': exams_list,
+        'skills': skills,
+        'mastered': mastered,
+        'needs': needs,
+        'pre_post': pre_post_list,
+        'total_exams': len(exams_list),
     })
 
 
