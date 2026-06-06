@@ -1,5 +1,13 @@
 from django.contrib import admin
-from .models import ExamResult, ClassSession
+from .models import ExamResult, ClassSession, SkillStandard
+
+
+@admin.register(SkillStandard)
+class SkillStandardAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name', 'track', 'order', 'is_active')
+    list_filter = ('track', 'is_active')
+    search_fields = ('code', 'name')
+    ordering = ('track', 'order')
 
 
 @admin.register(ExamResult)

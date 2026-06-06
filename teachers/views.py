@@ -10,7 +10,7 @@ from students.models import Student, ClassRoom
 from .models import (
     Teacher, TeacherSkill, TeacherSkillContent,
     TeacherExam, TeacherQuestion, ExamResult,
-    StudentAnswer, ClassSession
+    StudentAnswer, ClassSession, SkillStandard
 )
 
 
@@ -500,6 +500,14 @@ def add_skill_complete(request):
         for i, q in enumerate(items, start=1):
             if not isinstance(q, dict):
                 continue
+            # ربط المهارة المعيارية إن وُجدت
+            ss_obj = None
+            ss_id = q.get('skill_standard_id', '')
+            if ss_id:
+                try:
+                    ss_obj = SkillStandard.objects.get(id=int(ss_id))
+                except (SkillStandard.DoesNotExist, ValueError):
+                    pass
             objs.append(TeacherQuestion(
                 exam=exam,
                 order=i,
@@ -510,6 +518,7 @@ def add_skill_complete(request):
                 option_d_plain=q.get('d', ''),
                 correct_answer=(q.get('correct') or 'A').upper()[:1],
                 target_skill_name=q.get('skill', ''),
+                skill_standard=ss_obj,
                 feedback_plain=q.get('feedback', ''),
             ))
             # تجميع بيانات الصور (data:URL) إن وُجدت
@@ -697,6 +706,15 @@ def add_question(request, exam_id):
         # ────────────────────────────
 
         order = exam.questions.count() + 1
+        # ربط المهارة المعيارية (إن اختارت)
+        skill_standard_id = request.POST.get('skill_standard', '')
+        skill_standard_obj = None
+        if skill_standard_id:
+            try:
+                skill_standard_obj = SkillStandard.objects.get(id=int(skill_standard_id))
+            except (SkillStandard.DoesNotExist, ValueError):
+                pass
+
         q = TeacherQuestion.objects.create(
             exam=exam, order=order,
             question_plain=request.POST.get('question_plain', '').strip(),
@@ -706,6 +724,7 @@ def add_question(request, exam_id):
             option_d_plain=request.POST.get('option_d_plain', ''),
             correct_answer=request.POST.get('correct_answer', 'A'),
             target_skill_name=request.POST.get('target_skill_name', ''),
+            skill_standard=skill_standard_obj,
             feedback_plain=request.POST.get('feedback_plain', ''),
         )
         # دعم الصور للسؤال + الخيارات (يقبل ملف أو data:URL من OCR)
@@ -744,9 +763,13 @@ def add_question(request, exam_id):
         .order_by('created_by__full_name', 'title')
     )
 
+    # المهارات المعيارية لعرضها في القائمة المنسدلة
+    skill_standards = SkillStandard.objects.filter(is_active=True).order_by('track', 'order')
+
     return render(request, 'teachers/add_question.html', {
         'exam': exam, 'teacher': teacher,
         'school_skills': school_skills,
+        'skill_standards': skill_standards,
         'questions': exam.questions.order_by('order'),
     })
 
@@ -1033,6 +1056,15 @@ def edit_question(request, exam_id, q_id):
         q.correct_answer = request.POST.get('correct_answer', q.correct_answer).upper()[:1]
         q.target_skill_name = request.POST.get('target_skill_name', q.target_skill_name)
         q.feedback_plain = request.POST.get('feedback_plain', q.feedback_plain)
+        # ربط المهارة المعيارية
+        skill_standard_id = request.POST.get('skill_standard', '')
+        if skill_standard_id:
+            try:
+                q.skill_standard = SkillStandard.objects.get(id=int(skill_standard_id))
+            except (SkillStandard.DoesNotExist, ValueError):
+                pass
+        else:
+            q.skill_standard = None
         # دعم الصور للسؤال + الخيارات (ملف أو data:URL)
         from core.views import _attach_image as _att
         upload_results = {}
@@ -1047,8 +1079,12 @@ def edit_question(request, exam_id, q_id):
         messages.success(request, '✅ تم حفظ السؤال')
         return redirect('view_skill', skill_id=exam.skill_id)
 
+    # المهارات المعيارية لعرضها في القائمة المنسدلة
+    skill_standards = SkillStandard.objects.filter(is_active=True).order_by('track', 'order')
+
     return render(request, 'teachers/edit_question.html', {
         'q': q, 'exam': exam, 'teacher': teacher,
+        'skill_standards': skill_standards,
     })
 
 
@@ -1141,6 +1177,180 @@ def get_classroom_students(request, classroom_id):
     students = cr.students.all().order_by('full_name')
     return JsonResponse({
         'students': [{'id': s.id, 'name': s.full_name} for s in students]
+    })
+
+
+@login_required
+def skill_standards_json(request):
+    """يرجع المهارات المعيارية — يمكن فلترتها بالمسار."""
+    track = request.GET.get('track', '')
+    qs = SkillStandard.objects.filter(is_active=True)
+    if track:
+        qs = qs.filter(track=track)
+    data = [{'id': s.id, 'code': s.code, 'name': s.name, 'track': s.track,
+             'track_label': s.track_label, 'description': s.description}
+            for s in qs]
+    return JsonResponse({'skills': data})
+
+
+@login_required
+def gap_analysis_json(request):
+    """
+    محرك تحليل الفجوات — يحسب نسبة الإتقان لكل مهارة معيارية.
+    GET params:
+      scope  = student | classroom | school
+      key    = u_123 | sr_456 | classroom_id (حسب scope)
+      track  = qodrat_kamy | qodrat_lafzy | tahsili_math | ... (اختياري)
+    يرجع: { skills: [{code, name, track, track_label, total, correct, mastery, status}], summary: {...} }
+    """
+    if not check_teacher_or_admin(request):
+        return JsonResponse({'error': 'غير مصرّح'}, status=403)
+
+    scope = request.GET.get('scope', 'school')
+    key = request.GET.get('key', '')
+    track_filter = request.GET.get('track', '')
+
+    teacher = get_teacher(request)
+
+    # بناء queryset الإجابات المرتبطة بمعلمة
+    answers_qs = StudentAnswer.objects.filter(
+        question__skill_standard__isnull=False
+    )
+
+    # تحديد النطاق
+    if scope == 'student':
+        if key.startswith('u_'):
+            try:
+                uid = int(key[2:])
+                answers_qs = answers_qs.filter(result__student_id=uid)
+            except ValueError:
+                return JsonResponse({'error': 'مفتاح غير صالح'}, status=400)
+        elif key.startswith('sr_'):
+            try:
+                sr_id = int(key[3:])
+                answers_qs = answers_qs.filter(result__student_record_id=sr_id)
+            except ValueError:
+                return JsonResponse({'error': 'مفتاح غير صالح'}, status=400)
+        else:
+            return JsonResponse({'error': 'مفتاح طالبة مطلوب'}, status=400)
+    elif scope == 'classroom':
+        if key:
+            try:
+                classroom_id = int(key)
+                classroom = ClassRoom.objects.get(id=classroom_id)
+                student_ids = classroom.students.values_list('user_id', flat=True)
+                sr_ids = classroom.students.values_list('id', flat=True)
+                answers_qs = answers_qs.filter(
+                    Q(result__student_id__in=student_ids) | Q(result__student_record_id__in=sr_ids)
+                )
+            except (ValueError, ClassRoom.DoesNotExist):
+                return JsonResponse({'error': 'فصل غير موجود'}, status=400)
+    # scope == 'school' → no extra filter
+
+    # فلترة بالمسار
+    if track_filter:
+        answers_qs = answers_qs.filter(question__skill_standard__track=track_filter)
+
+    # تجميع النتائج حسب المهارة المعيارية
+    from django.db.models import Sum, Case, When, IntegerField, Value
+    skill_stats = (
+        answers_qs
+        .values(
+            'question__skill_standard__id',
+            'question__skill_standard__code',
+            'question__skill_standard__name',
+            'question__skill_standard__track',
+        )
+        .annotate(
+            total=Count('id'),
+            correct=Sum(Case(When(is_correct=True, then=Value(1)), default=Value(0), output_field=IntegerField())),
+        )
+        .order_by('question__skill_standard__track', 'question__skill_standard__order')
+    )
+
+    # بناء الاستجابة
+    TRACK_LABELS = dict(SkillStandard.TRACK_CHOICES)
+    skills_data = []
+    total_q = 0
+    total_correct = 0
+    mastered = 0  # >= 70%
+    developing = 0  # 40-69%
+    weak = 0  # < 40%
+
+    for s in skill_stats:
+        t = s['total'] or 0
+        c = s['correct'] or 0
+        mastery = round((c / t * 100) if t > 0 else 0, 1)
+        trk = s['question__skill_standard__track'] or ''
+
+        if mastery >= 70:
+            status = 'mastered'
+            mastered += 1
+        elif mastery >= 40:
+            status = 'developing'
+            developing += 1
+        else:
+            status = 'weak'
+            weak += 1
+
+        total_q += t
+        total_correct += c
+
+        skills_data.append({
+            'id': s['question__skill_standard__id'],
+            'code': s['question__skill_standard__code'],
+            'name': s['question__skill_standard__name'],
+            'track': trk,
+            'track_label': TRACK_LABELS.get(trk, trk),
+            'total': t,
+            'correct': c,
+            'mastery': mastery,
+            'status': status,
+        })
+
+    # ترتيب: الأضعف أولاً (لتحديد الفجوات)
+    skills_data.sort(key=lambda x: x['mastery'])
+
+    # المهارات المعيارية التي لا يوجد لها إجابات (فجوات غير مُختبرة)
+    tested_ids = {s['id'] for s in skills_data}
+    untested_qs = SkillStandard.objects.filter(is_active=True).exclude(id__in=tested_ids)
+    if track_filter:
+        untested_qs = untested_qs.filter(track=track_filter)
+    untested = [
+        {
+            'id': s.id, 'code': s.code, 'name': s.name,
+            'track': s.track, 'track_label': s.track_label,
+            'total': 0, 'correct': 0, 'mastery': 0, 'status': 'untested',
+        }
+        for s in untested_qs.order_by('track', 'order')
+    ]
+
+    overall_mastery = round((total_correct / total_q * 100) if total_q > 0 else 0, 1)
+
+    # توصيات
+    recommendations = []
+    weak_skills = [s for s in skills_data if s['status'] == 'weak']
+    if weak_skills:
+        recommendations.append(f"يوجد {len(weak_skills)} مهارة ضعيفة تحتاج تركيز فوري")
+        for ws in weak_skills[:5]:
+            recommendations.append(f"• [{ws['code']}] {ws['name']} — نسبة الإتقان: {ws['mastery']}%")
+    if untested:
+        recommendations.append(f"يوجد {len(untested)} مهارة لم تُختبر بعد")
+
+    return JsonResponse({
+        'skills': skills_data,
+        'untested': untested,
+        'summary': {
+            'total_questions': total_q,
+            'total_correct': total_correct,
+            'overall_mastery': overall_mastery,
+            'mastered_count': mastered,
+            'developing_count': developing,
+            'weak_count': weak,
+            'untested_count': len(untested),
+            'total_standards': len(skills_data) + len(untested),
+        },
+        'recommendations': recommendations,
     })
 
 

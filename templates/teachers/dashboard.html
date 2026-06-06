@@ -902,6 +902,7 @@ body {
     <button class="nb" onclick="gp('sk',this);closeMobileMenu()">المهارات</button>
     <button class="nb" onclick="gp('ex',this);closeMobileMenu()">الاختبارات</button>
     <button class="nb" onclick="gp('an',this);closeMobileMenu()">الإحصاءات</button>
+    <button class="nb" onclick="gp('ga',this);closeMobileMenu()">تحليل الفجوات 🎯</button>
     <button class="nb" onclick="gp('al',this);closeMobileMenu()">التنبيهات<span class="notif"></span></button>
     <button class="nb" onclick="gp('pr',this);closeMobileMenu()">التنبؤ 🔮</button>
     <button class="nb" onclick="gp('ac',this);closeMobileMenu()">الإنجازات 🏆</button>
@@ -1774,6 +1775,95 @@ body {
 </div>
 
 <!-- ═══════════════════════════════════════════════
+     صفحة: تحليل الفجوات
+═══════════════════════════════════════════════ -->
+<div class="pg" id="pg-ga">
+  <div class="card">
+    <div class="ch">
+      <span class="ct">🎯 تحليل فجوات المهارات — اكتشاف المهارات المفقودة</span>
+      <div class="ca">
+        <select class="fsel" id="gaScope" onchange="loadGapAnalysis()" style="min-width:100px">
+          <option value="school">المدرسة كاملة</option>
+          {% for cls in all_classrooms %}
+          <option value="classroom_{{ cls.id }}">{{ cls.name }}</option>
+          {% endfor %}
+        </select>
+        <select class="fsel" id="gaTrack" onchange="loadGapAnalysis()" style="min-width:110px">
+          <option value="">جميع المسارات</option>
+          <option value="qodrat_kamy">قدرات — كمي</option>
+          <option value="qodrat_lafzy">قدرات — لفظي</option>
+          <option value="tahsili_math">تحصيلي — رياضيات</option>
+          <option value="tahsili_bio">تحصيلي — أحياء</option>
+          <option value="tahsili_chem">تحصيلي — كيمياء</option>
+          <option value="tahsili_phys">تحصيلي — فيزياء</option>
+        </select>
+        <button class="cab" onclick="loadGapAnalysis()">تحديث</button>
+        <button class="cab" onclick="window.print()">طباعة</button>
+      </div>
+    </div>
+    <div class="cb">
+      <!-- ملخص -->
+      <div id="gaSummary" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+        <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--green)" id="gaMastered">—</div>
+          <div style="font-size:10px;color:var(--text3)">متقنة</div>
+        </div>
+        <div style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--orange)" id="gaDeveloping">—</div>
+          <div style="font-size:10px;color:var(--text3)">تحت التطوير</div>
+        </div>
+        <div style="background:rgba(240,82,82,0.08);border:1px solid rgba(240,82,82,0.2);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--red)" id="gaWeak">—</div>
+          <div style="font-size:10px;color:var(--text3)">ضعيفة (فجوة)</div>
+        </div>
+        <div style="background:rgba(148,163,184,0.08);border:1px solid rgba(148,163,184,0.2);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--text3)" id="gaUntested">—</div>
+          <div style="font-size:10px;color:var(--text3)">لم تُختبر</div>
+        </div>
+      </div>
+
+      <!-- شريط الإتقان الإجمالي -->
+      <div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-bottom:4px">
+          <span>نسبة الإتقان الإجمالية</span>
+          <span id="gaOverall" style="font-weight:700;color:var(--green)">—</span>
+        </div>
+        <div style="background:var(--card2);border-radius:6px;height:10px;overflow:hidden">
+          <div id="gaOverallBar" style="height:100%;border-radius:6px;background:linear-gradient(90deg,var(--red),var(--orange),var(--green));width:0%;transition:width 0.5s"></div>
+        </div>
+      </div>
+
+      <!-- جدول المهارات -->
+      <div style="font-size:10px;color:var(--text3);margin-bottom:6px;font-weight:600">📊 تفصيل المهارات (مرتبة من الأضعف):</div>
+      <div style="max-height:400px;overflow-y:auto">
+        <table class="tb" id="gaTable">
+          <thead>
+            <tr>
+              <th style="width:60px">الرمز</th>
+              <th>المهارة</th>
+              <th style="width:80px">المسار</th>
+              <th style="width:60px">أسئلة</th>
+              <th style="width:60px">صحيحة</th>
+              <th style="width:80px">نسبة الإتقان</th>
+              <th style="width:80px">الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="gaBody">
+            <tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">اضغطي "تحديث" لعرض التحليل</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- التوصيات -->
+      <div id="gaRecommendations" style="margin-top:14px;display:none">
+        <div style="font-size:10px;color:var(--text3);margin-bottom:6px;font-weight:600">💡 التوصيات:</div>
+        <div id="gaRecBody" style="background:rgba(245,166,35,0.05);border:1px solid rgba(245,166,35,0.15);border-radius:8px;padding:10px;font-size:11px;color:var(--text2);line-height:1.9"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
      MODAL — تقرير الطالبة المفصّل
 ═══════════════════════════════════════════════ -->
 <div class="mbg" id="rModal">
@@ -2340,6 +2430,92 @@ function resetSettings(){
   if(color) setPrimaryColor(color);
   if(fontSize) setFontSize(fontSize);
 })();
+
+// ═══════════════════════════════════════════════
+// تحليل الفجوات (Gap Analysis)
+// ═══════════════════════════════════════════════
+async function loadGapAnalysis(){
+  const scopeEl = document.getElementById('gaScope');
+  const trackEl = document.getElementById('gaTrack');
+  const scopeVal = scopeEl?.value || 'school';
+  const trackVal = trackEl?.value || '';
+
+  let url = '/teachers/api/gap-analysis.json?';
+  if(scopeVal === 'school'){
+    url += 'scope=school';
+  } else if(scopeVal.startsWith('classroom_')){
+    url += 'scope=classroom&key=' + scopeVal.replace('classroom_','');
+  }
+  if(trackVal) url += '&track=' + trackVal;
+
+  const body = document.getElementById('gaBody');
+  body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">جاري التحليل...</td></tr>';
+
+  try{
+    const resp = await fetch(url);
+    if(!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+
+    // ملخص
+    const s = data.summary || {};
+    document.getElementById('gaMastered').textContent = s.mastered_count || 0;
+    document.getElementById('gaDeveloping').textContent = s.developing_count || 0;
+    document.getElementById('gaWeak').textContent = s.weak_count || 0;
+    document.getElementById('gaUntested').textContent = s.untested_count || 0;
+    document.getElementById('gaOverall').textContent = (s.overall_mastery || 0) + '%';
+    document.getElementById('gaOverallBar').style.width = (s.overall_mastery || 0) + '%';
+
+    // جدول المهارات
+    const skills = (data.skills || []).concat(data.untested || []);
+    if(!skills.length){
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">لا توجد بيانات — تأكدي من ربط المهارات المعيارية بأسئلة الاختبارات</td></tr>';
+    } else {
+      body.innerHTML = skills.map(sk => {
+        const statusBadge = {
+          mastered: '<span class="bd bp">متقنة ✓</span>',
+          developing: '<span class="bd bo">تحت التطوير</span>',
+          weak: '<span class="bd" style="background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.2)">ضعيفة ✗</span>',
+          untested: '<span class="bd" style="background:rgba(148,163,184,0.1);color:var(--text3);border:1px solid rgba(148,163,184,0.2)">لم تُختبر</span>',
+        };
+        const masteryColor = sk.mastery >= 70 ? 'var(--green)' : sk.mastery >= 40 ? 'var(--orange)' : 'var(--red)';
+        const masteryBar = sk.status === 'untested' ? '—' :
+          `<div style="display:flex;align-items:center;gap:4px"><div style="flex:1;background:var(--card2);border-radius:3px;height:6px;overflow:hidden"><div style="width:${sk.mastery}%;height:100%;background:${masteryColor};border-radius:3px"></div></div><span style="font-size:9px;font-weight:700;color:${masteryColor}">${sk.mastery}%</span></div>`;
+        return `<tr>
+          <td style="font-weight:700;color:var(--blue);font-size:10px">${sk.code}</td>
+          <td style="font-weight:600">${sk.name}</td>
+          <td style="font-size:9px;color:var(--text3)">${sk.track_label}</td>
+          <td style="text-align:center">${sk.total || '—'}</td>
+          <td style="text-align:center">${sk.status === 'untested' ? '—' : sk.correct}</td>
+          <td>${masteryBar}</td>
+          <td>${statusBadge[sk.status] || '—'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // التوصيات
+    const recs = data.recommendations || [];
+    const recDiv = document.getElementById('gaRecommendations');
+    const recBody = document.getElementById('gaRecBody');
+    if(recs.length){
+      recDiv.style.display = '';
+      recBody.innerHTML = recs.map(r => `<div>${r}</div>`).join('');
+    } else {
+      recDiv.style.display = 'none';
+    }
+  } catch(e){
+    body.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--red)">خطأ في التحليل: ${e.message}</td></tr>`;
+  }
+}
+// تحميل التحليل تلقائياً عند فتح التبويب
+const origGP = window.gp;
+if(origGP){
+  window.gp = function(id, btn){
+    origGP(id, btn);
+    if(id === 'ga' && document.getElementById('gaBody')?.children?.[0]?.children?.length <= 1){
+      loadGapAnalysis();
+    }
+  };
+}
 </script>
 {% endlocalize %}
 {% include "core/_theme_toggle.html" %}

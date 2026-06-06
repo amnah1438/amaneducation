@@ -1052,26 +1052,81 @@ function switchQTab(prefix, tab, btn){
   btn.classList.add('on');
 }
 
-function populateSkillDropdown(prefix){
+// ── كاش المهارات المعيارية (يُجلب من API مرة واحدة) ──
+let _skillStandardsCache = null;
+async function _fetchSkillStandards(){
+  if(_skillStandardsCache) return _skillStandardsCache;
+  try{
+    const resp = await fetch('/teachers/api/skill-standards.json');
+    if(resp.ok){
+      const data = await resp.json();
+      _skillStandardsCache = data.skills || [];
+    } else {
+      _skillStandardsCache = [];
+    }
+  } catch(e){ _skillStandardsCache = []; }
+  return _skillStandardsCache;
+}
+
+// ترجمة prefix/context → track
+function _getTrackForPrefix(prefix){
+  if(prefix === 'q-pre' || prefix === 'q-post'){
+    if(selectedQodratCategory === 'kamy') return 'qodrat_kamy';
+    if(selectedQodratCategory === 'lafzy') return 'qodrat_lafzy';
+    return ''; // all qodrat
+  }
+  if(prefix === 'bank'){
+    if(selectedBankType === 'qodrat_kamy') return 'qodrat_kamy';
+    if(selectedBankType === 'qodrat_lafzy') return 'qodrat_lafzy';
+    // تحصيلي banks
+    const tahMap = {math:'tahsili_math', physics:'tahsili_phys', chemistry:'tahsili_chem', biology:'tahsili_bio'};
+    if(tahMap[selectedBankType]) return tahMap[selectedBankType];
+    return '';
+  }
+  if(prefix === 't-post'){
+    // تحصيلي — نحدد من المادة المختارة
+    const subj = document.getElementById('t-subject')?.value || '';
+    const subjMap = {math:'tahsili_math', phys:'tahsili_phys', chem:'tahsili_chem', bio:'tahsili_bio'};
+    return subjMap[subj] || '';
+  }
+  return '';
+}
+
+async function populateSkillDropdown(prefix){
   const select = document.getElementById(`${prefix}-skill-select`);
   if(!select) return;
-  let skills = [];
-  // Show relevant skills based on context
-  if(prefix === 'q-pre' || prefix === 'q-post'){
-    // In qodrat wizard — show skills from the selected category
-    if(selectedQodratCategory === 'kamy') skills = skillsData.kamy;
-    else if(selectedQodratCategory === 'lafzy') skills = skillsData.lafzy;
-    else skills = skillsData.kamy.concat(skillsData.lafzy);
-  } else if(prefix === 'bank'){
-    // In bank — show based on bank type
-    if(selectedBankType === 'qodrat_kamy') skills = skillsData.kamy;
-    else if(selectedBankType === 'qodrat_lafzy') skills = skillsData.lafzy;
-    else skills = skillsData.kamy.concat(skillsData.lafzy);
-  } else {
-    skills = skillsData.kamy.concat(skillsData.lafzy);
+  const standards = await _fetchSkillStandards();
+  const track = _getTrackForPrefix(prefix);
+  // فلترة حسب المسار
+  let filtered = standards;
+  if(track) filtered = standards.filter(s => s.track === track);
+  // fallback: إن لم تكن هناك مهارات معيارية، استخدم البيانات القديمة
+  if(filtered.length === 0 && !track){
+    let skills = skillsData.kamy.concat(skillsData.lafzy);
+    select.innerHTML = '<option value="">-- اختر المهارة المستهدفة --</option>' +
+      skills.map(s => `<option value="${s}">${s}</option>`).join('');
+    return;
   }
-  select.innerHTML = '<option value="">-- اختر المهارة المستهدفة --</option>' +
-    skills.map(s => `<option value="${s}">${s}</option>`).join('');
+  // تجميع حسب المسار
+  const groups = {};
+  const trackLabels = {
+    'qodrat_kamy': 'قدرات — كمي', 'qodrat_lafzy': 'قدرات — لفظي',
+    'tahsili_math': 'تحصيلي — رياضيات', 'tahsili_bio': 'تحصيلي — أحياء',
+    'tahsili_chem': 'تحصيلي — كيمياء', 'tahsili_phys': 'تحصيلي — فيزياء'
+  };
+  filtered.forEach(s => {
+    if(!groups[s.track]) groups[s.track] = [];
+    groups[s.track].push(s);
+  });
+  let html = '<option value="">-- اختر المهارة المعيارية --</option>';
+  for(const [trk, items] of Object.entries(groups)){
+    html += `<optgroup label="${trackLabels[trk] || trk}">`;
+    items.forEach(s => {
+      html += `<option value="${s.id}" data-code="${s.code}">[${s.code}] ${s.name}</option>`;
+    });
+    html += '</optgroup>';
+  }
+  select.innerHTML = html;
 }
 
 function populateSkillDropdowns(){
@@ -1107,11 +1162,17 @@ function addQ(prefix){
     if(imgData) optImgs[l.toUpperCase()] = imgData;
   });
 
+  // استخراج skill_standard_id من القائمة المنسدلة
+  const selectEl = document.getElementById(`${prefix}-skill-select`);
+  const skillStdId = selectEl?.value || '';
+  const skillText = selectEl?.options?.[selectEl.selectedIndex]?.textContent?.trim() || skill;
+
   const q = {
     text: text,
     options: { A: getOpt('a'), B: getOpt('b'), C: getOpt('c'), D: getOpt('d') },
     correct: (currentAnswers[prefix] || 'A').toUpperCase(),
-    skill: skill,
+    skill: skillText,
+    skill_standard_id: skillStdId,
     feedback: feedback
   };
   // أضف الصور إن وُجدت
@@ -1708,6 +1769,7 @@ function formatQsForBackend(list){
       d: stripHtml(q.options?.D || ''),
       correct: (q.correct||'A').toUpperCase(),
       skill: q.skill||'',
+      skill_standard_id: q.skill_standard_id||'',
       feedback: q.feedback||''
     };
     // أضف الصور كـ data:URL إن وُجدت

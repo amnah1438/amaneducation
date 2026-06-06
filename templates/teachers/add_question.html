@@ -245,32 +245,22 @@ select.fi option{background:var(--card2)}
             </select>
           </div>
           <div class="fg">
-            <label class="fl">المهارة / الدرس المستهدفة *
-              {% if exam.exam_type == 'bank' %}<span style="font-weight:400;color:var(--text3,#888);font-size:9px">— يمكنك اختيار مهارة أي معلمة</span>{% endif %}
+            <label class="fl">المهارة المعيارية المستهدفة *
+              <span style="font-weight:400;color:var(--text3,#888);font-size:9px">— لتحليل الفجوات بدقة</span>
             </label>
-            <select class="fi" name="target_skill_name" required>
-              <option value="">— اختاري المهارة —</option>
-              {% if exam.skill %}
-                <option value="{{ exam.skill.title }}" selected>📍 {{ exam.skill.title }} (الافتراضية)</option>
-              {% endif %}
-              {% if school_skills %}
-              <optgroup label="🎯 مهارات القدرات">
-                {% for sk in school_skills %}
-                  {% if sk.content_type == 'skill' %}
-                  <option value="{{ sk.title }}">{{ sk.title }} — ({{ sk.created_by.full_name|default:'—' }})</option>
-                  {% endif %}
+            <select class="fi" name="skill_standard" id="skillStandardSelect" required>
+              <option value="">— اختاري المهارة المعيارية —</option>
+              {% regroup skill_standards by get_track_display as track_list %}
+              {% for track in track_list %}
+              <optgroup label="{{ track.grouper }}">
+                {% for ss in track.list %}
+                <option value="{{ ss.id }}" data-track="{{ ss.track }}">[{{ ss.code }}] {{ ss.name }}</option>
                 {% endfor %}
               </optgroup>
-              <optgroup label="📚 دروس التحصيلي">
-                {% for sk in school_skills %}
-                  {% if sk.content_type == 'lesson' %}
-                  <option value="{{ sk.title }}">{{ sk.title }} — ({{ sk.created_by.full_name|default:'—' }})</option>
-                  {% endif %}
-                {% endfor %}
-              </optgroup>
-              {% endif %}
-              <option value="تأسيس عام">تأسيس عام</option>
+              {% endfor %}
             </select>
+            <!-- حقل مخفي للتوافق مع الكود القديم -->
+            <input type="hidden" name="target_skill_name" id="targetSkillHidden">
           </div>
           <div class="fg">
             <label class="fl">مستوى الصعوبة</label>
@@ -637,7 +627,43 @@ function updateType(){
     badge.textContent = 'محرر علمي ✦ رموز ✦ صور';
     badge.className = 'bd be';
   }
+  // فلترة المهارات المعيارية حسب القسم المختار
+  filterSkillStandards(type);
 }
+
+// ── Skill Standards Filter ──
+const TRACK_MAP = {
+  kamy: 'qodrat_kamy', lafzy: 'qodrat_lafzy',
+  math: 'tahsili_math', phys: 'tahsili_phys',
+  chem: 'tahsili_chem', bio: 'tahsili_bio'
+};
+function filterSkillStandards(qType){
+  const select = document.getElementById('skillStandardSelect');
+  if(!select) return;
+  const track = TRACK_MAP[qType] || '';
+  const options = select.querySelectorAll('option[data-track]');
+  const optgroups = select.querySelectorAll('optgroup');
+  // إظهار/إخفاء الخيارات حسب المسار
+  options.forEach(opt => {
+    opt.style.display = (!track || opt.dataset.track === track) ? '' : 'none';
+    if(opt.style.display === 'none' && opt.selected) opt.selected = false;
+  });
+  // إظهار/إخفاء المجموعات
+  optgroups.forEach(og => {
+    const visible = Array.from(og.querySelectorAll('option')).some(o => o.style.display !== 'none');
+    og.style.display = visible ? '' : 'none';
+  });
+}
+// عند تغيير المهارة المعيارية — تحديث الحقل المخفي
+document.getElementById('skillStandardSelect')?.addEventListener('change', function(){
+  const sel = this.options[this.selectedIndex];
+  document.getElementById('targetSkillHidden').value = sel && sel.value ? sel.textContent.trim() : '';
+});
+// تطبيق الفلترة عند التحميل
+document.addEventListener('DOMContentLoaded', () => {
+  const qType = document.getElementById('qType')?.value || 'kamy';
+  filterSkillStandards(qType);
+});
 
 // ── Image upload ──
 function previewQImg(input){

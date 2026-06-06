@@ -206,8 +206,19 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       <div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--orange)"></span>تفاصيل إضافية</span></div>
       <div class="cb">
         <div class="fg">
-          <label class="fl">المهارة المرتبطة</label>
-          <input class="fi" name="target_skill_name" value="{{ q.target_skill_name }}">
+          <label class="fl">المهارة المعيارية المستهدفة <span style="font-weight:400;color:var(--text3);font-size:9px">— لتحليل الفجوات</span></label>
+          <select class="fi" name="skill_standard" id="skillStandardSelect">
+            <option value="">— اختاري المهارة المعيارية —</option>
+            {% regroup skill_standards by get_track_display as track_list %}
+            {% for track in track_list %}
+            <optgroup label="{{ track.grouper }}">
+              {% for ss in track.list %}
+              <option value="{{ ss.id }}" data-track="{{ ss.track }}" {% if q.skill_standard_id == ss.id %}selected{% endif %}>[{{ ss.code }}] {{ ss.name }}</option>
+              {% endfor %}
+            </optgroup>
+            {% endfor %}
+          </select>
+          <input type="hidden" name="target_skill_name" id="targetSkillHidden" value="{{ q.target_skill_name }}">
         </div>
         <div class="fg">
           <label class="fl">تغذية راجعة (اختياري)</label>
@@ -254,6 +265,12 @@ function prepareSubmit(){
 }
 document.getElementById('editForm').addEventListener('submit', function(e){
   prepareSubmit();
+});
+
+// ── عند تغيير المهارة المعيارية — تحديث الحقل المخفي ──
+document.getElementById('skillStandardSelect')?.addEventListener('change', function(){
+  const sel = this.options[this.selectedIndex];
+  document.getElementById('targetSkillHidden').value = sel && sel.value ? sel.textContent.trim() : '';
 });
 
 // ── Initialize preview on load ──

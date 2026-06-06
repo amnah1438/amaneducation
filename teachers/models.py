@@ -4,6 +4,47 @@ from ckeditor_uploader.fields import RichTextUploadingField
 from cloudinary.models import CloudinaryField
 
 
+# ═══════════════════════════════════════════════════════════════
+# شجرة المهارات المعيارية — معايير وطنية مُعرّفة مسبقاً
+# ═══════════════════════════════════════════════════════════════
+
+class SkillStandard(models.Model):
+    """
+    مهارة معيارية مُعرّفة مسبقاً (من معايير القدرات والتحصيلي).
+    تُستخدم لربط كل سؤال بمهارة محددة لتحليل الفجوات بدقة.
+    """
+    TRACK_CHOICES = [
+        ('qodrat_kamy', 'قدرات — كمي'),
+        ('qodrat_lafzy', 'قدرات — لفظي'),
+        ('tahsili_math', 'تحصيلي — رياضيات'),
+        ('tahsili_bio', 'تحصيلي — أحياء'),
+        ('tahsili_chem', 'تحصيلي — كيمياء'),
+        ('tahsili_phys', 'تحصيلي — فيزياء'),
+    ]
+
+    track = models.CharField(max_length=20, choices=TRACK_CHOICES, verbose_name="المسار")
+    code = models.CharField(max_length=20, unique=True, verbose_name="رمز المهارة",
+                            help_text="مثل: QK01, QL05, TM03")
+    name = models.CharField(max_length=200, verbose_name="اسم المهارة")
+    description = models.TextField(blank=True, verbose_name="وصف المهارة")
+    parent = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='children', verbose_name="المهارة الأم (اختياري)")
+    order = models.PositiveIntegerField(default=0, verbose_name="الترتيب")
+    is_active = models.BooleanField(default=True, verbose_name="مفعّلة")
+
+    class Meta:
+        verbose_name = "مهارة معيارية"
+        verbose_name_plural = "المهارات المعيارية"
+        ordering = ['track', 'order', 'name']
+
+    def __str__(self):
+        return f"[{self.code}] {self.name}"
+
+    @property
+    def track_label(self):
+        return dict(self.TRACK_CHOICES).get(self.track, self.track)
+
+
 class Teacher(models.Model):
     user = models.OneToOneField(
         User, on_delete=models.CASCADE,
@@ -126,7 +167,11 @@ class TeacherQuestion(models.Model):
     ]
 
     exam = models.ForeignKey(TeacherExam, on_delete=models.CASCADE, related_name="questions", verbose_name="الاختبار")
-    target_skill_name = models.CharField(max_length=200, blank=True, verbose_name="المهارة المستهدفة")
+    target_skill_name = models.CharField(max_length=200, blank=True, verbose_name="المهارة المستهدفة (نص حر — قديم)")
+    skill_standard = models.ForeignKey(
+        SkillStandard, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='questions', verbose_name="المهارة المعيارية"
+    )
     order = models.PositiveIntegerField(default=0, verbose_name="الترتيب")
 
     question_text = RichTextUploadingField(config_name='scientific_editor', blank=True, null=True, verbose_name="نص السؤال (مع رموز)")
