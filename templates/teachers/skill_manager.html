@@ -939,6 +939,8 @@ function startQodratWizard(){
   questions['q-pre'] = [];
   questions['q-post'] = [];
 
+  // مسح الكاش لضمان جلب أحدث المهارات
+  _skillStandardsCache = null;
   buildQEditor('q-pre', 'q-pre-editor', 'المهارة المعيارية');
   buildQEditor('q-post', 'q-post-editor', 'المهارة المعيارية');
   goQStep(1);
@@ -974,6 +976,8 @@ function startTahsiliWizard(){
   // Reset questions for this lesson
   questions['t-post'] = [];
 
+  // مسح الكاش لضمان جلب أحدث المهارات
+  _skillStandardsCache = null;
   buildQEditor('t-post', 't-post-editor', 'المهارة المعيارية');
   goTStep(1);
 }
@@ -996,20 +1000,9 @@ function selectBank(type, name){
   // Reset questions for this bank
   questions['bank'] = [];
 
-  // Use "الدرس المرتبط" for tahsili banks, "المهارة المرتبطة" for qodrat banks
-  var isTahsiliBank = ['math','physics','chemistry','biology','english','arabic'].indexOf(type) !== -1;
+  // مسح الكاش لضمان جلب أحدث المهارات
+  _skillStandardsCache = null;
   buildQEditor('bank', 'bank-editor', 'المهارة المعيارية');
-
-  // Populate skill dropdown based on bank type
-  const select = document.getElementById('bank-skill-select');
-  if(select){
-    let skills = [];
-    if(type === 'qodrat_kamy') skills = skillsData.kamy;
-    else if(type === 'qodrat_lafzy') skills = skillsData.lafzy;
-    else skills = skillsData.kamy.concat(skillsData.lafzy);
-    select.innerHTML = '<option value="">-- اختر المهارة المستهدفة --</option>' +
-      skills.map(s => `<option value="${s}">${s}</option>`).join('');
-  }
 }
 
 function goBackFromBank(){
