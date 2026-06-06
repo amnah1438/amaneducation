@@ -870,9 +870,7 @@ let selectedQodratCategory = null;
 async function selectSkillCategory(category){
   selectedQodratCategory = category;
   const container = document.getElementById('q-skill-dropdown');
-  const form = document.getElementById('q-new-skill-form');
   container.classList.add('show');
-  form.style.display = 'none';
 
   // Set skill type automatically
   const typeSelect = document.getElementById('q-skill-type');
@@ -886,7 +884,8 @@ async function selectSkillCategory(category){
   const select = document.getElementById('q-skill-select');
   select.innerHTML = '<option value="">جاري التحميل...</option>';
 
-  // جلب المهارات المعيارية من API حسب المسار
+  // جلب المهارات المعيارية من API حسب المسار (مسح الكاش لتحديث بعد الإضافة)
+  _skillStandardsCache = null;
   const track = category === 'kamy' ? 'qodrat_kamy' : 'qodrat_lafzy';
   const standards = await _fetchSkillStandards();
   const filtered = standards.filter(s => s.track === track);
@@ -949,9 +948,9 @@ function openNewSkillWizard(){
   document.getElementById('q-step0').style.display = 'block';
   document.getElementById('q-wizard-wrap').style.display = 'none';
   document.getElementById('q-skill-dropdown').classList.remove('show');
-  document.getElementById('q-new-skill-form').style.display = 'none';
   document.getElementById('q-skill-select').value = '';
-  switchSection('qodrat', document.querySelector('.main-tab.on'));
+  selectedQodratCategory = null;
+  switchSection('qodrat', document.querySelector('.main-tab.t-blue'));
 }
 
 function goQStep(step){
@@ -1962,14 +1961,13 @@ function editSkillInline(id, title, contentType, skillType, targetClasses, descr
     if(targetEl) targetEl.value = targetClasses || 'جميع الفصول';
     var descEl = document.getElementById('q-desc');
     if(descEl) descEl.value = description || '';
-    // Show new skill form and hide skill selection
+    // Show skill selection and auto-start wizard
     document.getElementById('q-step0').classList.add('on');
-    var dropdown = document.getElementById('q-skill-dropdown');
-    if(dropdown) dropdown.classList.remove('show');
-    var newForm = document.getElementById('q-new-skill-form');
-    if(newForm) newForm.style.display = 'block';
-    // Show editing indicator
-    flashMiniToast('✏️ تعديل المهارة: ' + title + ' — عدّلي البيانات ثم اضغطي التالي');
+    document.getElementById('q-title').value = title;
+    document.getElementById('q-skill-type').value = skillType;
+    // Auto-start the wizard with this skill
+    startQodratWizard();
+    flashMiniToast('✏️ تعديل المهارة: ' + title);
   } else {
     // Switch to tahsili section
     switchSection('tahsili', document.querySelector('.main-tab.t-orange'));
