@@ -464,33 +464,24 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 
           <div class="skill-dropdown-container" id="q-skill-dropdown">
             <div class="fg">
-              <label class="fl">اختر مهارة من القائمة أو أضف جديدة</label>
+              <label class="fl">اختري المهارة المعيارية</label>
               <select class="fi" id="q-skill-select" onchange="selectExistingSkill('q')">
-                <option value="">-- اختر مهارة موجودة --</option>
+                <option value="">-- اختري كمي أو لفظي أولاً --</option>
               </select>
             </div>
             <div style="display:flex;gap:8px;margin-bottom:14px">
-              <button type="button" class="btn btn-b btn-sm" style="flex:1" onclick="goToNewSkill('q')">➕ أضف مهارة جديدة</button>
-              <button type="button" class="btn btn-g btn-sm" style="flex:1" onclick="proceedWithSelectedSkill('q')" id="q-proceed-btn" disabled>التالي ←</button>
+              <div class="fg" style="flex:1;margin:0">
+                <label class="fl">الفصل المستهدف</label>
+                <select class="fi" id="q-target-class"><option value="جميع الفصول">📌 جميع الفصول</option>{% for cls in school_classrooms %}<option value="{{ cls.name }}">{{ cls.name }}</option>{% endfor %}</select>
+              </div>
+              <button type="button" class="btn btn-g btn-sm" style="align-self:flex-end;padding:10px 24px" onclick="proceedWithSelectedSkill('q')" id="q-proceed-btn" disabled>التالي ←</button>
             </div>
           </div>
 
-          <div id="q-new-skill-form" style="display:none">
-            <div class="g2">
-              <div class="fg"><label class="fl">اسم المهارة *</label><input class="fi" id="q-title" placeholder="مثال: الكسور الاعتيادية" required></div>
-              <div class="fg"><label class="fl">النوع *</label>
-                <select class="fi" id="q-skill-type"><option value="qodrat_lafzy">قدرات — لفظي</option><option value="qodrat_kamy">قدرات — كمي</option></select>
-              </div>
-              <div class="fg"><label class="fl">الفصل المستهدف</label>
-                <select class="fi" id="q-target-class"><option value="جميع الفصول">📌 جميع الفصول</option>{% for cls in school_classrooms %}<option value="{{ cls.name }}">{{ cls.name }}</option>{% endfor %}</select>
-              </div>
-              <div class="fg"><label class="fl">وصف مختصر</label><input class="fi" id="q-desc" placeholder="وصف اختياري..."></div>
-            </div>
-            <div class="btn-row" style="justify-content:flex-end">
-              <button type="button" class="btn btn-b btn-sm" onclick="goToSkillSelection('q')">← رجوع</button>
-              <button type="button" class="btn btn-b" onclick="startQodratWizard()">التالي — الاختبار القبلي ←</button>
-            </div>
-          </div>
+          <!-- Hidden fields for backward compatibility -->
+          <input type="hidden" id="q-title">
+          <input type="hidden" id="q-skill-type">
+          <input type="hidden" id="q-desc">
         </div>
       </div>
     </div>
@@ -876,7 +867,7 @@ function switchSection(sec, btn){
 
 // ════ SKILL SELECTION FLOW ════
 let selectedQodratCategory = null;
-function selectSkillCategory(category){
+async function selectSkillCategory(category){
   selectedQodratCategory = category;
   const container = document.getElementById('q-skill-dropdown');
   const form = document.getElementById('q-new-skill-form');
@@ -893,16 +884,24 @@ function selectSkillCategory(category){
   });
 
   const select = document.getElementById('q-skill-select');
-  select.innerHTML = '<option value="">-- اختر مهارة موجودة --</option>';
+  select.innerHTML = '<option value="">جاري التحميل...</option>';
 
-  if(skillsData[category].length === 0){
-    select.innerHTML = '<option value="" disabled>⚠️ لا توجد مهارات — أضف من تبويب 🎯 المهارات المعيارية</option>';
+  // جلب المهارات المعيارية من API حسب المسار
+  const track = category === 'kamy' ? 'qodrat_kamy' : 'qodrat_lafzy';
+  const standards = await _fetchSkillStandards();
+  const filtered = standards.filter(s => s.track === track);
+
+  if(filtered.length === 0){
+    select.innerHTML = '<option value="" disabled>⚠️ لا توجد مهارات — أضيفي من تبويب 🎯 المهارات المعيارية</option>';
     document.getElementById('q-proceed-btn').disabled = true;
   } else {
-    skillsData[category].forEach(skill => {
+    select.innerHTML = '<option value="">-- اختري مهارة معيارية --</option>';
+    filtered.forEach(s => {
       let opt = document.createElement('option');
-      opt.value = skill;
-      opt.textContent = skill;
+      opt.value = s.name;
+      opt.textContent = `[${s.code}] ${s.name}`;
+      opt.dataset.code = s.code;
+      opt.dataset.id = s.id;
       select.appendChild(opt);
     });
   }
@@ -915,28 +914,16 @@ function selectExistingSkill(mode){
 }
 
 function proceedWithSelectedSkill(mode){
-  const skill = document.getElementById('q-skill-select').value;
+  const select = document.getElementById('q-skill-select');
+  const skill = select.value;
   if(!skill) return;
   if(mode === 'q'){
     document.getElementById('q-title').value = skill;
+    // Set skill type from selectedQodratCategory
+    document.getElementById('q-skill-type').value = selectedQodratCategory === 'kamy' ? 'qodrat_kamy' : 'qodrat_lafzy';
+    document.getElementById('q-desc').value = '';
     startQodratWizard();
   }
-}
-
-function goToNewSkill(mode){
-  const container = document.getElementById('q-skill-dropdown');
-  const form = document.getElementById('q-new-skill-form');
-  container.classList.remove('show');
-  form.style.display = 'block';
-}
-
-function goToSkillSelection(mode){
-  const container = document.getElementById('q-skill-dropdown');
-  const form = document.getElementById('q-new-skill-form');
-  container.classList.add('show');
-  form.style.display = 'none';
-  document.getElementById('q-skill-select').value = '';
-  document.getElementById('q-proceed-btn').disabled = true;
 }
 
 // ════ QODRAT WIZARD ════
