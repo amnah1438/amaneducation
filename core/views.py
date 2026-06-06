@@ -34,6 +34,7 @@ from students.models import ClassRoom, Student
 from teachers.models import (
     ClassSession,
     ExamResult,
+    StudentAnswer,
     Teacher,
     TeacherExam,
     TeacherQuestion,
@@ -1030,6 +1031,23 @@ def admin_analytics_json(request):
     """يرجع التحليل المتقدم بناءً على الفلاتر."""
     from django.http import JsonResponse
     from datetime import timedelta
+
+    try:
+        return _admin_analytics_inner(request)
+    except Exception as exc:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({
+            'avg': None, 'attempts': 0, 'pass_pct': None, 'fail_pct': None,
+            'highest': None, 'lowest': None, 'improvement': None,
+            'descriptive': f'❌ خطأ في التحليل: {exc}',
+            'skills_mastered': 0, 'skills_needs': 0, 'skills': [], 'types': [],
+            'no_data': True,
+        }, status=200)
+
+
+def _admin_analytics_inner(request):
+    from django.http import JsonResponse
 
     scope = request.GET.get('scope', 'school')
     target_id = request.GET.get('id', '')
