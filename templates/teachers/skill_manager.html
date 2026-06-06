@@ -335,7 +335,6 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
   <div class="tnav">
     <a href="/teachers/dashboard/" class="tnb">📊 الداشبورد</a>
     <span class="tnb on">📚 المهارات</span>
-    <button class="tnb" onclick="openSkillsManager()" title="إدارة قائمة المهارات">⚙️ المهارات</button>
     {% include "core/_theme_toggle.html" %}
   </div>
   <div style="font-size:12px;color:var(--text2);font-weight:500" id="clk"></div>
@@ -836,42 +835,6 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
   </div>
 </div>
 
-<!-- Skills Manager Modal -->
-<div class="modal-overlay" id="skillsMgrModal">
-  <div class="card skill-mgmt-modal">
-    <div class="ch" style="justify-content:space-between">
-      <span class="ct"><span class="ct-dot" style="background:var(--purple)"></span> إدارة المهارات</span>
-      <button onclick="closeSkillsManager()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px">✕</button>
-    </div>
-    <div class="cb">
-      <div class="skill-tabs">
-        <button class="skill-tab on" onclick="switchSkillTab('kamy',this)">🔢 كمي</button>
-        <button class="skill-tab" onclick="switchSkillTab('lafzy',this)">📚 لفظي</button>
-      </div>
-
-      <div id="kamy-tab">
-        <div class="skill-list" id="kamy-list"></div>
-        <div class="skill-add-row">
-          <input type="text" class="skill-input" id="kamy-input" placeholder="أضف مهارة كمية جديدة...">
-          <button onclick="addSkillToList('kamy')">➕ إضافة</button>
-        </div>
-      </div>
-
-      <div id="lafzy-tab" style="display:none">
-        <div class="skill-list" id="lafzy-list"></div>
-        <div class="skill-add-row">
-          <input type="text" class="skill-input" id="lafzy-input" placeholder="أضف مهارة لفظية جديدة...">
-          <button onclick="addSkillToList('lafzy')">➕ إضافة</button>
-        </div>
-      </div>
-
-      <div class="btn-row" style="justify-content:flex-end;margin-top:20px">
-        <button type="button" class="btn btn-g" onclick="closeSkillsManager()">تم</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 // ── سايدبار الجوال ──
 function openMobileSidebar(){
@@ -933,7 +896,7 @@ function selectSkillCategory(category){
   select.innerHTML = '<option value="">-- اختر مهارة موجودة --</option>';
 
   if(skillsData[category].length === 0){
-    select.innerHTML = '<option value="" disabled>⚠️ لا توجد مهارات — أضف من زر ⚙️ المهارات أعلاه</option>';
+    select.innerHTML = '<option value="" disabled>⚠️ لا توجد مهارات — أضف من تبويب 🎯 المهارات المعيارية</option>';
     document.getElementById('q-proceed-btn').disabled = true;
   } else {
     skillsData[category].forEach(skill => {
@@ -990,8 +953,8 @@ function startQodratWizard(){
   questions['q-pre'] = [];
   questions['q-post'] = [];
 
-  buildQEditor('q-pre', 'q-pre-editor', 'المهارة المرتبطة');
-  buildQEditor('q-post', 'q-post-editor', 'المهارة المرتبطة');
+  buildQEditor('q-pre', 'q-pre-editor', 'المهارة المعيارية');
+  buildQEditor('q-post', 'q-post-editor', 'المهارة المعيارية');
   goQStep(1);
 }
 
@@ -1025,10 +988,7 @@ function startTahsiliWizard(){
   // Reset questions for this lesson
   questions['t-post'] = [];
 
-  buildQEditor('t-post', 't-post-editor', 'الدرس المرتبط');
-  // Hide skill select for tahsili - no skills, only lessons
-  var tSkillFg = document.getElementById('t-post-skill-select');
-  if(tSkillFg && tSkillFg.parentElement) tSkillFg.parentElement.style.display = 'none';
+  buildQEditor('t-post', 't-post-editor', 'المهارة المعيارية');
   goTStep(1);
 }
 
@@ -1052,7 +1012,7 @@ function selectBank(type, name){
 
   // Use "الدرس المرتبط" for tahsili banks, "المهارة المرتبطة" for qodrat banks
   var isTahsiliBank = ['math','physics','chemistry','biology','english','arabic'].indexOf(type) !== -1;
-  buildQEditor('bank', 'bank-editor', isTahsiliBank ? 'الدرس المرتبط' : 'المهارة المرتبطة');
+  buildQEditor('bank', 'bank-editor', 'المهارة المعيارية');
 
   // Populate skill dropdown based on bank type
   const select = document.getElementById('bank-skill-select');
@@ -1808,11 +1768,12 @@ function openSkillsManager(){
   loadSkillsData();
   updateSkillsList('kamy');
   updateSkillsList('lafzy');
-  document.getElementById('skillsMgrModal').classList.add('on');
+  // redirect to standards tab instead of old modal
+  switchSection('standards', document.querySelector('.main-tab.t-teal'));
 }
 
 function closeSkillsManager(){
-  document.getElementById('skillsMgrModal').classList.remove('on');
+  // no-op — old modal removed
 }
 
 function switchSkillTab(tab, btn){
