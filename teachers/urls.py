@@ -39,6 +39,7 @@ urlpatterns = [
     path('api/skill-standards.json', views.skill_standards_json, name='skill_standards_json'),
     path('api/skill-standards/manage/', views.manage_skill_standard, name='manage_skill_standard'),
     path('api/gap-analysis.json', views.gap_analysis_json, name='gap_analysis_json'),
+    path('api/stats.json', views.teacher_stats_json, name='teacher_stats_json'),
 
     # ─── Manual Score Entry ───────────────────────────────────
     path('manual-score/', views.manual_score_entry, name='manual_score_entry'),
