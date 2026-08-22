@@ -165,12 +165,7 @@ def cloud_raw_url(field_value):
         return val
     try:
         from cloudinary.utils import cloudinary_url
-        # استخدام signed URL لتجاوز قيود الوصول على raw files
-        url, _ = cloudinary_url(val, resource_type='raw', sign_url=True, type='authenticated')
-        if url:
-            return url
-        # محاولة بدون authenticated
-        url, _ = cloudinary_url(val, resource_type='raw', sign_url=True)
+        url, _ = cloudinary_url(val, resource_type='raw')
         return url or ''
     except Exception:
         return ''
