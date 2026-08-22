@@ -920,7 +920,11 @@ body.display-mode .card-t { font-size: 18px; }
     <div class="card-b">
       {% if teachers_impact %}
       <table class="tbl">
-        <thead><tr><th>الترتيب</th><th>المعلمة</th><th>المهارات</th><th>الاختبارات</th><th>الحصص</th><th>تفاعل الطالبات</th><th>متوسط الأثر</th><th>التصنيف</th></tr></thead>
+        <thead><tr>
+          <th>الترتيب</th><th>المعلمة</th><th>المهارات</th><th>الاختبارات</th>
+          <th>الحصص</th><th>تفاعل الطالبات</th>
+          <th>متوسط البعدي</th><th>التحسّن (قبلي→بعدي)</th><th>التصنيف</th>
+        </tr></thead>
         <tbody>
           {% for t in teachers_impact %}
           <tr>
@@ -936,10 +940,27 @@ body.display-mode .card-t { font-size: 18px; }
             <td>{{ t.sessions }}</td>
             <td>{{ t.engagement }}</td>
             <td>
-              <span class="bd {% if t.impact >= 70 %}bd-g{% elif t.impact >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.impact }}%</span>
+              {% if t.impact > 0 %}
+                <span class="bd {% if t.impact >= 70 %}bd-g{% elif t.impact >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.impact }}%</span>
+              {% else %}
+                <span class="bd" style="background:rgba(148,163,184,0.15);color:var(--text3)">—</span>
+              {% endif %}
             </td>
             <td>
-              {% if forloop.counter == 1 and t.impact > 0 %}<span class="bd bd-g">⭐ الأعلى تأثيراً</span>
+              {% if t.has_improvement %}
+                {% if t.improvement > 0 %}
+                  <span class="bd bd-g">▲ +{{ t.improvement }}%</span>
+                {% elif t.improvement < 0 %}
+                  <span class="bd bd-r">▼ {{ t.improvement }}%</span>
+                {% else %}
+                  <span class="bd bd-o">= لا تغيير</span>
+                {% endif %}
+              {% else %}
+                <span class="bd" style="background:rgba(148,163,184,0.15);color:var(--text3)">لا قبلي</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if forloop.counter == 1 and t.impact > 0 %}<span class="bd bd-g">⭐ الأعلى أداءً</span>
               {% elif t.impact >= 70 %}<span class="bd bd-b">ممتازة</span>
               {% elif t.impact >= 50 %}<span class="bd bd-o">جيدة</span>
               {% elif t.impact > 0 %}<span class="bd bd-r">تحتاج دعم</span>
@@ -1297,7 +1318,7 @@ body.display-mode .card-t { font-size: 18px; }
 <script>
 window.__teachersImpactData = [
   {% for t in teachers_impact %}
-  { name: "{{ t.name|escapejs }}", impact: {{ t.impact|default:0 }}, exams: {{ t.exams|default:0 }}, engagement: {{ t.engagement|default:0 }}, sessions: {{ t.sessions|default:0 }} }{% if not forloop.last %},{% endif %}
+  { name: "{{ t.name|escapejs }}", impact: {{ t.impact|default:0 }}, exams: {{ t.exams|default:0 }}, engagement: {{ t.engagement|default:0 }}, sessions: {{ t.sessions|default:0 }}, improvement: {{ t.improvement|default:"null" }}, pre_avg: {{ t.pre_avg|default:0 }}, post_avg: {{ t.post_avg|default:0 }} }{% if not forloop.last %},{% endif %}
   {% endfor %}
 ];
 </script>

@@ -22,7 +22,7 @@ from django.contrib import messages
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count, Q
+from django.db.models import Avg, Count, Q, Subquery, OuterRef, FloatField, IntegerField
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -605,30 +605,100 @@ def _v2_top_students(limit=10):
 
 
 def _v2_teachers_impact():
-    """تحليل أداء المعلمات — تأثير + عدد الحصص + تفاعل الطالبات."""
+    """
+    تحليل أداء المعلمات — أرقام دقيقة بدون تضخم.
+
+    الإصلاحات:
+    - كل مقياس يُحسب بـ Subquery منفصل → لا تضخم من JOINs متداخلة.
+    - التأثير الحقيقي = متوسط البعدي − متوسط القبلي (تحسّن فعلي).
+      · لو عندها بعدي فقط → متوسط البعدي.
+      · لو لا يوجد بعدي ولا قبلي → المتوسط العام.
+    """
+    # ── Subqueries منفصلة لكل مقياس ─────────────────────────────
+    def _count_sq(qs, group_field):
+        return Subquery(
+            qs.filter(**{group_field: OuterRef('pk')})
+              .values(group_field)
+              .annotate(c=Count('id'))
+              .values('c')[:1],
+            output_field=IntegerField()
+        )
+
+    def _avg_sq(exam_type_filter=None):
+        qs = ExamResult.objects.filter(exam__skill__created_by=OuterRef('pk'))
+        if exam_type_filter:
+            qs = qs.filter(exam__exam_type=exam_type_filter)
+        return Subquery(
+            qs.values('exam__skill__created_by')
+              .annotate(avg=Avg('percentage'))
+              .values('avg')[:1],
+            output_field=FloatField()
+        )
+
     teachers = (
         Teacher.objects
         .select_related('user')
         .annotate(
-            sessions_count=Count('sessions', distinct=True),
-            skills_count=Count('teacher_skills', distinct=True),
-            exams_count=Count('teacher_skills__exams', distinct=True),
-            results_count=Count('teacher_skills__exams__results', distinct=True),
-            avg_impact=Avg('teacher_skills__exams__results__percentage'),
+            sessions_count=_count_sq(ClassSession.objects.all(), 'teacher'),
+            skills_count=_count_sq(TeacherSkill.objects.all(), 'created_by'),
+            exams_count=Subquery(
+                TeacherExam.objects
+                .filter(skill__created_by=OuterRef('pk'))
+                .values('skill__created_by')
+                .annotate(c=Count('id'))
+                .values('c')[:1],
+                output_field=IntegerField()
+            ),
+            results_count=Subquery(
+                ExamResult.objects
+                .filter(exam__skill__created_by=OuterRef('pk'))
+                .values('exam__skill__created_by')
+                .annotate(c=Count('id'))
+                .values('c')[:1],
+                output_field=IntegerField()
+            ),
+            pre_avg=_avg_sq('pre'),
+            post_avg=_avg_sq('post'),
+            all_avg=_avg_sq(),
         )
-        .order_by('-avg_impact')
     )
+
     out = []
     for t in teachers:
+        pre  = float(t.pre_avg  or 0)
+        post = float(t.post_avg or 0)
+        avg  = float(t.all_avg  or 0)
+
+        # التأثير الحقيقي: تحسن من القبلي للبعدي
+        if pre > 0 and post > 0:
+            # نسبة التحسن (0-100 scale: نرفعها لتكون قابلة للمقارنة)
+            improvement = round(post - pre, 1)
+            impact = round(post, 1)       # للعرض: متوسط البعدي
+            has_improvement = True
+        elif post > 0:
+            improvement = None
+            impact = round(post, 1)
+            has_improvement = False
+        else:
+            improvement = None
+            impact = round(avg, 1)
+            has_improvement = False
+
         out.append({
-            'id': t.id,
-            'name': t.full_name,
-            'sessions': t.sessions_count or 0,
-            'skills': t.skills_count or 0,
-            'exams': t.exams_count or 0,
-            'engagement': t.results_count or 0,
-            'impact': round(t.avg_impact or 0, 1),
+            'id':          t.id,
+            'name':        t.full_name,
+            'sessions':    int(t.sessions_count  or 0),
+            'skills':      int(t.skills_count    or 0),
+            'exams':       int(t.exams_count     or 0),
+            'engagement':  int(t.results_count   or 0),
+            'impact':      impact,            # للألوان والعرض (متوسط البعدي أو العام)
+            'pre_avg':     round(pre,  1),
+            'post_avg':    round(post, 1),
+            'improvement': improvement,       # None لو ما عندها قبلي+بعدي
+            'has_improvement': has_improvement,
         })
+
+    out.sort(key=lambda x: -(x['improvement'] or x['impact']))
     return out
 
 
