@@ -96,8 +96,13 @@ img.cnt{max-width:100%;border-radius:8px;border:1px solid var(--border);margin:8
           {% with pdf_url=content.pdf_file|cloud_raw_url %}
           {% if pdf_url %}
           <div style="margin-top:10px">
-            <iframe src="https://docs.google.com/viewer?url={{ pdf_url|urlencode }}&embedded=true" style="width:100%;height:500px;border:1px solid var(--border);border-radius:8px" allowfullscreen></iframe>
-            <a href="{{ pdf_url }}" target="_blank" download class="btn btn-b" style="margin-top:8px">📥 تحميل ملف PDF</a>
+            <object data="{{ pdf_url }}" type="application/pdf" style="width:100%;height:550px;border:1px solid var(--border);border-radius:8px">
+              <p style="color:var(--text2);font-size:12px;padding:20px;text-align:center">
+                المتصفح لا يدعم عرض PDF مباشرة.
+                <a href="{{ pdf_url }}" target="_blank" class="btn btn-b" style="display:inline-flex;margin-top:8px">📥 فتح ملف PDF</a>
+              </p>
+            </object>
+            <a href="{{ pdf_url }}" target="_blank" class="btn btn-b" style="margin-top:8px;display:inline-flex">📥 تحميل ملف PDF</a>
           </div>
           {% endif %}
           {% endwith %}
