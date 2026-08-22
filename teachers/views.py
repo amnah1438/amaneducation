@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import Avg, Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
 from core.models import Profile
 from students.models import Student, ClassRoom
 from .models import (
@@ -65,6 +66,7 @@ def _safe_int(value, default, minimum=None, maximum=None):
     return v
 
 
+@never_cache
 @login_required
 def teacher_dashboard(request):
     """
@@ -290,7 +292,7 @@ def teacher_dashboard(request):
         'avg_score': avg_score,
         'total_results': my_results.count(),
         'passed_results': my_results.filter(passed=True).count(),
-        'total_students': Student.objects.count(),
+        'total_students': Profile.objects.filter(role='STUDENT').count(),
         'trained_students': trained_students,        # طالبات دربتهن
         'treated_students': treated_count,           # طالبات عالجتهن (تحسّن ≥10%)
         'sessions': (
@@ -1601,4 +1603,68 @@ def manual_score_entry(request):
         'teacher': teacher,
         'classrooms': my_classrooms,
         'exams': my_exams,
+    })
+
+
+# ═══════════════════════════════════════════════════════════════
+# API: إحصاءات الداشبورد — للتحديث التلقائي (AJAX)
+# ═══════════════════════════════════════════════════════════════
+@never_cache
+@login_required
+def teacher_stats_json(request):
+    """
+    يُرجع إحصاءات الداشبورد كـ JSON.
+    يُستدعى من JS كل 30 ثانية لتحديث الأرقام بدون إعادة تحميل الصفحة.
+    """
+    if not check_teacher(request):
+        return JsonResponse({'error': 'unauthorized'}, status=403)
+
+    teacher = get_teacher(request)
+    if not teacher:
+        return JsonResponse({'error': 'no teacher'}, status=403)
+
+    my_skills = TeacherSkill.objects.filter(created_by=teacher)
+    my_exams  = TeacherExam.objects.filter(skill__created_by=teacher)
+    my_results = ExamResult.objects.filter(
+        exam__skill__created_by=teacher
+    ).exclude(student=request.user)
+
+    # تصنيف الطالبات
+    from collections import defaultdict as _dd
+    perf_map = _dd(lambda: {'total': 0, 'count': 0})
+    for r in my_results.select_related('student', 'student_record'):
+        key = f'sr_{r.student_record_id}' if r.student_record_id else f'u_{r.student_id}'
+        if not key.endswith('_None'):
+            perf_map[key]['total'] += float(r.percentage or 0)
+            perf_map[key]['count'] += 1
+
+    excellent = mid = weak = 0
+    for v in perf_map.values():
+        if v['count']:
+            avg = v['total'] / v['count']
+            if avg >= 90:
+                excellent += 1
+            elif avg >= 50:
+                mid += 1
+            else:
+                weak += 1
+
+    avg_score = int(round(my_results.aggregate(avg=Avg('percentage'))['avg'] or 0))
+    trained   = my_results.values('student_id').distinct().count()
+
+    return JsonResponse({
+        'total_students':        Profile.objects.filter(role='STUDENT').count(),
+        'total_skills':          my_skills.filter(content_type='skill').count(),
+        'total_lessons':         my_skills.filter(content_type='lesson').count(),
+        'total_banks':           my_skills.filter(content_type='bank').count(),
+        'active_skills':         my_skills.filter(is_active=True).count(),
+        'total_exams':           my_exams.count(),
+        'active_exams':          my_exams.filter(is_active=True).count(),
+        'total_results':         my_results.count(),
+        'passed_results':        my_results.filter(passed=True).count(),
+        'avg_score':             avg_score,
+        'trained_students':      trained,
+        'students_count_excellent': excellent,
+        'students_count_mid':    mid,
+        'students_count_weak':   weak,
     })

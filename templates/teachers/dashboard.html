@@ -953,10 +953,10 @@ body {
 
 <!-- KPI -->
   <div class="kg">
-    <div class="kc g"><div class="kl">إجمالي الطالبات</div><div class="kv" style="color:var(--green)">{{ total_students }}</div><div class="kch up">هذا الفصل</div></div>
-    <div class="kc b"><div class="kl">مهاراتي ودروسي</div><div class="kv" style="color:var(--blue)">{{ total_skills }}</div><div class="kch up">مضافة</div></div>
-    <div class="kc p"><div class="kl">متوسط النجاح</div><div class="kv" style="color:var(--purple)">{{ avg_score }}%</div><div class="kch up">هذا الفصل</div></div>
-    <div class="kc o"><div class="kl">اختبارات مفعّلة</div><div class="kv" style="color:var(--orange)">{{ active_exams }}</div><div class="kch nu">هذا الفصل</div></div>
+    <div class="kc g"><div class="kl">إجمالي الطالبات</div><div class="kv" id="stat-total-students" style="color:var(--green)">{{ total_students }}</div><div class="kch up">هذا الفصل</div></div>
+    <div class="kc b"><div class="kl">مهاراتي ودروسي</div><div class="kv" id="stat-total-skills" style="color:var(--blue)">{{ total_skills }}</div><div class="kch up">مضافة</div></div>
+    <div class="kc p"><div class="kl">متوسط النجاح</div><div class="kv" id="stat-avg-score" style="color:var(--purple)">{{ avg_score }}%</div><div class="kch up">هذا الفصل</div></div>
+    <div class="kc o"><div class="kl">اختبارات مفعّلة</div><div class="kv" id="stat-active-exams" style="color:var(--orange)">{{ active_exams }}</div><div class="kch nu">هذا الفصل</div></div>
     <div class="kc t"><div class="kl">حصص القدرات</div><div class="kv" style="color:var(--teal)">{{ qodrat_sessions }}</div><div class="kch nu">مفعّلة</div></div>
     <div class="kc r"><div class="kl">حصص التحصيلي</div><div class="kv" style="color:var(--red)">{{ tahsili_sessions }}</div><div class="kch nu">مفعّلة</div></div>
   </div>
@@ -1312,12 +1312,12 @@ body {
 ═══════════════════════════════════════════════ -->
 <div class="pg" id="pg-ex">
   <div class="kg">
-    <div class="kc g"><div class="kl">إجمالي الاختبارات</div><div class="kv" style="color:var(--green)">{{ total_exams }}</div><div class="kch nu">مُنشأة</div></div>
-    <div class="kc b"><div class="kl">اختبارات مفعّلة</div><div class="kv" style="color:var(--blue)">{{ active_exams }}</div><div class="kch up">نشطة</div></div>
-    <div class="kc p"><div class="kl">إجمالي النتائج</div><div class="kv" style="color:var(--purple)">{{ total_results }}</div><div class="kch nu">محاولة</div></div>
-    <div class="kc o"><div class="kl">نتائج ناجحة</div><div class="kv" style="color:var(--orange)">{{ passed_results }}</div><div class="kch up">ناجحة</div></div>
-    <div class="kc t"><div class="kl">متوسط الدرجات</div><div class="kv" style="color:var(--teal)">{{ avg_score }}%</div><div class="kch nu">عام</div></div>
-    <div class="kc r"><div class="kl">طالبات دربتهن</div><div class="kv" style="color:var(--red)">{{ trained_students }}</div><div class="kch nu">طالبة</div></div>
+    <div class="kc g"><div class="kl">إجمالي الاختبارات</div><div class="kv" id="stat-total-exams" style="color:var(--green)">{{ total_exams }}</div><div class="kch nu">مُنشأة</div></div>
+    <div class="kc b"><div class="kl">اختبارات مفعّلة</div><div class="kv" id="stat-active-exams2" style="color:var(--blue)">{{ active_exams }}</div><div class="kch up">نشطة</div></div>
+    <div class="kc p"><div class="kl">إجمالي النتائج</div><div class="kv" id="stat-total-results" style="color:var(--purple)">{{ total_results }}</div><div class="kch nu">محاولة</div></div>
+    <div class="kc o"><div class="kl">نتائج ناجحة</div><div class="kv" id="stat-passed-results" style="color:var(--orange)">{{ passed_results }}</div><div class="kch up">ناجحة</div></div>
+    <div class="kc t"><div class="kl">متوسط الدرجات</div><div class="kv" id="stat-avg-score2" style="color:var(--teal)">{{ avg_score }}%</div><div class="kch nu">عام</div></div>
+    <div class="kc r"><div class="kl">طالبات دربتهن</div><div class="kv" id="stat-trained-students" style="color:var(--red)">{{ trained_students }}</div><div class="kch nu">طالبة</div></div>
   </div>
 
   <div class="g2e">
@@ -2519,5 +2519,58 @@ if(origGP){
 </script>
 {% endlocalize %}
 {% include "core/_theme_toggle.html" %}
+
+<!-- ═══════════════════════════════════════════════════════
+     تحديث تلقائي للإحصاءات — كل 30 ثانية + عند العودة للتبويب
+     ═══════════════════════════════════════════════════════ -->
+<script>
+(function () {
+  var STATS_URL = "{% url 'teacher_stats_json' %}";
+  var REFRESH_MS = 30000; // 30 ثانية
+
+  // خريطة: id العنصر → مفتاح الـ API + هل يُضاف "%" بعد الرقم
+  var FIELDS = [
+    { id: 'stat-total-students',  key: 'total_students',        pct: false },
+    { id: 'stat-total-skills',    key: 'total_skills',          pct: false },
+    { id: 'stat-avg-score',       key: 'avg_score',             pct: true  },
+    { id: 'stat-active-exams',    key: 'active_exams',          pct: false },
+    { id: 'stat-total-exams',     key: 'total_exams',           pct: false },
+    { id: 'stat-active-exams2',   key: 'active_exams',          pct: false },
+    { id: 'stat-total-results',   key: 'total_results',         pct: false },
+    { id: 'stat-passed-results',  key: 'passed_results',        pct: false },
+    { id: 'stat-avg-score2',      key: 'avg_score',             pct: true  },
+    { id: 'stat-trained-students',key: 'trained_students',      pct: false },
+  ];
+
+  function refreshStats() {
+    fetch(STATS_URL, { credentials: 'same-origin' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) return;
+        FIELDS.forEach(function (f) {
+          var el = document.getElementById(f.id);
+          if (!el) return;
+          var val = data[f.key];
+          if (val === undefined || val === null) return;
+          el.textContent = f.pct ? val + '%' : val;
+        });
+      })
+      .catch(function () { /* صامت — لا نُزعج المستخدمة بخطأ شبكة */ });
+  }
+
+  // تشغيل دوري
+  setInterval(refreshStats, REFRESH_MS);
+
+  // تحديث فوري عند العودة للتبويب بعد غياب
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') {
+      refreshStats();
+    }
+  });
+
+  // تحديث أولي بعد 2 ثانية (يضمن تحميل الصفحة كامل)
+  setTimeout(refreshStats, 2000);
+})();
+</script>
 </body>
 </html>

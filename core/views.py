@@ -1370,6 +1370,15 @@ def admin_delete_user(request, user_id):
         return redirect('admin_dashboard')
 
     name = target.get_full_name() or target.username
+
+    # حذف سجل Student المرتبط إن كانت الطالبة (يجب قبل حذف الـ User)
+    try:
+        role = target.core_profile.role
+        if role == 'STUDENT' and name:
+            Student.objects.filter(full_name=name).delete()
+    except Exception:
+        pass
+
     target.delete()
     messages.success(request, f'🗑️ تم حذف {name}')
     return redirect('admin_dashboard')
