@@ -93,21 +93,13 @@ img.cnt{max-width:100%;border-radius:8px;border:1px solid var(--border);margin:8
         {% if content.plain_text %}<div class="prose">{{ content.plain_text|linebreaksbr }}</div>{% endif %}
         {% if content.text_content %}<div class="prose">{{ content.text_content|safe }}</div>{% endif %}
         {% if content.pdf_file %}
-          {% with pdf_url=content.pdf_file|cloud_raw_url %}
-          {% if pdf_url %}
           <div style="margin-top:10px">
-            <iframe src="https://docs.google.com/viewer?url={{ pdf_url|urlencode }}&embedded=true"
-                    style="width:100%;height:550px;border:1px solid var(--border);border-radius:8px"
-                    allowfullscreen
-                    onerror="this.style.display='none';document.getElementById('pdf-fallback-{{ content.id }}').style.display='block'">
+            <iframe src="{% url 'serve_skill_pdf' content.id %}"
+                    style="width:100%;height:580px;border:1px solid var(--border);border-radius:8px;background:#fff"
+                    allowfullscreen>
             </iframe>
-            <div id="pdf-fallback-{{ content.id }}" style="display:none;padding:20px;text-align:center;color:var(--text2);font-size:12px">
-              تعذّر عرض PDF هنا.
-            </div>
-            <a href="{{ pdf_url }}" target="_blank" class="btn btn-b" style="margin-top:8px;display:inline-flex">📥 فتح ملف PDF</a>
+            <a href="{% url 'serve_skill_pdf' content.id %}" target="_blank" class="btn btn-b" style="margin-top:8px;display:inline-flex">📥 فتح ملف PDF</a>
           </div>
-          {% endif %}
-          {% endwith %}
         {% endif %}
         {% if not content.video_url and not content.plain_text and not content.text_content and not content.plain_image and not content.pdf_file %}
           <p style="color:var(--text3);font-size:12px;text-align:center;padding:20px">لم يُضَف محتوى بعد.</p>

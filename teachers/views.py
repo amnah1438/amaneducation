@@ -986,6 +986,24 @@ def view_skill(request, skill_id):
 
 
 @login_required
+def serve_skill_pdf(request, content_id):
+    """Proxy: يجلب PDF من Cloudinary ويقدّمه للمتصفح من نفس الأصل لتجنب CORS."""
+    from django.http import HttpResponse, Http404
+    import urllib.request as _urlreq
+    content = get_object_or_404(TeacherSkillContent, id=content_id)
+    if not content.pdf_file:
+        raise Http404
+    try:
+        import cloudinary.utils
+        pdf_url, _ = cloudinary.utils.cloudinary_url(str(content.pdf_file), resource_type='raw')
+        with _urlreq.urlopen(pdf_url, timeout=30) as resp:
+            data = resp.read()
+        return HttpResponse(data, content_type='application/pdf')
+    except Exception:
+        raise Http404
+
+
+@login_required
 def edit_skill(request, skill_id):
     """تعديل بيانات المهارة + المحتوى + إعداداتها."""
     if not check_teacher(request):
