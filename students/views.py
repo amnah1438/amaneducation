@@ -385,6 +385,12 @@ def take_exam(request, exam_id):
         result.passed = percentage >= exam.pass_score
         result.save(update_fields=['score', 'percentage', 'passed'])
 
+        # بعد تسليم الاختبار العلاجي → نحذف التعيين حتى لا تتمكن من إعادته مجدداً
+        from .models import RemedialExamAssignment
+        _st = _student_for(request.user)
+        if _st:
+            RemedialExamAssignment.objects.filter(exam_id=exam.id, student=_st).delete()
+
         messages.success(request, f'✅ تم التسليم — نتيجتك: {score}/{total}')
         return redirect('student_result_view', result_id=result.id)
 
