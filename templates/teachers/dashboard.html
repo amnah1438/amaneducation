@@ -1927,10 +1927,46 @@ body {
 
     <div class="mbtns">
       <button class="gbtn" onclick="cR()">إغلاق</button>
+      <button style="padding:7px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-family:Tajawal;font-size:13px;font-weight:700;cursor:pointer" onclick="openRemedialPanel()">🩺 اختبار علاجي</button>
       <button class="pbtn2" onclick="window.print()">🖨️ طباعة PDF</button>
     </div>
   </div>
 </div>
+
+<!-- مودال الاختبار العلاجي -->
+<div class="mbg" id="remedialModal">
+  <div class="mdl" style="max-width:480px">
+    <div class="mh">
+      <div class="mt" style="font-size:16px">🩺 خطة العلاج — <span id="remedialStudentName"></span></div>
+      <button class="mx" onclick="document.getElementById('remedialModal').classList.remove('on')">✕</button>
+    </div>
+
+    <!-- المهارات الضعيفة -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px">📉 المهارات التي تحتاج علاجاً (أقل من 60%):</div>
+      <div id="remedialSkillsList"></div>
+    </div>
+
+    <!-- الخطة المقترحة -->
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:12px;margin-bottom:16px">
+      <div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:6px">💡 الخطة المقترحة</div>
+      <div id="remedialPlan" style="font-size:12px;color:var(--text2);line-height:2"></div>
+    </div>
+
+    <!-- أزرار التنفيذ -->
+    <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px">🎯 إنشاء الاختبار العلاجي</div>
+    <div id="remedialButtons" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+
+    <div style="font-size:11px;color:var(--text3);background:var(--card2);border-radius:8px;padding:10px;line-height:1.8">
+      ℹ️ اضغطي على المهارة لإنشاء اختبار علاجي مخصص لها. بعد حل الطالبة للاختبار، ستظهر نتيجتها الجديدة في تقريرها تلقائياً للمقارنة.
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:14px">
+      <button class="gbtn" onclick="document.getElementById('remedialModal').classList.remove('on')">إغلاق</button>
+    </div>
+  </div>
+</div>
+
 <!-- مودال الإعدادات -->
 <div class="mbg" id="settingsModal">
   <div class="mdl" style="max-width:500px">
@@ -2281,7 +2317,10 @@ function oR(name,score,type,key){
           skHtml+='</div>';
         });
         document.getElementById('skBody').innerHTML=skHtml;
+        // حفظ المهارات الضعيفة للاستخدام في الاختبار العلاجي
+        window._weakSkills = d.skills.filter(function(s){ return s.pct < 60; });
       } else {
+        window._weakSkills = [];
         document.getElementById('skBody').innerHTML='<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px">لا توجد بيانات تفصيلية للمهارات بعد — تظهر عند وجود إجابات مفصّلة (StudentAnswer)</div>';
       }
 
@@ -2379,6 +2418,64 @@ function filterStudentLevel(){
   } else if(level==='weak'){
     excSec.style.display='none'; midSec.style.display='none'; weakSec.style.display='';
   }
+}
+
+// ═══════════════════════════════════
+// الاختبار العلاجي
+// ═══════════════════════════════════
+function openRemedialPanel(){
+  var studentName = document.getElementById('mName').textContent || 'الطالبة';
+  document.getElementById('remedialStudentName').textContent = studentName;
+
+  var weakSkills = window._weakSkills || [];
+
+  var listEl = document.getElementById('remedialSkillsList');
+  var planEl = document.getElementById('remedialPlan');
+  var btnsEl = document.getElementById('remedialButtons');
+
+  if(!weakSkills.length){
+    listEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--green);font-size:13px;font-weight:600">✅ لا توجد مهارات ضعيفة — الطالبة بحالة جيدة!</div>';
+    planEl.textContent = 'أداء الطالبة فوق 60% في جميع المهارات. يمكن التركيز على تعزيز المهارات المتوسطة.';
+    btnsEl.innerHTML = '';
+    document.getElementById('remedialModal').classList.add('on');
+    return;
+  }
+
+  // عرض المهارات الضعيفة
+  var listHtml = '';
+  weakSkills.forEach(function(s, i){
+    var col = s.pct >= 40 ? 'var(--orange)' : 'var(--red)';
+    var priority = s.pct < 40 ? '🔴 عاجل' : '🟡 مهم';
+    listHtml += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:8px;background:var(--card2);border-radius:8px;border-right:3px solid '+col+'">';
+    listHtml += '<span style="font-size:12px;color:var(--text2);flex:1">'+(i+1)+'. '+s.name+'</span>';
+    listHtml += '<div style="width:80px;background:var(--bg3);border-radius:4px;height:10px;overflow:hidden"><div style="width:'+s.pct+'%;height:100%;background:'+col+';border-radius:4px"></div></div>';
+    listHtml += '<span style="font-weight:700;color:'+col+';font-size:13px;min-width:36px">'+s.pct+'%</span>';
+    listHtml += '<span style="font-size:11px;color:'+col+'">'+priority+'</span>';
+    listHtml += '</div>';
+  });
+  listEl.innerHTML = listHtml;
+
+  // الخطة المقترحة
+  var urgent = weakSkills.filter(function(s){ return s.pct < 40; });
+  var moderate = weakSkills.filter(function(s){ return s.pct >= 40; });
+  var planText = '';
+  if(urgent.length) planText += '🔴 يوجد '+urgent.length+' مهارة تحتاج تدخلاً عاجلاً (أقل من 40%).\n';
+  if(moderate.length) planText += '🟡 يوجد '+moderate.length+' مهارة تحتاج تعزيزاً (40-60%).\n';
+  planText += '📌 يُنصح بإنشاء اختبار علاجي لكل مهارة ضعيفة على حدة، وإعادة التقييم بعد أسبوع.';
+  planEl.style.whiteSpace = 'pre-line';
+  planEl.textContent = planText;
+
+  // أزرار إنشاء الاختبار
+  var btnsHtml = '';
+  weakSkills.forEach(function(s){
+    var col = s.pct < 40 ? '#dc2626' : '#d97706';
+    btnsHtml += '<a href="/teachers/skill-manager/?remedial_skill='+encodeURIComponent(s.name)+'" target="_blank" ';
+    btnsHtml += 'style="padding:8px 14px;border-radius:8px;background:'+col+';color:white;font-family:Tajawal;font-size:12px;font-weight:700;text-decoration:none;display:inline-block">';
+    btnsHtml += '+ اختبار: '+s.name+'</a>';
+  });
+  btnsEl.innerHTML = btnsHtml;
+
+  document.getElementById('remedialModal').classList.add('on');
 }
 
 // ═══════════════════════════════════
