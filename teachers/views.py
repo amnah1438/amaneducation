@@ -90,9 +90,9 @@ def teacher_dashboard(request):
     f_classroom = request.GET.get('classroom', '')
     f_skill_type = request.GET.get('skill_type', '')
 
-    my_skills = TeacherSkill.objects.filter(created_by=teacher)
-    my_exams = TeacherExam.objects.filter(skill__created_by=teacher)
-    my_results = ExamResult.objects.filter(exam__skill__created_by=teacher).exclude(student=request.user)
+    my_skills = TeacherSkill.objects.filter(created_by__user=request.user)
+    my_exams = TeacherExam.objects.filter(skill__created_by__user=request.user)
+    my_results = ExamResult.objects.filter(exam__skill__created_by__user=request.user).exclude(student=request.user)
 
     # تطبيق فلتر نوع المهارة
     if f_skill_type and f_skill_type != 'all':
