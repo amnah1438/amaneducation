@@ -1,40 +1,37 @@
-<header class="site-header py-3 border-bottom shadow-sm bg-white">
+<header class="site-header py-2 border-bottom shadow-sm bg-white">
     <div class="container-fluid px-3 px-md-5">
+
+        <!-- الصف الأول: الشعارات واسم المنصة -->
         <div class="row align-items-center">
 
             <!-- شعار الوزارة -->
-            <div class="col-4 col-md-4 text-center text-md-end">
+            <div class="col-4 text-center">
                 {% if settings.ministry_logo_url %}
                     <img src="{{ settings.ministry_logo_url }}" alt="شعار وزارة التعليم" class="header-logo">
                 {% else %}
                     <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار وزارة التعليم</div>
                 {% endif %}
-
-                <div class="header-sub-text d-none d-md-block mt-2 lh-sm fw-bold text-secondary">
+                <div class="header-sub-text d-none d-md-block mt-1 lh-sm fw-bold text-secondary">
                     <div>{{ settings.header_line_1 }}</div>
                     <div>{{ settings.header_line_2 }}</div>
                 </div>
             </div>
 
-            <!-- اسم المنصة -->
-            <div class="col-4 col-md-4 text-center">
-                <h2 class="header-title fw-bold mb-1" style="color: #4b0082; font-family: 'Tajawal', sans-serif;">
+            <!-- اسم المنصة - وسط -->
+            <div class="col-4 text-center">
+                <h2 class="header-title fw-bold mb-0" style="color: #4b0082; font-family: 'Tajawal', sans-serif;">
                     {{ settings.platform_name }}
                 </h2>
-                <div class="badge bg-lavender text-dark border header-badge mt-1">
-                    مديرة المدرسة: {{ settings.principal_name }}
-                </div>
             </div>
 
             <!-- شعار المدرسة -->
-            <div class="col-4 col-md-4 text-center text-md-start">
+            <div class="col-4 text-center">
                 {% if settings.school_logo_url %}
                     <img src="{{ settings.school_logo_url }}" alt="شعار المدرسة" class="header-logo">
                 {% else %}
                     <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار المدرسة</div>
                 {% endif %}
-
-                <div class="header-sub-text d-none d-md-block mt-2 lh-sm fw-bold text-secondary">
+                <div class="header-sub-text d-none d-md-block mt-1 lh-sm fw-bold text-secondary">
                     <div>{{ settings.header_line_3 }}</div>
                     <div>{{ settings.header_line_4 }}</div>
                 </div>
@@ -42,11 +39,19 @@
 
         </div>
 
-        <!-- النصوص تحت الشعارات على الجوال فقط -->
-        <div class="d-md-none text-center mt-2 lh-sm fw-bold" style="font-size:0.78rem;color:#444">
+        <!-- اسم المديرة - سطر مستقل تحت الكل -->
+        <div class="text-center mt-2">
+            <span class="badge bg-lavender text-dark border header-badge">
+                مديرة المدرسة: {{ settings.principal_name }}
+            </span>
+        </div>
+
+        <!-- النصوص على الجوال -->
+        <div class="d-md-none text-center mt-1 lh-sm fw-bold" style="font-size:0.72rem;color:#444">
             <div>{{ settings.header_line_1 }} · {{ settings.header_line_2 }}</div>
             <div>{{ settings.header_line_3 }} · {{ settings.header_line_4 }}</div>
         </div>
+
     </div>
 </header>
 
@@ -54,7 +59,7 @@
     .bg-lavender { background-color: #E6E6FA; }
 
     .header-logo {
-        height: 120px;
+        height: 110px;
         width: auto;
         max-width: 100%;
         object-fit: contain;
@@ -62,51 +67,40 @@
         margin: 0 auto;
     }
     .header-title {
-        font-size: 2rem;
+        font-size: 1.6rem;
         line-height: 1.3;
+        white-space: nowrap;
     }
     .header-badge {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
         display: inline-block;
         text-align: center;
+        padding: 5px 16px;
     }
     .header-sub-text {
-        font-size: 0.72rem;
+        font-size: 0.7rem;
         color: #444;
     }
 
-    /* ─── الجوال ─── */
+    /* جوال */
     @media (max-width: 767px) {
-        .site-header {
-            padding: 10px 0 !important;
-        }
-        .header-logo {
-            height: 65px;
-        }
+        .site-header { padding: 8px 0 !important; }
+        .header-logo { height: 58px; }
         .header-title {
-            font-size: 1.15rem;
-            margin-bottom: 2px !important;
-            line-height: 1.3;
+            font-size: 0.82rem;
+            white-space: normal;
+            line-height: 1.25;
         }
         .header-badge {
-            font-size: 0.78rem;
-            padding: 4px 8px !important;
-            display: block;
-            text-align: center;
-            margin: 2px auto;
+            font-size: 0.72rem;
+            padding: 4px 10px !important;
         }
     }
 
     /* تابلت */
     @media (min-width: 768px) and (max-width: 991px) {
-        .header-logo {
-            height: 85px;
-        }
-        .header-title {
-            font-size: 1.4rem;
-        }
-        .header-badge {
-            font-size: 0.82rem;
-        }
+        .header-logo { height: 80px; }
+        .header-title { font-size: 1.2rem; }
+        .header-badge { font-size: 0.82rem; }
     }
 </style>
