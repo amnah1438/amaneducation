@@ -75,12 +75,39 @@
         .content-area { display: none; margin-top: 28px; animation: fadeIn 0.5s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .teacher-badge { background-color: #f8f9fa; color: #333; border: 1px solid #ddd;
+        .teacher-badge { background-color: #f8f9fa; color: #2d3748; border: 1px solid #b0bec5;
             padding: 5px 12px; border-radius: 20px; font-size: 0.85rem;
             display: inline-block; margin: 2px;
         }
         .math-text-fix { unicode-bidi: plaintext; text-align: right; direction: rtl; }
-        .empty-state { text-align: center; padding: 50px; color:#888; font-size:1rem; }
+        .empty-state { text-align: center; padding: 50px; color:#555e6e; font-size:1rem; }
+
+        .text-muted { color: #555e6e !important; }
+        .text-secondary { color: #555e6e !important; }
+        .skill-card .card-body p.text-muted { font-size: 0.9rem; }
+
+        /* موبايل */
+        @media (max-width: 767px) {
+            .hero-section { padding: 28px 0 20px; min-height: auto; }
+            .tab-main { padding: 10px 18px; font-size: 0.9rem; margin: 4px; }
+            .btn-sub  { padding: 9px 22px; font-size: 0.9rem; margin: 4px; }
+            .stat-card { padding: 20px 14px; border-radius: 14px; }
+            .stat-card h1 { font-size: 2rem; }
+            .skill-card:hover { transform: none; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+            .top-bar { padding: 8px 12px; }
+            .btn-login-top, .btn-admin-top { padding: 6px 12px; font-size: 0.8rem; }
+        }
+        @media (max-width: 480px) {
+            .tab-main { width: 100%; margin: 3px 0; text-align: center; }
+            .stat-card h1 { font-size: 1.75rem; }
+            .skill-card .card-body { padding: 18px !important; }
+        }
+        /* تابلت */
+        @media (min-width: 768px) and (max-width: 1024px) {
+            .stat-card { padding: 24px 18px; }
+            .tab-main { padding: 10px 24px; }
+            .skill-card:hover { transform: translateY(-5px); }
+        }
 
         @media print {
             .top-bar, .tab-main, .sub-tabs-box, .btn-skill-action, .btn-login-top { display: none !important; }
@@ -112,7 +139,7 @@
 
     <main class="hero-section text-center">
         <div class="container">
-            <h1 class="fw-bold mb-4">مرحبًا بكِ في منصة التدريب</h1>
+            <p class="mb-4" style="font-size:1.1rem;color:#555;font-weight:600">مرحبًا بكِ في منصة التدريب</p>
 
             <div class="d-flex justify-content-center flex-wrap mb-2">
                 <button type="button" class="btn tab-main" onclick="toggleMainTabs('qodrat', this)">قسم القدرات</button>
