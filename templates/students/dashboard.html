@@ -27,7 +27,7 @@
   --blue:#2563eb;--blue2:#dbeafe;
   --purple:#9333ea;--orange:#d97706;
   --red:#dc2626;--teal:#0d9488;
-  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --text:#0f172a;--text2:#334155;--text3:#64748b;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
@@ -36,20 +36,20 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,0.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px)}
 .logo{display:flex;align-items:center;gap:9px}
 .logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
-.logo-name{font-size:12px;font-weight:800}
-.logo-sub{font-size:9px;color:var(--text3)}
-.user-info{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text2)}
+.logo-name{font-size:14px;font-weight:800}
+.logo-sub{font-size:11px;color:var(--text3)}
+.user-info{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
 .user-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
-.logout-btn{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.2);font-family:'Tajawal',sans-serif;font-size:10px;padding:5px 10px;border-radius:6px;cursor:pointer;text-decoration:none}
+.logout-btn{background:rgba(240,82,82,0.1);color:var(--red);border:1px solid rgba(240,82,82,0.2);font-family:'Tajawal',sans-serif;font-size:13px;padding:6px 12px;border-radius:6px;cursor:pointer;text-decoration:none}
 
 /* MAIN */
 .main{max-width:1100px;margin:0 auto;padding:20px}
 
 /* WELCOME */
 .welcome{background:linear-gradient(135deg,var(--green2),var(--blue2));border:1px solid var(--green);border-radius:14px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-.welcome-text{font-size:20px;font-weight:800}
-.welcome-sub{font-size:11px;color:rgba(255,255,255,0.7);margin-top:4px}
+.welcome-text{font-size:22px;font-weight:800}
+.welcome-sub{font-size:14px;color:rgba(255,255,255,0.8);margin-top:4px}
 .welcome-emoji{font-size:40px}
 
 /* KPI */
@@ -59,14 +59,14 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .kpi.g::before{background:var(--green)}
 .kpi.b::before{background:var(--blue)}
 .kpi.p::before{background:var(--purple)}
-.kpi-label{font-size:9px;color:var(--text3);margin-bottom:5px}
-.kpi-value{font-size:24px;font-weight:800}
-.kpi-sub{font-size:9px;color:var(--text3);margin-top:3px}
+.kpi-label{font-size:13px;color:var(--text2);margin-bottom:5px}
+.kpi-value{font-size:28px;font-weight:800}
+.kpi-sub{font-size:12px;color:var(--text2);margin-top:3px}
 
 /* CARDS */
 .card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:12px}
 .ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)}
-.ct{font-size:11px;font-weight:700;color:var(--text2)}
+.ct{font-size:15px;font-weight:700;color:var(--text)}
 .cb{padding:14px}
 
 /* EXAM CARDS */
@@ -77,14 +77,14 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .exam-card.pre::before{background:var(--orange)}
 .exam-card.post::before{background:var(--green)}
 .exam-card.lesson::before{background:var(--blue)}
-.exam-name{font-size:12px;font-weight:700;margin-bottom:4px}
-.exam-skill{font-size:10px;color:var(--text3);margin-bottom:8px}
-.exam-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
-.exam-badge{font-size:9px;padding:2px 7px;border-radius:8px;font-weight:600}
+.exam-name{font-size:16px;font-weight:700;margin-bottom:5px}
+.exam-skill{font-size:14px;color:var(--text2);margin-bottom:10px}
+.exam-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.exam-badge{font-size:13px;padding:4px 10px;border-radius:8px;font-weight:600}
 .eb-pre{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.2)}
 .eb-post{background:rgba(15,186,129,0.1);color:var(--green);border:1px solid rgba(15,186,129,0.2)}
 .eb-lesson{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
-.exam-btn{display:block;width:100%;padding:8px;border-radius:7px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);transition:all 0.2s}
+.exam-btn{display:block;width:100%;padding:12px;border-radius:9px;border:none;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);transition:all 0.2s}
 .exam-btn:hover{opacity:0.85}
 
 /* RESULTS */
@@ -94,14 +94,14 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .rn-pass{background:rgba(15,186,129,0.15);color:var(--green)}
 .rn-fail{background:rgba(240,82,82,0.15);color:var(--red)}
 .result-info{flex:1}
-.result-name{font-size:11px;color:var(--text)}
-.result-date{font-size:9px;color:var(--text3);margin-top:2px}
-.result-score{font-size:13px;font-weight:700}
+.result-name{font-size:14px;color:var(--text)}
+.result-date{font-size:12px;color:var(--text2);margin-top:2px}
+.result-score{font-size:16px;font-weight:700}
 
 /* EMPTY */
 .empty{text-align:center;padding:30px;color:var(--text3)}
 .empty-icon{font-size:32px;margin-bottom:8px}
-.empty-text{font-size:11px}
+.empty-text{font-size:15px}
 
 /* PROGRESS */
 .progress-bar{height:6px;background:var(--bg3);border-radius:6px;overflow:hidden;margin-top:6px}

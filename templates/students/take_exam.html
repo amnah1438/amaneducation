@@ -30,13 +30,13 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 /* HEADER */
 .exam-header{background:linear-gradient(135deg,var(--green2),var(--blue2));padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border)}
-.exam-title{font-size:13px;font-weight:800}
-.exam-sub{font-size:10px;color:rgba(255,255,255,0.7);margin-top:2px}
+.exam-title{font-size:17px;font-weight:800}
+.exam-sub{font-size:13px;color:rgba(255,255,255,0.85);margin-top:3px}
 
 /* TIMER */
 .timer{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:6px 14px;text-align:center}
-.timer-num{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;color:white}
-.timer-label{font-size:8px;color:rgba(255,255,255,0.6)}
+.timer-num{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;color:white}
+.timer-label{font-size:11px;color:rgba(255,255,255,0.8)}
 .timer.warning .timer-num{color:var(--orange);animation:blink 1s infinite}
 .timer.danger .timer-num{color:var(--red);animation:blink 0.5s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.5}}
@@ -45,7 +45,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .exam-progress{background:var(--bg2);padding:8px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
 .progress-bar{flex:1;height:5px;background:var(--bg3);border-radius:5px;overflow:hidden}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:5px;transition:width 0.3s ease}
-.progress-text{font-size:10px;color:var(--text3);white-space:nowrap}
+.progress-text{font-size:14px;color:var(--text2);white-space:nowrap;font-weight:600}
 
 /* MAIN */
 .main{max-width:800px;margin:0 auto;padding:20px}
@@ -55,30 +55,30 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 .q-header{background:var(--bg2);padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
-.q-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--green2));color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.q-num{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),var(--green2));color:white;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .q-answered .q-num{background:linear-gradient(135deg,var(--green2),var(--teal))}
-.q-skill{font-size:9px;color:var(--text3)}
+.q-skill{font-size:13px;color:var(--text2)}
 
 .q-body{padding:16px}
-.q-text{font-size:13px;line-height:2;color:var(--text);margin-bottom:14px;direction:rtl}
+.q-text{font-size:17px;line-height:2;color:var(--text);margin-bottom:16px;direction:rtl;font-weight:500}
 
 /* IMAGE */
 .q-img{width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-bottom:12px;border:1px solid var(--border2)}
 
 /* OPTIONS */
 .options{display:flex;flex-direction:column;gap:8px}
-.option{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1.5px solid var(--border2);border-radius:9px;cursor:pointer;transition:all 0.2s;background:var(--card2)}
+.option{display:flex;align-items:center;gap:12px;padding:13px 16px;border:1.5px solid var(--border2);border-radius:10px;cursor:pointer;transition:all 0.2s;background:var(--card2)}
 .option:hover{border-color:var(--blue);background:rgba(79,142,247,0.06)}
 .option.selected{border-color:var(--green);background:rgba(15,186,129,0.08)}
 .option input[type=radio]{display:none}
-.opt-circle{width:24px;height:24px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--text2);flex-shrink:0;transition:all 0.2s}
+.opt-circle{width:34px;height:34px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--text2);flex-shrink:0;transition:all 0.2s}
 .option.selected .opt-circle{background:var(--green);border-color:var(--green);color:white}
-.opt-text{font-size:12px;color:var(--text2);line-height:1.7;flex:1;direction:rtl}
+.opt-text{font-size:16px;color:var(--text);line-height:1.8;flex:1;direction:rtl}
 .option.selected .opt-text{color:var(--text)}
 
 /* NAV BUTTONS */
 .nav-buttons{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:12px 22px;border-radius:9px;border:none;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.2s}
 .btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
 .btn-b:hover{background:rgba(79,142,247,0.18)}
 .btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
@@ -88,7 +88,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 /* QUESTION MAP */
 .q-map{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
-.q-dot{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.2s;color:var(--text3)}
+.q-dot{width:36px;height:36px;border-radius:7px;border:1px solid var(--border2);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;color:var(--text2)}
 .q-dot:hover{border-color:var(--blue);color:var(--blue)}
 .q-dot.answered{background:rgba(15,186,129,0.15);border-color:var(--green);color:var(--green)}
 .q-dot.current{border-color:var(--blue);background:rgba(79,142,247,0.1);color:var(--blue)}
@@ -98,8 +98,8 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .modal-bg.show{display:flex}
 .modal{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:24px;width:92%;max-width:400px;text-align:center}
 .modal-icon{font-size:40px;margin-bottom:12px}
-.modal-title{font-size:16px;font-weight:800;margin-bottom:8px}
-.modal-sub{font-size:11px;color:var(--text3);margin-bottom:16px;line-height:1.8}
+.modal-title{font-size:20px;font-weight:800;margin-bottom:10px}
+.modal-sub{font-size:15px;color:var(--text2);margin-bottom:18px;line-height:1.9}
 .modal-btns{display:flex;gap:8px;justify-content:center}
 
 ::-webkit-scrollbar{width:4px}
@@ -147,7 +147,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
       <div class="q-header" id="qh-{{ forloop.counter }}">
         <div class="q-num">{{ forloop.counter }}</div>
         <div>
-          <div style="font-size:11px;font-weight:600">سؤال {{ forloop.counter }} من {{ questions|length }}</div>
+          <div style="font-size:15px;font-weight:700">سؤال {{ forloop.counter }} من {{ questions|length }}</div>
           {% if question.target_skill_name %}
           <div class="q-skill">📎 {{ question.target_skill_name }}</div>
           {% endif %}
