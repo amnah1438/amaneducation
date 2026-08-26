@@ -260,9 +260,9 @@ def student_dashboard(request):
     available_exams = (
         TeacherExam.objects
         .filter(is_active=True)
-        .exclude(id__in=done_exam_ids)
         .filter(
-            Q(id__in=my_assigned_ids) | ~Q(id__in=restricted_exam_ids)
+            Q(id__in=my_assigned_ids) |  # علاجية مُعيَّنة: تظهر حتى لو أُدّيت
+            (~Q(id__in=restricted_exam_ids) & ~Q(id__in=done_exam_ids))  # عادية: غير مكتملة وغير محجوبة
         )
         .select_related('skill')
     )
