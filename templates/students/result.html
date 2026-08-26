@@ -33,13 +33,13 @@ window.MathJax = {
   --blue:#2563eb;--blue2:#dbeafe;
   --purple:#9333ea;--orange:#d97706;
   --red:#dc2626;
-  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --text:#0f172a;--text2:#334155;--text3:#64748b;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:30px}
 
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;backdrop-filter:blur(10px)}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;border:none;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
 .btn-g{background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green)}
 .btn-b{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.25)}
 .btn-p{background:rgba(155,114,245,0.1);color:var(--purple);border:1px solid rgba(155,114,245,0.25)}
@@ -49,25 +49,25 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 /* Header card */
 .summary{background:linear-gradient(135deg,var(--green2),var(--blue2));border:1px solid var(--green);border-radius:14px;padding:20px 24px;margin-bottom:14px;color:white}
-.summary-title{font-size:18px;font-weight:900;margin-bottom:4px}
-.summary-sub{font-size:11px;opacity:0.8}
+.summary-title{font-size:20px;font-weight:900;margin-bottom:4px}
+.summary-sub{font-size:14px;opacity:0.85}
 .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
 .summary-cell{background:rgba(255,255,255,0.10);border-radius:9px;padding:11px;text-align:center}
-.summary-val{font-size:22px;font-weight:900}
-.summary-lbl{font-size:9px;opacity:0.75;margin-top:2px}
+.summary-val{font-size:24px;font-weight:900}
+.summary-lbl{font-size:12px;opacity:0.85;margin-top:2px}
 @media (max-width:680px){.summary-grid{grid-template-columns:repeat(2,1fr)}}
 
 /* Big verdict */
 .verdict{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-bottom:14px;display:flex;align-items:center;gap:16px}
 .verdict-icon{font-size:42px}
-.verdict-text{font-size:16px;font-weight:800}
-.verdict-sub{font-size:11px;color:var(--text3);margin-top:3px}
-.verdict-pct{margin-right:auto;font-size:34px;font-weight:900}
+.verdict-text{font-size:18px;font-weight:800}
+.verdict-sub{font-size:14px;color:var(--text2);margin-top:3px}
+.verdict-pct{margin-right:auto;font-size:36px;font-weight:900}
 
 /* Card */
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px}
 .ch{padding:11px 16px;display:flex;justify-content:space-between;align-items:center;background:var(--bg2);border-bottom:1px solid var(--border)}
-.ct{font-size:12px;font-weight:800}
+.ct{font-size:15px;font-weight:800;color:var(--text)}
 .cb{padding:14px 16px}
 
 /* Question */
@@ -76,28 +76,28 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .q.wrong{border-color:rgba(240,82,82,0.4);background:rgba(240,82,82,0.04)}
 
 .q-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.q-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;font-size:12px;font-weight:800;color:white}
+.q-num{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-size:14px;font-weight:800;color:white}
 .q-num.ok{background:var(--green)}
 .q-num.bad{background:var(--red)}
-.q-status{font-size:10px;font-weight:700;padding:3px 10px;border-radius:8px}
+.q-status{font-size:13px;font-weight:700;padding:4px 12px;border-radius:8px}
 .q-status.ok{background:rgba(15,186,129,0.15);color:var(--green)}
 .q-status.bad{background:rgba(240,82,82,0.15);color:var(--red)}
-.q-text{font-size:14px;font-weight:700;margin-bottom:10px;line-height:1.7}
+.q-text{font-size:17px;font-weight:700;margin-bottom:10px;line-height:1.7}
 .q-image{max-width:100%;max-height:240px;border-radius:8px;border:1px solid var(--border);margin-bottom:10px;display:block}
 
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 @media (max-width:640px){.opts{grid-template-columns:1fr}}
-.opt{padding:8px 11px;border-radius:7px;border:1px solid var(--border);background:var(--card2);font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px;line-height:1.6}
-.opt-letter{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--bg3);color:var(--text2);font-weight:700;font-size:11px;flex-shrink:0}
+.opt{padding:11px 14px;border-radius:8px;border:1px solid var(--border);background:var(--card2);font-size:15px;color:var(--text);display:flex;align-items:center;gap:10px;line-height:1.6}
+.opt-letter{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--bg3);color:var(--text2);font-weight:700;font-size:14px;flex-shrink:0}
 .opt.correct{background:rgba(15,186,129,0.10);border-color:var(--green);color:var(--green);font-weight:700}
 .opt.correct .opt-letter{background:var(--green);color:white}
 .opt.chosen-wrong{background:rgba(240,82,82,0.10);border-color:var(--red);color:var(--red);font-weight:700}
 .opt.chosen-wrong .opt-letter{background:var(--red);color:white}
-.opt-mark{margin-right:auto;font-size:14px;font-weight:800}
+.opt-mark{margin-right:auto;font-size:16px;font-weight:800}
 
-.feedback{margin-top:10px;padding:9px 12px;background:rgba(155,114,245,0.06);border:1px solid rgba(155,114,245,0.2);border-right:3px solid var(--purple);border-radius:7px;font-size:11px;color:var(--purple);line-height:1.7}
+.feedback{margin-top:10px;padding:11px 14px;background:rgba(155,114,245,0.06);border:1px solid rgba(155,114,245,0.2);border-right:3px solid var(--purple);border-radius:7px;font-size:14px;color:var(--purple);line-height:1.7}
 
-.no-answer{background:rgba(245,166,35,0.08);border:1px solid var(--orange);color:var(--orange);padding:6px 10px;border-radius:6px;font-size:10px;display:inline-block;margin-bottom:6px}
+.no-answer{background:rgba(245,166,35,0.08);border:1px solid var(--orange);color:var(--orange);padding:7px 12px;border-radius:6px;font-size:13px;display:inline-block;margin-bottom:6px}
 
 /* Print */
 @media print {
@@ -127,7 +127,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 <div class="topbar no-print">
   <div style="display:flex;align-items:center;gap:9px">
     <div style="width:30px;height:30px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px">🎓</div>
-    <div style="font-size:12px;font-weight:800">ورقة اختباري</div>
+    <div style="font-size:15px;font-weight:800">ورقة اختباري</div>
   </div>
   <div style="display:flex;gap:6px;flex-wrap:wrap">
     <a href="{% url 'student_dashboard' %}" class="btn btn-b">← الداشبورد</a>
@@ -195,7 +195,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   <div class="card">
     <div class="ch">
       <span class="ct">📝 ورقة الأسئلة المصحّحة</span>
-      <span style="font-size:10px;color:var(--text3)">✅ صحيحة بالأخضر • ❌ خاطئة بالأحمر</span>
+      <span style="font-size:13px;color:var(--text2)">✅ صحيحة بالأخضر • ❌ خاطئة بالأحمر</span>
     </div>
     <div class="cb">
       {% for ans in answers %}
@@ -209,7 +209,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             </span>
           </div>
           {% if q.target_skill_name %}
-          <span style="font-size:9px;color:var(--text3)">🏷️ {{ q.target_skill_name }}</span>
+          <span style="font-size:12px;color:var(--text2)">🏷️ {{ q.target_skill_name }}</span>
           {% endif %}
         </div>
 
@@ -234,7 +234,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             {% if q.option_a_image %}<img src="{{ q.option_a_image|cloud_url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
             {% if q.correct_answer == 'A' %}<span class="opt-mark">✓</span>{% endif %}
             {% if ans.chosen_answer == 'A' and q.correct_answer != 'A' %}<span class="opt-mark">✗</span>{% endif %}
-            {% if ans.chosen_answer == 'A' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
+            {% if ans.chosen_answer == 'A' %}<span style="font-size:12px;background:var(--bg3);padding:3px 8px;border-radius:5px;font-weight:700">إجابتك</span>{% endif %}
           </div>
           {# خيار ب #}
           <div class="opt
@@ -245,7 +245,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             {% if q.option_b_image %}<img src="{{ q.option_b_image|cloud_url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
             {% if q.correct_answer == 'B' %}<span class="opt-mark">✓</span>{% endif %}
             {% if ans.chosen_answer == 'B' and q.correct_answer != 'B' %}<span class="opt-mark">✗</span>{% endif %}
-            {% if ans.chosen_answer == 'B' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
+            {% if ans.chosen_answer == 'B' %}<span style="font-size:12px;background:var(--bg3);padding:3px 8px;border-radius:5px;font-weight:700">إجابتك</span>{% endif %}
           </div>
           {# خيار ج #}
           <div class="opt
@@ -256,7 +256,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             {% if q.option_c_image %}<img src="{{ q.option_c_image|cloud_url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
             {% if q.correct_answer == 'C' %}<span class="opt-mark">✓</span>{% endif %}
             {% if ans.chosen_answer == 'C' and q.correct_answer != 'C' %}<span class="opt-mark">✗</span>{% endif %}
-            {% if ans.chosen_answer == 'C' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
+            {% if ans.chosen_answer == 'C' %}<span style="font-size:12px;background:var(--bg3);padding:3px 8px;border-radius:5px;font-weight:700">إجابتك</span>{% endif %}
           </div>
           {# خيار د #}
           <div class="opt
@@ -267,7 +267,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
             {% if q.option_d_image %}<img src="{{ q.option_d_image|cloud_url }}" style="max-height:80px;max-width:120px;border-radius:5px">{% endif %}
             {% if q.correct_answer == 'D' %}<span class="opt-mark">✓</span>{% endif %}
             {% if ans.chosen_answer == 'D' and q.correct_answer != 'D' %}<span class="opt-mark">✗</span>{% endif %}
-            {% if ans.chosen_answer == 'D' %}<span style="font-size:9px;background:var(--bg3);padding:2px 6px;border-radius:5px">إجابتك</span>{% endif %}
+            {% if ans.chosen_answer == 'D' %}<span style="font-size:12px;background:var(--bg3);padding:3px 8px;border-radius:5px;font-weight:700">إجابتك</span>{% endif %}
           </div>
         </div>
 
@@ -285,7 +285,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   <!-- ملخص للطباعة (بياناتي للمتابعة) -->
   <div class="card">
     <div class="ch"><span class="ct">📌 خلاصة لمعالجة الفجوة التعليمية</span></div>
-    <div class="cb" style="font-size:12px;line-height:2;color:var(--text2)">
+    <div class="cb" style="font-size:15px;line-height:2.2;color:var(--text2)">
       <p>عدد الإجابات الصحيحة: <strong style="color:var(--green)">{{ correct }}</strong> من {{ result.total }}.</p>
       <p>عدد الإجابات الخاطئة: <strong style="color:var(--red)">{{ incorrect }}</strong> من {{ result.total }}.</p>
       <p>الزمن المستغرق: <strong>{{ duration_min }} د {{ duration_sec }} ث</strong> من أصل {{ result.exam.duration_minutes }} دقيقة.</p>
