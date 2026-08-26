@@ -2469,7 +2469,7 @@ function openRemedialPanel(){
   var btnsHtml = '';
   weakSkills.forEach(function(s){
     var col = s.pct < 40 ? '#dc2626' : '#d97706';
-    btnsHtml += '<a href="/teachers/skill-manager/?remedial_skill='+encodeURIComponent(s.name)+'" target="_blank" ';
+    btnsHtml += '<a href="/teachers/skills/?remedial_skill='+encodeURIComponent(s.name)+'" target="_blank" ';
     btnsHtml += 'style="padding:8px 14px;border-radius:8px;background:'+col+';color:white;font-family:Tajawal;font-size:12px;font-weight:700;text-decoration:none;display:inline-block">';
     btnsHtml += '+ اختبار: '+s.name+'</a>';
   });
