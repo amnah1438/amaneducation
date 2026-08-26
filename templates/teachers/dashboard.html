@@ -1953,12 +1953,22 @@ body {
       <div id="remedialPlan" style="font-size:12px;color:var(--text2);line-height:2"></div>
     </div>
 
-    <!-- أزرار التنفيذ -->
-    <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px">🎯 إنشاء الاختبار العلاجي</div>
-    <div id="remedialButtons" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+    <!-- تعيين اختبار علاجي مباشرة -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:8px">🎯 عيّني اختباراً علاجياً مباشرة لهذه الطالبة فقط</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="remedialExamSelect" style="flex:1;min-width:0;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-family:Tajawal;font-size:13px;background:var(--card);color:var(--text)">
+          <option value="">⏳ جاري تحميل الاختبارات...</option>
+        </select>
+        <button onclick="assignRemedialExam()" style="padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#059669,#047857);color:white;font-family:Tajawal;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">
+          ✅ تعيين
+        </button>
+      </div>
+      <div id="remedialAssignMsg" style="font-size:12px;margin-top:8px;padding:6px 10px;border-radius:6px;display:none"></div>
+    </div>
 
     <div style="font-size:11px;color:var(--text3);background:var(--card2);border-radius:8px;padding:10px;line-height:1.8">
-      ℹ️ اضغطي على المهارة لإنشاء اختبار علاجي مخصص لها. بعد حل الطالبة للاختبار، ستظهر نتيجتها الجديدة في تقريرها تلقائياً للمقارنة.
+      ℹ️ الاختبار المُعيَّن سيظهر فقط للطالبة المحددة في داشبوردها — ولن يراه باقي الفصل. بعد حلّها له، ستظهر نتيجتها الجديدة في تقريرها للمقارنة.
     </div>
 
     <div style="display:flex;justify-content:flex-end;margin-top:14px">
@@ -2272,6 +2282,7 @@ function _genRec(name,score,type){
 }
 
 function oR(name,score,type,key){
+  window._currentStudentKey = key || '';
   var recs = _genRec(name,score,type);
   document.getElementById('mTitle').textContent='📋 تقرير مفصّل — '+name;
   document.getElementById('mName').textContent=name;
@@ -2465,17 +2476,106 @@ function openRemedialPanel(){
   planEl.style.whiteSpace = 'pre-line';
   planEl.textContent = planText;
 
-  // أزرار إنشاء الاختبار
-  var btnsHtml = '';
-  weakSkills.forEach(function(s){
-    var col = s.pct < 40 ? '#dc2626' : '#d97706';
-    btnsHtml += '<a href="/teachers/skills/?remedial_skill='+encodeURIComponent(s.name)+'" target="_blank" ';
-    btnsHtml += 'style="padding:8px 14px;border-radius:8px;background:'+col+';color:white;font-family:Tajawal;font-size:12px;font-weight:700;text-decoration:none;display:inline-block">';
-    btnsHtml += '+ اختبار: '+s.name+'</a>';
-  });
-  btnsEl.innerHTML = btnsHtml;
+  // تحميل قائمة الاختبارات للتعيين
+  loadTeacherExams();
+
+  // إخفاء رسالة التعيين السابقة
+  var msgEl = document.getElementById('remedialAssignMsg');
+  if(msgEl){ msgEl.style.display='none'; msgEl.textContent=''; }
 
   document.getElementById('remedialModal').classList.add('on');
+}
+
+// ═══════════════════════════════════
+// تعيين الاختبار العلاجي
+// ═══════════════════════════════════
+function loadTeacherExams(){
+  var sel = document.getElementById('remedialExamSelect');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">⏳ جاري التحميل...</option>';
+  fetch('/teachers/api/my-exams.json', {
+    credentials: 'same-origin',
+    headers: {'Accept':'application/json','X-Requested-With':'XMLHttpRequest'}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var opts = '<option value="">— اختاري الاختبار —</option>';
+    var exams = d.exams || [];
+    if(!exams.length){
+      opts = '<option value="">لا توجد اختبارات مفعّلة</option>';
+    } else {
+      exams.forEach(function(e){
+        opts += '<option value="'+e.id+'">'+e.skill+' ('+e.type+') — '+e.questions+' سؤال</option>';
+      });
+    }
+    sel.innerHTML = opts;
+  })
+  .catch(function(){
+    sel.innerHTML = '<option value="">⚠️ خطأ في التحميل</option>';
+  });
+}
+
+function _getCookie(name){
+  var val = '';
+  document.cookie.split(';').forEach(function(c){
+    var t = c.trim();
+    if(t.startsWith(name+'=')) val = decodeURIComponent(t.substring(name.length+1));
+  });
+  return val;
+}
+
+function assignRemedialExam(){
+  var sel = document.getElementById('remedialExamSelect');
+  var msgEl = document.getElementById('remedialAssignMsg');
+  var examId = sel ? sel.value : '';
+
+  msgEl.style.display = 'block';
+  if(!examId){
+    msgEl.style.background = 'rgba(220,38,38,0.08)';
+    msgEl.style.color = 'var(--red)';
+    msgEl.textContent = '⚠️ يرجى اختيار الاختبار أولاً';
+    return;
+  }
+  var key = window._currentStudentKey || '';
+  if(!key){
+    msgEl.style.background = 'rgba(220,38,38,0.08)';
+    msgEl.style.color = 'var(--red)';
+    msgEl.textContent = '❌ خطأ: لم يتم تحديد الطالبة';
+    return;
+  }
+  msgEl.style.background = 'rgba(100,116,139,0.08)';
+  msgEl.style.color = 'var(--text3)';
+  msgEl.textContent = '⏳ جاري التعيين...';
+
+  fetch('/teachers/api/assign-remedial/', {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': _getCookie('csrftoken'),
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: JSON.stringify({exam_id: parseInt(examId), student_key: key})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.ok){
+      msgEl.style.background = 'rgba(5,150,105,0.08)';
+      msgEl.style.color = 'var(--green)';
+      msgEl.textContent = d.created
+        ? '✅ تم تعيين "'+d.exam+'" للطالبة '+d.student+' — ستظهر في داشبوردها فقط!'
+        : '⚠️ هذا الاختبار مُعيَّن مسبقاً لهذه الطالبة';
+    } else {
+      msgEl.style.background = 'rgba(220,38,38,0.08)';
+      msgEl.style.color = 'var(--red)';
+      msgEl.textContent = '❌ '+(d.error || 'حدث خطأ');
+    }
+  })
+  .catch(function(){
+    msgEl.style.background = 'rgba(220,38,38,0.08)';
+    msgEl.style.color = 'var(--red)';
+    msgEl.textContent = '❌ خطأ في الاتصال بالسيرفر';
+  });
 }
 
 // ═══════════════════════════════════

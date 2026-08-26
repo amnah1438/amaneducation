@@ -1627,6 +1627,86 @@ def manual_score_entry(request):
 # ═══════════════════════════════════════════════════════════════
 # API: إحصاءات الداشبورد — للتحديث التلقائي (AJAX)
 # ═══════════════════════════════════════════════════════════════
+@login_required
+def teacher_exams_json(request):
+    """API — جلب اختبارات المعلمة المفعّلة لتعيينها علاجياً."""
+    if not check_teacher(request):
+        return JsonResponse({'error': 'غير مصرّح'}, status=403)
+    teacher = get_teacher(request)
+    if not teacher:
+        return JsonResponse({'exams': []})
+    exams = (
+        TeacherExam.objects
+        .filter(skill__created_by=teacher, is_active=True)
+        .select_related('skill')
+        .order_by('skill__title', 'exam_type')
+    )
+    data = []
+    for e in exams:
+        data.append({
+            'id': e.id,
+            'skill': e.skill.title if e.skill else '—',
+            'type': e.get_exam_type_display() if hasattr(e, 'get_exam_type_display') else e.exam_type,
+            'questions': e.questions_count,
+        })
+    return JsonResponse({'exams': data})
+
+
+@login_required
+def assign_remedial_exam(request):
+    """API — تعيين اختبار علاجي لطالبة محددة مباشرة."""
+    import json as _json
+    if not check_teacher(request):
+        return JsonResponse({'error': 'غير مصرّح'}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST مطلوب'}, status=405)
+
+    try:
+        body = _json.loads(request.body)
+    except _json.JSONDecodeError:
+        return JsonResponse({'error': 'بيانات غير صالحة'}, status=400)
+
+    exam_id = body.get('exam_id')
+    student_key = body.get('student_key', '')
+
+    if not exam_id:
+        return JsonResponse({'error': 'معرّف الاختبار مطلوب'}, status=400)
+
+    teacher = get_teacher(request)
+    exam = get_object_or_404(TeacherExam, id=exam_id, skill__created_by=teacher)
+
+    from students.models import Student, RemedialExamAssignment
+
+    student = None
+    if student_key.startswith('sr_'):
+        try:
+            student = Student.objects.get(id=int(student_key[3:]))
+        except (Student.DoesNotExist, ValueError):
+            pass
+    elif student_key.startswith('u_'):
+        try:
+            user_id = int(student_key[2:])
+            target_user = User.objects.get(id=user_id)
+            full_name = target_user.get_full_name() or target_user.username
+            student = Student.objects.filter(full_name=full_name).first()
+        except (User.DoesNotExist, ValueError):
+            pass
+
+    if not student:
+        return JsonResponse({'error': 'الطالبة غير موجودة في سجل الطالبات — تأكدي من إضافتها عبر صفحة الاستيراد'}, status=404)
+
+    obj, created = RemedialExamAssignment.objects.get_or_create(
+        exam_id=exam_id, student=student
+    )
+
+    return JsonResponse({
+        'ok': True,
+        'created': created,
+        'student': student.full_name,
+        'exam': exam.skill.title if exam.skill else str(exam_id),
+    })
+
+
 @never_cache
 @login_required
 def teacher_stats_json(request):

@@ -36,3 +36,24 @@ class Student(models.Model):
 
     def __str__(self):
         return self.full_name
+
+
+class RemedialExamAssignment(models.Model):
+    """تعيين اختبار علاجي لطالبة محددة من قبل المعلمة."""
+    exam_id = models.IntegerField(verbose_name="معرّف الاختبار")
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name="remedial_assignments",
+        verbose_name="الطالبة"
+    )
+    assigned_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ التعيين")
+
+    class Meta:
+        verbose_name = "تعيين اختبار علاجي"
+        verbose_name_plural = "تعيينات الاختبارات العلاجية"
+        ordering = ["-assigned_at"]
+        unique_together = [("exam_id", "student")]
+
+    def __str__(self):
+        return f"اختبار {self.exam_id} → {self.student.full_name}"
