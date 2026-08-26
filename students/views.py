@@ -335,8 +335,15 @@ def take_exam(request, exam_id):
 
     # ─── 2) منع إعادة الاختبار ────────────────────────────────
     if ExamResult.objects.filter(exam=exam, student=request.user).exists():
-        messages.warning(request, '⚠️ لقد أدّيتِ هذا الاختبار مسبقاً')
-        return redirect('student_dashboard')
+        # إذا كان اختباراً علاجياً مُعيَّناً لهذه الطالبة تحديداً → اسمح بالإعادة
+        from .models import RemedialExamAssignment
+        _my_student = _student_for(request.user)
+        _is_remedial = _my_student and RemedialExamAssignment.objects.filter(
+            exam_id=exam.id, student=_my_student
+        ).exists()
+        if not _is_remedial:
+            messages.warning(request, '⚠️ لقد أدّيتِ هذا الاختبار مسبقاً')
+            return redirect('student_dashboard')
 
     questions = list(exam.questions.all().order_by('order'))
     if not questions:
