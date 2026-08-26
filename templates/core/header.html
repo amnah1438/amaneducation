@@ -11,13 +11,9 @@
                 {% else %}
                     <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار وزارة التعليم</div>
                 {% endif %}
-                <div class="header-sub-text d-none d-md-block mt-1 lh-sm fw-bold text-secondary">
-                    <div>{{ settings.header_line_1 }}</div>
-                    <div>{{ settings.header_line_2 }}</div>
-                </div>
             </div>
 
-            <!-- اسم المنصة - وسط -->
+            <!-- اسم المنصة -->
             <div class="col-4 text-center">
                 <h2 class="header-title fw-bold mb-0" style="color: #4b0082; font-family: 'Tajawal', sans-serif;">
                     {{ settings.platform_name }}
@@ -31,25 +27,21 @@
                 {% else %}
                     <div class="p-2 border rounded bg-light d-inline-block small text-muted">شعار المدرسة</div>
                 {% endif %}
-                <div class="header-sub-text d-none d-md-block mt-1 lh-sm fw-bold text-secondary">
-                    <div>{{ settings.header_line_3 }}</div>
-                    <div>{{ settings.header_line_4 }}</div>
-                </div>
             </div>
 
         </div>
 
-        <!-- اسم المديرة - سطر مستقل تحت الكل -->
+        <!-- النصوص الفرعية - سطر مستقل -->
+        <div class="text-center mt-1 lh-sm fw-bold header-sub-text">
+            <div>{{ settings.header_line_1 }} · {{ settings.header_line_2 }}</div>
+            <div>{{ settings.header_line_3 }} · {{ settings.header_line_4 }}</div>
+        </div>
+
+        <!-- اسم المديرة - في الأسفل -->
         <div class="text-center mt-2">
             <span class="badge bg-lavender text-dark border header-badge">
                 مديرة المدرسة: {{ settings.principal_name }}
             </span>
-        </div>
-
-        <!-- النصوص على الجوال -->
-        <div class="d-md-none text-center mt-1 lh-sm fw-bold" style="font-size:0.72rem;color:#444">
-            <div>{{ settings.header_line_1 }} · {{ settings.header_line_2 }}</div>
-            <div>{{ settings.header_line_3 }} · {{ settings.header_line_4 }}</div>
         </div>
 
     </div>
@@ -78,7 +70,7 @@
         padding: 5px 16px;
     }
     .header-sub-text {
-        font-size: 0.7rem;
+        font-size: 0.75rem;
         color: #444;
     }
 
@@ -95,6 +87,7 @@
             font-size: 0.72rem;
             padding: 4px 10px !important;
         }
+        .header-sub-text { font-size: 0.68rem; }
     }
 
     /* تابلت */
