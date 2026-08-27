@@ -292,7 +292,7 @@ def teacher_dashboard(request):
         'avg_score': avg_score,
         'total_results': my_results.count(),
         'passed_results': my_results.filter(passed=True).count(),
-        'total_students': Profile.objects.filter(role='STUDENT').count(),
+        'total_students': Student.objects.filter(classroom__in=teacher.classrooms.all()).count() if teacher else 0,
         'trained_students': trained_students,        # طالبات دربتهن
         'treated_students': treated_count,           # طالبات عالجتهن (تحسّن ≥10%)
         'sessions': (
@@ -1755,7 +1755,7 @@ def teacher_stats_json(request):
     trained   = my_results.values('student_id').distinct().count()
 
     return JsonResponse({
-        'total_students':        Profile.objects.filter(role='STUDENT').count(),
+        'total_students':        Student.objects.filter(classroom__in=teacher.classrooms.all()).count() if teacher else 0,
         'total_skills':          my_skills.filter(content_type='skill').count(),
         'total_lessons':         my_skills.filter(content_type='lesson').count(),
         'total_banks':           my_skills.filter(content_type='bank').count(),
