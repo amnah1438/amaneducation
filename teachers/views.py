@@ -336,8 +336,8 @@ def skill_manager(request):
     teacher = get_teacher(request)
     my_skills = TeacherSkill.objects.filter(created_by=teacher).order_by('-created_at') if teacher else []
     shared_skills = TeacherSkill.objects.filter(is_shared=True, is_active=True).exclude(created_by=teacher).order_by('-created_at')[:20] if teacher else []
-    # الفصول من DB (مضافة من قبل المديرة)
-    school_classrooms = ClassRoom.objects.all().order_by('name')
+    # الفصول المعينة لهذه المعلمة فقط
+    school_classrooms = teacher.classrooms.all().order_by('name') if teacher else ClassRoom.objects.none()
     context = {
         'teacher': teacher,
         'my_skills': my_skills,

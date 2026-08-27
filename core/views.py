@@ -887,6 +887,7 @@ def admin_v2_dashboard(request):
         'is_active': p.user.is_active,
         'results': p.results_count or 0,
         'avg': round(p.avg_score or 0, 1),
+        'teacher_classrooms': list(p.classrooms.values_list('id', flat=True)) if hasattr(p, 'classrooms') else [],
     } for p in teacher_profiles]
 
     students_list = []
@@ -951,6 +952,23 @@ def admin_v2_data_json(request):
         'teachers_impact': _v2_teachers_impact(),
         'predictions': _v2_predictions(),
     })
+
+
+@admin_required
+def admin_assign_teacher_classrooms(request, teacher_id):
+    """تعيين / إلغاء تعيين الفصول لمعلمة — يقبل POST فقط."""
+    from django.http import JsonResponse
+    from teachers.models import Teacher as TeacherProfile
+    if request.method != 'POST':
+        return JsonResponse({'error': 'method not allowed'}, status=405)
+    try:
+        teacher_profile = TeacherProfile.objects.get(user_id=teacher_id)
+    except TeacherProfile.DoesNotExist:
+        return JsonResponse({'error': 'teacher not found'}, status=404)
+    classroom_ids = request.POST.getlist('classroom_ids[]')
+    teacher_profile.classrooms.set(classroom_ids)
+    assigned = list(teacher_profile.classrooms.values('id', 'name'))
+    return JsonResponse({'ok': True, 'assigned': assigned})
 
 
 # ═══════════════════════════════════════════════════════════════

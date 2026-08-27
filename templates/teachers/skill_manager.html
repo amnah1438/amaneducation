@@ -129,6 +129,15 @@ select.fi option{background:var(--card2)}
 textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+/* Classroom checkbox picker */
+.cls-picker{display:flex;flex-wrap:wrap;gap:7px;padding:8px 10px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;min-height:44px;align-items:center}
+.cls-tag{display:inline-flex;align-items:center;gap:5px;background:var(--card3);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:.18s;user-select:none}
+.cls-tag:hover{border-color:var(--blue);color:var(--text)}
+.cls-tag input[type=checkbox]{appearance:none;width:14px;height:14px;border:2px solid var(--border2);border-radius:4px;background:var(--card);cursor:pointer;flex-shrink:0;transition:.15s;position:relative}
+.cls-tag input[type=checkbox]:checked{background:var(--blue);border-color:var(--blue)}
+.cls-tag input[type=checkbox]:checked::after{content:'✓';position:absolute;top:-2px;right:0px;font-size:10px;color:#fff;font-weight:900}
+.cls-tag:has(input:checked){background:rgba(79,142,247,.12);border-color:var(--blue);color:var(--blue)}
+.no-cls-msg{font-size:12px;color:var(--orange);font-weight:600;padding:4px 6px}
 
 /* QUESTION EDITOR */
 .q-editor{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin-bottom:10px;transition:.2s}
@@ -472,7 +481,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
             <div style="display:flex;gap:8px;margin-bottom:14px">
               <div class="fg" style="flex:1;margin:0">
                 <label class="fl">الفصل المستهدف</label>
-                <select class="fi" id="q-target-class"><option value="جميع الفصول">📌 جميع الفصول</option>{% for cls in school_classrooms %}<option value="{{ cls.name }}">{{ cls.name }}</option>{% endfor %}</select>
+                <div class="cls-picker" id="q-target-class-wrap">{% if school_classrooms %}<label class="cls-tag"><input type="checkbox" class="q-cls-chk" value="جميع الفصول"> 📌 الكل</label>{% for cls in school_classrooms %}<label class="cls-tag"><input type="checkbox" class="q-cls-chk" value="{{ cls.name }}"> {{ cls.name }}</label>{% endfor %}{% else %}<div class="no-cls-msg">⚠️ لا توجد فصول معينة لك — اطلبي من المديرة تعيين فصولك</div>{% endif %}</div>
               </div>
               <button type="button" class="btn btn-g btn-sm" style="align-self:flex-end;padding:10px 24px" onclick="proceedWithSelectedSkill('q')" id="q-proceed-btn" disabled>التالي ←</button>
             </div>
@@ -600,7 +609,7 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
               <select class="fi" id="t-subject"><option value="math">رياضيات</option><option value="phys">فيزياء</option><option value="bio">أحياء</option><option value="chem">كيمياء</option></select>
             </div>
             <div class="fg"><label class="fl">الفصل المستهدف</label>
-              <select class="fi" id="t-target-class"><option value="جميع الفصول">📌 جميع الفصول</option>{% for cls in school_classrooms %}<option value="{{ cls.name }}">{{ cls.name }}</option>{% endfor %}</select>
+              <div class="cls-picker" id="t-target-class-wrap">{% if school_classrooms %}<label class="cls-tag"><input type="checkbox" class="t-cls-chk" value="جميع الفصول"> 📌 الكل</label>{% for cls in school_classrooms %}<label class="cls-tag"><input type="checkbox" class="t-cls-chk" value="{{ cls.name }}"> {{ cls.name }}</label>{% endfor %}{% else %}<div class="no-cls-msg">⚠️ لا توجد فصول معينة لك — اطلبي من المديرة تعيين فصولك</div>{% endif %}</div>
             </div>
             <div class="fg"><label class="fl">وصف مختصر</label><input class="fi" id="t-desc" placeholder="وصف اختياري..."></div>
           </div>
@@ -1850,7 +1859,8 @@ function saveSkill(type, activate){
   document.getElementById('f-skill-type').value = isSkill ? getVal('q-skill-type') : '';
   document.getElementById('f-subject').value = isLesson ? getVal('t-subject') : (isBank ? (selectedBankType||'') : '');
   document.getElementById('f-description').value = isBank ? '' : getVal(isSkill ? 'q-desc' : 't-desc');
-  document.getElementById('f-target-classes').value = isBank ? 'جميع الفصول' : getVal(isSkill ? 'q-target-class' : 't-target-class');
+  const getCheckedClasses = prefix => { const chks = document.querySelectorAll('.'+prefix+'-cls-chk:checked'); if(!chks.length) return 'جميع الفصول'; const vals = Array.from(chks).map(c=>c.value); return vals.includes('جميع الفصول') ? 'جميع الفصول' : vals.join(','); };
+  document.getElementById('f-target-classes').value = isBank ? 'جميع الفصول' : (isSkill ? getCheckedClasses('q') : getCheckedClasses('t'));
   document.getElementById('f-is-active').value = activate ? 'on' : '';
   document.getElementById('f-is-shared').value = getVal(isSkill ? 'q-shared' : 't-shared');
   document.getElementById('f-video-url').value = getVal(isSkill ? 'q-yt-url' : 't-yt-url') || getVal(isSkill ? 'q-video-url' : 't-video-url');
@@ -1937,6 +1947,7 @@ function selectSkill(skillId, elem){
 }
 
 /* ═══ تعديل المهارة في نفس الصفحة ═══ */
+function setCheckedClasses(prefix, targetStr){ document.querySelectorAll('.'+prefix+'-cls-chk').forEach(c=>c.checked=false); if(!targetStr||targetStr==='جميع الفصول'){ const a=document.querySelector('.'+prefix+'-cls-chk[value="جميع الفصول"]'); if(a)a.checked=true; return; } const vals=targetStr.split(',').map(v=>v.trim()); document.querySelectorAll('.'+prefix+'-cls-chk').forEach(c=>{ if(vals.includes(c.value))c.checked=true; }); }
 function editSkillInline(id, title, contentType, skillType, targetClasses, description, subject){
   // Determine if it's qodrat or tahsili
   var isQodrat = (skillType && skillType.indexOf('qodrat') !== -1);
@@ -1950,8 +1961,7 @@ function editSkillInline(id, title, contentType, skillType, targetClasses, descr
     if(titleEl) titleEl.value = title;
     var typeEl = document.getElementById('q-skill-type');
     if(typeEl) typeEl.value = skillType;
-    var targetEl = document.getElementById('q-target-class');
-    if(targetEl) targetEl.value = targetClasses || 'جميع الفصول';
+    setCheckedClasses('q', targetClasses || 'جميع الفصول');
     var descEl = document.getElementById('q-desc');
     if(descEl) descEl.value = description || '';
     // Show skill selection and auto-start wizard
@@ -1969,8 +1979,7 @@ function editSkillInline(id, title, contentType, skillType, targetClasses, descr
     if(tTitleEl) tTitleEl.value = title;
     var tSubjectEl = document.getElementById('t-subject');
     if(tSubjectEl && subject) tSubjectEl.value = subject;
-    var tTargetEl = document.getElementById('t-target-class');
-    if(tTargetEl) tTargetEl.value = targetClasses || 'جميع الفصول';
+    setCheckedClasses('t', targetClasses || 'جميع الفصول');
     var tDescEl = document.getElementById('t-desc');
     if(tDescEl) tDescEl.value = description || '';
     flashMiniToast('✏️ تعديل الدرس: ' + title + ' — عدّلي البيانات ثم اضغطي التالي');

@@ -510,6 +510,7 @@ body.display-mode .card-t { font-size: 18px; }
             <td>{% if t.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
             <td>
               <form method="post" action="{% url 'admin_view_as' t.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️ معاينة</button></form>
+              <button class="btn btn-success" style="padding:4px 8px;font-size:9px" onclick="openAssignClassrooms({{ t.id }}, '{{ t.name|escapejs }}', [{{ t.teacher_classrooms|join:',' }}])">🏫 فصولها</button>
               <form method="post" action="{% url 'admin_delete_user' t.id %}" style="display:inline" onsubmit="return confirm('حذف المعلمة؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
             </td>
           </tr>
@@ -1294,6 +1295,29 @@ body.display-mode .card-t { font-size: 18px; }
   </div>
 </div>
 
+<!-- Drawer: تعيين الفصول للمعلمة -->
+<div class="drawer" id="assignClassroomsDrawer">
+  <div class="drawer-h">
+    <div class="drawer-t">🏫 تعيين الفصول</div>
+    <button class="drawer-close" onclick="closeAllDrawers()">✕</button>
+  </div>
+  <div class="drawer-b">
+    <div id="assignCls-teacher-name" style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--blue)"></div>
+    <p style="font-size:11px;color:var(--text2);margin-bottom:12px">اختاري الفصول التي تدرّسها هذه المعلمة — ستظهر لها هذه الفصول فقط عند إضافة مهارة:</p>
+    <div id="assignCls-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      {% for cls in classrooms %}
+      <label style="display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;cursor:pointer;font-size:13px;font-weight:600;transition:.2s">
+        <input type="checkbox" class="assign-cls-chk" value="{{ cls.id }}" style="width:18px;height:18px;accent-color:var(--blue);cursor:pointer">
+        {{ cls.name }}
+      </label>
+      {% endfor %}
+    </div>
+    <input type="hidden" id="assignCls-teacher-id" value="">
+    <button class="btn btn-primary" style="width:100%;font-size:14px;padding:12px" onclick="saveAssignClassrooms()">💾 حفظ التعيينات</button>
+    <div id="assignCls-msg" style="margin-top:10px;font-size:12px;text-align:center"></div>
+  </div>
+</div>
+
 <!-- Drawer: التنبيهات -->
 <div class="drawer" id="alertsDrawer">
   <div class="drawer-h">
@@ -1375,6 +1399,32 @@ function closeAllDrawers(){
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAllDrawers(); });
 
 // ─── Table search ───────────────────────────────────────────
+function openAssignClassrooms(teacherId, teacherName, assignedIds){
+  document.getElementById('assignCls-teacher-id').value = teacherId;
+  document.getElementById('assignCls-teacher-name').textContent = '👩‍🏫 ' + teacherName;
+  document.getElementById('assignCls-msg').textContent = '';
+  document.querySelectorAll('.assign-cls-chk').forEach(chk => {
+    chk.checked = assignedIds.indexOf(parseInt(chk.value)) !== -1;
+  });
+  openDrawer('assignClassroomsDrawer');
+}
+function saveAssignClassrooms(){
+  const teacherId = document.getElementById('assignCls-teacher-id').value;
+  const checkedIds = Array.from(document.querySelectorAll('.assign-cls-chk:checked')).map(c => c.value);
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const msgEl = document.getElementById('assignCls-msg');
+  msgEl.textContent = '⏳ جارٍ الحفظ...';
+  const body = new URLSearchParams();
+  checkedIds.forEach(id => body.append('classroom_ids[]', id));
+  fetch('/admin-dashboard/assign-classrooms/' + teacherId + '/', {
+    method: 'POST',
+    headers: {'X-CSRFToken': csrfToken, 'Content-Type': 'application/x-www-form-urlencoded'},
+    body: body.toString()
+  }).then(r => r.json()).then(data => {
+    if(data.ok){ msgEl.style.color='var(--green)'; msgEl.textContent='✅ تم حفظ الفصول بنجاح!'; setTimeout(()=>closeAllDrawers(),1200); }
+    else { msgEl.style.color='var(--red)'; msgEl.textContent='❌ خطأ: '+(data.error||''); }
+  }).catch(()=>{ msgEl.style.color='var(--red)'; msgEl.textContent='❌ خطأ في الاتصال'; });
+}
 function filterTable(tblId, q){
   q = (q||'').trim().toLowerCase();
   document.querySelectorAll('#'+tblId+' tbody tr').forEach(tr => {

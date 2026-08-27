@@ -44,6 +44,7 @@ urlpatterns = [
     # ── إستيراد المعلمات والطالبات بـ Excel (لوحة المديرة) ────
     path('admin-dashboard/import-teachers/', views.admin_import_teachers, name='admin_import_teachers'),
     path('admin-dashboard/import-students/', views.admin_import_students, name='admin_import_students'),
+    path('admin-dashboard/assign-classrooms/<int:teacher_id>/', views.admin_assign_teacher_classrooms, name='admin_assign_teacher_classrooms'),
 
     # ── الاختبارات الشاملة ──────────────────────────────────────
     path('admin-dashboard/comprehensive/', views.admin_comprehensive, name='admin_comprehensive'),
