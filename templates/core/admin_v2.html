@@ -480,6 +480,138 @@ body.display-mode .card-t { font-size: 18px; }
     <button class="btn btn-ghost" onclick="refreshLiveData()">🔄 تحديث البيانات</button>
   </div>
 
+  <!-- ═══════════ Tabs: المعلمات / الطالبات / الحصص / الاختبارات ═══════════ -->
+  <div class="section-title">👥 إدارة الطالبات والمعلمات</div>
+  <div class="card">
+    <div class="tabs">
+      <button class="tab" onclick="switchTab(event,'tab-teachers')">👩‍🏫 المعلمات</button>
+      <button class="tab on" onclick="switchTab(event,'tab-students')">👩‍🎓 الطالبات</button>
+      <button class="tab" onclick="switchTab(event,'tab-exams')">📝 الاختبارات</button>
+      <button class="tab" onclick="switchTab(event,'tab-comprehensive')">🏆 الشاملة</button>
+    </div>
+
+    <!-- التبويب: المعلمات -->
+    <div class="tab-content" id="tab-teachers">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div class="search-wrap"><input class="filter-inp" id="searchTeachers" placeholder="ابحثي بالاسم أو رقم الهوية..." oninput="filterTable('teachersTbl', this.value)"></div>
+        <button class="btn btn-success" onclick="openDrawer('addTeacherDrawer')">➕ إضافة معلمة</button>
+      </div>
+      <table class="tbl" id="teachersTbl">
+        <thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>PIN</th><th>اختبارات</th><th>متوسط الطالبات</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for t in teachers_list %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td style="font-weight:700;color:var(--text)">{{ t.name }}</td>
+            <td style="font-family:monospace;color:var(--blue)">{{ t.national_id }}</td>
+            <td style="font-family:monospace;color:var(--text3)">{{ t.pin|default:"—" }}</td>
+            <td>{{ t.results }}</td>
+            <td><span class="bd {% if t.avg >= 70 %}bd-g{% elif t.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.avg }}%</span></td>
+            <td>{% if t.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
+            <td>
+              <form method="post" action="{% url 'admin_view_as' t.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️ معاينة</button></form>
+              <form method="post" action="{% url 'admin_delete_user' t.id %}" style="display:inline" onsubmit="return confirm('حذف المعلمة؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="empty">لا توجد معلمات بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- التبويب: الطالبات -->
+    <div class="tab-content on" id="tab-students">
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <div class="search-wrap" style="flex:1;min-width:180px"><input class="filter-inp" id="searchStudents" placeholder="ابحثي بالاسم أو الهوية..." oninput="filterTable('studentsTbl', this.value)"></div>
+        <button class="btn btn-info" onclick="openDrawer('addStudentDrawer')">➕ إضافة طالبة</button>
+        <button class="btn" onclick="openDrawer('importDrawer')">📥 استيراد Excel</button>
+      </div>
+      <table class="tbl" id="studentsTbl">
+        <thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>الفصل</th><th>اختبارات</th><th>المتوسط</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for s in students_list %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td style="font-weight:700;color:var(--text)">{{ s.name }}</td>
+            <td style="font-family:monospace;color:var(--blue)">{{ s.national_id }}</td>
+            <td>{{ s.classroom }}</td>
+            <td>{{ s.results }}</td>
+            <td><span class="bd {% if s.avg >= 70 %}bd-g{% elif s.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ s.avg }}%</span></td>
+            <td>{% if s.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
+            <td>
+              <form method="post" action="{% url 'admin_view_as' s.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️</button></form>
+              <form method="post" action="{% url 'admin_delete_user' s.id %}" style="display:inline" onsubmit="return confirm('حذف الطالبة نهائياً؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 10px;font-size:10px">🗑️ حذف</button></form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="empty">لا توجد طالبات بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- التبويب: الاختبارات -->
+    <div class="tab-content" id="tab-exams">
+      <table class="tbl">
+        <thead><tr><th>الاختبار</th><th>النوع</th><th>المعلمة</th><th>المشاركات</th><th>المدة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for e in active_exams %}
+          <tr>
+            <td style="font-weight:700">{{ e.title }}</td>
+            <td>{{ e.type }}</td>
+            <td style="color:var(--text3)">{{ e.teacher }}</td>
+            <td>{{ e.participants }}</td>
+            <td>{{ e.duration }} د</td>
+            <td>{% if e.is_active %}<span class="bd bd-g">▶️ مفعّل</span>{% else %}<span class="bd bd-r">⏸️ موقوف</span>{% endif %}</td>
+            <td>
+              {% if e.is_comprehensive %}
+              <a href="{% url 'admin_comp_questions' e.skill_id %}" class="btn btn-warn" style="padding:4px 8px;font-size:9px">✏️ أسئلة</a>
+              {% endif %}
+              <a href="{% url 'exam_print' e.id %}?answers=1" target="_blank" class="btn btn-info" style="padding:4px 8px;font-size:9px">🖨️</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="empty">لا توجد اختبارات بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- التبويب: الاختبارات الشاملة -->
+    <div class="tab-content" id="tab-comprehensive">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <span style="font-size:11px;color:var(--text2);align-self:center;font-weight:700">إدارة الاختبارات الشاملة (قدرات/تحصيلي):</span>
+        <button class="btn btn-primary" onclick="openDrawer('addCompDrawer')">➕ إضافة شامل جديد</button>
+        <a href="{% url 'admin_comprehensive' %}" class="btn btn-ghost">🔗 الصفحة المخصصة الكاملة</a>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>العنوان</th><th>النوع</th><th>الأسئلة</th><th>المدة</th><th>الفصل</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for s in comprehensive_skills %}
+          {% with exam=s.exams.first %}
+          <tr>
+            <td style="font-weight:700">{% if s.skill_type == 'qodrat_kamy' %}🎯{% else %}📚{% endif %} {{ s.title }}</td>
+            <td>{{ s.skill_type|default:"—" }}</td>
+            <td>{% if exam %}{{ exam.questions.count }}/{{ exam.questions_count }}{% else %}0{% endif %}</td>
+            <td>{% if exam %}{{ exam.duration_minutes }} د{% else %}—{% endif %}</td>
+            <td>{{ s.target_classes|default:"—" }}</td>
+            <td>{% if s.is_active %}<span class="bd bd-g">✓ مفعّل</span>{% else %}<span class="bd bd-r">⏸️</span>{% endif %}</td>
+            <td>
+              <a href="{% url 'admin_comp_questions' s.id %}" class="btn btn-warn" style="padding:4px 8px;font-size:9px">✏️ الأسئلة</a>
+              <form method="post" action="{% url 'admin_delete_comprehensive' s.id %}" style="display:inline" onsubmit="return confirm('حذف نهائي؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
+            </td>
+          </tr>
+          {% endwith %}
+          {% empty %}
+          <tr><td colspan="7" class="empty">لا توجد اختبارات شاملة بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
   <!-- ═══════════ KPI CARDS ═══════════ -->
   <div class="section-title">📊 مؤشرات الأداء الرئيسية</div>
   <div class="kpi-grid">
@@ -685,135 +817,7 @@ body.display-mode .card-t { font-size: 18px; }
     </div>
   </div>
 
-  <!-- ═══════════ Tabs: المعلمات / الطالبات / الحصص / الاختبارات ═══════════ -->
-  <div class="section-title">🗂️ الإدارة المضمّنة</div>
-  <div class="card non-display">
-    <div class="tabs">
-      <button class="tab on" onclick="switchTab(event,'tab-teachers')">👩‍🏫 المعلمات</button>
-      <button class="tab" onclick="switchTab(event,'tab-students')">👩‍🎓 الطالبات</button>
-      <button class="tab" onclick="switchTab(event,'tab-exams')">📝 الاختبارات</button>
-      <button class="tab" onclick="switchTab(event,'tab-comprehensive')">🏆 الشاملة</button>
-    </div>
 
-    <!-- التبويب: المعلمات -->
-    <div class="tab-content on" id="tab-teachers">
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <div class="search-wrap"><input class="filter-inp" id="searchTeachers" placeholder="ابحثي بالاسم أو رقم الهوية..." oninput="filterTable('teachersTbl', this.value)"></div>
-        <button class="btn btn-success" onclick="openDrawer('addTeacherDrawer')">➕ إضافة معلمة</button>
-      </div>
-      <table class="tbl" id="teachersTbl">
-        <thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>PIN</th><th>اختبارات</th><th>متوسط الطالبات</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-        <tbody>
-          {% for t in teachers_list %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td style="font-weight:700;color:var(--text)">{{ t.name }}</td>
-            <td style="font-family:monospace;color:var(--blue)">{{ t.national_id }}</td>
-            <td style="font-family:monospace;color:var(--text3)">{{ t.pin|default:"—" }}</td>
-            <td>{{ t.results }}</td>
-            <td><span class="bd {% if t.avg >= 70 %}bd-g{% elif t.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.avg }}%</span></td>
-            <td>{% if t.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
-            <td>
-              <form method="post" action="{% url 'admin_view_as' t.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️ معاينة</button></form>
-              <form method="post" action="{% url 'admin_delete_user' t.id %}" style="display:inline" onsubmit="return confirm('حذف المعلمة؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="8" class="empty">لا توجد معلمات بعد</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- التبويب: الطالبات -->
-    <div class="tab-content" id="tab-students">
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <div class="search-wrap"><input class="filter-inp" id="searchStudents" placeholder="ابحثي..." oninput="filterTable('studentsTbl', this.value)"></div>
-        <button class="btn btn-info" onclick="openDrawer('addStudentDrawer')">➕ إضافة طالبة</button>
-      </div>
-      <table class="tbl" id="studentsTbl">
-        <thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>الفصل</th><th>اختبارات</th><th>المتوسط</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-        <tbody>
-          {% for s in students_list %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td style="font-weight:700;color:var(--text)">{{ s.name }}</td>
-            <td style="font-family:monospace;color:var(--blue)">{{ s.national_id }}</td>
-            <td>{{ s.classroom }}</td>
-            <td>{{ s.results }}</td>
-            <td><span class="bd {% if s.avg >= 70 %}bd-g{% elif s.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ s.avg }}%</span></td>
-            <td>{% if s.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
-            <td>
-              <form method="post" action="{% url 'admin_view_as' s.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️</button></form>
-              <form method="post" action="{% url 'admin_delete_user' s.id %}" style="display:inline" onsubmit="return confirm('حذف الطالبة؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="8" class="empty">لا توجد طالبات بعد</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- التبويب: الاختبارات -->
-    <div class="tab-content" id="tab-exams">
-      <table class="tbl">
-        <thead><tr><th>الاختبار</th><th>النوع</th><th>المعلمة</th><th>المشاركات</th><th>المدة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-        <tbody>
-          {% for e in active_exams %}
-          <tr>
-            <td style="font-weight:700">{{ e.title }}</td>
-            <td>{{ e.type }}</td>
-            <td style="color:var(--text3)">{{ e.teacher }}</td>
-            <td>{{ e.participants }}</td>
-            <td>{{ e.duration }} د</td>
-            <td>{% if e.is_active %}<span class="bd bd-g">▶️ مفعّل</span>{% else %}<span class="bd bd-r">⏸️ موقوف</span>{% endif %}</td>
-            <td>
-              {% if e.is_comprehensive %}
-              <a href="{% url 'admin_comp_questions' e.skill_id %}" class="btn btn-warn" style="padding:4px 8px;font-size:9px">✏️ أسئلة</a>
-              {% endif %}
-              <a href="{% url 'exam_print' e.id %}?answers=1" target="_blank" class="btn btn-info" style="padding:4px 8px;font-size:9px">🖨️</a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="7" class="empty">لا توجد اختبارات بعد</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- التبويب: الاختبارات الشاملة -->
-    <div class="tab-content" id="tab-comprehensive">
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <span style="font-size:11px;color:var(--text2);align-self:center;font-weight:700">إدارة الاختبارات الشاملة (قدرات/تحصيلي):</span>
-        <button class="btn btn-primary" onclick="openDrawer('addCompDrawer')">➕ إضافة شامل جديد</button>
-        <a href="{% url 'admin_comprehensive' %}" class="btn btn-ghost">🔗 الصفحة المخصصة الكاملة</a>
-      </div>
-      <table class="tbl">
-        <thead><tr><th>العنوان</th><th>النوع</th><th>الأسئلة</th><th>المدة</th><th>الفصل</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-        <tbody>
-          {% for s in comprehensive_skills %}
-          {% with exam=s.exams.first %}
-          <tr>
-            <td style="font-weight:700">{% if s.skill_type == 'qodrat_kamy' %}🎯{% else %}📚{% endif %} {{ s.title }}</td>
-            <td>{{ s.skill_type|default:"—" }}</td>
-            <td>{% if exam %}{{ exam.questions.count }}/{{ exam.questions_count }}{% else %}0{% endif %}</td>
-            <td>{% if exam %}{{ exam.duration_minutes }} د{% else %}—{% endif %}</td>
-            <td>{{ s.target_classes|default:"—" }}</td>
-            <td>{% if s.is_active %}<span class="bd bd-g">✓ مفعّل</span>{% else %}<span class="bd bd-r">⏸️</span>{% endif %}</td>
-            <td>
-              <a href="{% url 'admin_comp_questions' s.id %}" class="btn btn-warn" style="padding:4px 8px;font-size:9px">✏️ الأسئلة</a>
-              <form method="post" action="{% url 'admin_delete_comprehensive' s.id %}" style="display:inline" onsubmit="return confirm('حذف نهائي؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
-            </td>
-          </tr>
-          {% endwith %}
-          {% empty %}
-          <tr><td colspan="7" class="empty">لا توجد اختبارات شاملة بعد</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
 
   <!-- ═══════════ Advanced Visuals ═══════════ -->
   <div class="section-title">📊 رؤى متقدمة (Advanced Insights)</div>
