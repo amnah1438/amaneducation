@@ -1429,7 +1429,10 @@ def gap_analysis_json(request):
 
     # المهارات المعيارية التي لا يوجد لها إجابات (فجوات غير مُختبرة)
     tested_ids = {s['id'] for s in skills_data}
-    untested_qs = SkillStandard.objects.filter(is_active=True).exclude(id__in=tested_ids)
+    untested_qs = SkillStandard.objects.filter(
+        is_active=True,
+        questions__exam__skill__created_by__user=request.user
+    ).distinct().exclude(id__in=tested_ids)
     if track_filter:
         untested_qs = untested_qs.filter(track=track_filter)
     untested = [
