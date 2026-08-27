@@ -1624,11 +1624,16 @@ def admin_import_students(request):
         return redirect('admin_dashboard')
 
     count, skipped = 0, []
-    for row in ws.iter_rows(min_row=2, values_only=True):
+    for row in ws.iter_rows(min_row=1, values_only=True):
         if not row or not row[0]:
             continue
         full_name = str(row[0]).strip() if row[0] else ''
-        national_id = str(row[1]).strip() if len(row) > 1 and row[1] else ''
+        # تحويل رقم الهوية: Excel يقرأ الأرقام كـ float (مثل 1158153922.0)
+        raw_id = row[1] if len(row) > 1 and row[1] is not None else ''
+        if isinstance(raw_id, float):
+            national_id = str(int(raw_id))
+        else:
+            national_id = str(raw_id).strip()
         classroom_name = str(row[2]).strip() if len(row) > 2 and row[2] else 'ث١٢'
 
         if not full_name or not national_id:
