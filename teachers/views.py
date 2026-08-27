@@ -1327,9 +1327,10 @@ def gap_analysis_json(request):
 
     teacher = get_teacher(request)
 
-    # بناء queryset الإجابات المرتبطة بمعلمة
+    # بناء queryset الإجابات المرتبطة بمعلمة (مفلترة للمعلمة الحالية فقط)
     answers_qs = StudentAnswer.objects.filter(
-        question__skill_standard__isnull=False
+        question__skill_standard__isnull=False,
+        result__exam__skill__created_by__user=request.user
     )
 
     # تحديد النطاق
