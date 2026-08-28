@@ -417,7 +417,6 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
   <div class="main-tabs">
     <button class="main-tab on t-blue" onclick="switchSection('qodrat',this)"><span>🧮</span> قسم القدرات</button>
     <button class="main-tab t-orange" onclick="switchSection('tahsili',this)"><span>📖</span> قسم التحصيلي</button>
-    <button class="main-tab t-purple" onclick="switchSection('bank',this)"><span>🗃️</span> بنك الأسئلة</button>
     <button class="main-tab t-teal" onclick="switchSection('standards',this)"><span>🎯</span> المهارات المعيارية</button>
   </div>
 
@@ -691,46 +690,8 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
     </div>
   </div>
 
-  <!-- ══════════════ SECTION 3: بنك الأسئلة ══════════════ -->
-  <div class="section" id="sec-bank">
-    <div class="sec-header"><h2 style="color:var(--purple)">🗃️ بنك الأسئلة</h2><p>اختري بنك متخصص وأضيفي أسئلة قابلة للاستخدام في أي مهارة</p></div>
 
-    <div class="panel on" id="bank-step0">
-      <div class="card"><div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--purple)"></span> اختر نوع البنك</span></div>
-        <div class="cb">
-          <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px">🧮 القدرات</div>
-          <div class="bank-grid" style="margin-bottom:14px">
-            <button class="bank-btn" onclick="selectBank('qodrat_kamy','قدرات — كمي')">🔢 قدرات كمي</button>
-            <button class="bank-btn" onclick="selectBank('qodrat_lafzy','قدرات — لفظي')">📚 قدرات لفظي</button>
-          </div>
-          <div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:8px">📖 التحصيلي</div>
-          <div class="bank-grid">
-            <button class="bank-btn" onclick="selectBank('math','الرياضيات')">📐 الرياضيات</button>
-            <button class="bank-btn" onclick="selectBank('physics','الفيزياء')">⚛️ الفيزياء</button>
-            <button class="bank-btn" onclick="selectBank('chemistry','الكيمياء')">🧪 الكيمياء</button>
-            <button class="bank-btn" onclick="selectBank('biology','الأحياء')">🦠 الأحياء</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div id="bank-wizard-wrap" style="display:none">
-      <div style="background:linear-gradient(135deg,rgba(155,114,245,.08),rgba(147,51,234,.05));border:1px solid var(--purple);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
-        <span style="font-size:20px">🗃️</span>
-        <div><div style="font-size:14px;font-weight:800;color:var(--purple)" id="bank-title-display">—</div><div style="font-size:11px;color:var(--text2)">بنك الأسئلة</div></div>
-      </div>
-
-      <div class="card"><div class="ch"><span class="ct"><span class="ct-dot" style="background:var(--purple)"></span> أضف أسئلة للبنك</span></div>
-        <div class="cb">
-          <div id="bank-editor"></div>
-          <div class="btn-row" style="justify-content:flex-end">
-            <button type="button" class="btn btn-b btn-sm" onclick="goBackFromBank()">← رجوع</button>
-            <button type="button" class="btn btn-g" onclick="saveSkill('bank',true)">💾 حفظ البنك</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- ══════════════ SECTION 4
 
   <!-- ══════════════ SECTION 4: المهارات المعيارية ══════════════ -->
   <div class="section" id="sec-standards">
@@ -999,26 +960,6 @@ function goTStep(step){
   if(step === 3) updateSummary('t');
 }
 
-// ════ BANK SECTION ════
-function selectBank(type, name){
-  selectedBankType = type;
-  document.getElementById('bank-step0').style.display = 'none';
-  document.getElementById('bank-wizard-wrap').style.display = 'block';
-  document.getElementById('bank-title-display').textContent = name;
-
-  // Reset questions for this bank
-  questions['bank'] = [];
-
-  // مسح الكاش لضمان جلب أحدث المهارات
-  _skillStandardsCache = null;
-  buildQEditor('bank', 'bank-editor', 'المهارة المعيارية');
-}
-
-function goBackFromBank(){
-  selectedBankType = null;
-  document.getElementById('bank-step0').style.display = 'block';
-  document.getElementById('bank-wizard-wrap').style.display = 'none';
-}
 
 // ════ QUESTION EDITOR ════
 function buildQEditor(prefix, containerId, skillLabel){
@@ -2214,7 +2155,7 @@ document.addEventListener('DOMContentLoaded', () => {
   updateSkillsList('kamy');
   updateSkillsList('lafzy');
 
-  // Note: buildQEditor is called dynamically by startQodratWizard, startTahsiliWizard, selectBank
+  // Note: buildQEditor is called dynamically by startQodratWizard, startTahsiliWizard
   // We will update those functions to call buildQEditor
 });
 </script>
