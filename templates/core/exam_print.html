@@ -98,6 +98,7 @@
 <div class="question">
   <div class="qhead">س{{ q.order|default:forloop.counter }}.</div>
   <div class="qtext">{{ q.question_plain|default:q.question_text|default:""|safe }}</div>
+  {% if q.question_image %}<img src="{{ q.question_image|cloud_url }}" style="max-width:100%;max-height:200px;margin:8px 0;border:1px solid #ddd;border-radius:4px;display:block">{% endif %}
   <ul class="options">
     <li><strong>أ.</strong> <span class="{% if show_answers and q.correct_answer == 'A' %}answer-correct{% endif %}">{{ q.option_a_plain|default:q.option_a|default:""|safe }}</span>
       {% if q.option_a_image %}<br><img src="{{ q.option_a_image|cloud_url }}" style="max-height:120px;max-width:300px;margin-top:4px;border:1px solid #ddd;border-radius:4px">{% endif %}
