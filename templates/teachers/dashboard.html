@@ -2059,6 +2059,8 @@ function gp(name,btn){
   var pg=document.getElementById('pg-'+name);
   if(pg) pg.classList.add('on');
   btn.classList.add('on');
+  if(name==='sk') setTimeout(initSkCharts,50);
+  if(name==='ex') setTimeout(initExCharts,50);
 }
 
 // ── الوقت والتاريخ ──
@@ -2150,76 +2152,90 @@ window.mainChart = new Chart(document.getElementById('mainC'),{  type:'line',
   });
 })();
 
-// ── قبلي وبعدي (بيانات حقيقية) ──
-try{
-var ppData = JSON.parse('{{ pre_post_json|escapejs }}');
-if(ppData.length){
-  new Chart(document.getElementById('ppC'),{
-    type:'bar',
-    data:{
-      labels:ppData.map(function(d){return d.name}),
-      datasets:[
-        {label:'القبلي',data:ppData.map(function(d){return d.pre}),backgroundColor:'rgba(59,130,246,0.5)',borderRadius:5,borderSkipped:false},
-        {label:'البعدي',data:ppData.map(function(d){return d.post}),backgroundColor:'rgba(16,185,129,0.7)',borderRadius:5,borderSkipped:false}
-      ]
-    },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
-  });
+// ── تهيئة رسوم المهارات (كسولة — تُستدعى عند فتح تبويب المهارات) ──
+var _skChartsInited = false;
+function initSkCharts(){
+  if(_skChartsInited) return;
+  _skChartsInited = true;
+
+  // قبلي وبعدي
+  try{
+    var ppData = JSON.parse('{{ pre_post_json|escapejs }}');
+    if(ppData.length){
+      new Chart(document.getElementById('ppC'),{
+        type:'bar',
+        data:{
+          labels:ppData.map(function(d){return d.name}),
+          datasets:[
+            {label:'القبلي',data:ppData.map(function(d){return d.pre}),backgroundColor:'rgba(59,130,246,0.5)',borderRadius:5,borderSkipped:false},
+            {label:'البعدي',data:ppData.map(function(d){return d.post}),backgroundColor:'rgba(16,185,129,0.7)',borderRadius:5,borderSkipped:false}
+          ]
+        },
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,max:100,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
+      });
+    }
+  }catch(e){ console.warn('ppC:',e); }
+
+  // توزيع الدرجات
+  try{
+    var histData = JSON.parse('{{ hist_bins_json|escapejs }}');
+    new Chart(document.getElementById('histC'),{
+      type:'bar',
+      data:{
+        labels:['20-29','30-39','40-49','50-59','60-69','70-79','80-89','90-100'],
+        datasets:[{
+          label:'عدد الطالبات',
+          data:histData,
+          backgroundColor:['rgba(239,68,68,0.7)','rgba(239,68,68,0.7)','rgba(245,158,11,0.7)','rgba(245,158,11,0.5)','rgba(139,92,246,0.7)','rgba(59,130,246,0.7)','rgba(16,185,129,0.7)','rgba(16,185,129,0.9)'],
+          borderRadius:5,borderSkipped:false
+        }]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:{y:{...ax,ticks:{...cf,stepSize:2}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
+    });
+  }catch(e){ console.warn('histC:',e); }
 }
-}catch(e){ console.warn('ppC:',e); }
 
-// ── Histogram (بيانات حقيقية) ──
-try{
-var histData = JSON.parse('{{ hist_bins_json|escapejs }}');
-new Chart(document.getElementById('histC'),{
-  type:'bar',
-  data:{
-    labels:['20-29','30-39','40-49','50-59','60-69','70-79','80-89','90-100'],
-    datasets:[{
-      label:'عدد الطالبات',
-      data:histData,
-      backgroundColor:['rgba(239,68,68,0.7)','rgba(239,68,68,0.7)','rgba(245,158,11,0.7)','rgba(245,158,11,0.5)','rgba(139,92,246,0.7)','rgba(59,130,246,0.7)','rgba(16,185,129,0.7)','rgba(16,185,129,0.9)'],
-      borderRadius:5,borderSkipped:false
-    }]
-  },
-  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tt},scales:{y:{...ax,ticks:{...cf,stepSize:2}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
-});
-}catch(e){ console.warn('histC:',e); }
+// ── تهيئة رسوم الاختبارات (كسولة — تُستدعى عند فتح تبويب الاختبارات) ──
+var _exChartsInited = false;
+function initExCharts(){
+  if(_exChartsInited) return;
+  _exChartsInited = true;
 
-// ── بنك الأسئلة (بيانات حقيقية من skill_hardness) ──
-(function(){
-  var bankEl = document.getElementById('bankC');
-  if(!bankEl) return;
-  var skillH = [{% for s in skill_hardness %}{name:'{{ s.name|escapejs }}',pct:{{ s.pct }},count:{{ s.count }}}{% if not forloop.last %},{% endif %}{% endfor %}];
-  if(!skillH.length) return;
-  new Chart(bankEl,{
-    type:'bar',
-    data:{
-      labels:skillH.map(function(s){return s.name.substring(0,12)}),
-      datasets:[
-        {label:'عدد المحاولات',data:skillH.map(function(s){return s.count}),backgroundColor:'rgba(139,92,246,0.5)',borderRadius:5,borderSkipped:false},
-        {label:'نسبة الصواب%',data:skillH.map(function(s){return s.pct}),backgroundColor:'rgba(16,185,129,0.6)',borderRadius:5,borderSkipped:false}
-      ]
-    },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
-  });
-})();
+  // بنك الأسئلة
+  (function(){
+    var bankEl = document.getElementById('bankC');
+    if(!bankEl) return;
+    var skillH = [{% for s in skill_hardness %}{name:'{{ s.name|escapejs }}',pct:{{ s.pct }},count:{{ s.count }}}{% if not forloop.last %},{% endif %}{% endfor %}];
+    if(!skillH.length) return;
+    new Chart(bankEl,{
+      type:'bar',
+      data:{
+        labels:skillH.map(function(s){return s.name.substring(0,12)}),
+        datasets:[
+          {label:'عدد المحاولات',data:skillH.map(function(s){return s.count}),backgroundColor:'rgba(139,92,246,0.5)',borderRadius:5,borderSkipped:false},
+          {label:'نسبة الصواب%',data:skillH.map(function(s){return s.pct}),backgroundColor:'rgba(16,185,129,0.6)',borderRadius:5,borderSkipped:false}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10}},tooltip:tt},scales:{y:{...ax,min:0,ticks:{...cf,stepSize:25}},x:{...ax,ticks:{...cf,font:{family:'Tajawal',size:9}}}}}
+    });
+  })();
 
-// ── توزيع نتائج الاختبارات (بيانات حقيقية) ──
-(function(){
-  var exEl = document.getElementById('exLvlC');
-  if(!exEl) return;
-  var exc={{ students_count_excellent }}, mid={{ students_count_mid }}, weak={{ students_count_weak }};
-  if(exc+mid+weak===0) return;
-  new Chart(exEl,{
-    type:'doughnut',
-    data:{
-      labels:['متفوقات (90%+)','جيدات (50-89%)','يحتجن دعم (<50%)'],
-      datasets:[{data:[exc,mid,weak],backgroundColor:['#8b5cf6','#3b82f6','#ef4444'],borderWidth:0,hoverBorderWidth:2,hoverBorderColor:'#fff'}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},cutout:'62%'}
-  });
-})();
+  // توزيع نتائج الاختبارات
+  (function(){
+    var exEl = document.getElementById('exLvlC');
+    if(!exEl) return;
+    var exc={{ students_count_excellent }}, mid={{ students_count_mid }}, weak={{ students_count_weak }};
+    if(exc+mid+weak===0) return;
+    new Chart(exEl,{
+      type:'doughnut',
+      data:{
+        labels:['متفوقات (90%+)','جيدات (50-89%)','يحتجن دعم (<50%)'],
+        datasets:[{data:[exc,mid,weak],backgroundColor:['#8b5cf6','#3b82f6','#ef4444'],borderWidth:0,hoverBorderWidth:2,hoverBorderColor:'#fff'}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#475569',font:{family:'Tajawal',size:10},boxWidth:10},position:'bottom'},tooltip:tt},cutout:'62%'}
+    });
+  })();
+}
 
 // ── منحنى التنبؤ (بيانات ديناميكية من top_students) ──
 (function(){
