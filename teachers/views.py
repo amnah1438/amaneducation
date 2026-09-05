@@ -306,19 +306,39 @@ def teacher_dashboard(request):
     def _took_set(exam):
         """يرجع مجموعة student IDs اللي أدّين هذا الاختبار — من أي مصدر."""
         if not exam:
-            return set(), set()
+            return set(), set(), set()
         res = ExamResult.objects.filter(exam=exam)
         via_record = set(res.filter(student_record__isnull=False).values_list('student_record_id', flat=True))
         via_user   = set(res.filter(student__isnull=False).values_list('student_id', flat=True))
-        return via_record, via_user
 
-    def _missing(students, took_records, took_users, has_exam):
+        # ربط Student records للطالبات اللي أدّين عبر حسابهن (Student.user مرتبط)
+        if via_user:
+            linked = set(Student.objects.filter(user_id__in=via_user).values_list('id', flat=True))
+            via_record = via_record | linked
+
+        # للطالبات اللي Student.user = None: نطابق عبر الاسم كاحتياط
+        linked_user_ids = set(Student.objects.filter(user_id__in=via_user).values_list('user_id', flat=True))
+        unlinked_user_ids = via_user - linked_user_ids
+        took_names = set()
+        if unlinked_user_ids:
+            from django.contrib.auth import get_user_model as _gum
+            _U = _gum()
+            for u in _U.objects.filter(id__in=unlinked_user_ids):
+                n = (u.get_full_name() or u.username).strip()
+                if n:
+                    took_names.add(n)
+
+        return via_record, via_user, took_names
+
+    def _missing(students, took_records, took_users, took_names, has_exam):
         if not has_exam:
             return []
         return [
             {'id': sid, 'name': sname}
             for sid, sname, suid in students
-            if sid not in took_records and (suid is None or suid not in took_users)
+            if sid not in took_records
+            and (suid is None or suid not in took_users)
+            and sname.strip() not in took_names
         ]
 
     skills_summary = []
@@ -332,7 +352,7 @@ def teacher_dashboard(request):
             continue
 
         # القبلي
-        _pre_rec, _pre_usr = _took_set(_pre_exam)
+        _pre_rec, _pre_usr, _pre_names = _took_set(_pre_exam)
         _pre_avg = 0
         if _pre_exam:
             _pre_res = ExamResult.objects.filter(exam=_pre_exam)
@@ -345,7 +365,7 @@ def teacher_dashboard(request):
             _pre_avg = int(round(_pre_res.aggregate(avg=Avg('percentage'))['avg'] or 0))
 
         # البعدي
-        _post_rec, _post_usr = _took_set(_post_exam)
+        _post_rec, _post_usr, _post_names = _took_set(_post_exam)
         _post_avg = 0
         if _post_exam:
             _post_res = ExamResult.objects.filter(exam=_post_exam)
@@ -357,8 +377,8 @@ def teacher_dashboard(request):
                 )
             _post_avg = int(round(_post_res.aggregate(avg=Avg('percentage'))['avg'] or 0))
 
-        _missing_pre  = _missing(_cls_students, _pre_rec,  _pre_usr,  bool(_pre_exam))
-        _missing_post = _missing(_cls_students, _post_rec, _post_usr, bool(_post_exam))
+        _missing_pre  = _missing(_cls_students, _pre_rec,  _pre_usr,  _pre_names,  bool(_pre_exam))
+        _missing_post = _missing(_cls_students, _post_rec, _post_usr, _post_names, bool(_post_exam))
         _pre_took_count  = len(_cls_students) - len(_missing_pre)  if _pre_exam  else 0
         _post_took_count = len(_cls_students) - len(_missing_post) if _post_exam else 0
         _improvement = (_post_avg - _pre_avg) if (_pre_exam and _post_exam and _pre_took_count) else None
