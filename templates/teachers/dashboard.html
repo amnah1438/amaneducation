@@ -2846,6 +2846,10 @@ if(origGP){
   var STATS_URL = "{% url 'teacher_stats_json' %}";
   var REFRESH_MS = 30000; // 30 ثانية
 
+  // الفلاتر الحالية (محقونة من Django لضمان التزامن)
+  var CURRENT_CLASSROOM  = "{{ f_classroom|escapejs }}";
+  var CURRENT_SKILL_TYPE = "{{ f_skill_type|escapejs }}";
+
   // خريطة: id العنصر → مفتاح الـ API + هل يُضاف "%" بعد الرقم
   var FIELDS = [
     { id: 'stat-total-students',  key: 'total_students',        pct: false },
@@ -2860,8 +2864,16 @@ if(origGP){
     { id: 'stat-trained-students',key: 'trained_students',      pct: false },
   ];
 
+  function buildUrl() {
+    var params = new URLSearchParams();
+    if (CURRENT_CLASSROOM  && CURRENT_CLASSROOM  !== 'all') params.set('classroom',  CURRENT_CLASSROOM);
+    if (CURRENT_SKILL_TYPE && CURRENT_SKILL_TYPE !== 'all') params.set('skill_type', CURRENT_SKILL_TYPE);
+    var qs = params.toString();
+    return STATS_URL + (qs ? '?' + qs : '');
+  }
+
   function refreshStats() {
-    fetch(STATS_URL, { credentials: 'same-origin' })
+    fetch(buildUrl(), { credentials: 'same-origin' })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         if (!data) return;

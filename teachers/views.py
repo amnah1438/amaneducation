@@ -1823,7 +1823,7 @@ def assign_remedial_exam(request):
 @login_required
 def teacher_stats_json(request):
     """
-    يُرجع إحصاءات الداشبورد كـ JSON.
+    يُرجع إحصاءات الداشبورد كـ JSON — مع دعم فلاتر الفصل ونوع المهارة.
     يُستدعى من JS كل 30 ثانية لتحديث الأرقام بدون إعادة تحميل الصفحة.
     """
     if not check_teacher(request):
@@ -1833,11 +1833,41 @@ def teacher_stats_json(request):
     if not teacher:
         return JsonResponse({'error': 'no teacher'}, status=403)
 
-    my_skills = TeacherSkill.objects.filter(created_by=teacher)
-    my_exams  = TeacherExam.objects.filter(skill__created_by=teacher)
+    # ─── فلاتر ───────────────────────────────────────────────
+    f_classroom  = request.GET.get('classroom', '')
+    f_skill_type = request.GET.get('skill_type', '')
+
+    # فصول المعلمة المفلترة
+    _teacher_classrooms = teacher.classrooms.all()
+    if f_classroom and f_classroom != 'all':
+        _filtered_classrooms = _teacher_classrooms.filter(name=f_classroom)
+    else:
+        _filtered_classrooms = _teacher_classrooms
+
+    # طالبات الفصل المفلتر
+    _cls_qs = Student.objects.filter(classroom__in=_filtered_classrooms)
+
+    my_skills  = TeacherSkill.objects.filter(created_by=teacher)
+    my_exams   = TeacherExam.objects.filter(skill__created_by=teacher)
     my_results = ExamResult.objects.filter(
         exam__skill__created_by=teacher
     ).exclude(student=request.user)
+
+    # تطبيق فلتر نوع المهارة
+    if f_skill_type and f_skill_type != 'all':
+        type_map = {'qodrat': 'skill', 'tahsili': 'lesson'}
+        mapped = type_map.get(f_skill_type, f_skill_type)
+        my_skills  = my_skills.filter(content_type=mapped)
+        my_exams   = my_exams.filter(skill__content_type=mapped)
+        my_results = my_results.filter(exam__skill__content_type=mapped)
+
+    # تطبيق فلتر الفصل على النتائج
+    if f_classroom and f_classroom != 'all':
+        _user_ids   = _cls_qs.filter(user__isnull=False).values_list('user_id', flat=True)
+        _record_ids = _cls_qs.values_list('id', flat=True)
+        my_results = my_results.filter(
+            Q(student_id__in=_user_ids) | Q(student_record_id__in=_record_ids)
+        )
 
     # تصنيف الطالبات
     from collections import defaultdict as _dd
@@ -1863,18 +1893,18 @@ def teacher_stats_json(request):
     trained   = my_results.values('student_id').distinct().count()
 
     return JsonResponse({
-        'total_students':        Student.objects.filter(classroom__in=teacher.classrooms.all()).count() if teacher else 0,
-        'total_skills':          my_skills.filter(content_type='skill').count(),
-        'total_lessons':         my_skills.filter(content_type='lesson').count(),
-        'total_banks':           my_skills.filter(content_type='bank').count(),
-        'active_skills':         my_skills.filter(is_active=True).count(),
-        'total_exams':           my_exams.count(),
-        'active_exams':          my_exams.filter(is_active=True).count(),
-        'total_results':         my_results.count(),
-        'passed_results':        my_results.filter(passed=True).count(),
-        'avg_score':             avg_score,
-        'trained_students':      trained,
+        'total_students':           _cls_qs.count(),
+        'total_skills':             my_skills.filter(content_type='skill').count(),
+        'total_lessons':            my_skills.filter(content_type='lesson').count(),
+        'total_banks':              my_skills.filter(content_type='bank').count(),
+        'active_skills':            my_skills.filter(is_active=True).count(),
+        'total_exams':              my_exams.count(),
+        'active_exams':             my_exams.filter(is_active=True).count(),
+        'total_results':            my_results.count(),
+        'passed_results':           my_results.filter(passed=True).count(),
+        'avg_score':                avg_score,
+        'trained_students':         trained,
         'students_count_excellent': excellent,
-        'students_count_mid':    mid,
-        'students_count_weak':   weak,
+        'students_count_mid':       mid,
+        'students_count_weak':      weak,
     })
