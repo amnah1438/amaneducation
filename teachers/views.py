@@ -1043,16 +1043,25 @@ def add_session(request):
                             else 'qodrat')
 
         from datetime import date as _date, time as _time
+        # دعم اختيار فصول متعددة
+        target_classes = request.POST.getlist('target_class')
+        if not target_classes:
+            target_classes = ['']   # سجّل حصة بدون فصل محدد
+        session_date = request.POST.get('session_date') or _date.today().isoformat()
+        session_time = request.POST.get('session_time') or _time(8, 0).isoformat()
+        notes        = request.POST.get('notes', '')
         try:
-            ClassSession.objects.create(
-                teacher=teacher, skill=skill,
-                session_type=session_type,
-                target_class=request.POST.get('target_class', ''),
-                session_date=request.POST.get('session_date') or _date.today().isoformat(),
-                session_time=request.POST.get('session_time') or _time(8, 0).isoformat(),
-                notes=request.POST.get('notes', ''),
-            )
-            messages.success(request, '✅ تم تسجيل الحصة وستُحتسب في إحصائك')
+            for cls in target_classes:
+                ClassSession.objects.create(
+                    teacher=teacher, skill=skill,
+                    session_type=session_type,
+                    target_class=cls,
+                    session_date=session_date,
+                    session_time=session_time,
+                    notes=notes,
+                )
+            count = len(target_classes)
+            messages.success(request, f'✅ تم تسجيل {"الحصة" if count == 1 else f"{count} حصص"} وستُحتسب في إحصائك')
         except Exception as exc:
             messages.error(request, f'تعذّر التسجيل: {exc}')
             return redirect('add_session')
@@ -1062,7 +1071,7 @@ def add_session(request):
     # كل مهارات المعلمة (مشاركة + خاصة + بنوك) لكي تختار من ضمنها
     my_skills = (TeacherSkill.objects.filter(created_by=teacher).order_by('-created_at')
                  if teacher else [])
-    classrooms = ClassRoom.objects.all().order_by('name')
+    classrooms = teacher.classrooms.all().order_by('name')
     return render(request, 'teachers/add_session.html', {
         'teacher': teacher, 'skills': my_skills, 'classrooms': classrooms,
     })
