@@ -201,7 +201,9 @@ def teacher_dashboard(request):
             Q(result__student_record_id__in=_cls_qs.values_list('id', flat=True))
         )
     for ans in _ans_qs:
-        name = (ans.question.target_skill_name or 'بدون تصنيف').strip() or 'بدون تصنيف'
+        name = (ans.question.target_skill_name or '').strip()
+        if not name:
+            continue
         skill_stats[name]['total'] += 1
         if ans.is_correct: skill_stats[name]['correct'] += 1
     skill_hardness = []
