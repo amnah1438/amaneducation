@@ -90,6 +90,17 @@ def teacher_dashboard(request):
     f_classroom = request.GET.get('classroom', '')
     f_skill_type = request.GET.get('skill_type', '')
 
+    # فصول المعلمة المفلترة — تُستخدم في كل مكان
+    if f_classroom and f_classroom != 'all':
+        _filtered_classrooms = ClassRoom.objects.filter(
+            name=f_classroom, teachers=teacher
+        ) if teacher else ClassRoom.objects.none()
+    else:
+        _filtered_classrooms = teacher.classrooms.all() if teacher else ClassRoom.objects.none()
+
+    # طالبات الفصل المفلتر (للتحقق من الغياب لاحقاً)
+    _cls_qs = Student.objects.filter(classroom__in=_filtered_classrooms)
+
     my_skills = TeacherSkill.objects.filter(created_by__user=request.user)
     my_exams = TeacherExam.objects.filter(skill__created_by__user=request.user)
     my_results = ExamResult.objects.filter(exam__skill__created_by__user=request.user).exclude(student=request.user)
@@ -102,22 +113,13 @@ def teacher_dashboard(request):
         my_exams = my_exams.filter(skill__content_type=mapped)
         my_results = my_results.filter(exam__skill__content_type=mapped)
 
-    # تطبيق فلتر الفصل (classroom)
+    # تطبيق فلتر الفصل — عبر Student→User (دقيق) + student_record
     if f_classroom and f_classroom != 'all':
-        student_names = list(Student.objects.filter(classroom__name=f_classroom).values_list('full_name', flat=True))
-        if student_names:
-            from django.db.models import Q as _Q
-            cond = _Q()
-            for n in student_names:
-                parts = n.split()
-                if parts and parts[0]:
-                    cond |= _Q(student__first_name=parts[0]) | _Q(student__username=n)
-            if cond:
-                my_results = my_results.filter(cond)
-            else:
-                my_results = my_results.none()
-        else:
-            my_results = my_results.none()
+        _user_ids    = _cls_qs.filter(user__isnull=False).values_list('user_id', flat=True)
+        _record_ids  = _cls_qs.values_list('id', flat=True)
+        my_results = my_results.filter(
+            Q(student_id__in=_user_ids) | Q(student_record_id__in=_record_ids)
+        )
 
     # ─── تجميع نتائج الطالبات (متوسط أداء كل طالبة) ───────────
     # نجمع النتائج من مصدرين: طالبات بحساب User + طالبات بسجل Student (رصد يدوي)
@@ -191,9 +193,15 @@ def teacher_dashboard(request):
         elif cnt >= 1: level = 1
         heatmap_data.append({'date': d.isoformat(), 'count': cnt, 'level': level})
 
-    # 2) المهارات الأكثر صعوبة (بناءً على target_skill_name لـ StudentAnswer الخاطئة)
+    # 2) المهارات الأكثر صعوبة (مفلترة بالفصل المختار)
     skill_stats = _dd(lambda: {'correct': 0, 'total': 0})
-    for ans in StudentAnswer.objects.filter(result__exam__skill__created_by=teacher).select_related('question'):
+    _ans_qs = StudentAnswer.objects.filter(result__exam__skill__created_by=teacher).select_related('question')
+    if f_classroom and f_classroom != 'all':
+        _ans_qs = _ans_qs.filter(
+            Q(result__student_id__in=_cls_qs.filter(user__isnull=False).values_list('user_id', flat=True)) |
+            Q(result__student_record_id__in=_cls_qs.values_list('id', flat=True))
+        )
+    for ans in _ans_qs:
         name = (ans.question.target_skill_name or 'بدون تصنيف').strip() or 'بدون تصنيف'
         skill_stats[name]['total'] += 1
         if ans.is_correct: skill_stats[name]['correct'] += 1
@@ -239,9 +247,18 @@ def teacher_dashboard(request):
     # 5) عدد الطالبات الذين دربتهن (distinct students)
     trained_students = my_results.values('student_id').distinct().count()
 
-    # 6) المهارات الأكثر طلباً للتدريب (من بنوك أسئلة بأي معلمة، خاصة بفجوات طالبات الفصل)
+    # 6) المهارات الأكثر طلباً للتدريب (مفلترة بالمعلمة والفصل)
     bank_gaps = _dd(int)
-    for ans in StudentAnswer.objects.filter(result__exam__exam_type='bank').select_related('question'):
+    _bank_qs = StudentAnswer.objects.filter(
+        result__exam__exam_type='bank',
+        result__exam__skill__created_by=teacher,
+    ).select_related('question')
+    if f_classroom and f_classroom != 'all':
+        _bank_qs = _bank_qs.filter(
+            Q(result__student_id__in=_cls_qs.filter(user__isnull=False).values_list('user_id', flat=True)) |
+            Q(result__student_record_id__in=_cls_qs.values_list('id', flat=True))
+        )
+    for ans in _bank_qs:
         if not ans.is_correct and ans.question.target_skill_name:
             bank_gaps[ans.question.target_skill_name.strip()] += 1
     top_demand = sorted([(k, v) for k, v in bank_gaps.items()], key=lambda x: -x[1])[:5]
@@ -282,10 +299,9 @@ def teacher_dashboard(request):
         else: hist_bins[0] += 1
 
     # 10) ملخص المهارات — القبلي والبعدي والغيابات (accordion)
-    # قائمة طالبات الفصل مع id السجل + id الحساب (للتحقق من المصدرين)
+    # قائمة طالبات الفصل المفلتر مع id السجل + id الحساب (للتحقق من المصدرين)
     _cls_students = list(
-        Student.objects.filter(classroom__in=teacher.classrooms.all())
-        .values_list('id', 'full_name', 'user_id').order_by('full_name')
+        _cls_qs.values_list('id', 'full_name', 'user_id').order_by('full_name')
     ) if teacher else []
 
     def _took_set(exam):
@@ -368,7 +384,7 @@ def teacher_dashboard(request):
         'avg_score': avg_score,
         'total_results': my_results.count(),
         'passed_results': my_results.filter(passed=True).count(),
-        'total_students': Student.objects.filter(classroom__in=teacher.classrooms.all()).count() if teacher else 0,
+        'total_students': _cls_qs.count() if teacher else 0,
         'trained_students': trained_students,        # طالبات دربتهن
         'treated_students': treated_count,           # طالبات عالجتهن (تحسّن ≥10%)
         'sessions': (
