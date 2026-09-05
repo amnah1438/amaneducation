@@ -1360,26 +1360,52 @@ body {
             <td style="color:var(--text3);font-size:10px;text-align:center" id="skd-{{ sk.skill_id }}-ico">▼</td>
           </tr>
           <tr id="skd-{{ sk.skill_id }}" style="display:none">
-            <td colspan="5" style="background:var(--bg2);padding:10px 14px;border-top:1px solid var(--border)">
+            <td colspan="5" style="background:var(--bg2);padding:12px 14px;border-top:1px solid var(--border)">
+
               {% if sk.missing_pre_students %}
-              <div style="margin-bottom:8px">
-                <div style="font-size:10px;color:var(--orange);font-weight:700;margin-bottom:5px">⚠ لم تؤدِّ القبلي ({{ sk.pre_missing }}):</div>
-                <div style="display:flex;flex-wrap:wrap;gap:4px">
-                  {% for st in sk.missing_pre_students %}<span style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.25);border-radius:4px;padding:2px 8px;font-size:10px">{{ st.name }}</span>{% endfor %}
+              <div style="margin-bottom:12px">
+                <!-- رأس القسم: عنوان + زر طباعة -->
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <span style="font-size:11px;color:var(--orange);font-weight:700">⚠ لم تؤدِّ القبلي — {{ sk.pre_missing }} طالبة</span>
+                  <button onclick="printMissingList('pre-{{ sk.skill_id }}','{{ sk.skill_title|escapejs }} — القبلي')"
+                    style="background:rgba(245,158,11,0.12);color:var(--orange);border:1px solid rgba(245,158,11,0.3);border-radius:5px;padding:3px 10px;font-size:10px;font-family:'Tajawal',sans-serif;cursor:pointer">
+                    🖨 طباعة
+                  </button>
+                </div>
+                <!-- القائمة المرقّمة -->
+                <div id="pre-{{ sk.skill_id }}-list" style="columns:3;column-gap:10px;font-size:10.5px;color:var(--text2);line-height:1.9">
+                  {% for st in sk.missing_pre_students %}
+                  <div style="break-inside:avoid;padding:1px 0;border-bottom:1px solid var(--border)">
+                    <span style="color:var(--orange);font-weight:700;margin-left:4px">{{ forloop.counter }}.</span>{{ st.name }}
+                  </div>
+                  {% endfor %}
                 </div>
               </div>
               {% endif %}
+
               {% if sk.missing_post_students %}
               <div>
-                <div style="font-size:10px;color:var(--blue);font-weight:700;margin-bottom:5px">⚠ لم تؤدِّ البعدي ({{ sk.post_missing }}):</div>
-                <div style="display:flex;flex-wrap:wrap;gap:4px">
-                  {% for st in sk.missing_post_students %}<span style="background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.25);border-radius:4px;padding:2px 8px;font-size:10px">{{ st.name }}</span>{% endfor %}
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <span style="font-size:11px;color:var(--blue);font-weight:700">⚠ لم تؤدِّ البعدي — {{ sk.post_missing }} طالبة</span>
+                  <button onclick="printMissingList('post-{{ sk.skill_id }}','{{ sk.skill_title|escapejs }} — البعدي')"
+                    style="background:rgba(59,130,246,0.12);color:var(--blue);border:1px solid rgba(59,130,246,0.3);border-radius:5px;padding:3px 10px;font-size:10px;font-family:'Tajawal',sans-serif;cursor:pointer">
+                    🖨 طباعة
+                  </button>
+                </div>
+                <div id="post-{{ sk.skill_id }}-list" style="columns:3;column-gap:10px;font-size:10.5px;color:var(--text2);line-height:1.9">
+                  {% for st in sk.missing_post_students %}
+                  <div style="break-inside:avoid;padding:1px 0;border-bottom:1px solid var(--border)">
+                    <span style="color:var(--blue);font-weight:700;margin-left:4px">{{ forloop.counter }}.</span>{{ st.name }}
+                  </div>
+                  {% endfor %}
                 </div>
               </div>
               {% endif %}
+
               {% if not sk.missing_pre_students and not sk.missing_post_students %}
-              <span style="color:var(--green);font-size:10px">✓ جميع الطالبات أدّين الاختبارات</span>
+              <span style="color:var(--green);font-size:11px">✓ جميع الطالبات أدّين الاختبارات</span>
               {% endif %}
+
             </td>
           </tr>
           {% endfor %}
@@ -2148,6 +2174,37 @@ function toggleSkRow(id){
   var open = row.style.display !== 'none';
   row.style.display = open ? 'none' : 'table-row';
   if(ico) ico.textContent = open ? '▼' : '▲';
+}
+
+function printMissingList(listId, title){
+  var el = document.getElementById(listId + '-list');
+  if(!el) return;
+  var items = el.querySelectorAll('div');
+  var rows = '';
+  items.forEach(function(item, i){
+    rows += '<tr><td style="padding:5px 10px;border-bottom:1px solid #ddd;font-size:13px">'
+          + (i+1) + '</td><td style="padding:5px 10px;border-bottom:1px solid #ddd;font-size:13px">'
+          + item.textContent.replace(/^\d+\./, '').trim()
+          + '</td></tr>';
+  });
+  var w = window.open('','_blank','width=700,height=800');
+  w.document.write(
+    '<html dir="rtl"><head><meta charset="UTF-8">'
+    + '<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">'
+    + '<title>قائمة الغياب</title>'
+    + '<style>body{font-family:Tajawal,sans-serif;padding:30px;color:#111}'
+    + 'h2{margin-bottom:4px;font-size:16px}p{color:#555;font-size:12px;margin-bottom:16px}'
+    + 'table{width:100%;border-collapse:collapse}th{background:#f0f0f0;padding:7px 10px;text-align:right;font-size:13px}'
+    + '@media print{button{display:none}}'
+    + '</style></head><body>'
+    + '<h2>قائمة الطالبات اللواتي لم يؤدِّن الاختبار</h2>'
+    + '<p>' + title + ' &nbsp;|&nbsp; العدد: ' + items.length + '</p>'
+    + '<button onclick="window.print()" style="margin-bottom:16px;padding:6px 18px;font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer">🖨 طباعة</button>'
+    + '<table><thead><tr><th style="width:50px">#</th><th>اسم الطالبة</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody></table>'
+    + '</body></html>'
+  );
+  w.document.close();
 }
 
 function gp(name,btn){
