@@ -391,6 +391,19 @@ def take_exam(request, exam_id):
         if _st:
             RemedialExamAssignment.objects.filter(exam_id=exam.id, student=_st).delete()
 
+        # ربط Student.user تلقائياً إن لم يكن مرتبطاً بعد
+        try:
+            if not hasattr(request.user, 'student_record'):
+                _user_full = (request.user.get_full_name() or '').strip()
+                if _user_full:
+                    from .models import Student as _St
+                    _unlinked = _St.objects.filter(user__isnull=True, full_name=_user_full).first()
+                    if _unlinked:
+                        _unlinked.user = request.user
+                        _unlinked.save(update_fields=['user'])
+        except Exception:
+            pass
+
         messages.success(request, f'✅ تم التسليم — نتيجتك: {score}/{total}')
         return redirect('student_result_view', result_id=result.id)
 
