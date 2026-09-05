@@ -1318,29 +1318,82 @@ body {
     </div>
   </div>
 
-  {% if missing_by_skill %}
   <div class="card" style="margin-top:10px">
     <div class="ch">
-      <span class="ct" style="color:var(--orange)">⚠️ طالبات لم يؤدّين الاختبار القبلي</span>
-      <span class="bd bm">{{ total_missing_count }} طالبة</span>
+      <span class="ct">متابعة المهارات — القبلي والبعدي</span>
+      {% if total_missing_count > 0 %}<span class="bd bm">{{ total_missing_count }} غياب قبلي</span>{% endif %}
     </div>
-    <div class="cb" style="padding:10px 12px">
-      {% for item in missing_by_skill %}
-      <div style="margin-bottom:14px;{% if not forloop.last %}padding-bottom:14px;border-bottom:1px solid var(--border);{% endif %}">
-        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:7px">
-          🎯 {{ item.skill_title }}
-          <span style="font-size:10px;color:var(--orange);font-weight:400;margin-right:6px">— {{ item.missing_count }} طالبة لم تؤدِّ القبلي</span>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:5px">
-          {% for st in item.missing_students %}
-          <span style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.25);border-radius:4px;padding:3px 9px;font-size:10px">{{ st.name }}</span>
+    <div class="cb" style="padding:0;overflow-x:auto">
+      {% if skills_summary %}
+      <table class="tb" style="width:100%">
+        <thead>
+          <tr>
+            <th style="text-align:right">المهارة</th>
+            <th style="text-align:center">القبلي</th>
+            <th style="text-align:center">البعدي</th>
+            <th style="text-align:center">التحسن</th>
+            <th style="width:24px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sk in skills_summary %}
+          <tr onclick="toggleSkRow('skd-{{ sk.skill_id }}')" style="cursor:pointer;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background=''">
+            <td style="font-weight:600;font-size:11px">{{ sk.skill_title|truncatechars:28 }}</td>
+            <td style="text-align:center;font-size:11px">
+              {% if sk.has_pre %}
+                <span style="color:var(--green)">{{ sk.pre_took }}✓</span>{% if sk.pre_missing %} / <span style="color:var(--orange)">{{ sk.pre_missing }}⚠</span>{% endif %}
+                {% if sk.pre_avg %}<div style="font-size:9px;color:var(--text3)">{{ sk.pre_avg }}%</div>{% endif %}
+              {% else %}<span style="color:var(--text3)">—</span>{% endif %}
+            </td>
+            <td style="text-align:center;font-size:11px">
+              {% if sk.has_post %}
+                <span style="color:var(--green)">{{ sk.post_took }}✓</span>{% if sk.post_missing %} / <span style="color:var(--blue)">{{ sk.post_missing }}⚠</span>{% endif %}
+                {% if sk.post_avg %}<div style="font-size:9px;color:var(--text3)">{{ sk.post_avg }}%</div>{% endif %}
+              {% else %}<span style="color:var(--text3)">—</span>{% endif %}
+            </td>
+            <td style="text-align:center;font-size:11px">
+              {% if sk.improvement is not None %}
+                {% if sk.improvement > 0 %}<span style="color:var(--green);font-weight:700">+{{ sk.improvement }}%↑</span>
+                {% elif sk.improvement < 0 %}<span style="color:var(--red);font-weight:700">{{ sk.improvement }}%↓</span>
+                {% else %}<span style="color:var(--text3)">—</span>{% endif %}
+              {% else %}<span style="color:var(--text3)">—</span>{% endif %}
+            </td>
+            <td style="color:var(--text3);font-size:10px;text-align:center" id="skd-{{ sk.skill_id }}-ico">▼</td>
+          </tr>
+          <tr id="skd-{{ sk.skill_id }}" style="display:none">
+            <td colspan="5" style="background:var(--bg2);padding:10px 14px;border-top:1px solid var(--border)">
+              {% if sk.missing_pre_students %}
+              <div style="margin-bottom:8px">
+                <div style="font-size:10px;color:var(--orange);font-weight:700;margin-bottom:5px">⚠ لم تؤدِّ القبلي ({{ sk.pre_missing }}):</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px">
+                  {% for st in sk.missing_pre_students %}<span style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.25);border-radius:4px;padding:2px 8px;font-size:10px">{{ st.name }}</span>{% endfor %}
+                </div>
+              </div>
+              {% endif %}
+              {% if sk.missing_post_students %}
+              <div>
+                <div style="font-size:10px;color:var(--blue);font-weight:700;margin-bottom:5px">⚠ لم تؤدِّ البعدي ({{ sk.post_missing }}):</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px">
+                  {% for st in sk.missing_post_students %}<span style="background:rgba(59,130,246,0.1);color:var(--blue);border:1px solid rgba(59,130,246,0.25);border-radius:4px;padding:2px 8px;font-size:10px">{{ st.name }}</span>{% endfor %}
+                </div>
+              </div>
+              {% endif %}
+              {% if not sk.missing_pre_students and not sk.missing_post_students %}
+              <span style="color:var(--green);font-size:10px">✓ جميع الطالبات أدّين الاختبارات</span>
+              {% endif %}
+            </td>
+          </tr>
           {% endfor %}
-        </div>
+        </tbody>
+      </table>
+      {% else %}
+      <div style="text-align:center;padding:35px;color:var(--text3);font-size:11px">
+        <div style="font-size:28px;margin-bottom:8px">📋</div>
+        لا توجد مهارات بها اختبارات بعد
       </div>
-      {% endfor %}
+      {% endif %}
     </div>
   </div>
-  {% endif %}
 </div>
 
 <!-- ═══════════════════════════════════════════════
@@ -2089,6 +2142,15 @@ function closeMobileMenu(){
 }
 
 // ── التنقل (يجب أن يكون أول شيء) ──
+function toggleSkRow(id){
+  var row = document.getElementById(id);
+  var ico = document.getElementById(id+'-ico');
+  if(!row) return;
+  var open = row.style.display !== 'none';
+  row.style.display = open ? 'none' : 'table-row';
+  if(ico) ico.textContent = open ? '▼' : '▲';
+}
+
 function gp(name,btn){
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
