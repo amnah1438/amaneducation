@@ -91,12 +91,11 @@ def teacher_dashboard(request):
     f_skill_type = request.GET.get('skill_type', '')
 
     # فصول المعلمة المفلترة — تُستخدم في كل مكان
+    _teacher_classrooms = teacher.classrooms.all() if teacher else ClassRoom.objects.none()
     if f_classroom and f_classroom != 'all':
-        _filtered_classrooms = ClassRoom.objects.filter(
-            name=f_classroom, teachers=teacher
-        ) if teacher else ClassRoom.objects.none()
+        _filtered_classrooms = _teacher_classrooms.filter(name=f_classroom)
     else:
-        _filtered_classrooms = teacher.classrooms.all() if teacher else ClassRoom.objects.none()
+        _filtered_classrooms = _teacher_classrooms
 
     # طالبات الفصل المفلتر (للتحقق من الغياب لاحقاً)
     _cls_qs = Student.objects.filter(classroom__in=_filtered_classrooms)
@@ -337,6 +336,12 @@ def teacher_dashboard(request):
         _pre_avg = 0
         if _pre_exam:
             _pre_res = ExamResult.objects.filter(exam=_pre_exam)
+            if f_classroom and f_classroom != 'all':
+                _cls_uids = _cls_qs.filter(user__isnull=False).values_list('user_id', flat=True)
+                _cls_rids = _cls_qs.values_list('id', flat=True)
+                _pre_res = _pre_res.filter(
+                    Q(student_id__in=_cls_uids) | Q(student_record_id__in=_cls_rids)
+                )
             _pre_avg = int(round(_pre_res.aggregate(avg=Avg('percentage'))['avg'] or 0))
 
         # البعدي
@@ -344,6 +349,12 @@ def teacher_dashboard(request):
         _post_avg = 0
         if _post_exam:
             _post_res = ExamResult.objects.filter(exam=_post_exam)
+            if f_classroom and f_classroom != 'all':
+                _cls_uids = _cls_qs.filter(user__isnull=False).values_list('user_id', flat=True)
+                _cls_rids = _cls_qs.values_list('id', flat=True)
+                _post_res = _post_res.filter(
+                    Q(student_id__in=_cls_uids) | Q(student_record_id__in=_cls_rids)
+                )
             _post_avg = int(round(_post_res.aggregate(avg=Avg('percentage'))['avg'] or 0))
 
         _missing_pre  = _missing(_cls_students, _pre_rec,  _pre_usr,  bool(_pre_exam))
@@ -415,7 +426,7 @@ def teacher_dashboard(request):
         'my_classrooms': teacher.classrooms.all().prefetch_related('students'),
         'my_exams_list': my_exams.select_related('skill'),
         # ─── بيانات الفلاتر ───
-        'all_classrooms': ClassRoom.objects.all().order_by('name'),
+        'all_classrooms': teacher.classrooms.all().order_by('name'),
         'f_classroom': f_classroom,
         'f_skill_type': f_skill_type,
         # ─── ملخص المهارات accordion ───
