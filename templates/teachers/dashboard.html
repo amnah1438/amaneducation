@@ -961,6 +961,18 @@ body {
     <div class="kc r"><div class="kl">حصص التحصيلي</div><div class="kv" style="color:var(--red)">{{ tahsili_sessions }}</div><div class="kch nu">مفعّلة</div></div>
   </div>
   
+  {% if total_missing_count > 0 %}
+  <div class="card" style="border-right:3px solid var(--orange);margin-bottom:10px;padding:0">
+    <div class="ch" style="padding:8px 12px">
+      <span style="color:var(--orange);font-size:11px;font-weight:700">⚠️ طالبات لم يؤدّين الاختبار القبلي</span>
+      <span class="bd bm">{{ total_missing_count }} طالبة — {{ missing_skills_count }} مهارة</span>
+    </div>
+    <div style="padding:0 12px 9px;font-size:10px;color:var(--text2)">
+      راجعي تبويب <strong style="color:var(--orange)">المهارات</strong> لعرض أسماء الطالبات لكل مهارة.
+    </div>
+  </div>
+  {% endif %}
+
   <div class="g2">
     <!-- الرسم البياني الرئيسي -->
     <div class="card">
@@ -1305,6 +1317,30 @@ body {
       {% endif %}
     </div>
   </div>
+
+  {% if missing_by_skill %}
+  <div class="card" style="margin-top:10px">
+    <div class="ch">
+      <span class="ct" style="color:var(--orange)">⚠️ طالبات لم يؤدّين الاختبار القبلي</span>
+      <span class="bd bm">{{ total_missing_count }} طالبة</span>
+    </div>
+    <div class="cb" style="padding:10px 12px">
+      {% for item in missing_by_skill %}
+      <div style="margin-bottom:14px;{% if not forloop.last %}padding-bottom:14px;border-bottom:1px solid var(--border);{% endif %}">
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:7px">
+          🎯 {{ item.skill_title }}
+          <span style="font-size:10px;color:var(--orange);font-weight:400;margin-right:6px">— {{ item.missing_count }} طالبة لم تؤدِّ القبلي</span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          {% for st in item.missing_students %}
+          <span style="background:rgba(245,158,11,0.1);color:var(--orange);border:1px solid rgba(245,158,11,0.25);border-radius:4px;padding:3px 9px;font-size:10px">{{ st.name }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <!-- ═══════════════════════════════════════════════

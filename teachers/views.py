@@ -281,6 +281,39 @@ def teacher_dashboard(request):
         elif pct >= 30: hist_bins[1] += 1
         else: hist_bins[0] += 1
 
+    # 10) طالبات لم يؤدّين الاختبار القبلي لكل مهارة
+    _cls_students = list(
+        Student.objects.filter(classroom__in=teacher.classrooms.all())
+        .values_list('id', 'full_name').order_by('full_name')
+    ) if teacher else []
+
+    missing_by_skill = []
+    _total_missing = 0
+    _missing_skills_count = 0
+
+    for _sk in my_skills.prefetch_related('exams'):
+        _pre_exam = _sk.exams.filter(exam_type='pre').first()
+        if not _pre_exam:
+            continue
+        _took_ids = set(
+            ExamResult.objects.filter(exam=_pre_exam, student_record__isnull=False)
+            .values_list('student_record_id', flat=True)
+        )
+        _missing = [
+            {'id': sid, 'name': sname}
+            for sid, sname in _cls_students
+            if sid not in _took_ids
+        ]
+        if _missing:
+            missing_by_skill.append({
+                'skill_title': _sk.title,
+                'skill_id': _sk.id,
+                'missing_count': len(_missing),
+                'missing_students': _missing,
+            })
+            _total_missing += len(_missing)
+            _missing_skills_count += 1
+
     return render(request, 'teachers/dashboard.html', {
         'teacher': teacher,
         'total_skills': skills_count,
@@ -326,6 +359,10 @@ def teacher_dashboard(request):
         'all_classrooms': ClassRoom.objects.all().order_by('name'),
         'f_classroom': f_classroom,
         'f_skill_type': f_skill_type,
+        # ─── طالبات لم يؤدّين الاختبار القبلي ───
+        'missing_by_skill': missing_by_skill,
+        'total_missing_count': _total_missing,
+        'missing_skills_count': _missing_skills_count,
     })
 
 
