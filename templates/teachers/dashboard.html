@@ -663,7 +663,24 @@ body {
   /* الشبكات تتحول لعمود واحد للطباعة */
   .g2, .g3, .g2e { grid-template-columns: 1fr !important; }
   .kg { grid-template-columns: repeat(3, 1fr) !important; }
+  /* print overlay mode */
+  body.print-mode > *:not(#print-overlay) { display: none !important; }
+  body.print-mode #print-overlay { display: block !important; }
 }
+#print-overlay {
+  display: none;
+  background: #fff;
+  color: #111;
+  font-family: Tajawal, sans-serif;
+  direction: rtl;
+  padding: 28px 32px;
+}
+#print-overlay h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; padding-bottom: 10px; border-bottom: 2px solid #e2e8f0; }
+#print-overlay p.psub { font-size: 11px; color: #64748b; margin-bottom: 18px; }
+#print-overlay table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+#print-overlay th { background: #f1f5f9; padding: 8px 12px; text-align: right; font-size: 12px; border: 1px solid #e2e8f0; }
+#print-overlay td { padding: 7px 12px; font-size: 12px; border: 1px solid #e2e8f0; }
+#print-overlay tr:nth-child(even) td { background: #f8fafc; }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
@@ -882,6 +899,7 @@ body {
 </style>
 </head>
 <body>
+<div id="print-overlay"></div>
 
 <!-- ═══════════════════════════════════════════════
      TOPBAR
@@ -2179,56 +2197,34 @@ function toggleSkRow(id){
 function printSection(id, title){
   var el = document.getElementById(id);
   if(!el) return;
-  var w = window.open('','_blank','width=950,height=750');
-  w.document.write(
-    '<html dir="rtl"><head><meta charset="UTF-8">'
-    + '<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">'
-    + '<title>' + title + '</title>'
-    + '<style>'
-    + 'body{font-family:Tajawal,sans-serif;padding:28px 32px;background:#fff;color:#111;direction:rtl}'
-    + 'h2{font-size:18px;font-weight:800;margin-bottom:6px;padding-bottom:10px;border-bottom:2px solid #e2e8f0}'
-    + 'p.sub{font-size:11px;color:#64748b;margin-bottom:18px}'
-    + 'table{width:100%;border-collapse:collapse;margin-top:10px}'
-    + 'th{background:#f1f5f9;padding:8px 12px;text-align:right;font-size:12px;border:1px solid #e2e8f0}'
-    + 'td{padding:7px 12px;font-size:12px;border:1px solid #e2e8f0}'
-    + 'tr:nth-child(even) td{background:#f8fafc}'
-    + '.kc,.alg,.ali,.card,.cb,.ch,.predg,.predi,.recText{all:revert;margin-bottom:8px}'
-    + '.print-btn-row{margin-bottom:18px}'
-    + '@media print{.print-btn-row{display:none!important}}'
-    + '</style></head><body>'
-    + '<h2>' + title + '</h2>'
-    + '<p class="sub">📅 ' + new Date().toLocaleDateString('ar-SA') + ' &nbsp;|&nbsp; {{ teacher.full_name|default:request.user.get_full_name }}</p>'
-    + '<div class="print-btn-row"><button onclick="window.print()" style="padding:8px 22px;font-family:Tajawal,sans-serif;font-size:13px;font-weight:700;cursor:pointer;background:#3b82f6;color:#fff;border:none;border-radius:7px">🖨️ طباعة</button></div>'
-    + el.innerHTML
-    + '</body></html>'
-  );
-  w.document.close();
+  var overlay = document.getElementById('print-overlay');
+  overlay.innerHTML =
+    '<h2>' + title + '</h2>'
+    + '<p class="psub">📅 ' + new Date().toLocaleDateString('ar-SA') + ' &nbsp;|&nbsp; {{ teacher.full_name|default:request.user.get_full_name }}</p>'
+    + el.innerHTML;
+  overlay.querySelectorAll('.cab,.print-btn,.mbtns,.gbtn,.pbtn2').forEach(function(b){ b.style.display='none'; });
+  document.body.classList.add('print-mode');
+  window.print();
+  document.body.classList.remove('print-mode');
+  overlay.innerHTML = '';
 }
 
 function printStudentReport(){
   var modal = document.getElementById('studentModal');
   if(!modal) return;
+  var mdl = modal.querySelector('.mdl');
+  if(!mdl) return;
   var name = document.getElementById('mName') ? document.getElementById('mName').textContent : '';
-  var w = window.open('','_blank','width=750,height=600');
-  w.document.write(
-    '<html dir="rtl"><head><meta charset="UTF-8">'
-    + '<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">'
-    + '<title>تقرير الطالبة — ' + name + '</title>'
-    + '<style>'
-    + 'body{font-family:Tajawal,sans-serif;padding:24px 30px;background:#fff;color:#111;direction:rtl}'
-    + 'h2{font-size:17px;font-weight:800;margin-bottom:4px}'
-    + 'p.sub{font-size:11px;color:#64748b;margin-bottom:16px}'
-    + '.mdl,.mh,.mb,.mbtns,.gbtn,.pbtn2,.mx{all:revert!important}'
-    + '.mbtns{display:none!important}'
-    + '@media print{.print-btn-row{display:none!important}}'
-    + '</style></head><body>'
-    + '<h2>تقرير أداء الطالبة</h2>'
-    + '<p class="sub">📅 ' + new Date().toLocaleDateString('ar-SA') + '</p>'
-    + '<div class="print-btn-row" style="margin-bottom:16px"><button onclick="window.print()" style="padding:7px 20px;font-family:Tajawal,sans-serif;font-size:12px;cursor:pointer;background:#10b981;color:#fff;border:none;border-radius:6px">🖨️ طباعة التقرير</button></div>'
-    + modal.querySelector('.mdl').innerHTML
-    + '</body></html>'
-  );
-  w.document.close();
+  var overlay = document.getElementById('print-overlay');
+  overlay.innerHTML =
+    '<h2>تقرير أداء الطالبة</h2>'
+    + '<p class="psub">📅 ' + new Date().toLocaleDateString('ar-SA') + ' &nbsp;|&nbsp; ' + name + '</p>'
+    + mdl.innerHTML;
+  overlay.querySelectorAll('.mbtns,.gbtn,.pbtn2,.mx').forEach(function(b){ b.style.display='none'; });
+  document.body.classList.add('print-mode');
+  window.print();
+  document.body.classList.remove('print-mode');
+  overlay.innerHTML = '';
 }
 
 function printMissingList(listId, title){
@@ -2242,24 +2238,18 @@ function printMissingList(listId, title){
           + item.textContent.replace(/^\d+\./, '').trim()
           + '</td></tr>';
   });
-  var w = window.open('','_blank','width=700,height=800');
-  w.document.write(
-    '<html dir="rtl"><head><meta charset="UTF-8">'
-    + '<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">'
-    + '<title>قائمة الغياب</title>'
-    + '<style>body{font-family:Tajawal,sans-serif;padding:30px;color:#111}'
-    + 'h2{margin-bottom:4px;font-size:16px}p{color:#555;font-size:12px;margin-bottom:16px}'
-    + 'table{width:100%;border-collapse:collapse}th{background:#f0f0f0;padding:7px 10px;text-align:right;font-size:13px}'
-    + '@media print{button{display:none}}'
-    + '</style></head><body>'
-    + '<h2>قائمة الطالبات اللواتي لم يؤدِّن الاختبار</h2>'
-    + '<p>' + title + ' &nbsp;|&nbsp; العدد: ' + items.length + '</p>'
-    + '<button onclick="window.print()" style="margin-bottom:16px;padding:6px 18px;font-family:Tajawal,sans-serif;font-size:13px;cursor:pointer">🖨 طباعة</button>'
-    + '<table><thead><tr><th style="width:50px">#</th><th>اسم الطالبة</th></tr></thead>'
-    + '<tbody>' + rows + '</tbody></table>'
-    + '</body></html>'
-  );
-  w.document.close();
+  var overlay = document.getElementById('print-overlay');
+  overlay.innerHTML =
+    '<h2>قائمة الطالبات اللواتي لم يؤدِّن الاختبار</h2>'
+    + '<p class="psub">' + title + ' &nbsp;|&nbsp; العدد: ' + items.length + '</p>'
+    + '<table><thead><tr>'
+    + '<th style="width:50px;background:#f0f0f0;padding:7px 10px;text-align:right;font-size:13px">#</th>'
+    + '<th style="background:#f0f0f0;padding:7px 10px;text-align:right;font-size:13px">اسم الطالبة</th>'
+    + '</tr></thead><tbody>' + rows + '</tbody></table>';
+  document.body.classList.add('print-mode');
+  window.print();
+  document.body.classList.remove('print-mode');
+  overlay.innerHTML = '';
 }
 
 function gp(name,btn){
