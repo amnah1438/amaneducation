@@ -1434,10 +1434,14 @@ def admin_add_student(request):
     if classroom_id and classroom_id.isdigit():
         classroom = ClassRoom.objects.filter(id=classroom_id).first()
         if classroom:
-            Student.objects.get_or_create(
+            student_obj, _ = Student.objects.get_or_create(
                 full_name=full_name,
                 defaults={'classroom': classroom},
             )
+            # ربط سجل الطالبة بحسابها تلقائياً
+            if student_obj.user_id is None:
+                student_obj.user = user
+                student_obj.save(update_fields=['user'])
     messages.success(request, f'✅ تم إضافة الطالبة {full_name} (رقم الهوية: {national_id})')
     return redirect('admin_dashboard')
 
@@ -1678,10 +1682,14 @@ def admin_import_students(request):
                 user=user, role='STUDENT',
                 national_id=national_id, pin_code='',
             )
-            Student.objects.get_or_create(
+            st_obj, _ = Student.objects.get_or_create(
                 full_name=full_name,
                 defaults={'classroom': classroom},
             )
+            # ربط سجل الطالبة بحسابها تلقائياً
+            if st_obj.user_id is None:
+                st_obj.user = user
+                st_obj.save(update_fields=['user'])
             count += 1
         except Exception as exc:
             skipped.append(f"{full_name}: {exc}")

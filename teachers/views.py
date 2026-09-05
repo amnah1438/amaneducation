@@ -282,10 +282,29 @@ def teacher_dashboard(request):
         else: hist_bins[0] += 1
 
     # 10) ملخص المهارات — القبلي والبعدي والغيابات (accordion)
+    # قائمة طالبات الفصل مع id السجل + id الحساب (للتحقق من المصدرين)
     _cls_students = list(
         Student.objects.filter(classroom__in=teacher.classrooms.all())
-        .values_list('id', 'full_name').order_by('full_name')
+        .values_list('id', 'full_name', 'user_id').order_by('full_name')
     ) if teacher else []
+
+    def _took_set(exam):
+        """يرجع مجموعة student IDs اللي أدّين هذا الاختبار — من أي مصدر."""
+        if not exam:
+            return set(), set()
+        res = ExamResult.objects.filter(exam=exam)
+        via_record = set(res.filter(student_record__isnull=False).values_list('student_record_id', flat=True))
+        via_user   = set(res.filter(student__isnull=False).values_list('student_id', flat=True))
+        return via_record, via_user
+
+    def _missing(students, took_records, took_users, has_exam):
+        if not has_exam:
+            return []
+        return [
+            {'id': sid, 'name': sname}
+            for sid, sname, suid in students
+            if sid not in took_records and (suid is None or suid not in took_users)
+        ]
 
     skills_summary = []
     _total_missing = 0
@@ -298,32 +317,34 @@ def teacher_dashboard(request):
             continue
 
         # القبلي
-        _pre_took_ids, _pre_avg = set(), 0
+        _pre_rec, _pre_usr = _took_set(_pre_exam)
+        _pre_avg = 0
         if _pre_exam:
-            _pre_res = ExamResult.objects.filter(exam=_pre_exam, student_record__isnull=False)
-            _pre_took_ids = set(_pre_res.values_list('student_record_id', flat=True))
+            _pre_res = ExamResult.objects.filter(exam=_pre_exam)
             _pre_avg = int(round(_pre_res.aggregate(avg=Avg('percentage'))['avg'] or 0))
 
         # البعدي
-        _post_took_ids, _post_avg = set(), 0
+        _post_rec, _post_usr = _took_set(_post_exam)
+        _post_avg = 0
         if _post_exam:
-            _post_res = ExamResult.objects.filter(exam=_post_exam, student_record__isnull=False)
-            _post_took_ids = set(_post_res.values_list('student_record_id', flat=True))
+            _post_res = ExamResult.objects.filter(exam=_post_exam)
             _post_avg = int(round(_post_res.aggregate(avg=Avg('percentage'))['avg'] or 0))
 
-        _missing_pre  = [{'id': s, 'name': n} for s, n in _cls_students if s not in _pre_took_ids]  if _pre_exam  else []
-        _missing_post = [{'id': s, 'name': n} for s, n in _cls_students if s not in _post_took_ids] if _post_exam else []
-        _improvement  = (_post_avg - _pre_avg) if (_pre_exam and _post_exam and _pre_took_ids) else None
+        _missing_pre  = _missing(_cls_students, _pre_rec,  _pre_usr,  bool(_pre_exam))
+        _missing_post = _missing(_cls_students, _post_rec, _post_usr, bool(_post_exam))
+        _pre_took_count  = len(_cls_students) - len(_missing_pre)  if _pre_exam  else 0
+        _post_took_count = len(_cls_students) - len(_missing_post) if _post_exam else 0
+        _improvement = (_post_avg - _pre_avg) if (_pre_exam and _post_exam and _pre_took_count) else None
 
         skills_summary.append({
             'skill_title': _sk.title,
             'skill_id': _sk.id,
             'has_pre': bool(_pre_exam),
             'has_post': bool(_post_exam),
-            'pre_took': len(_pre_took_ids),
+            'pre_took': _pre_took_count,
             'pre_missing': len(_missing_pre),
             'pre_avg': _pre_avg,
-            'post_took': len(_post_took_ids),
+            'post_took': _post_took_count,
             'post_missing': len(_missing_post),
             'post_avg': _post_avg,
             'improvement': _improvement,

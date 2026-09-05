@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 
 class ClassRoom(models.Model):
@@ -27,6 +28,15 @@ class Student(models.Model):
         on_delete=models.CASCADE,
         related_name="students",
         verbose_name="الفصل"
+    )
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="student_record",
+        verbose_name="حساب الطالبة"
     )
 
     class Meta:
