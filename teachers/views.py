@@ -391,7 +391,7 @@ def teacher_dashboard(request):
         'total_banks': banks_count,
         'active_skills': my_skills.filter(is_active=True).count(),
         'total_exams': my_exams.count(),
-        'active_exams': my_exams.filter(is_active=True).count(),
+        'active_exams': my_exams.filter(is_active=True, results__in=my_results).distinct().count(),
         'avg_score': avg_score,
         'total_results': my_results.count(),
         'passed_results': my_results.filter(passed=True).count(),
@@ -404,8 +404,14 @@ def teacher_dashboard(request):
             .select_related('skill')
             .order_by('-session_date', '-session_time')[:10]
         ),
-        'qodrat_sessions': ClassSession.objects.filter(teacher=teacher, session_type='qodrat').count(),
-        'tahsili_sessions': ClassSession.objects.filter(teacher=teacher, session_type='tahsili').count(),
+        'qodrat_sessions': ClassSession.objects.filter(
+            teacher=teacher, session_type='qodrat',
+            **({'target_class': f_classroom} if f_classroom and f_classroom != 'all' else {})
+        ).count(),
+        'tahsili_sessions': ClassSession.objects.filter(
+            teacher=teacher, session_type='tahsili',
+            **({'target_class': f_classroom} if f_classroom and f_classroom != 'all' else {})
+        ).count(),
         'recent_skills': my_skills.order_by('-created_at')[:5],
         'excellent_students': excellent_students,
         'mid_students': mid_students,
@@ -1899,7 +1905,7 @@ def teacher_stats_json(request):
         'total_banks':              my_skills.filter(content_type='bank').count(),
         'active_skills':            my_skills.filter(is_active=True).count(),
         'total_exams':              my_exams.count(),
-        'active_exams':             my_exams.filter(is_active=True).count(),
+        'active_exams':             my_exams.filter(is_active=True, results__in=my_results).distinct().count(),
         'total_results':            my_results.count(),
         'passed_results':           my_results.filter(passed=True).count(),
         'avg_score':                avg_score,
