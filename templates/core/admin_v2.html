@@ -797,7 +797,9 @@ body.display-mode .card-t { font-size: 18px; }
           {% for s in top_students %}
           <tr>
             <td><strong>#{{ forloop.counter }}</strong></td>
-            <td style="font-weight:700;color:var(--text)">{{ s.name }}</td>
+            <td>
+              <span class="student-trend-link" data-sid="{{ s.student_id }}" style="font-weight:700;color:var(--accent);cursor:pointer;text-decoration:underline dotted" title="عرض ترند الأداء">{{ s.name }}</span>
+            </td>
             <td>
               <span class="bd {% if s.avg >= 90 %}bd-g{% elif s.avg >= 70 %}bd-b{% elif s.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ s.avg }}%</span>
             </td>
@@ -819,6 +821,77 @@ body.display-mode .card-t { font-size: 18px; }
   </div>
 
 
+
+  <!-- ═══════════ Hardest Skills ═══════════ -->
+  {% if hardest_skills %}
+  <div class="section-title">🧩 المهارات الأصعب على الطالبات</div>
+  <div class="card">
+    <div class="card-h" style="flex-wrap:wrap;gap:8px">
+      <span class="card-t">📉 المهارات الأقل متوسطاً (بحد أدنى 3 محاولات)</span>
+      <span style="font-size:9px;color:var(--text3)">مرتبة من الأصعب للأسهل</span>
+    </div>
+    <div class="card-b" style="padding:0">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>المهارة</th>
+            <th>المعلمة</th>
+            <th>النوع</th>
+            <th style="text-align:center">المحاولات</th>
+            <th>متوسط النتيجة</th>
+            <th>مستوى الصعوبة</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sk in hardest_skills %}
+          <tr style="{% if sk.difficulty == 'critical' %}background:rgba(239,68,68,0.04){% elif sk.difficulty == 'hard' %}background:rgba(245,158,11,0.04){% endif %}">
+            <td style="color:var(--text3)">{{ forloop.counter }}</td>
+            <td style="font-weight:700;font-size:12px;color:var(--text);max-width:180px;word-break:break-word">{{ sk.title }}</td>
+            <td style="font-size:11px;color:var(--text2)">{{ sk.teacher }}</td>
+            <td><span class="bd bd-b" style="font-size:10px">{{ sk.exam_type }}</span></td>
+            <td style="text-align:center;color:var(--text3)">{{ sk.attempts }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div style="flex:1;background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;min-width:50px">
+                  <div style="height:100%;width:{{ sk.avg }}%;background:{% if sk.avg < 40 %}var(--red){% elif sk.avg < 60 %}var(--orange){% else %}var(--blue){% endif %};border-radius:4px"></div>
+                </div>
+                <span style="font-weight:700;font-size:13px;color:{% if sk.avg < 40 %}var(--red){% elif sk.avg < 60 %}var(--orange){% else %}var(--blue){% endif %}">{{ sk.avg }}%</span>
+              </div>
+            </td>
+            <td>
+              {% if sk.difficulty == 'critical' %}
+                <span class="bd bd-r">🔴 حرجة</span>
+              {% elif sk.difficulty == 'hard' %}
+                <span class="bd bd-o">🟡 صعبة</span>
+              {% else %}
+                <span class="bd bd-b">🔵 متوسطة</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="padding:10px 16px;font-size:10px;color:var(--text3);border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap">
+        <span>🔴 <strong>حرجة</strong>: متوسط أقل من 40%</span>
+        <span>🟡 <strong>صعبة</strong>: بين 40%–60%</span>
+        <span>🔵 <strong>متوسطة</strong>: بين 60%–70%</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- مودال ترند الطالبة الفردية -->
+  <div id="trendModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);align-items:center;justify-content:center">
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:24px;width:min(96vw,640px);box-shadow:var(--shadow);position:relative">
+      <button onclick="closeTrendModal()" style="position:absolute;top:14px;left:16px;background:var(--bg3);border:none;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:18px;color:var(--text2)">✕</button>
+      <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px" id="trendStudentName">...</div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:16px">مسار الأداء عبر الزمن</div>
+      <div id="trendEmpty" style="display:none;text-align:center;padding:32px;color:var(--text3)">📭 لا توجد نتائج مسجّلة لهذه الطالبة</div>
+      <div style="height:260px;position:relative"><canvas id="trendChart"></canvas></div>
+      <div id="trendStats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px"></div>
+    </div>
+  </div>
 
   <!-- ═══════════ Advanced Visuals ═══════════ -->
   <div class="section-title">📊 رؤى متقدمة (Advanced Insights)</div>
@@ -1918,6 +1991,91 @@ function openReport(kind, audience='admin'){
 {% if display_mode %}
 setInterval(refreshLiveData, 30000);
 {% endif %}
+
+// ─── Student Trend Modal ────────────────────────────────────
+let _trendChartInst = null;
+
+function openTrendModal(studentId) {
+  const modal = document.getElementById('trendModal');
+  modal.style.display = 'flex';
+  document.getElementById('trendStudentName').textContent = '⏳ جارٍ التحميل...';
+  document.getElementById('trendEmpty').style.display = 'none';
+  document.getElementById('trendStats').innerHTML = '';
+
+  if (_trendChartInst) { _trendChartInst.destroy(); _trendChartInst = null; }
+
+  fetch(`/admin-dashboard/student-trend/${studentId}/`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('trendStudentName').textContent = '📈 ' + data.name;
+      if (!data.trend || data.trend.length === 0) {
+        document.getElementById('trendEmpty').style.display = 'block';
+        return;
+      }
+
+      const labels = data.trend.map(r => r.date);
+      const scores = data.trend.map(r => r.score);
+      const avg    = scores.reduce((a,b)=>a+b,0) / scores.length;
+      const best   = Math.max(...scores);
+      const last   = scores[scores.length-1];
+
+      _trendChartInst = new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'النتيجة %',
+            data: scores,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99,102,241,0.12)',
+            pointBackgroundColor: scores.map(s => s >= 90 ? '#10b981' : s >= 60 ? '#6366f1' : '#ef4444'),
+            pointRadius: 5,
+            tension: 0.35,
+            fill: true,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: {
+            callbacks: { label: ctx => ` ${ctx.raw}% — ${data.trend[ctx.dataIndex].skill}` }
+          }},
+          scales: {
+            y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.06)' },
+              ticks: { color: '#6b7799', callback: v => v+'%' } },
+            x: { grid: { display: false }, ticks: { color: '#6b7799', maxRotation: 45, font: { size: 9 } } }
+          }
+        }
+      });
+
+      document.getElementById('trendStats').innerHTML = `
+        <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text3)">المتوسط</div>
+          <div style="font-size:22px;font-weight:900;color:var(--accent)">${avg.toFixed(1)}%</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text3)">الأفضل</div>
+          <div style="font-size:22px;font-weight:900;color:var(--green)">${best}%</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:10px;color:var(--text3)">آخر اختبار</div>
+          <div style="font-size:22px;font-weight:900;color:var(--blue)">${last}%</div>
+        </div>`;
+    })
+    .catch(() => {
+      document.getElementById('trendStudentName').textContent = '❌ خطأ في التحميل';
+    });
+}
+
+function closeTrendModal() {
+  document.getElementById('trendModal').style.display = 'none';
+  if (_trendChartInst) { _trendChartInst.destroy(); _trendChartInst = null; }
+}
+
+document.addEventListener('click', e => {
+  const link = e.target.closest('.student-trend-link');
+  if (link) { openTrendModal(link.dataset.sid); return; }
+  if (e.target.id === 'trendModal') closeTrendModal();
+});
 </script>
 </body>
 </html>

@@ -530,26 +530,30 @@ def _v2_time_series(days=30):
 
 
 def _v2_classroom_compare():
-    """مقارنة أداء الفصول — Bar chart."""
+    """مقارنة أداء الفصول — Bar chart. تستخدم Student.user_id للمطابقة الدقيقة."""
     rooms = []
-    for cls in ClassRoom.objects.all().order_by('name'):
-        names = list(cls.students.values_list('full_name', flat=True))
-        if not names:
+    for cls in ClassRoom.objects.prefetch_related('students').order_by('name'):
+        students = list(cls.students.select_related('user').all())
+        student_count = len(students)
+        if student_count == 0:
             rooms.append({'name': cls.name, 'avg': 0, 'count': 0, 'students': 0})
             continue
-        # نطابق بالاسم الكامل (تصميم البيانات الحالي)
-        results = ExamResult.objects.filter(
-            student__in=User.objects.filter(
-                Q(first_name__in=[n.split()[0] for n in names if n]) |
-                Q(username__in=names)
-            )
-        )
+
+        # أولاً: نطابق بـ user_id (الأدق)
+        user_ids = [s.user_id for s in students if s.user_id is not None]
+        if user_ids:
+            results = ExamResult.objects.filter(student_id__in=user_ids)
+        else:
+            # احتياط: لا يوجد حسابات — نطابق بالاسم الكامل (username)
+            names = [s.full_name for s in students]
+            results = ExamResult.objects.filter(student__username__in=names)
+
         avg = results.aggregate(a=Avg('percentage'))['a'] or 0
         rooms.append({
             'name': cls.name,
             'avg': round(avg, 1),
             'count': results.count(),
-            'students': len(names),
+            'students': student_count,
         })
     return rooms
 
@@ -877,6 +881,37 @@ def _v2_predictions():
     }
 
 
+def _v2_hardest_skills(limit=10):
+    """
+    المهارات الأصعب على الطالبات — مرتبة تصاعدياً بالمتوسط.
+    حد أدنى 3 محاولات لضمان المصداقية الإحصائية.
+    """
+    exams = (
+        TeacherExam.objects
+        .select_related('skill', 'skill__created_by')
+        .annotate(
+            avg_score=Avg('results__percentage'),
+            attempts=Count('results', distinct=True),
+        )
+        .filter(attempts__gte=3)
+        .order_by('avg_score')[:limit]
+    )
+    out = []
+    for e in exams:
+        if e.avg_score is None:
+            continue
+        avg = round(e.avg_score, 1)
+        out.append({
+            'title':      e.skill.title,
+            'exam_type':  e.get_exam_type_display(),
+            'avg':        avg,
+            'attempts':   e.attempts,
+            'teacher':    e.skill.created_by.full_name if e.skill.created_by else '—',
+            'difficulty': 'critical' if avg < 40 else ('hard' if avg < 60 else 'moderate'),
+        })
+    return out
+
+
 @admin_required
 def admin_v2_dashboard(request):
     """لوحة المديرة الجديدة — Single-Page Enterprise Dashboard."""
@@ -886,6 +921,7 @@ def admin_v2_dashboard(request):
     level_dist = _v2_level_distribution()
     top_students = _v2_top_students(limit=10)
     teachers_impact = _v2_teachers_impact()
+    hardest_skills = _v2_hardest_skills(limit=10)
     active_exams = _v2_active_exams_inline()
     alerts = _v2_smart_alerts(kpis, level_dist, teachers_impact, top_students)
     decisions = _v2_decisions(kpis, level_dist, alerts)
@@ -964,6 +1000,7 @@ def admin_v2_dashboard(request):
         'levels_json': _to_json(level_dist),
         'top_students': top_students,
         'teachers_impact': teachers_impact,
+        'hardest_skills': hardest_skills,
         'active_exams': active_exams,
         'alerts': alerts,
         'decisions': decisions,
@@ -981,6 +1018,36 @@ def _to_json(data):
     """تحويل آمن لـ JSON ضمن قالب."""
     import json
     return json.dumps(data, default=str, ensure_ascii=False)
+
+
+@admin_required
+def admin_v2_student_trend(request, student_id):
+    """ترند أداء طالبة فردية — JSON لـ Chart.js في المودال."""
+    results = (
+        ExamResult.objects
+        .filter(student_id=student_id)
+        .select_related('exam', 'exam__skill')
+        .order_by('submitted_at')
+        .values('submitted_at', 'percentage', 'exam__skill__title', 'exam__exam_type')
+    )
+    # نجلب اسم الطالبة من User أو Student record
+    student_name = '—'
+    try:
+        u = User.objects.get(pk=student_id)
+        student_name = u.get_full_name() or u.username
+        # نحاول Student record إن وُجد
+        if hasattr(u, 'student_record'):
+            student_name = u.student_record.full_name or student_name
+    except User.DoesNotExist:
+        pass
+
+    data = [{
+        'date':  r['submitted_at'].strftime('%Y-%m-%d'),
+        'score': round(r['percentage'], 1),
+        'skill': r['exam__skill__title'],
+        'type':  r['exam__exam_type'],
+    } for r in results]
+    return JsonResponse({'trend': data, 'name': student_name})
 
 
 @admin_required
@@ -1024,22 +1091,19 @@ def _filter_results(scope, target_id, exam_type):
     qs = ExamResult.objects.select_related('exam', 'exam__skill', 'exam__skill__created_by', 'student')
 
     if scope == 'classroom' and target_id:
-        # نطابق بالاسم الكامل (التصميم الحالي)
-        names = list(Student.objects.filter(classroom__name=target_id).values_list('full_name', flat=True))
-        if not names:
+        # نطابق بـ Student.user_id للدقة (بدل الاسم)
+        students = Student.objects.filter(classroom__name=target_id).select_related('user')
+        if not students.exists():
             return qs.none()
-        # ربط بالـ User: نقابل بـ first_name و username
-        from django.db.models import Q
-        cond = Q()
-        valid_cond = False
-        for n in names:
-            parts = n.split()
-            if parts and parts[0]:
-                cond |= Q(student__first_name=parts[0]) | Q(student__username=n)
-                valid_cond = True
-        if not valid_cond:
-            return qs.none()
-        qs = qs.filter(cond)
+        user_ids = [s.user_id for s in students if s.user_id is not None]
+        if user_ids:
+            qs = qs.filter(student_id__in=user_ids)
+        else:
+            # احتياط: مطابقة بالاسم إن لم يوجد حساب
+            names = [s.full_name for s in students]
+            if not names:
+                return qs.none()
+            qs = qs.filter(student__username__in=names)
     elif scope == 'teacher' and target_id:
         try:
             # target_id هو User.id (من teachers_list) — نطابق عبر Teacher.user

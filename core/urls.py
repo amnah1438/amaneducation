@@ -30,6 +30,7 @@ urlpatterns = [
     # ── لوحة المديرة (Enterprise V2 — الوحيدة) ─────────────────
     path('admin-dashboard/', views.admin_v2_dashboard, name='admin_dashboard'),
     path('admin-dashboard/data.json', views.admin_v2_data_json, name='admin_v2_data_json'),
+    path('admin-dashboard/student-trend/<int:student_id>/', views.admin_v2_student_trend, name='admin_v2_student_trend'),
     path('admin-dashboard/analytics.json', views.admin_analytics_json, name='admin_analytics_json'),
     path('admin-dashboard/report', views.admin_report, name='admin_report'),
     path('admin-dashboard/add-teacher/', views.admin_add_teacher, name='admin_add_teacher'),
@@ -44,7 +45,6 @@ urlpatterns = [
     # ── إستيراد المعلمات والطالبات بـ Excel (لوحة المديرة) ────
     path('admin-dashboard/import-teachers/', views.admin_import_teachers, name='admin_import_teachers'),
     path('admin-dashboard/import-students/', views.admin_import_students, name='admin_import_students'),
-    path('admin-dashboard/assign-classrooms/<int:teacher_id>/', views.admin_assign_teacher_classrooms, name='admin_assign_teacher_classrooms'),
 
     # ── الاختبارات الشاملة ──────────────────────────────────────
     path('admin-dashboard/comprehensive/', views.admin_comprehensive, name='admin_comprehensive'),
