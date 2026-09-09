@@ -920,61 +920,121 @@ body.display-mode .card-t { font-size: 18px; }
   </div>
 
   <!-- ═══════════ Teachers Impact ═══════════ -->
-  <div class="section-title">👩‍🏫 تحليل أداء المعلمات (Impact)</div>
+  <div class="section-title">🧠 مؤشرات الأثر التعليمي للمعلمات</div>
   <div class="card">
-    <div class="card-b">
+    <div class="card-h" style="flex-wrap:wrap;gap:8px">
+      <span class="card-t">📡 تحليل الأثر المباشر لكل معلمة على نتائج الطالبات</span>
+      <span style="font-size:9px;color:var(--text3);display:flex;align-items:center;gap:4px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>مبني على: قبلي · بعدي · تفاعل · إنتاج
+      </span>
+    </div>
+    <div class="card-b" style="padding:0">
       {% if teachers_impact %}
       <table class="tbl">
         <thead><tr>
-          <th>الترتيب</th><th>المعلمة</th><th>المهارات</th><th>الاختبارات</th>
-          <th>الحصص</th><th>تفاعل الطالبات</th>
-          <th>متوسط البعدي</th><th>التحسّن (قبلي→بعدي)</th><th>التصنيف</th>
+          <th>المعلمة</th>
+          <th>الإنتاج</th>
+          <th style="text-align:center">التفاعل</th>
+          <th>مستوى البعدي</th>
+          <th>التحسّن الفعلي</th>
+          <th>مؤشر الأثر</th>
         </tr></thead>
         <tbody>
           {% for t in teachers_impact %}
-          <tr>
+          <tr style="{% if t.tier == 'exceptional' %}background:rgba(34,197,94,0.04){% elif t.tier == 'review' %}background:rgba(148,163,184,0.03){% endif %}">
+
+            <!-- المعلمة -->
             <td>
-              {% if forloop.counter == 1 %}🥇
-              {% elif forloop.counter == 2 %}🥈
-              {% elif forloop.counter == 3 %}🥉
-              {% else %}#{{ forloop.counter }}{% endif %}
+              <div style="font-weight:700;font-size:12px;color:var(--text)">{{ t.name }}</div>
+              {% if t.insufficient_data %}
+              <div style="font-size:9px;color:var(--text3);margin-top:2px">⏳ بيانات تحت التجميع</div>
+              {% endif %}
             </td>
-            <td style="font-weight:700">{{ t.name }}</td>
-            <td>{{ t.skills }}</td>
-            <td>{{ t.exams }}</td>
-            <td>{{ t.sessions }}</td>
-            <td>{{ t.engagement }}</td>
+
+            <!-- الإنتاج: مهارات + اختبارات + حصص -->
+            <td>
+              <div style="display:flex;gap:4px;flex-wrap:wrap">
+                <span title="مهارات" style="font-size:9px;background:rgba(99,102,241,0.1);color:var(--accent);padding:2px 7px;border-radius:5px;font-weight:700">📚 {{ t.skills }}</span>
+                <span title="اختبارات" style="font-size:9px;background:rgba(99,102,241,0.1);color:var(--accent);padding:2px 7px;border-radius:5px;font-weight:700">📝 {{ t.exams }}</span>
+                <span title="حصص" style="font-size:9px;background:rgba(99,102,241,0.1);color:var(--accent);padding:2px 7px;border-radius:5px;font-weight:700">🏫 {{ t.sessions }}</span>
+              </div>
+            </td>
+
+            <!-- التفاعل -->
+            <td style="text-align:center">
+              <div style="font-size:15px;font-weight:800;color:{% if t.engagement >= 20 %}var(--green){% elif t.engagement >= 5 %}var(--orange){% else %}var(--text3){% endif %}">{{ t.engagement }}</div>
+              <div style="font-size:8px;color:var(--text3)">محاولة</div>
+            </td>
+
+            <!-- مستوى البعدي — شريط مرئي -->
             <td>
               {% if t.impact > 0 %}
-                <span class="bd {% if t.impact >= 70 %}bd-g{% elif t.impact >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.impact }}%</span>
+              <div style="display:flex;align-items:center;gap:7px">
+                <div style="width:64px;height:7px;background:var(--border);border-radius:4px;overflow:hidden;flex-shrink:0">
+                  <div style="width:{{ t.impact }}%;height:100%;background:{% if t.impact >= 70 %}var(--green){% elif t.impact >= 50 %}var(--orange){% else %}#94a3b8{% endif %};border-radius:4px"></div>
+                </div>
+                <span style="font-size:11px;font-weight:800;color:{% if t.impact >= 70 %}var(--green){% elif t.impact >= 50 %}var(--orange){% else %}var(--text2){% endif %}">{{ t.impact }}%</span>
+              </div>
               {% else %}
-                <span class="bd" style="background:rgba(148,163,184,0.15);color:var(--text3)">—</span>
+              <span style="font-size:10px;color:var(--text3)">—</span>
               {% endif %}
             </td>
+
+            <!-- التحسّن الفعلي -->
             <td>
-              {% if t.has_improvement %}
+              {% if t.insufficient_data %}
+                <span class="bd" style="background:rgba(148,163,184,0.1);color:var(--text3);font-size:9px">⏳ غير كافٍ</span>
+              {% elif t.has_improvement %}
                 {% if t.improvement > 0 %}
-                  <span class="bd bd-g">▲ +{{ t.improvement }}%</span>
+                  <span class="bd bd-g" style="font-size:10px;font-weight:700">▲ +{{ t.improvement }}%</span>
                 {% elif t.improvement < 0 %}
-                  <span class="bd bd-r">▼ {{ t.improvement }}%</span>
+                  <span class="bd" style="background:rgba(148,163,184,0.15);color:var(--text2);font-size:10px">▼ {{ t.improvement }}%</span>
                 {% else %}
-                  <span class="bd bd-o">= لا تغيير</span>
+                  <span class="bd bd-o" style="font-size:10px">← ثابت</span>
                 {% endif %}
               {% else %}
-                <span class="bd" style="background:rgba(148,163,184,0.15);color:var(--text3)">لا قبلي</span>
+                <span class="bd" style="background:rgba(148,163,184,0.1);color:var(--text3);font-size:9px">لا قبلي</span>
               {% endif %}
             </td>
+
+            <!-- مؤشر الأثر — badge إبداعي -->
             <td>
-              {% if forloop.counter == 1 and t.impact > 0 %}<span class="bd bd-g">⭐ الأعلى أداءً</span>
-              {% elif t.impact >= 70 %}<span class="bd bd-b">ممتازة</span>
-              {% elif t.impact >= 50 %}<span class="bd bd-o">جيدة</span>
-              {% elif t.impact > 0 %}<span class="bd bd-r">تحتاج دعم</span>
-              {% else %}<span class="bd" style="background:rgba(148,163,184,0.15);color:var(--text3)">لا بيانات</span>{% endif %}
+              {% if t.tier == 'collecting' %}
+                <span class="bd" style="background:rgba(148,163,184,0.12);color:var(--text3);font-size:9px">⏳ بيانات غير كافية</span>
+              {% elif t.tier == 'exceptional' %}
+                <span class="bd" style="background:rgba(34,197,94,0.15);color:#16a34a;font-size:10px;font-weight:700;border:1px solid rgba(34,197,94,0.3)">🌟 أثر استثنائي</span>
+              {% elif t.tier == 'growing' %}
+                <span class="bd" style="background:rgba(34,197,94,0.1);color:#16a34a;font-size:10px;font-weight:700">📈 نمو ملحوظ</span>
+              {% elif t.tier == 'stable' %}
+                <span class="bd bd-o" style="font-size:10px">📊 أثر ثابت</span>
+              {% elif t.tier == 'review' %}
+                <span class="bd" style="background:rgba(148,163,184,0.12);color:var(--text2);font-size:10px">🔍 مسار تحت المراجعة</span>
+              {% elif t.tier == 'high' %}
+                <span class="bd bd-b" style="font-size:10px;font-weight:700">✨ نتائج عالية</span>
+              {% elif t.tier == 'moderate' %}
+                <span class="bd bd-o" style="font-size:10px">💡 أداء إيجابي</span>
+              {% elif t.tier == 'early' %}
+                <span class="bd" style="background:rgba(99,102,241,0.1);color:var(--accent);font-size:10px">🔬 في طور التقييم</span>
+              {% else %}
+                <span class="bd" style="background:rgba(148,163,184,0.1);color:var(--text3);font-size:9px">📭 لا بيانات</span>
+              {% endif %}
             </td>
+
           </tr>
           {% endfor %}
         </tbody>
       </table>
+
+      <!-- مفتاح التصنيفات -->
+      <div style="padding:10px 16px;font-size:9px;color:var(--text3);border-top:1px solid var(--border);display:flex;gap:14px;flex-wrap:wrap;line-height:1.8">
+        <span>🌟 <strong>أثر استثنائي</strong> = تحسّن ≥ 10%</span>
+        <span>📈 <strong>نمو ملحوظ</strong> = تحسّن 1–9%</span>
+        <span>📊 <strong>أثر ثابت</strong> = لا فرق بين القبلي والبعدي</span>
+        <span>🔍 <strong>مسار تحت المراجعة</strong> = انخفاض في البعدي</span>
+        <span>✨ <strong>نتائج عالية</strong> = بعدي ≥ 70% (بدون قبلي)</span>
+        <span>⏳ <strong>بيانات غير كافية</strong> = أقل من 5 محاولات</span>
+      </div>
+
       {% else %}
       <div class="empty"><div class="empty-ico">👥</div>لا توجد معلمات بعد</div>
       {% endif %}

@@ -668,12 +668,15 @@ def _v2_teachers_impact():
         pre  = float(t.pre_avg  or 0)
         post = float(t.post_avg or 0)
         avg  = float(t.all_avg  or 0)
+        engagement_val = int(t.results_count or 0)
+
+        # حد أدنى للمصداقية الإحصائية
+        insufficient_data = engagement_val < 5
 
         # التأثير الحقيقي: تحسن من القبلي للبعدي
         if pre > 0 and post > 0:
-            # نسبة التحسن (0-100 scale: نرفعها لتكون قابلة للمقارنة)
             improvement = round(post - pre, 1)
-            impact = round(post, 1)       # للعرض: متوسط البعدي
+            impact = round(post, 1)
             has_improvement = True
         elif post > 0:
             improvement = None
@@ -684,21 +687,44 @@ def _v2_teachers_impact():
             impact = round(avg, 1)
             has_improvement = False
 
+        # ── تصنيف الأثر التعليمي (وصفي لا حكمي) ──────────────────
+        if insufficient_data:
+            tier = 'collecting'          # بيانات غير كافية بعد
+        elif has_improvement:
+            if improvement >= 10:
+                tier = 'exceptional'     # 🌟 أثر استثنائي
+            elif improvement > 0:
+                tier = 'growing'         # 📈 نمو ملحوظ
+            elif improvement == 0:
+                tier = 'stable'          # 📊 أثر ثابت
+            else:
+                tier = 'review'          # 🔍 مسار تحت المراجعة
+        elif impact >= 70:
+            tier = 'high'                # ✨ نتائج عالية
+        elif impact >= 50:
+            tier = 'moderate'            # 💡 أداء إيجابي
+        elif impact > 0:
+            tier = 'early'               # 🔬 في طور التقييم
+        else:
+            tier = 'no_data'             # 📭 لا بيانات
+
         out.append({
-            'id':          t.id,
-            'name':        t.full_name,
-            'sessions':    int(t.sessions_count  or 0),
-            'skills':      int(t.skills_count    or 0),
-            'exams':       int(t.exams_count     or 0),
-            'engagement':  int(t.results_count   or 0),
-            'impact':      impact,            # للألوان والعرض (متوسط البعدي أو العام)
-            'pre_avg':     round(pre,  1),
-            'post_avg':    round(post, 1),
-            'improvement': improvement,       # None لو ما عندها قبلي+بعدي
-            'has_improvement': has_improvement,
+            'id':               t.id,
+            'name':             t.full_name,
+            'sessions':         int(t.sessions_count or 0),
+            'skills':           int(t.skills_count   or 0),
+            'exams':            int(t.exams_count    or 0),
+            'engagement':       engagement_val,
+            'impact':           impact,
+            'pre_avg':          round(pre,  1),
+            'post_avg':         round(post, 1),
+            'improvement':      improvement,
+            'has_improvement':  has_improvement,
+            'insufficient_data': insufficient_data,
+            'tier':             tier,
         })
 
-    out.sort(key=lambda x: -(x['improvement'] or x['impact']))
+    out.sort(key=lambda x: -(x['improvement'] if x['improvement'] is not None else x['impact']))
     return out
 
 
