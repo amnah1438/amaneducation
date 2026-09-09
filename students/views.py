@@ -257,14 +257,22 @@ def student_dashboard(request):
         RemedialExamAssignment.objects.filter(student=my_student).values_list('exam_id', flat=True)
     ) if my_student else set()
 
+    # فلتر الفصل: تظهر فقط اختبارات المعلمة التي تدرّس في نفس فصل الطالبة
+    if my_student:
+        classroom_q = Q(skill__created_by__classrooms=my_student.classroom)
+    else:
+        classroom_q = Q()  # لا يوجد سجل طالبة → لا قيد على الفصل
+
     available_exams = (
         TeacherExam.objects
         .filter(is_active=True)
+        .filter(classroom_q)
         .filter(
             Q(id__in=my_assigned_ids) |  # علاجية مُعيَّنة: تظهر حتى لو أُدّيت
             (~Q(id__in=restricted_exam_ids) & ~Q(id__in=done_exam_ids))  # عادية: غير مكتملة وغير محجوبة
         )
         .select_related('skill')
+        .distinct()
     )
 
     return render(request, 'students/dashboard.html', {
