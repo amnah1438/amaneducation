@@ -1041,6 +1041,52 @@ body.display-mode .card-t { font-size: 18px; }
     </div>
   </div>
 
+  <!-- ═══════════ Never Logged In ═══════════ -->
+  {% if never_logged %}
+  <div class="section-title">⚠️ طالبات لم يسجلن الدخول بعد</div>
+  <div class="card">
+    <div class="card-h" style="flex-wrap:wrap;gap:8px">
+      <span class="card-t">📋 قائمة الطالبات اللواتي لم يدخلن المنصة</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="bd bd-r" style="font-size:11px;font-weight:700">{{ never_logged|length }} طالبة</span>
+        <span style="font-size:9px;color:var(--text3)">بدون دخول = لا حساب أو حساب لم يُستخدم</span>
+      </div>
+    </div>
+    <div class="card-b" style="padding:0">
+      <table class="tbl">
+        <thead><tr>
+          <th>#</th>
+          <th>اسم الطالبة</th>
+          <th>الفصل</th>
+          <th>الحساب</th>
+        </tr></thead>
+        <tbody>
+          {% for s in never_logged %}
+          <tr>
+            <td style="color:var(--text3);font-size:10px">{{ forloop.counter }}</td>
+            <td style="font-weight:700">{{ s.name }}</td>
+            <td>
+              <span class="bd" style="background:rgba(99,102,241,0.1);color:var(--accent);font-size:9px">{{ s.classroom }}</span>
+            </td>
+            <td>
+              {% if s.has_account %}
+                <span class="bd bd-o" style="font-size:9px">📧 حساب موجود — لم تدخل</span>
+              {% else %}
+                <span class="bd bd-r" style="font-size:9px">🚫 لا يوجد حساب</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <div style="padding:10px 16px;font-size:9px;color:var(--text3);border-top:1px solid var(--border);display:flex;gap:16px;flex-wrap:wrap">
+        <span>📧 <strong>حساب موجود — لم تدخل</strong>: الطالبة عندها اسم مستخدم لكن لم تسجّل دخول أبداً</span>
+        <span>🚫 <strong>لا يوجد حساب</strong>: لم يُنشأ لها حساب بعد</span>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   <!-- ═══════════ Advanced Analytics ═══════════ -->
   <div class="section-title" id="analytics">📊 التحليل الإحصائي المتقدم</div>
   <div class="card non-display">

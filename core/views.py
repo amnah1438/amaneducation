@@ -937,6 +937,23 @@ def admin_v2_dashboard(request):
         .select_related('created_by').prefetch_related('exams').order_by('-created_at')
     )
 
+    # الطالبات اللواتي لم يسجلن الدخول قط (لا حساب أو حساب بدون last_login)
+    from django.db.models import Q as _Q
+    never_logged = (
+        Student.objects
+        .select_related('classroom', 'user')
+        .filter(_Q(user__isnull=True) | _Q(user__last_login__isnull=True))
+        .order_by('classroom__name', 'full_name')
+    )
+    never_logged_data = [
+        {
+            'name': s.full_name,
+            'classroom': s.classroom.name if s.classroom else '—',
+            'has_account': s.user is not None,
+        }
+        for s in never_logged
+    ]
+
     # وضع العرض المدرسي
     display_mode = request.GET.get('display') == '1'
 
@@ -956,6 +973,7 @@ def admin_v2_dashboard(request):
         'comprehensive_skills': comprehensive_skills,
         'classrooms': ClassRoom.objects.all().order_by('name'),
         'display_mode': display_mode,
+        'never_logged': never_logged_data,
     })
 
 
