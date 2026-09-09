@@ -1024,7 +1024,8 @@ def _filter_results(scope, target_id, exam_type):
         qs = qs.filter(cond)
     elif scope == 'teacher' and target_id:
         try:
-            qs = qs.filter(exam__skill__created_by_id=int(target_id))
+            # target_id هو User.id (من teachers_list) — نطابق عبر Teacher.user
+            qs = qs.filter(exam__skill__created_by__user_id=int(target_id))
         except ValueError:
             return qs.none()
     elif scope == 'student' and target_id:
