@@ -508,6 +508,7 @@ def _v2_kpis():
         'active_sessions': active_sessions,
         'avg_score': round(avg_total, 1),
         'avg_score_30d': round(avg_now, 1),
+        'avg_prev': round(avg_prev, 1),
         'improvement_delta': delta,
         'improvement_pct': round((delta / max(avg_prev, 1)) * 100, 1) if avg_prev else 0,
     }
@@ -770,15 +771,16 @@ def _v2_smart_alerts(kpis, level_dist, teachers_impact, top_students):
             'msg': 'يُنصح بمراجعة المهارات الأكثر صعوبة على الطالبات وإعادة شرحها.',
         })
 
-    # 2) تحسن أو تدهور
-    if kpis['improvement_delta'] >= 5:
+    # 2) تحسن أو تدهور — فقط عندما يوجد بيانات حقيقية في كلا الفترتين
+    has_prev_data = kpis.get('avg_prev', 0) >= 5  # الفترة السابقة بها نتائج كافية
+    if kpis['improvement_delta'] >= 5 and has_prev_data:
         alerts.append({
             'level': 'success',
             'icon': '🎉',
             'title': f"الأداء يتحسن — +{kpis['improvement_delta']}% خلال الـ 30 يوم الأخيرة",
             'msg': 'استمري في نفس النهج التعليمي — البيانات تُظهر تأثيراً إيجابياً.',
         })
-    elif kpis['improvement_delta'] <= -5:
+    elif kpis['improvement_delta'] <= -5 and has_prev_data:
         alerts.append({
             'level': 'warning',
             'icon': '📉',
@@ -881,6 +883,43 @@ def _v2_predictions():
     }
 
 
+def _v2_students_support(limit=50):
+    """
+    الطالبات اللواتي يحتجن متابعة — متوسط نتائجهن أقل من 50%.
+    مرتبة من الأضعف إلى الأقوى.
+    """
+    perf = (
+        ExamResult.objects
+        .filter(student__core_profile__role='STUDENT')
+        .exclude(student__is_superuser=True)
+        .values('student_id', 'student__first_name', 'student__last_name', 'student__username')
+        .annotate(avg=Avg('percentage'), count=Count('id'))
+        .filter(avg__lt=50)
+        .order_by('avg')[:limit]
+    )
+    out = []
+    for r in perf:
+        name = (f"{r['student__first_name']} {r['student__last_name']}".strip()
+                or r['student__username'])
+        # نحاول نجيب الفصل من Student record
+        classroom = '—'
+        try:
+            from students.models import Student as _Student
+            s = _Student.objects.filter(user_id=r['student_id']).select_related('classroom').first()
+            if s and s.classroom:
+                classroom = s.classroom.name
+        except Exception:
+            pass
+        out.append({
+            'name':     name,
+            'avg':      round(r['avg'] or 0, 1),
+            'count':    r['count'],
+            'classroom': classroom,
+            'student_id': r['student_id'],
+        })
+    return out
+
+
 def _v2_hardest_skills(limit=10):
     """
     المهارات الأصعب على الطالبات — مرتبة تصاعدياً بالمتوسط.
@@ -922,6 +961,7 @@ def admin_v2_dashboard(request):
     top_students = _v2_top_students(limit=10)
     teachers_impact = _v2_teachers_impact()
     hardest_skills = _v2_hardest_skills(limit=10)
+    students_support = _v2_students_support(limit=50)
     active_exams = _v2_active_exams_inline()
     alerts = _v2_smart_alerts(kpis, level_dist, teachers_impact, top_students)
     decisions = _v2_decisions(kpis, level_dist, alerts)
@@ -1001,6 +1041,7 @@ def admin_v2_dashboard(request):
         'top_students': top_students,
         'teachers_impact': teachers_impact,
         'hardest_skills': hardest_skills,
+        'students_support': students_support,
         'active_exams': active_exams,
         'alerts': alerts,
         'decisions': decisions,
@@ -1171,30 +1212,36 @@ def _descriptive_text(scope, avg, attempts, pass_pct, improvement):
 
 
 def _skills_breakdown(qs):
-    """تحليل أداء المهارات — الأسئلة المرتبطة بـ target_skill_name."""
+    """تحليل أداء المهارات — مجمّعة حسب اسم المهارة الحقيقي (exam.skill.name)."""
     from collections import defaultdict
-    bucket = defaultdict(lambda: {'correct': 0, 'total': 0})
+    bucket = defaultdict(lambda: {'sum': 0.0, 'count': 0})
 
-    for ans in StudentAnswer.objects.filter(result__in=qs).select_related('question'):
-        name = (ans.question.target_skill_name or 'غير محدّدة').strip() or 'غير محدّدة'
-        bucket[name]['total'] += 1
-        if ans.is_correct:
-            bucket[name]['correct'] += 1
+    # نجمّع متوسط النتائج حسب اسم المهارة من الاختبار
+    for result in qs.select_related('exam__skill'):
+        skill_name = ''
+        try:
+            skill_name = (result.exam.skill.name or '').strip()
+        except Exception:
+            pass
+        if not skill_name:
+            skill_name = 'غير محدّدة'
+        bucket[skill_name]['sum'] += float(result.percentage or 0)
+        bucket[skill_name]['count'] += 1
 
     rows = []
     mastered = 0
     needs = 0
     for name, v in bucket.items():
-        if v['total'] == 0:
+        if v['count'] == 0:
             continue
-        pct = round(100 * v['correct'] / v['total'])
-        rows.append({'name': name, 'pct': pct, 'correct': v['correct'], 'total': v['total']})
+        pct = round(v['sum'] / v['count'])
+        rows.append({'name': name, 'pct': pct, 'correct': 0, 'total': v['count']})
         if pct >= 70:
             mastered += 1
         else:
             needs += 1
     rows.sort(key=lambda r: -r['pct'])
-    return rows[:12], mastered, needs
+    return rows[:20], mastered, needs
 
 
 def _exam_types_breakdown(qs):
