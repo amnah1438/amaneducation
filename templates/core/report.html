@@ -1,259 +1,503 @@
-{% load static %}
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<title>تقرير — منصة آمنة</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap" rel="stylesheet">
-<script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea']}}</script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>تقرير الأداء — {% if kind == 'student' %}{{ student.get_full_name }}{% elif kind == 'classroom' %}{{ classroom_name }}{% elif kind == 'teacher' %}{{ teacher.full_name }}{% else %}المدرسة{% endif %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap">
 <style>
-body{font-family:'Tajawal',sans-serif;max-width:880px;margin:24px auto;padding:0 28px;color:#1e293b;line-height:1.85;background:#f8fafc}
-.controls{text-align:center;margin:14px 0}
-.btn{background:#0d4f35;color:white;border:none;padding:9px 22px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:13px;margin:0 5px;text-decoration:none;display:inline-block}
-.btn-2{background:#5b21b6}.btn-3{background:#999}
-@media print{.controls{display:none}body{background:white;margin:0;max-width:100%}}
-.logos-header{display:flex;justify-content:space-between;align-items:center;padding:12px;background:white;border-radius:11px;border:2px solid #0d4f35;margin-bottom:16px}
-.logos-header .logo-box{width:80px;height:80px;display:flex;align-items:center;justify-content:center}
-.logos-header img{max-width:100%;max-height:100%;object-fit:contain}
-.logos-header .ministry-block{flex:1;text-align:center;padding:0 10px}
-.gov-line{font-size:11px;color:#555;font-weight:600}
-.ministry{font-size:16px;font-weight:900;color:#0d4f35;margin:3px 0}
-.admin-line,.school-line{font-size:11px;color:#444}
-.school-line{font-weight:700}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1a1a2e;
+    --ink2: #444;
+    --ink3: #888;
+    --border: #e2e2e8;
+    --bg: #f7f8fc;
+    --card: #fff;
+    --green: #059669;
+    --blue: #2563eb;
+    --orange: #d97706;
+    --red: #dc2626;
+    --purple: #7c3aed;
+    --accent: #6366f1;
+  }
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 0;
+    min-height: 100vh;
+  }
 
-.report-title{font-size:22px;font-weight:900;color:#0d4f35;text-align:center;margin:18px 0 10px;padding:14px;background:white;border-radius:11px;border:2px solid #0d4f35}
-.report-sub{text-align:center;color:#475569;font-size:12px;margin-bottom:14px}
+  /* ── Header ── */
+  .page-header {
+    background: linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%);
+    color: #fff;
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .school-info { display: flex; align-items: center; gap: 14px; }
+  .school-logo {
+    width: 54px; height: 54px; border-radius: 14px;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; flex-shrink: 0;
+  }
+  .school-name { font-size: 16px; font-weight: 900; }
+  .school-sub  { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+  .report-meta { text-align: left; font-size: 11px; opacity: 0.85; line-height: 1.8; }
 
-.box{background:white;border:1px solid #e2e8f0;border-radius:11px;padding:16px 18px;margin-bottom:14px;page-break-inside:avoid}
-.box-title{font-size:14px;font-weight:800;color:#0d4f35;margin-bottom:12px;padding-bottom:7px;border-bottom:2px solid #d1fae5}
+  /* ── Print btn ── */
+  .print-bar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 40px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .btn-print {
+    background: var(--accent); color: #fff;
+    border: none; border-radius: 8px; padding: 7px 18px;
+    font-family: 'Tajawal', sans-serif; font-size: 12px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+  }
+  .btn-print:hover { background: #4f46e5; }
+  .btn-back {
+    background: transparent; color: var(--ink2);
+    border: 1px solid var(--border); border-radius: 8px; padding: 7px 16px;
+    font-family: 'Tajawal', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; text-decoration: none;
+  }
+  .report-type-badge {
+    margin-right: auto;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 14px; font-size: 11px;
+    font-weight: 700; color: var(--ink2);
+  }
 
-.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:12px}
-@media (max-width:680px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
-.kpi{background:#f1f5f9;border-radius:9px;padding:11px;text-align:center;border-bottom:3px solid #4f46e5}
-.kpi-v{font-size:22px;font-weight:900;color:#1e293b}
-.kpi-l{font-size:10px;color:#64748b;margin-top:3px}
+  /* ── Main ── */
+  .main { max-width: 900px; margin: 28px auto; padding: 0 20px 60px; }
 
-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
-th{background:#f1f5f9;padding:8px 10px;text-align:right;font-weight:700;border-bottom:2px solid #cbd5e1}
-td{padding:7px 10px;border-bottom:1px solid #e2e8f0;color:#475569}
-tr:hover td{background:#f8fafc}
+  /* ── Error ── */
+  .error-card {
+    background: #fef2f2; border: 1px solid #fecaca;
+    border-radius: 12px; padding: 28px; text-align: center;
+    color: var(--red); font-size: 14px; font-weight: 700;
+    margin-top: 40px;
+  }
+  .error-card .icon { font-size: 36px; margin-bottom: 10px; }
 
-.bd{display:inline-block;padding:2px 8px;border-radius:7px;font-size:9px;font-weight:700}
-.bd-g{background:#d1fae5;color:#065f46}
-.bd-r{background:#fee2e2;color:#991b1b}
-.bd-o{background:#fed7aa;color:#9a3412}
-.bd-b{background:#dbeafe;color:#1e40af}
+  /* ── Subject card ── */
+  .subject-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .subject-avatar {
+    width: 58px; height: 58px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent), #4f46e5);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; flex-shrink: 0; color: #fff;
+  }
+  .subject-name { font-size: 17px; font-weight: 900; }
+  .subject-sub  { font-size: 11px; color: var(--ink3); margin-top: 3px; }
+  .subject-badge {
+    margin-right: auto;
+    padding: 5px 14px; border-radius: 20px;
+    font-size: 11px; font-weight: 800;
+  }
 
-.skill-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #f1f5f9}
-.skill-name{font-size:11px;font-weight:700;min-width:120px}
-.skill-bar{flex:1;height:7px;background:#e2e8f0;border-radius:4px;overflow:hidden}
-.skill-fill{height:100%}
-.skill-pct{font-size:11px;font-weight:800;min-width:42px;text-align:left}
+  /* ── KPI Grid ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  @media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+  .kpi-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px; text-align: center;
+  }
+  .kpi-label { font-size: 10px; color: var(--ink3); font-weight: 600; margin-bottom: 6px; }
+  .kpi-value { font-size: 26px; font-weight: 900; line-height: 1; }
+  .kpi-sub   { font-size: 9px; color: var(--ink3); margin-top: 4px; }
+  .c-green  { color: var(--green); }
+  .c-blue   { color: var(--blue); }
+  .c-orange { color: var(--orange); }
+  .c-red    { color: var(--red); }
+  .c-purple { color: var(--purple); }
 
-.descriptive{background:#fef3c7;padding:14px 16px;border-radius:9px;border-right:4px solid #f59e0b;font-size:13px;line-height:1.95;color:#1e293b}
+  /* ── Section ── */
+  .section { margin-bottom: 20px; }
+  .section-title {
+    font-size: 13px; font-weight: 800; color: var(--ink);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 7px;
+    border-bottom: 2px solid var(--border); padding-bottom: 8px;
+  }
 
-.audience-banner{background:#dbeafe;color:#1e40af;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:12px;font-weight:700;text-align:center}
+  /* ── Descriptive box ── */
+  .desc-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 18px;
+    line-height: 1.9; font-size: 12px; color: var(--ink2);
+  }
+
+  /* ── Skills table ── */
+  .skills-list { display: flex; flex-direction: column; gap: 8px; }
+  .skill-row {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .skill-name { flex: 1; font-size: 12px; font-weight: 600; }
+  .skill-bar-wrap { width: 140px; height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden; flex-shrink: 0; }
+  .skill-bar { height: 100%; border-radius: 4px; }
+  .skill-pct { width: 38px; text-align: left; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+  .skill-badge {
+    font-size: 9px; font-weight: 700; padding: 2px 8px;
+    border-radius: 8px; flex-shrink: 0;
+  }
+  .badge-master { background: #d1fae5; color: var(--green); }
+  .badge-needs  { background: #fee2e2; color: var(--red); }
+
+  /* ── Types ── */
+  .types-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 600px) { .types-grid { grid-template-columns: 1fr 1fr; } }
+  .type-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px; text-align: center;
+  }
+  .type-label { font-size: 10px; color: var(--ink3); margin-bottom: 5px; }
+  .type-avg   { font-size: 20px; font-weight: 900; }
+  .type-count { font-size: 9px; color: var(--ink3); margin-top: 3px; }
+
+  /* ── Classrooms table ── */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th, .data-table td { padding: 9px 14px; text-align: right; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .data-table th { font-weight: 800; color: var(--ink2); background: var(--bg); }
+  .data-table tr:hover td { background: #fafaff; }
+
+  /* ── Students top ── */
+  .students-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  @media (max-width: 600px) { .students-grid { grid-template-columns: 1fr 1fr; } }
+  .student-mini {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px; text-align: center;
+  }
+  .student-mini-rank { font-size: 18px; }
+  .student-mini-name { font-size: 10px; font-weight: 700; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .student-mini-avg  { font-size: 14px; font-weight: 900; color: var(--accent); margin-top: 3px; }
+
+  /* ── Print ── */
+  @media print {
+    .print-bar, .btn-print, .btn-back { display: none !important; }
+    body { background: #fff; }
+    .main { margin: 0; padding: 10px; }
+    .page-header { padding: 16px 20px; }
+    .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+    .students-grid { grid-template-columns: repeat(5, 1fr); }
+  }
 </style>
 </head>
 <body>
 
-<div class="controls">
-  <button class="btn" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
-  <button class="btn btn-3" onclick="window.close()">إغلاق</button>
+<!-- Header -->
+<div class="page-header">
+  <div class="school-info">
+    <div class="school-logo">🏫</div>
+    <div>
+      <div class="school-name">{% if settings %}{{ settings.platform_name|default:"منصة آمنة التعليمية" }}{% else %}منصة آمنة التعليمية{% endif %}</div>
+      <div class="school-sub">{% if settings %}{{ settings.header_line_4|default:"" }}{% endif %} — تقرير الأداء الأكاديمي</div>
+    </div>
+  </div>
+  <div class="report-meta">
+    <div>📅 {{ "now"|date:"Y/m/d" }}</div>
+    <div>🕐 {{ "now"|date:"H:i" }}</div>
+    <div>
+      {% if kind == 'student' %}تقرير طالبة
+      {% elif kind == 'classroom' %}تقرير فصل
+      {% elif kind == 'teacher' %}تقرير معلمة
+      {% else %}تقرير المدرسة{% endif %}
+      {% if audience == 'parent' %} — نسخة ولي الأمر{% elif audience == 'student' %} — نسخة الطالبة{% endif %}
+    </div>
+  </div>
 </div>
 
-<!-- ─── ترويسة الشعارات ─── -->
-<div class="logos-header">
-  <div class="logo-box">
-    {% if settings.ministry_logo_url %}<img src="{{ settings.ministry_logo_url }}" alt="">
-    {% else %}<div style="font-size:9px;color:#999;text-align:center">شعار<br>الوزارة</div>{% endif %}
-  </div>
-  <div class="ministry-block">
-    <div class="gov-line">{{ settings.header_line_1|default:"المملكة العربية السعودية" }}</div>
-    <div class="ministry">{{ settings.header_line_2|default:"وزارة التعليم" }}</div>
-    <div class="admin-line">{{ settings.header_line_3|default:"" }}</div>
-    <div class="school-line">{{ settings.header_line_4|default:"" }}</div>
-  </div>
-  <div class="logo-box">
-    {% if settings.school_logo_url %}<img src="{{ settings.school_logo_url }}" alt="">
-    {% else %}<div style="font-size:9px;color:#999;text-align:center">شعار<br>المدرسة</div>{% endif %}
-  </div>
+<!-- Print bar -->
+<div class="print-bar no-print">
+  <a href="{% url 'admin_dashboard' %}" class="btn-back">← لوحة المديرة</a>
+  <button class="btn-print" onclick="window.print()">🖨️ طباعة / PDF</button>
+  <span class="report-type-badge">
+    {% if kind == 'student' %}👩‍🎓 تقرير طالبة
+    {% elif kind == 'classroom' %}📚 تقرير فصل
+    {% elif kind == 'teacher' %}👩‍🏫 تقرير معلمة
+    {% else %}🏫 تقرير المدرسة{% endif %}
+  </span>
 </div>
 
+<div class="main">
+
+<!-- Error -->
 {% if error %}
-<div class="box"><div style="text-align:center;color:#991b1b;font-weight:800">{{ error }}</div></div>
-{% else %}
+<div class="error-card">
+  <div class="icon">⚠️</div>
+  <div>{{ error }}</div>
+</div>
 
-{% if audience == 'parent' %}
-<div class="audience-banner">👨‍👩‍👧 تقرير موجَّه إلى ولي الأمر</div>
-{% elif audience == 'student' %}
-<div class="audience-banner" style="background:#fef3c7;color:#92400e">👩‍🎓 تقرير موجَّه إلى الطالبة</div>
+{% elif kind == 'student' and student %}
+<!-- ══════════════ تقرير طالبة ══════════════ -->
+
+<!-- بطاقة الطالبة -->
+<div class="subject-card">
+  <div class="subject-avatar">👩‍🎓</div>
+  <div>
+    <div class="subject-name">{{ student.get_full_name|default:student.username }}</div>
+    <div class="subject-sub">
+      {% if profile %}رقم الهوية: {{ profile.national_id|default:"—" }}{% endif %}
+    </div>
+  </div>
+  {% if avg >= 90 %}
+    <span class="subject-badge" style="background:#d1fae5;color:var(--green)">🏆 متفوقة</span>
+  {% elif avg >= 75 %}
+    <span class="subject-badge" style="background:#dbeafe;color:var(--blue)">⭐ جيد جداً</span>
+  {% elif avg >= 60 %}
+    <span class="subject-badge" style="background:#fef3c7;color:var(--orange)">👍 جيد</span>
+  {% elif avg >= 50 %}
+    <span class="subject-badge" style="background:#fef3c7;color:var(--orange)">⚠️ مقبول</span>
+  {% else %}
+    <span class="subject-badge" style="background:#fee2e2;color:var(--red)">🆘 يحتاج دعم</span>
+  {% endif %}
+</div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">المتوسط العام</div>
+    <div class="kpi-value {% if avg >= 75 %}c-green{% elif avg >= 50 %}c-orange{% else %}c-red{% endif %}">{{ avg }}%</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">عدد المحاولات</div>
+    <div class="kpi-value c-blue">{{ attempts }}</div>
+    <div class="kpi-sub">محاولة</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">النجاح</div>
+    <div class="kpi-value c-green">{{ passed }}</div>
+    <div class="kpi-sub">من {{ attempts }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">الرسوب</div>
+    <div class="kpi-value c-red">{{ failed }}</div>
+    <div class="kpi-sub">من {{ attempts }}</div>
+  </div>
+</div>
+
+<!-- التقييم الوصفي -->
+<div class="section">
+  <div class="section-title">📊 التقييم</div>
+  <div class="desc-box">{{ descriptive|safe }}</div>
+</div>
+
+<!-- المهارات -->
+{% if skills %}
+<div class="section">
+  <div class="section-title">🎯 أداء المهارات
+    <span style="margin-right:auto;font-size:10px;font-weight:500;color:var(--ink3)">
+      متقنة: {{ mastered }} &nbsp;|&nbsp; تحتاج تطوير: {{ needs }}
+    </span>
+  </div>
+  <div class="skills-list">
+    {% for s in skills %}
+    <div class="skill-row">
+      <div class="skill-name">{{ s.name }}</div>
+      <div class="skill-bar-wrap">
+        <div class="skill-bar" style="width:{{ s.pct }}%;background:{% if s.pct >= 70 %}var(--green){% elif s.pct >= 50 %}var(--orange){% else %}var(--red){% endif %}"></div>
+      </div>
+      <div class="skill-pct {% if s.pct >= 70 %}c-green{% elif s.pct >= 50 %}c-orange{% else %}c-red{% endif %}">{{ s.pct }}%</div>
+      <span class="skill-badge {% if s.pct >= 70 %}badge-master{% else %}badge-needs{% endif %}">
+        {% if s.pct >= 70 %}متقنة{% else %}تحتاج دعم{% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
 {% endif %}
 
-{# ─── تقرير الطالبة ─── #}
-{% if kind == 'student' and student %}
-<div class="report-title">📋 تقرير أداء الطالبة</div>
-<div class="report-sub">
-  {{ student.get_full_name|default:student.username }}
-  {% if profile %} • هوية: {{ profile.national_id }}{% endif %}
-  • تاريخ التقرير: <script>document.write(new Date().toLocaleDateString('ar-SA'))</script>
+<!-- أنواع الاختبارات -->
+{% if types %}
+<div class="section">
+  <div class="section-title">📋 الأداء حسب نوع الاختبار</div>
+  <div class="types-grid">
+    {% for t in types %}
+    <div class="type-card">
+      <div class="type-label">{{ t.label }}</div>
+      <div class="type-avg {% if t.avg >= 75 %}c-green{% elif t.avg >= 50 %}c-orange{% else %}c-red{% endif %}">{{ t.avg }}%</div>
+      <div class="type-count">{{ t.count }} محاولة</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- آخر النتائج — للمديرة فقط -->
+{% if audience == 'admin' and results %}
+<div class="section">
+  <div class="section-title">📝 آخر النتائج</div>
+  <table class="data-table">
+    <thead><tr><th>الاختبار</th><th>التاريخ</th><th>النتيجة</th><th>الحالة</th></tr></thead>
+    <tbody>
+      {% for r in results|slice:":15" %}
+      <tr>
+        <td>{{ r.exam.skill.title|default:"—" }}</td>
+        <td style="direction:ltr;text-align:right">{{ r.submitted_at|date:"Y/m/d" }}</td>
+        <td style="font-weight:800;color:{% if r.percentage >= 60 %}var(--green){% else %}var(--red){% endif %}">{{ r.percentage|floatformat:1 }}%</td>
+        <td>{% if r.passed %}<span style="color:var(--green)">✅ ناجحة</span>{% else %}<span style="color:var(--red)">❌ راسبة</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+
+{% elif kind == 'classroom' %}
+<!-- ══════════════ تقرير فصل ══════════════ -->
+
+<div class="subject-card">
+  <div class="subject-avatar">📚</div>
+  <div>
+    <div class="subject-name">{{ classroom_name }}</div>
+    <div class="subject-sub">{{ students_count }} طالبة</div>
+  </div>
+  {% if avg >= 75 %}
+    <span class="subject-badge" style="background:#d1fae5;color:var(--green)">أداء جيد ✅</span>
+  {% elif avg >= 50 %}
+    <span class="subject-badge" style="background:#fef3c7;color:var(--orange)">يحتاج تطوير ⚠️</span>
+  {% else %}
+    <span class="subject-badge" style="background:#fee2e2;color:var(--red)">يحتاج تدخل 🆘</span>
+  {% endif %}
 </div>
 
-<div class="box">
-  <div class="box-title">📊 مؤشرات الأداء</div>
-  <div class="kpi-row">
-    <div class="kpi"><div class="kpi-v">{{ avg }}%</div><div class="kpi-l">المتوسط</div></div>
-    <div class="kpi"><div class="kpi-v">{{ attempts }}</div><div class="kpi-l">الاختبارات</div></div>
-    <div class="kpi"><div class="kpi-v" style="color:#059669">{{ passed }}</div><div class="kpi-l">ناجحة</div></div>
-    <div class="kpi"><div class="kpi-v" style="color:#dc2626">{{ failed }}</div><div class="kpi-l">راسبة</div></div>
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">متوسط الفصل</div>
+    <div class="kpi-value {% if avg >= 75 %}c-green{% elif avg >= 50 %}c-orange{% else %}c-red{% endif %}">{{ avg }}%</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">عدد الطالبات</div>
+    <div class="kpi-value c-blue">{{ students_count }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">إجمالي المحاولات</div>
+    <div class="kpi-value c-purple">{{ attempts }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">النجاح</div>
+    <div class="kpi-value c-green">{{ passed }}</div>
+    <div class="kpi-sub">من {{ attempts }}</div>
   </div>
 </div>
 
-<div class="box">
-  <div class="box-title">📝 التحليل الوصفي</div>
-  <div class="descriptive">{{ descriptive|safe }}</div>
+<div class="section">
+  <div class="section-title">📊 التقييم</div>
+  <div class="desc-box">{{ descriptive|safe }}</div>
 </div>
 
 {% if skills %}
-<div class="box">
-  <div class="box-title">🎯 المهارات: متقنة ({{ mastered }}) • تحتاج تحسين ({{ needs }})</div>
-  {% for s in skills %}
-  <div class="skill-row">
-    <span class="skill-name">{% if s.pct >= 70 %}✅{% else %}⚠️{% endif %} {{ s.name }}</span>
-    <div class="skill-bar"><div class="skill-fill" style="width:{{ s.pct }}%;background:{% if s.pct >= 70 %}#059669{% elif s.pct >= 50 %}#f59e0b{% else %}#dc2626{% endif %}"></div></div>
-    <span class="skill-pct" style="color:{% if s.pct >= 70 %}#059669{% elif s.pct >= 50 %}#f59e0b{% else %}#dc2626{% endif %}">{{ s.pct }}%</span>
+<div class="section">
+  <div class="section-title">🎯 أداء المهارات
+    <span style="margin-right:auto;font-size:10px;font-weight:500;color:var(--ink3)">
+      متقنة: {{ mastered }} &nbsp;|&nbsp; تحتاج تطوير: {{ needs }}
+    </span>
   </div>
-  {% endfor %}
+  <div class="skills-list">
+    {% for s in skills %}
+    <div class="skill-row">
+      <div class="skill-name">{{ s.name }}</div>
+      <div class="skill-bar-wrap">
+        <div class="skill-bar" style="width:{{ s.pct }}%;background:{% if s.pct >= 70 %}var(--green){% elif s.pct >= 50 %}var(--orange){% else %}var(--red){% endif %}"></div>
+      </div>
+      <div class="skill-pct {% if s.pct >= 70 %}c-green{% elif s.pct >= 50 %}c-orange{% else %}c-red{% endif %}">{{ s.pct }}%</div>
+      <span class="skill-badge {% if s.pct >= 70 %}badge-master{% else %}badge-needs{% endif %}">
+        {% if s.pct >= 70 %}متقنة{% else %}تحتاج دعم{% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
 </div>
 {% endif %}
 
 {% if types %}
-<div class="box">
-  <div class="box-title">📚 الأداء حسب نوع الاختبار</div>
-  <table>
-    <thead><tr><th>النوع</th><th>المتوسط</th><th>عدد المحاولات</th></tr></thead>
-    <tbody>
-      {% for t in types %}
-      <tr>
-        <td>{{ t.label }}</td>
-        <td><span class="bd {% if t.avg >= 70 %}bd-g{% elif t.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.avg }}%</span></td>
-        <td>{{ t.count }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endif %}
-
-<div class="box">
-  <div class="box-title">📋 سجل الاختبارات</div>
-  <table>
-    <thead><tr><th>الاختبار</th><th>المهارة</th><th>الدرجة</th><th>النسبة</th><th>الحالة</th><th>التاريخ</th></tr></thead>
-    <tbody>
-      {% for r in results %}
-      <tr>
-        <td>{{ r.exam.get_exam_type_display }}</td>
-        <td>{{ r.exam.skill.title|truncatechars:30 }}</td>
-        <td>{{ r.score }}/{{ r.total }}</td>
-        <td><span class="bd {% if r.passed %}bd-g{% else %}bd-r{% endif %}">{{ r.percentage|floatformat:1 }}%</span></td>
-        <td>{% if r.passed %}✅ ناجحة{% else %}❌ راسبة{% endif %}</td>
-        <td>{{ r.submitted_at|date:"Y/m/d" }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:18px">لا توجد محاولات بعد</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-{% if audience == 'parent' %}
-<div class="box" style="background:#fef3c7;border:2px solid #f59e0b">
-  <div class="box-title" style="color:#92400e">👨‍👩‍👧 رسالة لولي الأمر</div>
-  <p style="font-size:13px;line-height:1.95">
-    نحرص في منصة آمنة التعليمية على إبقائكم على اطلاع دائم بتقدم ابنتكم.
-    {% if avg >= 75 %}
-    أداء ابنتكم <strong>متميز</strong> — يستحق التشجيع والاستمرار.
-    {% elif avg >= 50 %}
-    أداء ابنتكم <strong>مقبول</strong> ويمكنه التحسّن مع مزيد من المراجعة في المهارات الموضّحة أعلاه.
-    {% else %}
-    تحتاج ابنتكم إلى <strong>دعم إضافي</strong> — نأمل التعاون معنا لتحديد مواعيد دعم بعد الدوام.
-    {% endif %}
-  </p>
-  <p style="font-size:12px;margin-top:10px;color:#78350f">
-    لأي استفسار، يمكنكم التواصل مع المعلمة عبر إدارة المدرسة.
-  </p>
-</div>
-{% endif %}
-
-{# ─── تقرير الفصل ─── #}
-{% elif kind == 'classroom' %}
-<div class="report-title">🏫 تقرير الفصل {{ classroom_name }}</div>
-<div class="report-sub">عدد الطالبات: {{ students_count }} • تاريخ التقرير: <script>document.write(new Date().toLocaleDateString('ar-SA'))</script></div>
-
-<div class="box">
-  <div class="box-title">📊 مؤشرات الفصل</div>
-  <div class="kpi-row">
-    <div class="kpi"><div class="kpi-v">{{ avg }}%</div><div class="kpi-l">المتوسط</div></div>
-    <div class="kpi"><div class="kpi-v">{{ attempts }}</div><div class="kpi-l">المحاولات</div></div>
-    <div class="kpi"><div class="kpi-v" style="color:#059669">{{ passed }}</div><div class="kpi-l">ناجحة</div></div>
-    <div class="kpi"><div class="kpi-v">{{ students_count }}</div><div class="kpi-l">الطالبات</div></div>
+<div class="section">
+  <div class="section-title">📋 الأداء حسب نوع الاختبار</div>
+  <div class="types-grid">
+    {% for t in types %}
+    <div class="type-card">
+      <div class="type-label">{{ t.label }}</div>
+      <div class="type-avg {% if t.avg >= 75 %}c-green{% elif t.avg >= 50 %}c-orange{% else %}c-red{% endif %}">{{ t.avg }}%</div>
+      <div class="type-count">{{ t.count }} محاولة</div>
+    </div>
+    {% endfor %}
   </div>
 </div>
-
-<div class="box">
-  <div class="box-title">📝 التحليل الوصفي</div>
-  <div class="descriptive">{{ descriptive|safe }}</div>
-</div>
-
-{% if skills %}
-<div class="box">
-  <div class="box-title">🎯 مهارات الفصل: متقنة ({{ mastered }}) • تحتاج ({{ needs }})</div>
-  {% for s in skills %}
-  <div class="skill-row">
-    <span class="skill-name">{% if s.pct >= 70 %}✅{% else %}⚠️{% endif %} {{ s.name }}</span>
-    <div class="skill-bar"><div class="skill-fill" style="width:{{ s.pct }}%;background:{% if s.pct >= 70 %}#059669{% elif s.pct >= 50 %}#f59e0b{% else %}#dc2626{% endif %}"></div></div>
-    <span class="skill-pct" style="color:{% if s.pct >= 70 %}#059669{% elif s.pct >= 50 %}#f59e0b{% else %}#dc2626{% endif %}">{{ s.pct }}%</span>
-  </div>
-  {% endfor %}
-</div>
 {% endif %}
 
-{# ─── تقرير المعلمة ─── #}
+
 {% elif kind == 'teacher' and teacher %}
-<div class="report-title">👩‍🏫 تقرير المعلمة {{ teacher.full_name }}</div>
-<div class="report-sub">
-  التصنيف: <strong style="color:{{ tier_color }}">{{ tier }}</strong> •
-  تاريخ التقرير: <script>document.write(new Date().toLocaleDateString('ar-SA'))</script>
+<!-- ══════════════ تقرير معلمة ══════════════ -->
+
+<div class="subject-card">
+  <div class="subject-avatar">👩‍🏫</div>
+  <div>
+    <div class="subject-name">{{ teacher.full_name }}</div>
+    <div class="subject-sub">معلمة رياضيات</div>
+  </div>
+  <span class="subject-badge" style="background:var(--bg);border:1px solid var(--border);color:{{ tier_color }}">{{ tier }}</span>
 </div>
 
-<div class="box">
-  <div class="box-title">📊 إنجازات المعلمة</div>
-  <div class="kpi-row">
-    <div class="kpi"><div class="kpi-v">{{ skills_count }}</div><div class="kpi-l">مهارات/دروس</div></div>
-    <div class="kpi"><div class="kpi-v">{{ exams_count }}</div><div class="kpi-l">اختبارات</div></div>
-    <div class="kpi"><div class="kpi-v">{{ sessions_count }}</div><div class="kpi-l">حصص مفعّلة</div></div>
-    <div class="kpi"><div class="kpi-v">{{ students_engaged }}</div><div class="kpi-l">طالبات تفاعلن</div></div>
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">متوسط طالباتها</div>
+    <div class="kpi-value {% if avg >= 75 %}c-green{% elif avg >= 50 %}c-orange{% else %}c-red{% endif %}">{{ avg }}%</div>
   </div>
-  <div style="margin-top:14px;padding:14px;background:#f1f5f9;border-radius:9px">
-    <div style="font-size:12px;color:#475569">معدّل تأثيرها على نتائج الطالبات:</div>
-    <div style="font-size:30px;font-weight:900;color:{{ tier_color }};margin-top:4px">{{ avg }}%</div>
-    <div style="font-size:11px;color:#64748b">من إجمالي {{ attempts }} محاولة لطالباتها</div>
+  <div class="kpi-card">
+    <div class="kpi-label">عدد الاختبارات</div>
+    <div class="kpi-value c-blue">{{ exams_count }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">طالبات شاركن</div>
+    <div class="kpi-value c-purple">{{ students_engaged }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">الجلسات</div>
+    <div class="kpi-value c-orange">{{ sessions_count }}</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">📊 ملخص النشاط</div>
+  <div class="desc-box">
+    <strong>المهارات المُعدَّة:</strong> {{ skills_count }} مهارة<br>
+    <strong>إجمالي المحاولات:</strong> {{ attempts }} محاولة<br>
+    <strong>تصنيف التأثير:</strong> <span style="color:{{ tier_color }};font-weight:800">{{ tier }}</span>
   </div>
 </div>
 
 {% if top_results %}
-<div class="box">
-  <div class="box-title">🏆 أعلى النتائج تحت إشراف المعلمة</div>
-  <table>
-    <thead><tr><th>الطالبة</th><th>الاختبار</th><th>النسبة</th><th>التاريخ</th></tr></thead>
+<div class="section">
+  <div class="section-title">🏆 أعلى النتائج</div>
+  <table class="data-table">
+    <thead><tr><th>الطالبة</th><th>الاختبار</th><th>النتيجة</th></tr></thead>
     <tbody>
       {% for r in top_results %}
       <tr>
         <td>{{ r.student.get_full_name|default:r.student.username }}</td>
-        <td>{{ r.exam.skill.title|truncatechars:30 }}</td>
-        <td><span class="bd bd-g">{{ r.percentage|floatformat:1 }}%</span></td>
-        <td>{{ r.submitted_at|date:"Y/m/d" }}</td>
+        <td>{{ r.exam.skill.title|default:"—" }}</td>
+        <td style="font-weight:800;color:var(--green)">{{ r.percentage|floatformat:1 }}%</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -261,94 +505,137 @@ tr:hover td{background:#f8fafc}
 </div>
 {% endif %}
 
-{# ─── تقرير المدرسة ─── #}
-{% else %}
-<div class="report-title">🏆 التقرير الشامل للمدرسة</div>
-<div class="report-sub">تاريخ التقرير: <script>document.write(new Date().toLocaleDateString('ar-SA'))</script></div>
 
-<div class="box">
-  <div class="box-title">📊 الإحصاءات العامة</div>
-  <div class="kpi-row">
-    <div class="kpi"><div class="kpi-v">{{ total_students }}</div><div class="kpi-l">طالبات</div></div>
-    <div class="kpi"><div class="kpi-v">{{ total_teachers }}</div><div class="kpi-l">معلمات</div></div>
-    <div class="kpi"><div class="kpi-v">{{ total_classrooms }}</div><div class="kpi-l">فصول</div></div>
-    <div class="kpi"><div class="kpi-v">{{ total_exams }}</div><div class="kpi-l">اختبارات</div></div>
-    <div class="kpi"><div class="kpi-v">{{ avg }}%</div><div class="kpi-l">متوسط الأداء</div></div>
-    <div class="kpi"><div class="kpi-v">{{ attempts }}</div><div class="kpi-l">محاولات</div></div>
-    <div class="kpi"><div class="kpi-v" style="color:#059669">{{ passed }}</div><div class="kpi-l">نجاحات</div></div>
-    <div class="kpi"><div class="kpi-v">{{ total_skills }}</div><div class="kpi-l">مهارات</div></div>
+{% else %}
+<!-- ══════════════ تقرير المدرسة ══════════════ -->
+
+<!-- KPIs -->
+<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+  <div class="kpi-card">
+    <div class="kpi-label">متوسط المدرسة</div>
+    <div class="kpi-value {% if avg >= 75 %}c-green{% elif avg >= 50 %}c-orange{% else %}c-red{% endif %}">{{ avg }}%</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">الطالبات</div>
+    <div class="kpi-value c-blue">{{ total_students }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">المعلمات</div>
+    <div class="kpi-value c-purple">{{ total_teachers }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">الفصول</div>
+    <div class="kpi-value c-orange">{{ total_classrooms }}</div>
+  </div>
+</div>
+<div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-top:-8px">
+  <div class="kpi-card">
+    <div class="kpi-label">المهارات</div>
+    <div class="kpi-value c-accent" style="color:var(--accent)">{{ total_skills }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">الاختبارات</div>
+    <div class="kpi-value c-blue">{{ total_exams }}</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">إجمالي المحاولات</div>
+    <div class="kpi-value c-green">{{ attempts }}</div>
   </div>
 </div>
 
-<div class="box">
-  <div class="box-title">🏫 توزيع أداء الفصول</div>
-  <table>
-    <thead><tr><th>الفصل</th><th>المتوسط</th><th>المحاولات</th><th>الطالبات</th></tr></thead>
+<!-- توزيع المستويات -->
+{% if levels %}
+<div class="section">
+  <div class="section-title">📊 توزيع المستويات</div>
+  <div class="types-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="type-card">
+      <div class="type-label">⭐ متفوقات (≥90%)</div>
+      <div class="type-avg c-green">{{ levels.excellent }}</div>
+      <div class="type-count">طالبة</div>
+    </div>
+    <div class="type-card">
+      <div class="type-label">👍 جيدات (75-89%)</div>
+      <div class="type-avg c-blue">{{ levels.good }}</div>
+      <div class="type-count">طالبة</div>
+    </div>
+    <div class="type-card">
+      <div class="type-label">⚠️ متوسطات (50-74%)</div>
+      <div class="type-avg c-orange">{{ levels.average }}</div>
+      <div class="type-count">طالبة</div>
+    </div>
+    <div class="type-card">
+      <div class="type-label">🆘 ضعيفات (&lt;50%)</div>
+      <div class="type-avg c-red">{{ levels.weak }}</div>
+      <div class="type-count">طالبة</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- أداء الفصول -->
+{% if classrooms_perf %}
+<div class="section">
+  <div class="section-title">📚 أداء الفصول</div>
+  <table class="data-table">
+    <thead><tr><th>الفصل</th><th>الطالبات</th><th>المحاولات</th><th>المتوسط</th></tr></thead>
     <tbody>
       {% for c in classrooms_perf %}
       <tr>
-        <td><strong>{{ c.name }}</strong></td>
-        <td><span class="bd {% if c.avg >= 70 %}bd-g{% elif c.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ c.avg }}%</span></td>
-        <td>{{ c.count }}</td>
+        <td style="font-weight:700">{{ c.name }}</td>
         <td>{{ c.students }}</td>
+        <td>{{ c.count }}</td>
+        <td style="font-weight:900;color:{% if c.avg >= 75 %}var(--green){% elif c.avg >= 50 %}var(--orange){% else %}var(--red){% endif %}">{{ c.avg }}%</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+{% endif %}
 
-<div class="box">
-  <div class="box-title">🏆 أعلى الطالبات أداءً</div>
-  <table>
-    <thead><tr><th>#</th><th>الاسم</th><th>المتوسط</th><th>الاختبارات</th></tr></thead>
-    <tbody>
-      {% for s in top_students %}
-      <tr>
-        <td>{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}#{{ forloop.counter }}{% endif %}</td>
-        <td>{{ s.name }}</td>
-        <td><span class="bd bd-g">{{ s.avg }}%</span></td>
-        <td>{{ s.count }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<!-- المتفوقات -->
+{% if top_students %}
+<div class="section">
+  <div class="section-title">🏆 المتفوقات</div>
+  <div class="students-grid">
+    {% for s in top_students %}
+    <div class="student-mini">
+      <div class="student-mini-rank">{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}</div>
+      <div class="student-mini-name" title="{{ s.name }}">{{ s.name }}</div>
+      <div class="student-mini-avg">{{ s.avg }}%</div>
+    </div>
+    {% endfor %}
+  </div>
 </div>
+{% endif %}
 
-<div class="box">
-  <div class="box-title">👩‍🏫 تأثير المعلمات</div>
-  <table>
-    <thead><tr><th>المعلمة</th><th>المهارات</th><th>الاختبارات</th><th>الحصص</th><th>متوسط الأثر</th></tr></thead>
+<!-- أداء المعلمات -->
+{% if teachers_impact %}
+<div class="section">
+  <div class="section-title">👩‍🏫 أداء المعلمات</div>
+  <table class="data-table">
+    <thead><tr><th>المعلمة</th><th>متوسط الطالبات</th><th>الجلسات</th><th>التصنيف</th></tr></thead>
     <tbody>
       {% for t in teachers_impact %}
       <tr>
-        <td><strong>{{ t.name }}</strong></td>
-        <td>{{ t.skills }}</td>
-        <td>{{ t.exams }}</td>
+        <td style="font-weight:700">{{ t.name }}</td>
+        <td style="font-weight:900;color:{% if t.impact >= 75 %}var(--green){% elif t.impact >= 50 %}var(--orange){% else %}var(--red){% endif %}">{{ t.impact }}%</td>
         <td>{{ t.sessions }}</td>
-        <td><span class="bd {% if t.impact >= 70 %}bd-g{% elif t.impact >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.impact }}%</span></td>
+        <td>{% if t.impact >= 70 %}<span style="color:var(--green)">عالية التأثير</span>{% elif t.impact >= 50 %}<span style="color:var(--orange)">متوسطة</span>{% else %}<span style="color:var(--red)">تحتاج دعم</span>{% endif %}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
-
-<div class="box">
-  <div class="box-title">🎯 توزيع مستويات الطالبات</div>
-  <div class="kpi-row">
-    <div class="kpi" style="border-bottom-color:#059669"><div class="kpi-v" style="color:#059669">{{ levels.excellent }}</div><div class="kpi-l">متفوقات</div></div>
-    <div class="kpi" style="border-bottom-color:#1e40af"><div class="kpi-v" style="color:#1e40af">{{ levels.mid }}</div><div class="kpi-l">جيدات</div></div>
-    <div class="kpi" style="border-bottom-color:#dc2626"><div class="kpi-v" style="color:#dc2626">{{ levels.weak }}</div><div class="kpi-l">يحتجن دعم</div></div>
-    <div class="kpi" style="border-bottom-color:#94a3b8"><div class="kpi-v" style="color:#94a3b8">{{ levels.untested }}</div><div class="kpi-l">لم تُختبر</div></div>
-  </div>
-</div>
+{% endif %}
 
 {% endif %}
 
-<div style="text-align:center;margin-top:24px;font-size:10px;color:#94a3b8;line-height:1.7">
-  {{ settings.platform_name|default:"منصة آمنة التعليمية" }} • تقرير مولّد آلياً
+<!-- Footer -->
+<div style="text-align:center;margin-top:40px;padding-top:20px;border-top:1px solid var(--border);color:var(--ink3);font-size:10px">
+  صدر هذا التقرير من منصة آمنة التعليمية &nbsp;·&nbsp; {% now "Y/m/d H:i" %}
+  {% if audience == 'parent' %}&nbsp;·&nbsp; نسخة ولي الأمر{% elif audience == 'student' %}&nbsp;·&nbsp; نسخة الطالبة{% endif %}
 </div>
 
-{% endif %}
-
+</div><!-- /main -->
 </body>
 </html>
