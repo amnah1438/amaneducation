@@ -202,7 +202,7 @@ def teacher_dashboard(request):
         )
     for r in _res_qs:
         try:
-            name = (r.exam.skill.name or '').strip()
+            name = (r.exam.skill.title or '').strip()
         except Exception:
             name = ''
         if not name:
@@ -1668,7 +1668,7 @@ def teacher_student_report_json(request):
     skill_bucket = defaultdict(lambda: {'sum': 0.0, 'count': 0})
     for r in qs.select_related('exam__skill'):
         try:
-            name = (r.exam.skill.name or '').strip()
+            name = (r.exam.skill.title or '').strip()
         except Exception:
             name = ''
         if not name:

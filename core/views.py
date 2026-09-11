@@ -1220,7 +1220,7 @@ def _skills_breakdown(qs):
     for result in qs.select_related('exam__skill'):
         skill_name = ''
         try:
-            skill_name = (result.exam.skill.name or '').strip()
+            skill_name = (result.exam.skill.title or '').strip()
         except Exception:
             pass
         if not skill_name:
