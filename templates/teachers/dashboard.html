@@ -2902,6 +2902,7 @@ async function loadGapAnalysis(){
     const resp = await fetch(url);
     if(!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
+    window._trackingData = data;
 
     // ملخص
     const s = data.summary || {};
@@ -3045,6 +3046,7 @@ async function loadTracking(){
   try{
     const resp = await fetch('/teachers/api/tracking.json?classroom=' + clsId);
     const data = await resp.json();
+    window._trackingData = data;
     if(!data.columns || !data.columns.length){
       body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:12px">لا توجد اختبارات مفعّلة بعد</div>';
       return;
@@ -3078,11 +3080,13 @@ async function loadTracking(){
       tbody += `<tr><td style="font-weight:600;font-size:11px">${row.name}</td>`;
       row.cells.forEach(cell => {
         if(cell.status === 'missing'){
-          tbody += '<td style="text-align:center;background:rgba(240,82,82,0.12);color:var(--red);font-weight:700;font-size:11px">✗</td>';
+          tbody += '<td style="text-align:center;background:rgba(240,82,82,0.12);color:var(--red);font-size:10px;line-height:1.5;padding:4px 2px">لم تؤدِ<br>الاختبار</td>';
         } else if(cell.status === 'passed'){
-          tbody += `<td style="text-align:center;background:rgba(16,185,129,0.1);color:var(--green);font-weight:700;font-size:11px">${cell.pct}%</td>`;
+          const sc=(cell.score!==null&&cell.total)?`<div style="font-weight:800;font-size:10px">${cell.score}/${cell.total}</div>`:'';
+          tbody += `<td style="text-align:center;background:rgba(16,185,129,0.1);color:var(--green);font-size:9px;padding:4px 2px">${sc}<div>${cell.pct}%</div></td>`;
         } else {
-          tbody += `<td style="text-align:center;background:rgba(245,158,11,0.1);color:var(--orange);font-weight:700;font-size:11px">${cell.pct}%</td>`;
+          const sc2=(cell.score!==null&&cell.total)?`<div style="font-size:10px">${cell.score}/${cell.total}</div>`:'';
+          tbody += `<td style="text-align:center;background:rgba(245,158,11,0.1);color:var(--orange);font-size:9px;padding:4px 2px"><div style="font-weight:800">راسبة</div>${sc2}<div>${cell.pct}%</div></td>`;
         }
       });
       tbody += '</tr>';
@@ -3117,6 +3121,19 @@ function printTracking(){
   const table = document.getElementById('trackTable');
   if(!table){ alert('اختاري فصلاً أولاً'); return; }
 
+  const td = window._trackingData || {};
+  const teacherName = td.teacher_name || '';
+  const principalName = td.principal_name || '';
+  const schoolName = td.school_name || 'الثانوية الثالثة عشر بعرعر';
+  const schoolLogoUrl = td.school_logo_url || '';
+  const ministryLogoUrl = td.ministry_logo_url || '';
+  const schoolLogoHtml = schoolLogoUrl
+    ? `<img src="${schoolLogoUrl}" alt="شعار المدرسة" style="width:70px;height:70px;object-fit:contain">`
+    : '<div style="width:70px;height:70px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:28px;margin:auto">🏫</div>';
+  const ministryLogoHtml = ministryLogoUrl
+    ? `<img src="${ministryLogoUrl}" alt="شعار وزارة التعليم" style="width:70px;height:70px;object-fit:contain">`
+    : '<div style="font-size:28px;text-align:center">🇸🇦</div>';
+
   const win = window.open('','_blank');
   win.document.write(`<!DOCTYPE html><html dir="rtl"><head>
     <meta charset="UTF-8">
@@ -3131,11 +3148,12 @@ function printTracking(){
       .header-center .school{font-size:13px;font-weight:800;color:#1a6b3c}
       .header-center .title{font-size:11px;color:#333;margin-top:3px}
       .header-center .sub{font-size:10px;color:#555;margin-top:2px}
+      .header-center .names{font-size:10px;color:#1a6b3c;margin-top:4px;font-weight:700}
       table{width:100%;border-collapse:collapse;font-size:10px}
-      th,td{border:1px solid #ccc;padding:4px 6px;text-align:center}
+      th,td{border:1px solid #ccc;padding:4px 6px;text-align:center;line-height:1.4}
       th{background:#e8f5e9;font-weight:700;color:#1a6b3c}
       td:first-child{text-align:right;font-weight:600}
-      .miss{background:#fde;color:#c00;font-weight:800}
+      .miss{background:#fde;color:#c00;font-weight:800;font-size:9px}
       .pass{background:#e8f5e9;color:#1a6b3c;font-weight:700}
       .fail{background:#fff3cd;color:#b45309;font-weight:700}
       .avg-row{border-top:2px solid #1a6b3c;background:#f0f9f4;font-weight:800}
@@ -3145,19 +3163,15 @@ function printTracking(){
     </style>
   </head><body>
     <div class="header">
-      <div style="text-align:center">
-        {% if school_settings.school_logo %}<img src="{{ school_settings.school_logo.url }}" alt="شعار المدرسة">{% else %}<div style="width:70px;height:70px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:24px;margin:auto">🏫</div>{% endif %}
-      </div>
+      <div style="text-align:center">${schoolLogoHtml}</div>
       <div class="header-center">
         <div style="font-size:10px;color:#555">المملكة العربية السعودية — وزارة التعليم</div>
-        <div class="school">{{ school_settings.school_name|default:"الثانوية الثالثة عشر بعرعر" }}</div>
+        <div class="school">${schoolName}</div>
         <div class="title">كشف متابعة الاختبارات</div>
         <div class="sub">الفصل: ${clsName} — تاريخ الطباعة: ${new Date().toLocaleDateString('ar-SA')}</div>
+        <div class="names">المعلمة: ${teacherName}${principalName ? ' | المديرة: '+principalName : ''}</div>
       </div>
-      <div style="text-align:center">
-        <div style="font-size:20px">🇸🇦</div>
-        <div style="font-size:9px;color:#555;margin-top:4px">وزارة التعليم</div>
-      </div>
+      <div style="text-align:center">${ministryLogoHtml}<div style="font-size:9px;color:#555;margin-top:4px">وزارة التعليم</div></div>
     </div>
   `);
 
@@ -3176,7 +3190,7 @@ function printTracking(){
       else if(bg.includes('245,158')) cls = 'fail';
       const span = cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : '';
       const rspan = cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : '';
-      win.document.write(`<${tag}${span}${rspan}${cls ? ` class="${cls}"` : ''}>${cell.textContent}</${tag}>`);
+      win.document.write(`<${tag}${span}${rspan}${cls ? ` class="${cls}"` : ''}>${cell.innerHTML}</${tag}>`);
     });
     win.document.write('</tr>');
   });

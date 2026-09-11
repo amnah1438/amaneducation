@@ -7,7 +7,7 @@ from django.db.models import Avg, Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
-from core.models import Profile
+from core.models import Profile, SchoolSettings
 from students.models import Student, ClassRoom
 from .models import (
     Teacher, TeacherSkill, TeacherSkillContent,
@@ -465,6 +465,7 @@ def teacher_dashboard(request):
         'missing_by_skill': missing_by_skill,
         'total_missing_count': _total_missing,
         'missing_skills_count': _missing_skills_count,
+        'school_settings': SchoolSettings.objects.first(),
     })
 
 
@@ -2020,7 +2021,7 @@ def student_tracking_json(request):
         exam_id__in=exam_ids
     ).filter(
         Q(student_record_id__in=sr_ids) | Q(student_id__in=user_ids)
-    ).values('student_record_id', 'student_id', 'exam_id', 'percentage', 'passed')
+    ).values('student_record_id', 'student_id', 'exam_id', 'percentage', 'passed', 'score', 'total')
 
     # lookup: (sr_id or u_id, exam_id) -> result
     lookup = {}
@@ -2051,11 +2052,13 @@ def student_tracking_json(request):
         for i, col in enumerate(columns):
             r = get_result(student, col['exam_id'])
             if r is None:
-                cells.append({'status': 'missing', 'pct': None})
+                cells.append({'status': 'missing', 'pct': None, 'score': None, 'total': None})
             else:
                 pct = round(r['percentage'] or 0)
                 status = 'passed' if r['passed'] else 'failed'
-                cells.append({'status': status, 'pct': pct})
+                score = round(float(r['score'] or 0), 1) if r['score'] is not None else 0
+                total = r['total'] or 0
+                cells.append({'status': status, 'pct': pct, 'score': score, 'total': total})
                 col_totals[i] += pct
                 col_counts[i]  += 1
         rows.append({'name': student.full_name, 'cells': cells})
@@ -2068,10 +2071,20 @@ def student_tracking_json(request):
         else:
             avg_cells.append({'status': 'avg', 'pct': None})
 
+    _ss = SchoolSettings.objects.first()
+    _school_logo_url = _ss.school_logo.url if _ss and _ss.school_logo else ''
+    _ministry_logo_url = _ss.ministry_logo.url if _ss and _ss.ministry_logo else ''
+    _school_name = _ss.header_line_4 if _ss and _ss.header_line_4 else 'الثانوية الثالثة عشر بعرعر'
+    _principal_name = _ss.principal_name if _ss and _ss.principal_name else ''
     return JsonResponse({
         'classroom': classroom.name,
         'columns': columns,
         'rows': rows,
         'avg_row': avg_cells,
+        'teacher_name': teacher.full_name,
+        'principal_name': _principal_name,
+        'school_name': _school_name,
+        'school_logo_url': _school_logo_url,
+        'ministry_logo_url': _ministry_logo_url,
     })
 
