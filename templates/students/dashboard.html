@@ -10,14 +10,14 @@
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 <style>
 :root, :root[data-theme="dark"] {
-  --bg:#07090f;--bg2:#0c0f1a;--bg3:#111520;
-  --card:#0f1424;--card2:#161d30;
-  --border:#1a2236;--border2:#223050;
-  --green:#0fba81;--green2:#065442;
-  --blue:#4f8ef7;--blue2:#1a3060;
-  --purple:#9b72f5;--orange:#f5a623;
-  --red:#f05252;--teal:#2dd4bf;
-  --text:#eef2ff;--text2:#94a3b8;--text3:#3d5070;
+  --bg:#0b0f1c;--bg2:#101624;--bg3:#162030;
+  --card:#141a2e;--card2:#1a2238;
+  --border:#1e2d48;--border2:#243558;
+  --green:#10d48f;--green2:#0a6e4a;
+  --blue:#5b9bff;--blue2:#1e3d7a;
+  --purple:#a87fff;--orange:#ffb830;
+  --red:#ff5e5e;--teal:#2fe0cc;
+  --text:#f0f4ff;--text2:#a8b8d0;--text3:#4a6080;
 }
 :root[data-theme="light"] {
   --bg:#f8fafc;--bg2:#f1f5f9;--bg3:#e2e8f0;
@@ -36,7 +36,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .topbar{background:linear-gradient(180deg,var(--bg2),rgba(12,15,26,0.97));border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;backdrop-filter:blur(12px)}
 .logo{display:flex;align-items:center;gap:9px}
 .logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--green),var(--blue));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px}
-.logo-name{font-size:14px;font-weight:800}
+.logo-name{font-size:16px;font-weight:800}
 .logo-sub{font-size:11px;color:var(--text3)}
 .user-info{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2)}
 .user-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
@@ -48,9 +48,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 
 /* WELCOME */
 .welcome{background:linear-gradient(135deg,var(--green2),var(--blue2));border:1px solid var(--green);border-radius:14px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
-.welcome-text{font-size:22px;font-weight:800}
-.welcome-sub{font-size:14px;color:rgba(255,255,255,0.8);margin-top:4px}
-.welcome-emoji{font-size:40px}
+.welcome-text{font-size:28px;font-weight:900}
+.welcome-sub{font-size:16px;color:rgba(255,255,255,0.9);margin-top:6px;font-weight:500}
+.welcome-emoji{font-size:56px}
 
 /* KPI */
 .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
@@ -59,14 +59,14 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .kpi.g::before{background:var(--green)}
 .kpi.b::before{background:var(--blue)}
 .kpi.p::before{background:var(--purple)}
-.kpi-label{font-size:13px;color:var(--text2);margin-bottom:5px}
-.kpi-value{font-size:28px;font-weight:800}
-.kpi-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.kpi-label{font-size:15px;color:var(--text2);margin-bottom:6px;font-weight:500}
+.kpi-value{font-size:40px;font-weight:900}
+.kpi-sub{font-size:14px;color:var(--text2);margin-top:4px}
 
 /* CARDS */
 .card{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:12px}
 .ch{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:var(--bg2)}
-.ct{font-size:15px;font-weight:700;color:var(--text)}
+.ct{font-size:17px;font-weight:800;color:var(--text)}
 .cb{padding:14px}
 
 /* EXAM CARDS */
@@ -77,14 +77,14 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .exam-card.pre::before{background:var(--orange)}
 .exam-card.post::before{background:var(--green)}
 .exam-card.lesson::before{background:var(--blue)}
-.exam-name{font-size:16px;font-weight:700;margin-bottom:5px}
-.exam-skill{font-size:14px;color:var(--text2);margin-bottom:10px}
+.exam-name{font-size:19px;font-weight:800;margin-bottom:6px}
+.exam-skill{font-size:16px;color:var(--text2);margin-bottom:12px;font-weight:500}
 .exam-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .exam-badge{font-size:13px;padding:4px 10px;border-radius:8px;font-weight:600}
 .eb-pre{background:rgba(245,166,35,0.1);color:var(--orange);border:1px solid rgba(245,166,35,0.2)}
 .eb-post{background:rgba(15,186,129,0.1);color:var(--green);border:1px solid rgba(15,186,129,0.2)}
 .eb-lesson{background:rgba(79,142,247,0.1);color:var(--blue);border:1px solid rgba(79,142,247,0.2)}
-.exam-btn{display:block;width:100%;padding:12px;border-radius:9px;border:none;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:1px solid var(--green);transition:all 0.2s}
+.exam-btn{display:block;width:100%;padding:14px;border-radius:10px;border:none;font-family:'Tajawal',sans-serif;font-size:17px;font-weight:800;cursor:pointer;text-align:center;text-decoration:none;background:linear-gradient(135deg,var(--green2),var(--blue2));color:white;border:2px solid var(--green);transition:all 0.2s;letter-spacing:0.3px}
 .exam-btn:hover{opacity:0.85}
 
 /* RESULTS */
@@ -94,9 +94,9 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .rn-pass{background:rgba(15,186,129,0.15);color:var(--green)}
 .rn-fail{background:rgba(240,82,82,0.15);color:var(--red)}
 .result-info{flex:1}
-.result-name{font-size:14px;color:var(--text)}
-.result-date{font-size:12px;color:var(--text2);margin-top:2px}
-.result-score{font-size:16px;font-weight:700}
+.result-name{font-size:16px;color:var(--text);font-weight:600}
+.result-date{font-size:14px;color:var(--text2);margin-top:3px}
+.result-score{font-size:22px;font-weight:800}
 
 /* EMPTY */
 .empty{text-align:center;padding:30px;color:var(--text3)}
@@ -104,7 +104,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .empty-text{font-size:15px}
 
 /* PROGRESS */
-.progress-bar{height:6px;background:var(--bg3);border-radius:6px;overflow:hidden;margin-top:6px}
+.progress-bar{height:8px;background:var(--bg3);border-radius:8px;overflow:hidden;margin-top:8px}
 .progress-fill{height:100%;border-radius:6px;transition:width 0.8s ease}
 
 ::-webkit-scrollbar{width:4px}
