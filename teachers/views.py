@@ -2143,18 +2143,31 @@ def remedial_plan_json(request):
     sr_ids = [s.id for s in students]
     user_ids = [s.user_id for s in students if s.user_id]
 
-    # نتائج الاختبارات للطالبات في الفصل (الراسبات فقط)
+    # اختبارات المعلمة — نفس طريقة كشف المتابعة
+    all_skills = (
+        TeacherSkill.objects
+        .filter(created_by=teacher)
+        .prefetch_related('exams')
+    )
+    exam_ids = []
+    exam_skill_map = {}   # exam_id -> (skill_title, exam_type_display, skill_id, pass_score)
+    for sk in all_skills:
+        for ex in sk.exams.all():
+            exam_ids.append(ex.id)
+            exam_skill_map[ex.id] = (sk.title, ex.get_exam_type_display(), sk.id, ex.pass_score)
+
+    # نتائج الاختبارات للطالبات في الفصل (الراسبات — أقل من 70%)
     failed_results = (
         ExamResult.objects
         .filter(
-            exam__skill__created_by=teacher,
-            passed=False,
+            exam_id__in=exam_ids,
+            percentage__lt=70,
         )
         .filter(
             Q(student_record_id__in=sr_ids) | Q(student_id__in=user_ids)
         )
-        .select_related('exam__skill', 'student_record', 'exam')
-        .order_by('exam__skill__title')
+        .select_related('student_record', 'exam')
+        .order_by('exam__id')
     )
 
     # RemedialExamAssignment للطالبات
@@ -2194,18 +2207,25 @@ def remedial_plan_json(request):
     student_map = {s.id: s for s in students}
     rows_by_student = {}
 
-    # عدد المحاولات لكل (طالبة، مهارة)
+    # عدد المحاولات لكل (طالبة، مهارة) — بناءً على exam_ids المعلمة
     from django.db.models import Count as _Count
     attempts_qs = (
         ExamResult.objects
-        .filter(student_record_id__in=sr_ids, exam__skill__created_by=teacher)
+        .filter(student_record_id__in=sr_ids, exam_id__in=exam_ids)
         .values('student_record_id', 'exam__skill_id')
         .annotate(cnt=_Count('id'))
     )
     attempts_map = {(a['student_record_id'], a['exam__skill_id']): a['cnt'] for a in attempts_qs}
 
     for r in failed_results:
+        # نحدد sr_id: إما من student_record_id مباشرة أو نبحث عبر student_id
         sr_id = r.student_record_id
+        if not sr_id and r.student_id:
+            # ابحث عن الطالبة عبر user_id
+            for s in students:
+                if s.user_id == r.student_id:
+                    sr_id = s.id
+                    break
         if not sr_id or sr_id not in student_map:
             continue
         student = student_map[sr_id]
@@ -2216,16 +2236,20 @@ def remedial_plan_json(request):
                 'student_key': f'sr_{sr_id}',
                 'failed_skills': [],
             }
+        # معلومات المهارة من exam_skill_map
+        eid = r.exam_id
+        skill_title, exam_type_display, skill_id, pass_score = exam_skill_map.get(
+            eid, ('—', '—', None, 60)
+        )
         # حالة الاختبار العلاجي
-        assigned = (sr_id, r.exam_id) in assigned_map
-        remedial_result = remedial_results.get((sr_id, r.exam_id))
-        skill_id = r.exam.skill_id if r.exam else None
+        assigned = (sr_id, eid) in assigned_map
+        remedial_result = remedial_results.get((sr_id, eid))
         attempts = attempts_map.get((sr_id, skill_id), 1)
 
         rows_by_student[key]['failed_skills'].append({
-            'skill_title': r.exam.skill.title if r.exam and r.exam.skill else '—',
-            'exam_id': r.exam_id,
-            'exam_type': r.exam.get_exam_type_display() if r.exam else '—',
+            'skill_title': skill_title,
+            'exam_id': eid,
+            'exam_type': exam_type_display,
             'pct': round(r.percentage or 0),
             'score': r.score,
             'total': r.total,
