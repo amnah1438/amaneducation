@@ -192,25 +192,28 @@ def teacher_dashboard(request):
         elif cnt >= 1: level = 1
         heatmap_data.append({'date': d.isoformat(), 'count': cnt, 'level': level})
 
-    # 2) المهارات الأكثر صعوبة (مفلترة بالفصل المختار)
-    skill_stats = _dd(lambda: {'correct': 0, 'total': 0})
-    _ans_qs = StudentAnswer.objects.filter(result__exam__skill__created_by=teacher).select_related('question')
+    # 2) المهارات الأكثر صعوبة — مجمّعة حسب اسم المهارة الحقيقي
+    skill_stats = _dd(lambda: {'sum': 0.0, 'count': 0})
+    _res_qs = my_results.select_related('exam__skill')
     if f_classroom and f_classroom != 'all':
-        _ans_qs = _ans_qs.filter(
-            Q(result__student_id__in=_cls_qs.filter(user__isnull=False).values_list('user_id', flat=True)) |
-            Q(result__student_record_id__in=_cls_qs.values_list('id', flat=True))
+        _res_qs = _res_qs.filter(
+            Q(student_id__in=_cls_qs.filter(user__isnull=False).values_list('user_id', flat=True)) |
+            Q(student_record_id__in=_cls_qs.values_list('id', flat=True))
         )
-    for ans in _ans_qs:
-        name = (ans.question.target_skill_name or '').strip()
+    for r in _res_qs:
+        try:
+            name = (r.exam.skill.name or '').strip()
+        except Exception:
+            name = ''
         if not name:
             continue
-        skill_stats[name]['total'] += 1
-        if ans.is_correct: skill_stats[name]['correct'] += 1
+        skill_stats[name]['sum'] += float(r.percentage or 0)
+        skill_stats[name]['count'] += 1
     skill_hardness = []
     for name, v in skill_stats.items():
-        if v['total'] >= 3:  # على الأقل 3 محاولات للموثوقية
-            pct = round(100 * v['correct'] / v['total'])
-            skill_hardness.append({'name': name, 'pct': pct, 'count': v['total']})
+        if v['count'] >= 1:
+            pct = round(v['sum'] / v['count'])
+            skill_hardness.append({'name': name, 'pct': pct, 'count': v['count']})
     skill_hardness.sort(key=lambda s: s['pct'])  # الأصعب أولاً
     skill_hardness = skill_hardness[:6]
 
@@ -1660,23 +1663,27 @@ def teacher_student_report_json(request):
             'score': f'{r.score or 0}/{r.total or 0}',
         })
 
-    # ── تحليل المهارات ──
+    # ── تحليل المهارات — مجمّعة حسب اسم المهارة الحقيقي ──
     from collections import defaultdict
-    skill_bucket = defaultdict(lambda: {'correct': 0, 'total': 0})
-    for ans in StudentAnswer.objects.filter(result__in=qs).select_related('question'):
-        name = (ans.question.target_skill_name or 'غير محدّدة').strip() or 'غير محدّدة'
-        skill_bucket[name]['total'] += 1
-        if ans.is_correct:
-            skill_bucket[name]['correct'] += 1
+    skill_bucket = defaultdict(lambda: {'sum': 0.0, 'count': 0})
+    for r in qs.select_related('exam__skill'):
+        try:
+            name = (r.exam.skill.name or '').strip()
+        except Exception:
+            name = ''
+        if not name:
+            name = 'غير محدّدة'
+        skill_bucket[name]['sum'] += float(r.percentage or 0)
+        skill_bucket[name]['count'] += 1
 
     skills = []
     mastered = 0
     needs = 0
     for name, v in skill_bucket.items():
-        if v['total'] == 0:
+        if v['count'] == 0:
             continue
-        pct = round(100 * v['correct'] / v['total'])
-        skills.append({'name': name, 'pct': pct, 'correct': v['correct'], 'total': v['total']})
+        pct = round(v['sum'] / v['count'])
+        skills.append({'name': name, 'pct': pct, 'correct': 0, 'total': v['count']})
         if pct >= 70:
             mastered += 1
         else:
