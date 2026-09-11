@@ -357,12 +357,22 @@ textarea.fi{resize:vertical;min-height:70px;line-height:1.8}
 <div class="sidebar">
   {% if messages %}{% for msg in messages %}<div class="msg {% if 'error' in msg.tags %}msg-e{% else %}msg-s{% endif %}">{% if 'error' in msg.tags %}❌{% else %}✅{% endif %} {{ msg }}</div>{% endfor %}{% endif %}
 
-  <div class="sb-title"><span>📚 مهاراتي ({{ my_skills|length }})</span></div>
+  <div class="sb-title"><span>📚 مهاراتي (<span id="visible-skills-count">{{ my_skills|length }}</span>)</span></div>
+
+  <!-- فلتر الصف -->
+  <select id="cls-filter" onchange="filterSkillsByCls(this.value)"
+    style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid var(--border2);background:var(--card2);color:var(--text);font-family:'Tajawal',sans-serif;font-size:12px;margin-bottom:8px;outline:none">
+    <option value="">📋 كل الصفوف</option>
+    {% for cls in school_classrooms %}
+    <option value="{{ cls.name }}">{{ cls.name }}</option>
+    {% endfor %}
+  </select>
+
   <button class="add-skill-btn" onclick="openNewSkillWizard()">➕ إضافة مهارة / درس جديد</button>
 
   {% if my_skills %}
     {% for skill in my_skills %}
-    <div class="sk-item {% if forloop.first %}active{% endif %}" data-id="{{ skill.id }}">
+    <div class="sk-item {% if forloop.first %}active{% endif %}" data-id="{{ skill.id }}" data-classes="{{ skill.target_classes }}">
       <div class="sk-name" onclick="selectSkill({{ skill.id }},this.parentElement)">{{ skill.title }}</div>
       <div class="sk-meta">
         <span>{{ skill.get_content_type_display }}</span>
@@ -1885,6 +1895,22 @@ function updateSummary(mode){
 function selectSkill(skillId, elem){
   document.querySelectorAll('.sk-item').forEach(el => el.classList.remove('active'));
   elem.classList.add('active');
+}
+
+function filterSkillsByCls(clsName){
+  const items = document.querySelectorAll('.sidebar .sk-item[data-classes]');
+  let visible = 0;
+  items.forEach(el => {
+    const classes = (el.dataset.classes || '').toLowerCase();
+    if(!clsName || classes.includes('جميع') || classes.includes(clsName.toLowerCase())){
+      el.style.display = '';
+      visible++;
+    } else {
+      el.style.display = 'none';
+    }
+  });
+  const counter = document.getElementById('visible-skills-count');
+  if(counter) counter.textContent = visible;
 }
 
 /* ═══ تعديل المهارة في نفس الصفحة ═══ */
