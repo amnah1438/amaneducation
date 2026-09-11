@@ -2100,3 +2100,140 @@ def student_tracking_json(request):
         'ministry_logo_url': _ministry_logo_url,
     })
 
+
+
+# ═══════════════════════════════════════════════════════════════
+# خطة العلاج — صفحة + API
+# ═══════════════════════════════════════════════════════════════
+
+@login_required
+def remedial_plan_view(request):
+    """صفحة خطة العلاج — الراسبات لكل فصل مع حالة الاختبار العلاجي."""
+    if not check_teacher(request):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden()
+    teacher = get_teacher(request)
+    classrooms = teacher.classrooms.all().order_by('name') if teacher else ClassRoom.objects.none()
+    return render(request, 'teachers/remedial_plan.html', {
+        'teacher': teacher,
+        'classrooms': classrooms,
+    })
+
+
+@login_required
+def remedial_plan_json(request):
+    """API — بيانات خطة العلاج لفصل محدد."""
+    if not check_teacher(request):
+        return JsonResponse({'error': 'غير مصرّح'}, status=403)
+
+    teacher = get_teacher(request)
+    classroom_id = request.GET.get('classroom', '')
+    if not classroom_id:
+        return JsonResponse({'error': 'الفصل مطلوب'}, status=400)
+
+    try:
+        classroom = ClassRoom.objects.get(id=classroom_id)
+    except ClassRoom.DoesNotExist:
+        return JsonResponse({'error': 'فصل غير موجود'}, status=404)
+
+    from students.models import Student, RemedialExamAssignment
+
+    # طالبات الفصل
+    students = list(classroom.students.all().order_by('full_name'))
+    sr_ids = [s.id for s in students]
+    user_ids = [s.user_id for s in students if s.user_id]
+
+    # نتائج الاختبارات للطالبات في الفصل (الراسبات فقط)
+    failed_results = (
+        ExamResult.objects
+        .filter(
+            exam__skill__created_by=teacher,
+            passed=False,
+        )
+        .filter(
+            Q(student_record_id__in=sr_ids) | Q(student_id__in=user_ids)
+        )
+        .select_related('exam__skill', 'student_record', 'exam')
+        .order_by('exam__skill__title')
+    )
+
+    # RemedialExamAssignment للطالبات
+    assignments = RemedialExamAssignment.objects.filter(
+        student_id__in=sr_ids
+    ).values('student_id', 'exam_id', 'assigned_at')
+    assigned_map = {}  # (student_id, exam_id) -> assigned_at
+    for a in assignments:
+        assigned_map[(a['student_id'], a['exam_id'])] = a['assigned_at']
+
+    # نتائج الاختبارات العلاجية (إذا أعادت)
+    assigned_exam_ids = list({a['exam_id'] for a in assignments})
+    remedial_results = {}
+    if assigned_exam_ids:
+        rr = (
+            ExamResult.objects
+            .filter(
+                exam_id__in=assigned_exam_ids,
+            )
+            .filter(
+                Q(student_record_id__in=sr_ids) | Q(student_id__in=user_ids)
+            )
+            .select_related('student_record', 'exam')
+            .order_by('-submitted_at')
+        )
+        for r in rr:
+            key = (r.student_record_id, r.exam_id)
+            if key not in remedial_results:
+                remedial_results[key] = {
+                    'pct': round(r.percentage or 0),
+                    'passed': r.passed,
+                    'score': r.score,
+                    'total': r.total,
+                }
+
+    # بناء بيانات الاستجابة — مجمّعة حسب الطالبة
+    student_map = {s.id: s for s in students}
+    rows_by_student = {}
+
+    for r in failed_results:
+        sr_id = r.student_record_id
+        if not sr_id or sr_id not in student_map:
+            continue
+        student = student_map[sr_id]
+        key = sr_id
+        if key not in rows_by_student:
+            rows_by_student[key] = {
+                'student_name': student.full_name,
+                'student_key': f'sr_{sr_id}',
+                'failed_skills': [],
+            }
+        # حالة الاختبار العلاجي
+        assigned = (sr_id, r.exam_id) in assigned_map
+        remedial_result = remedial_results.get((sr_id, r.exam_id))
+
+        rows_by_student[key]['failed_skills'].append({
+            'skill_title': r.exam.skill.title if r.exam and r.exam.skill else '—',
+            'exam_id': r.exam_id,
+            'exam_type': r.exam.get_exam_type_display() if r.exam else '—',
+            'pct': round(r.percentage or 0),
+            'score': r.score,
+            'total': r.total,
+            'remedial_assigned': assigned,
+            'remedial_result': remedial_result,
+        })
+
+    rows = sorted(rows_by_student.values(), key=lambda x: x['student_name'])
+
+    # قائمة الاختبارات المتاحة للتعيين
+    available_exams = list(
+        TeacherExam.objects
+        .filter(skill__created_by=teacher, is_active=True)
+        .select_related('skill')
+        .values('id', 'skill__title', 'exam_type', 'questions_count')
+    )
+
+    return JsonResponse({
+        'classroom': classroom.name,
+        'rows': rows,
+        'available_exams': available_exams,
+        'total_failing': len(rows),
+    })

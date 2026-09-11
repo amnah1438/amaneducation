@@ -1,0 +1,286 @@
+{% extends "teachers/base.html" %}
+{% load static %}
+{% block title %}خطة العلاج{% endblock %}
+{% block content %}
+<style>
+:root {
+  --rp-red:    #ef4444;
+  --rp-green:  #10b981;
+  --rp-orange: #f59e0b;
+  --rp-blue:   #6366f1;
+  --rp-card:   var(--card, #fff);
+  --rp-card2:  var(--card2, #f8f9fa);
+  --rp-border: var(--border, #e5e7eb);
+  --rp-text:   var(--text, #111);
+  --rp-text2:  var(--text2, #555);
+}
+.rp-wrap   { max-width:1100px; margin:0 auto; padding:20px 16px; direction:rtl; font-family:'Tajawal',sans-serif; }
+.rp-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; }
+.rp-title  { font-size:20px; font-weight:800; color:var(--rp-text); }
+.rp-sub    { font-size:13px; color:var(--rp-text2); margin-top:2px; }
+.rp-filter { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.rp-select { padding:9px 14px; border-radius:10px; border:1px solid var(--rp-border); font-family:'Tajawal',sans-serif; font-size:13px; background:var(--rp-card); color:var(--rp-text); cursor:pointer; outline:none; }
+.rp-btn    { padding:9px 18px; border-radius:10px; border:none; font-family:'Tajawal',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
+.rp-btn-primary { background:var(--rp-blue); color:#fff; }
+.rp-btn-primary:hover { opacity:.9; }
+
+/* بطاقات الإحصاء */
+.rp-stats  { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:12px; margin-bottom:20px; }
+.rp-stat   { background:var(--rp-card); border:1px solid var(--rp-border); border-radius:12px; padding:14px 16px; text-align:center; }
+.rp-stat-n { font-size:26px; font-weight:800; }
+.rp-stat-l { font-size:11px; color:var(--rp-text2); margin-top:4px; }
+
+/* الجدول */
+.rp-table-wrap { overflow-x:auto; }
+.rp-table  { width:100%; border-collapse:collapse; font-size:12px; }
+.rp-table th { background:rgba(99,102,241,.08); padding:10px 12px; text-align:right; font-weight:700; border-bottom:2px solid rgba(99,102,241,.2); white-space:nowrap; }
+.rp-table td { padding:9px 12px; border-bottom:1px solid var(--rp-border); vertical-align:middle; }
+.rp-table tr:hover td { background:rgba(0,0,0,.02); }
+.rp-table tr.student-row td:first-child { font-weight:700; font-size:13px; }
+
+/* شارات الحالة */
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap; }
+.badge-red    { background:rgba(239,68,68,.12);  color:var(--rp-red);    border:1px solid rgba(239,68,68,.2); }
+.badge-green  { background:rgba(16,185,129,.12); color:var(--rp-green);  border:1px solid rgba(16,185,129,.2); }
+.badge-orange { background:rgba(245,158,11,.12); color:var(--rp-orange); border:1px solid rgba(245,158,11,.2); }
+.badge-gray   { background:rgba(100,116,139,.1); color:#64748b;          border:1px solid rgba(100,116,139,.2); }
+
+/* زر التعيين */
+.assign-btn { padding:5px 12px; border-radius:7px; border:none; font-family:'Tajawal',sans-serif; font-size:11px; font-weight:700; cursor:pointer; background:rgba(99,102,241,.1); color:var(--rp-blue); border:1px solid rgba(99,102,241,.25); transition:all .2s; }
+.assign-btn:hover { background:var(--rp-blue); color:#fff; }
+.assign-btn:disabled { opacity:.4; cursor:not-allowed; }
+
+/* مودال التعيين */
+.rp-modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:1000; align-items:center; justify-content:center; }
+.rp-modal-bg.on { display:flex; }
+.rp-modal  { background:var(--rp-card); border-radius:16px; padding:24px; width:min(480px,92vw); direction:rtl; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+.rp-modal-title { font-size:16px; font-weight:800; margin-bottom:6px; }
+.rp-modal-sub   { font-size:12px; color:var(--rp-text2); margin-bottom:16px; }
+.rp-modal select { width:100%; padding:10px; border-radius:9px; border:1px solid var(--rp-border); font-family:'Tajawal',sans-serif; font-size:13px; background:var(--rp-card); color:var(--rp-text); margin-bottom:14px; }
+.rp-modal-btns  { display:flex; gap:10px; justify-content:flex-end; }
+.rp-modal-btns button { padding:9px 20px; border-radius:9px; border:none; font-family:'Tajawal',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
+.btn-confirm { background:var(--rp-blue); color:#fff; }
+.btn-cancel  { background:var(--rp-card2); color:var(--rp-text2); border:1px solid var(--rp-border) !important; }
+.rp-msg { font-size:12px; padding:8px 12px; border-radius:8px; margin-top:10px; display:none; }
+.rp-msg.ok  { background:rgba(16,185,129,.1); color:var(--rp-green); }
+.rp-msg.err { background:rgba(239,68,68,.1);  color:var(--rp-red); }
+
+.empty-state { text-align:center; padding:60px 20px; color:var(--rp-text2); }
+.empty-icon  { font-size:48px; margin-bottom:12px; }
+.spinner     { text-align:center; padding:40px; color:var(--rp-text2); font-size:13px; }
+</style>
+
+<div class="rp-wrap">
+  <!-- الرأس -->
+  <div class="rp-header">
+    <div>
+      <div class="rp-title">🩺 خطة العلاج والمتابعة</div>
+      <div class="rp-sub">تابعي الطالبات الراسبات وعيّني لهن اختبارات علاجية</div>
+    </div>
+    <div class="rp-filter">
+      <select id="clsSelect" class="rp-select" onchange="loadPlan()">
+        <option value="">— اختاري الفصل —</option>
+        {% for cls in classrooms %}
+        <option value="{{ cls.id }}">{{ cls.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <!-- إحصاء -->
+  <div class="rp-stats" id="statsRow" style="display:none">
+    <div class="rp-stat">
+      <div class="rp-stat-n" id="stTotal" style="color:var(--rp-red)">0</div>
+      <div class="rp-stat-l">طالبة راسبة</div>
+    </div>
+    <div class="rp-stat">
+      <div class="rp-stat-n" id="stAssigned" style="color:var(--rp-orange)">0</div>
+      <div class="rp-stat-l">عُيّن لهن علاجي</div>
+    </div>
+    <div class="rp-stat">
+      <div class="rp-stat-n" id="stPassed" style="color:var(--rp-green)">0</div>
+      <div class="rp-stat-l">أتقنت بعد العلاج</div>
+    </div>
+    <div class="rp-stat">
+      <div class="rp-stat-n" id="stPending" style="color:var(--rp-text2)">0</div>
+      <div class="rp-stat-l">لم يُعيَّن بعد</div>
+    </div>
+  </div>
+
+  <!-- المحتوى -->
+  <div id="planBody">
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div>اختاري فصلاً لعرض خطة العلاج</div>
+    </div>
+  </div>
+</div>
+
+<!-- مودال تعيين الاختبار -->
+<div class="rp-modal-bg" id="assignModal">
+  <div class="rp-modal">
+    <div class="rp-modal-title">🎯 تعيين اختبار علاجي</div>
+    <div class="rp-modal-sub" id="assignModalSub"></div>
+    <select id="assignExamSelect">
+      <option value="">⏳ جاري التحميل...</option>
+    </select>
+    <div class="rp-msg" id="assignMsg"></div>
+    <div class="rp-modal-btns">
+      <button class="btn-cancel" onclick="closeAssignModal()">إغلاق</button>
+      <button class="btn-confirm" onclick="confirmAssign()">تعيين ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var _planData = null;
+var _assignTarget = null;
+var _availableExams = [];
+var _csrf = '{{ csrf_token }}';
+
+function loadPlan(){
+  var cls = document.getElementById('clsSelect').value;
+  if(!cls){ return; }
+  document.getElementById('statsRow').style.display = 'none';
+  document.getElementById('planBody').innerHTML = '<div class="spinner">⏳ جاري التحميل...</div>';
+  fetch('/teachers/api/remedial-plan.json?classroom='+cls, {credentials:'same-origin'})
+    .then(r=>r.json())
+    .then(d=>{
+      _planData = d;
+      _availableExams = d.available_exams || [];
+      renderPlan(d);
+    })
+    .catch(e=>{
+      document.getElementById('planBody').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div>خطأ في تحميل البيانات</div></div>';
+    });
+}
+
+function renderPlan(d){
+  var rows = d.rows || [];
+  updateStats(rows);
+
+  if(!rows.length){
+    document.getElementById('planBody').innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div><div style="font-size:16px;font-weight:700;color:var(--rp-green)">لا توجد طالبات راسبات في هذا الفصل!</div><div style="margin-top:8px;font-size:13px">جميع الطالبات اللواتي أدّين الاختبارات نجحن ✅</div></div>';
+    document.getElementById('statsRow').style.display = 'grid';
+    return;
+  }
+
+  var html = '<div class="rp-table-wrap"><table class="rp-table">';
+  html += '<thead><tr><th>الطالبة</th><th>المهارة</th><th>نوع الاختبار</th><th>النتيجة</th><th>الاختبار العلاجي</th><th>نتيجة العلاج</th><th>إجراء</th></tr></thead><tbody>';
+
+  rows.forEach(function(row, ri){
+    row.failed_skills.forEach(function(sk, si){
+      html += '<tr class="student-row">';
+      if(si === 0){
+        html += '<td rowspan="'+row.failed_skills.length+'" style="border-right:3px solid var(--rp-red);padding-right:14px">'+
+          '<div>'+row.student_name+'</div>'+
+          '<div style="font-size:10px;color:var(--rp-text2);font-weight:400;margin-top:2px">'+row.failed_skills.length+' مهارة ضعيفة</div>'+
+          '</td>';
+      }
+      html += '<td>'+sk.skill_title+'</td>';
+      html += '<td><span class="badge badge-gray">'+sk.exam_type+'</span></td>';
+      var pctCol = sk.pct < 40 ? 'badge-red' : 'badge-orange';
+      html += '<td><span class="badge '+pctCol+'">'+sk.pct+'%</span>';
+      if(sk.score !== null && sk.total){ html += '<span style="font-size:10px;color:var(--rp-text2);margin-right:4px">('+sk.score+'/'+sk.total+')</span>'; }
+      html += '</td>';
+      if(sk.remedial_assigned){
+        html += '<td><span class="badge badge-orange">✅ عُيّن</span></td>';
+      } else {
+        html += '<td><span class="badge badge-gray">❌ لم يُعيَّن</span></td>';
+      }
+      if(sk.remedial_result){
+        var rr = sk.remedial_result;
+        var rcls = rr.passed ? 'badge-green' : 'badge-red';
+        html += '<td><span class="badge '+rcls+'">'+(rr.passed?'✅ أتقنت':'❌ لم تُتقن')+' — '+rr.pct+'%</span></td>';
+      } else if(sk.remedial_assigned){
+        html += '<td><span style="font-size:11px;color:var(--rp-text2)">⏳ لم تؤدِّ بعد</span></td>';
+      } else {
+        html += '<td>—</td>';
+      }
+      html += '<td><button class="assign-btn" onclick="openAssign('+ri+','+si+',\''+row.student_key.replace(/\x27/g,"\\'")+'\')">'+
+        (sk.remedial_assigned?'🔄 تغيير':'➕ عيّني علاجي')+'</button></td>';
+      html += '</tr>';
+    });
+  });
+
+  html += '</tbody></table></div>';
+  document.getElementById('planBody').innerHTML = html;
+  document.getElementById('statsRow').style.display = 'grid';
+}
+
+function updateStats(rows){
+  var total = rows.length;
+  var assigned = 0, passed = 0, pending = 0;
+  rows.forEach(function(row){
+    var hasAssign = row.failed_skills.some(function(sk){ return sk.remedial_assigned; });
+    var hasPassed = row.failed_skills.some(function(sk){ return sk.remedial_result && sk.remedial_result.passed; });
+    if(hasAssign) assigned++;
+    if(hasPassed) passed++;
+    if(!hasAssign) pending++;
+  });
+  document.getElementById('stTotal').textContent = total;
+  document.getElementById('stAssigned').textContent = assigned;
+  document.getElementById('stPassed').textContent = passed;
+  document.getElementById('stPending').textContent = pending;
+}
+
+function openAssign(ri, si, student_key){
+  var row = _planData.rows[ri];
+  var sk = row.failed_skills[si];
+  _assignTarget = {student_key: student_key, student_name: row.student_name, skill_title: sk.skill_title, ri: ri, si: si};
+  document.getElementById('assignModalSub').textContent = row.student_name + ' — ' + sk.skill_title;
+  var opts = '<option value="">— اختاري الاختبار —</option>';
+  _availableExams.forEach(function(e){
+    opts += '<option value="'+e.id+'">'+e.skill__title+' ('+e.exam_type+') — '+e.questions_count+' سؤال</option>';
+  });
+  document.getElementById('assignExamSelect').innerHTML = opts;
+  document.getElementById('assignMsg').style.display = 'none';
+  document.getElementById('assignModal').classList.add('on');
+}
+
+function closeAssignModal(){
+  document.getElementById('assignModal').classList.remove('on');
+  _assignTarget = null;
+}
+
+function confirmAssign(){
+  if(!_assignTarget) return;
+  var examId = document.getElementById('assignExamSelect').value;
+  if(!examId){ showMsg('اختاري اختباراً أولاً', false); return; }
+  var btn = document.querySelector('.btn-confirm');
+  btn.disabled = true; btn.textContent = '⏳';
+  fetch('/teachers/api/assign-remedial/', {
+    method:'POST', credentials:'same-origin',
+    headers:{'Content-Type':'application/json','X-CSRFToken':_csrf},
+    body: JSON.stringify({exam_id: parseInt(examId), student_key: _assignTarget.student_key})
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    btn.disabled = false; btn.textContent = 'تعيين ✓';
+    if(d.ok){
+      showMsg('✅ تم التعيين بنجاح لـ ' + d.student, true);
+      var sk = _planData.rows[_assignTarget.ri].failed_skills[_assignTarget.si];
+      sk.remedial_assigned = true;
+      setTimeout(function(){ closeAssignModal(); renderPlan(_planData); }, 1200);
+    } else {
+      showMsg('❌ ' + (d.error || 'حدث خطأ'), false);
+    }
+  })
+  .catch(function(){
+    btn.disabled = false; btn.textContent = 'تعيين ✓';
+    showMsg('❌ خطأ في الاتصال', false);
+  });
+}
+
+function showMsg(text, ok){
+  var el = document.getElementById('assignMsg');
+  el.textContent = text;
+  el.className = 'rp-msg ' + (ok ? 'ok' : 'err');
+  el.style.display = 'block';
+}
+
+document.getElementById('assignModal').addEventListener('click', function(e){
+  if(e.target === this) closeAssignModal();
+});
+</script>
+{% endblock %}

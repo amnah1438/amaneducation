@@ -46,6 +46,10 @@ urlpatterns = [
     path('api/assign-remedial/', views.assign_remedial_exam, name='assign_remedial_exam'),
     path('api/my-exams.json', views.teacher_exams_json, name='teacher_exams_json'),
 
+    # ─── Remedial Plan ───────────────────────────────────────────
+    path('remedial-plan/', views.remedial_plan_view, name='remedial_plan'),
+    path('api/remedial-plan.json', views.remedial_plan_json, name='remedial_plan_json'),
+
     # ─── Manual Score Entry ───────────────────────────────────
     path('manual-score/', views.manual_score_entry, name='manual_score_entry'),
 
