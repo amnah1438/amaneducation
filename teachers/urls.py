@@ -40,6 +40,7 @@ urlpatterns = [
     path('api/skill-standards/manage/', views.manage_skill_standard, name='manage_skill_standard'),
     path('api/gap-analysis.json', views.gap_analysis_json, name='gap_analysis_json'),
     path('api/stats.json', views.teacher_stats_json, name='teacher_stats_json'),
+    path('api/tracking.json', views.student_tracking_json, name='student_tracking_json'),
 
     # ─── Remedial Exam Assignment ─────────────────────────────
     path('api/assign-remedial/', views.assign_remedial_exam, name='assign_remedial_exam'),

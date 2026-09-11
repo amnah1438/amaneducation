@@ -1946,3 +1946,132 @@ def teacher_stats_json(request):
         'students_count_mid':       mid,
         'students_count_weak':      weak,
     })
+
+
+@login_required
+def student_tracking_json(request):
+    """
+    كشف متابعة الطالبات — لكل طالبة في الفصل يعرض درجتها في كل اختبار.
+    يشمل الطالبات بدون حساب (student_record فقط).
+    GET: classroom=<id>
+    """
+    if not check_teacher(request):
+        return JsonResponse({'error': 'غير مصرّح'}, status=403)
+
+    teacher = get_teacher(request)
+    classroom_id = request.GET.get('classroom', '')
+
+    if not classroom_id:
+        return JsonResponse({'error': 'الفصل مطلوب'}, status=400)
+
+    try:
+        classroom = ClassRoom.objects.get(id=classroom_id)
+    except ClassRoom.DoesNotExist:
+        return JsonResponse({'error': 'فصل غير موجود'}, status=404)
+
+    # طالبات الفصل — مرتبة أبجدياً
+    students = list(classroom.students.all().order_by('full_name'))
+
+    # مهارات المعلمة مع اختباراتها (قبلي/بعدي/درس)
+    skills = (
+        TeacherSkill.objects
+        .filter(created_by=teacher)
+        .prefetch_related('exams')
+        .order_by('content_type', 'created_at')
+    )
+
+    # بناء أعمدة الجدول
+    columns = []
+    for sk in skills:
+        exams_sorted = sorted(sk.exams.all(), key=lambda e: (
+            0 if e.exam_type == 'pre' else
+            1 if e.exam_type in ('lesson', 'bank') else
+            2 if e.exam_type == 'post' else 3
+        ))
+        for exam in exams_sorted:
+            if exam.exam_type == 'pre':
+                suffix = 'قبلي'
+            elif exam.exam_type == 'post':
+                suffix = 'بعدي'
+            elif exam.exam_type == 'lesson':
+                suffix = 'تحصيلي'
+            elif exam.exam_type in ('comprehensive_qodrat', 'comprehensive_tahsili'):
+                suffix = 'شامل'
+            else:
+                suffix = exam.get_exam_type_display()
+            columns.append({
+                'skill': sk.title,
+                'content_type': sk.content_type,
+                'exam_id': exam.id,
+                'exam_type': exam.exam_type,
+                'suffix': suffix,
+                'pass_score': exam.pass_score,
+            })
+
+    if not columns:
+        return JsonResponse({'classroom': classroom.name, 'columns': [], 'rows': []})
+
+    # نتائج الاختبارات للطالبات في الفصل
+    sr_ids = [s.id for s in students]
+    user_ids = [s.user_id for s in students if s.user_id]
+    exam_ids = [c['exam_id'] for c in columns]
+
+    results_qs = ExamResult.objects.filter(
+        exam_id__in=exam_ids
+    ).filter(
+        Q(student_record_id__in=sr_ids) | Q(student_id__in=user_ids)
+    ).values('student_record_id', 'student_id', 'exam_id', 'percentage', 'passed')
+
+    # lookup: (sr_id or u_id, exam_id) -> result
+    lookup = {}
+    for r in results_qs:
+        if r['student_record_id']:
+            k = ('sr', r['student_record_id'], r['exam_id'])
+        elif r['student_id']:
+            k = ('u', r['student_id'], r['exam_id'])
+        else:
+            continue
+        # نحتفظ بأفضل نتيجة (أعلى نسبة)
+        if k not in lookup or r['percentage'] > lookup[k]['percentage']:
+            lookup[k] = r
+
+    def get_result(student, exam_id):
+        r = lookup.get(('sr', student.id, exam_id))
+        if r is None and student.user_id:
+            r = lookup.get(('u', student.user_id, exam_id))
+        return r
+
+    # بناء الصفوف
+    rows = []
+    col_totals = [0.0] * len(columns)
+    col_counts  = [0]   * len(columns)
+
+    for student in students:
+        cells = []
+        for i, col in enumerate(columns):
+            r = get_result(student, col['exam_id'])
+            if r is None:
+                cells.append({'status': 'missing', 'pct': None})
+            else:
+                pct = round(r['percentage'] or 0)
+                status = 'passed' if r['passed'] else 'failed'
+                cells.append({'status': status, 'pct': pct})
+                col_totals[i] += pct
+                col_counts[i]  += 1
+        rows.append({'name': student.full_name, 'cells': cells})
+
+    # صف المتوسطات
+    avg_cells = []
+    for i in range(len(columns)):
+        if col_counts[i] > 0:
+            avg_cells.append({'status': 'avg', 'pct': round(col_totals[i] / col_counts[i])})
+        else:
+            avg_cells.append({'status': 'avg', 'pct': None})
+
+    return JsonResponse({
+        'classroom': classroom.name,
+        'columns': columns,
+        'rows': rows,
+        'avg_row': avg_cells,
+    })
+
