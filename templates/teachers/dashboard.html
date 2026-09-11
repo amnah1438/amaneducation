@@ -3096,8 +3096,8 @@ function renderRemedialPlan(d){
         h += '<td style="color:var(--text3)">—</td>';
       }
       // زر
-      var escapedKey = row.student_key.replace(/'/g,"\'");
-      h += '<td><button class="gbtn" style="font-size:10px;padding:4px 10px" onclick="rpOpenAssign('+ri+','+si+',''+escapedKey+'')">'+
+      // key comes from _rpData inside rpOpenAssign
+      h += '<td><button class="gbtn" style="font-size:10px;padding:4px 10px" onclick="rpOpenAssign('+ri+','+si+')">'+ 
         (sk.remedial_assigned?'🔄 تغيير':'➕ عيّني علاجي')+'</button></td>';
       h += '</tr>';
     });
@@ -3106,9 +3106,10 @@ function renderRemedialPlan(d){
   document.getElementById('rpBody').innerHTML = h;
 }
 
-function rpOpenAssign(ri, si, key){
+function rpOpenAssign(ri, si){
   if(!_rpData) return;
   var row=_rpData.rows[ri], sk=row.failed_skills[si];
+  var key = row.student_key;
   _rpTarget = {key:key, name:row.student_name, skill:sk.skill_title, ri:ri, si:si};
   var opts='<option value="">— اختاري الاختبار —</option>';
   _rpExams.forEach(function(e){ opts+='<option value="'+e.id+'">'+e.skill__title+' ('+e.exam_type+') — '+e.questions_count+' سؤال</option>'; });
