@@ -123,7 +123,7 @@ def teacher_dashboard(request):
     # ─── تجميع نتائج الطالبات (متوسط أداء كل طالبة) ───────────
     # نجمع النتائج من مصدرين: طالبات بحساب User + طالبات بسجل Student (رصد يدوي)
     from collections import defaultdict as _perf_dd
-    _perf_map = _perf_dd(lambda: {'name': '', 'total_pct': 0, 'count': 0, 'key': ''})
+    _perf_map = _perf_dd(lambda: {'name': '', 'total_pct': 0, 'count': 0, 'passed_count': 0, 'key': ''})
 
     for r in my_results.select_related('student', 'student_record'):
         if r.student_record_id:
@@ -138,6 +138,7 @@ def teacher_dashboard(request):
         _perf_map[key]['name'] = name
         _perf_map[key]['total_pct'] += float(r.percentage or 0)
         _perf_map[key]['count'] += 1
+        _perf_map[key]['passed_count'] += (1 if r.passed else 0)
         _perf_map[key]['key'] = key
 
     students_perf = []
@@ -146,14 +147,18 @@ def teacher_dashboard(request):
             avg = v['total_pct'] / v['count']
             students_perf.append({
                 'name': v['name'], 'avg_pct': avg,
-                'results_count': v['count'], 'key': k,
+                'results_count': v['count'], 'passed_count': v['passed_count'], 'key': k,
             })
     students_perf.sort(key=lambda x: -(x['avg_pct'] or 0))
 
+    _total_exams = my_exams.count() or 1
     excellent_students = [
         {'name': s['name'], 'pct': int(round(s['avg_pct'] or 0)),
          'count': s['results_count'], 'key': s['key']}
-        for s in students_perf if (s['avg_pct'] or 0) >= 90
+        for s in students_perf
+        if (s['results_count'] / _total_exams) >= 0.60
+        and s['results_count'] > 0
+        and (s['passed_count'] / s['results_count']) >= 0.70
     ]
     mid_students = [
         {'name': s['name'], 'pct': int(round(s['avg_pct'] or 0)),
