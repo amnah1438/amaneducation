@@ -48,7 +48,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
 .main{max-width:900px;margin:0 auto;padding:20px}
 
 /* Header card */
-.summary{background:linear-gradient(135deg,var(--green2),var(--blue2));border:1px solid var(--green);border-radius:14px;padding:20px 24px;margin-bottom:14px;color:white}
+.summary{background:linear-gradient(135deg,#0a5c3d,#0e2d60);border:2px solid #0fba81;border-radius:14px;padding:20px 24px;margin-bottom:14px;color:white}
 .summary-title{font-size:20px;font-weight:900;margin-bottom:4px}
 .summary-sub{font-size:14px;opacity:0.85}
 .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}
@@ -131,7 +131,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min
   </div>
   <div style="display:flex;gap:6px;flex-wrap:wrap">
     <a href="{% url 'student_dashboard' %}" class="btn btn-b">← الداشبورد</a>
-    <button onclick="window.print()" class="btn btn-p">🖨️ طباعة الورقة المصححة</button>
+    <a href="?print=1" target="_blank" class="btn btn-p">🖨️ طباعة الورقة المصححة</a>
   </div>
 </div>
 
