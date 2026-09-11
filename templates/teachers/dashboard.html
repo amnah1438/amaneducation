@@ -3184,7 +3184,8 @@ function printTracking(){
     win.document.write(`<tr${isAvg ? ' class="avg-row"' : ''}>`);
     tr.querySelectorAll('th,td').forEach(cell => {
       const tag = cell.tagName.toLowerCase();
-      const bg = cell.style.background || '';
+      const raw = cell.style.backgroundColor || cell.style.background || '';
+      const bg = raw.replace(/\s+/g, '');
       let inlineStyle = '';
       if(bg.includes('82,82'))       inlineStyle = 'background:#fde8e8;color:#c00;font-weight:800;font-size:9px;';
       else if(bg.includes('16,185')) inlineStyle = 'background:#d4edda;color:#1a6b3c;font-weight:700;';
