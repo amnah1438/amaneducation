@@ -2194,6 +2194,16 @@ def remedial_plan_json(request):
     student_map = {s.id: s for s in students}
     rows_by_student = {}
 
+    # عدد المحاولات لكل (طالبة، مهارة)
+    from django.db.models import Count as _Count
+    attempts_qs = (
+        ExamResult.objects
+        .filter(student_record_id__in=sr_ids, exam__skill__created_by=teacher)
+        .values('student_record_id', 'exam__skill_id')
+        .annotate(cnt=_Count('id'))
+    )
+    attempts_map = {(a['student_record_id'], a['exam__skill_id']): a['cnt'] for a in attempts_qs}
+
     for r in failed_results:
         sr_id = r.student_record_id
         if not sr_id or sr_id not in student_map:
@@ -2209,6 +2219,8 @@ def remedial_plan_json(request):
         # حالة الاختبار العلاجي
         assigned = (sr_id, r.exam_id) in assigned_map
         remedial_result = remedial_results.get((sr_id, r.exam_id))
+        skill_id = r.exam.skill_id if r.exam else None
+        attempts = attempts_map.get((sr_id, skill_id), 1)
 
         rows_by_student[key]['failed_skills'].append({
             'skill_title': r.exam.skill.title if r.exam and r.exam.skill else '—',
@@ -2217,6 +2229,7 @@ def remedial_plan_json(request):
             'pct': round(r.percentage or 0),
             'score': r.score,
             'total': r.total,
+            'attempts_count': attempts,
             'remedial_assigned': assigned,
             'remedial_result': remedial_result,
         })

@@ -920,7 +920,6 @@ body {
     <button class="nb" onclick="gp('ex',this);closeMobileMenu()">الاختبارات</button>
     <button class="nb" onclick="gp('an',this);closeMobileMenu()">الإحصاءات</button>
     <button class="nb" onclick="gp('ga',this);closeMobileMenu()">تحليل الفجوات 🎯</button>
-<a href="/teachers/remedial-plan/" style="background:rgba(99,102,241,0.1);color:#6366f1;border:1px solid rgba(99,102,241,0.2);font-family:'Tajawal',sans-serif;font-size:11px;padding:6px 10px;border-radius:6px;text-decoration:none;white-space:nowrap">🩺 خطة العلاج</a>
     <button class="nb" onclick="gp('al',this);closeMobileMenu()">التنبيهات<span class="notif"></span></button>
     <button class="nb" onclick="gp('pr',this);closeMobileMenu()">التنبؤ 🔮</button>
     <button class="nb" onclick="gp('ac',this);closeMobileMenu()">الإنجازات 🏆</button>
@@ -2019,6 +2018,49 @@ body {
       </div>
     </div>
   </div>
+
+  <!-- ═══ خطة العلاج — داخل تحليل الفجوات ═══ -->
+  <div class="card" style="margin-top:14px" id="remedialPlanCard">
+    <div class="ch">
+      <span class="ct">🩺 خطة العلاج — متابعة الطالبات الراسبات</span>
+      <div class="ca">
+        <select class="fsel" id="rpCls" onchange="loadRemedialPlan()" style="min-width:120px">
+          <option value="">— اختاري الفصل —</option>
+          {% for cls in all_classrooms %}
+          <option value="{{ cls.id }}">{{ cls.name }}</option>
+          {% endfor %}
+        </select>
+        <button class="cab" onclick="loadRemedialPlan()">تحديث</button>
+        <button class="cab" onclick="printRemedialPlan()">🖨️ طباعة</button>
+      </div>
+    </div>
+    <div class="cb">
+      <!-- إحصاء -->
+      <div id="rpStats" style="display:none;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+        <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:#ef4444" id="rpTotal">0</div>
+          <div style="font-size:10px;color:var(--text3)">طالبة راسبة</div>
+        </div>
+        <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--orange)" id="rpAssigned">0</div>
+          <div style="font-size:10px;color:var(--text3)">عُيّن لهن علاجي</div>
+        </div>
+        <div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--green)" id="rpPassed">0</div>
+          <div style="font-size:10px;color:var(--text3)">أتقنت بعد العلاج</div>
+        </div>
+        <div style="background:rgba(148,163,184,0.08);border:1px solid rgba(148,163,184,0.2);border-radius:8px;padding:12px;text-align:center">
+          <div style="font-size:22px;font-weight:800;color:var(--text3)" id="rpPending">0</div>
+          <div style="font-size:10px;color:var(--text3)">لم يُعيَّن بعد</div>
+        </div>
+      </div>
+
+      <!-- الجدول -->
+      <div id="rpBody">
+        <div style="text-align:center;padding:30px;color:var(--text3);font-size:12px">اختاري فصلاً لعرض خطة العلاج</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════
@@ -2087,6 +2129,25 @@ body {
       <button class="gbtn" onclick="cR()">إغلاق</button>
       <button style="padding:7px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:white;font-family:Tajawal;font-size:13px;font-weight:700;cursor:pointer" onclick="openRemedialPanel()">🩺 اختبار علاجي</button>
       <button class="pbtn2" onclick="printStudentReport()">🖨️ طباعة PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- مودال خطة العلاج (داخل تحليل الفجوات) -->
+<div class="mbg" id="rpModal">
+  <div class="mdl" style="max-width:460px">
+    <div class="mh">
+      <div class="mt" style="font-size:15px">🎯 تعيين اختبار علاجي</div>
+      <button class="mx" onclick="rpCloseModal()">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px" id="rpModalSub"></div>
+    <select id="rpExamSel" style="width:100%;padding:9px;border-radius:8px;border:1px solid var(--border);font-family:Tajawal;font-size:13px;background:var(--card);color:var(--text);margin-bottom:4px">
+      <option value="">— اختاري الاختبار —</option>
+    </select>
+    <div id="rpMsg"></div>
+    <div class="mbtns" style="margin-top:14px">
+      <button class="gbtn" onclick="rpCloseModal()">إغلاق</button>
+      <button id="rpConfirmBtn" style="padding:7px 18px;border-radius:8px;border:none;background:#6366f1;color:#fff;font-family:Tajawal;font-size:13px;font-weight:700;cursor:pointer" onclick="rpConfirm()">تعيين ✓</button>
     </div>
   </div>
 </div>
@@ -2955,6 +3016,170 @@ async function loadGapAnalysis(){
     body.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--red)">خطأ في التحليل: ${e.message}</td></tr>`;
   }
 }
+// ═══════════════════════════════════════════════
+// خطة العلاج (Remediation Plan) — داخل تحليل الفجوات
+// ═══════════════════════════════════════════════
+var _rpData = null, _rpTarget = null, _rpExams = [];
+var _rpCsrf = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+
+async function loadRemedialPlan(){
+  var cls = document.getElementById('rpCls')?.value;
+  if(!cls){ return; }
+  document.getElementById('rpStats').style.display = 'none';
+  document.getElementById('rpBody').innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);font-size:12px">⏳ جاري التحميل...</div>';
+  try{
+    var resp = await fetch('/teachers/api/remedial-plan.json?classroom='+cls, {credentials:'same-origin'});
+    var d = await resp.json();
+    _rpData = d; _rpExams = d.available_exams || [];
+    renderRemedialPlan(d);
+  } catch(e){
+    document.getElementById('rpBody').innerHTML = '<div style="text-align:center;padding:30px;color:var(--red);font-size:12px">⚠️ خطأ في التحميل</div>';
+  }
+}
+
+function renderRemedialPlan(d){
+  var rows = d.rows || [];
+  // إحصاء
+  var total=rows.length, assigned=0, passed=0, pending=0;
+  rows.forEach(function(r){
+    var hasA = r.failed_skills.some(function(s){return s.remedial_assigned;});
+    var hasP = r.failed_skills.some(function(s){return s.remedial_result && s.remedial_result.passed;});
+    if(hasA) assigned++; if(hasP) passed++; if(!hasA) pending++;
+  });
+  document.getElementById('rpTotal').textContent = total;
+  document.getElementById('rpAssigned').textContent = assigned;
+  document.getElementById('rpPassed').textContent = passed;
+  document.getElementById('rpPending').textContent = pending;
+  document.getElementById('rpStats').style.display = 'grid';
+
+  if(!rows.length){
+    document.getElementById('rpBody').innerHTML = '<div style="text-align:center;padding:40px;color:var(--green);font-size:13px;font-weight:700">🎉 لا توجد طالبات راسبات في هذا الفصل!</div>';
+    return;
+  }
+
+  var h = '<div style="overflow-x:auto"><table class="tb" id="rpTable"><thead><tr>'+
+    '<th>الطالبة</th><th>المهارة</th><th>نوع الاختبار</th><th>النتيجة</th><th>المحاولات</th><th>الاختبار العلاجي</th><th>نتيجة العلاج</th><th>إجراء</th>'+
+    '</tr></thead><tbody>';
+
+  rows.forEach(function(row, ri){
+    row.failed_skills.forEach(function(sk, si){
+      h += '<tr>';
+      if(si===0){
+        h += '<td rowspan="'+row.failed_skills.length+'" style="font-weight:700;border-right:3px solid #ef4444;padding-right:10px">'+
+          '<div>'+row.student_name+'</div>'+
+          '<div style="font-size:9px;color:var(--text3);font-weight:400;margin-top:2px">'+row.failed_skills.length+' مهارة ضعيفة</div>'+
+          '</td>';
+      }
+      h += '<td style="font-size:11px">'+sk.skill_title+'</td>';
+      h += '<td><span class="bd" style="font-size:9px">'+sk.exam_type+'</span></td>';
+      var pcol = sk.pct < 40 ? 'color:#ef4444' : 'color:var(--orange)';
+      h += '<td><span style="font-weight:700;font-size:12px;'+pcol+'">'+sk.pct+'%</span>';
+      if(sk.score!==null&&sk.total) h+='<span style="font-size:9px;color:var(--text3);margin-right:3px">('+sk.score+'/'+sk.total+')</span>';
+      h += '</td>';
+      // عدد المحاولات
+      var attempts = sk.attempts_count || 1;
+      h += '<td style="text-align:center;font-size:11px;font-weight:700;color:var(--blue)">'+attempts+'</td>';
+      // حالة العلاجي
+      if(sk.remedial_assigned){
+        h += '<td><span class="bd bo" style="font-size:9px">✅ عُيّن</span></td>';
+      } else {
+        h += '<td><span class="bd" style="font-size:9px;background:rgba(148,163,184,0.1);color:var(--text3);border:1px solid rgba(148,163,184,0.2)">❌ لم يُعيَّن</span></td>';
+      }
+      // نتيجة العلاج
+      if(sk.remedial_result){
+        var rr=sk.remedial_result;
+        var rStyle = rr.passed ? 'background:rgba(16,185,129,0.1);color:var(--green);border:1px solid rgba(16,185,129,0.2)' : 'background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2)';
+        h += '<td><span class="bd" style="font-size:9px;'+rStyle+'">'+(rr.passed?'✅ أتقنت':'❌ لم تُتقن')+' '+rr.pct+'%</span></td>';
+      } else if(sk.remedial_assigned){
+        h += '<td style="font-size:10px;color:var(--text3)">⏳ لم تؤدِّ بعد</td>';
+      } else {
+        h += '<td style="color:var(--text3)">—</td>';
+      }
+      // زر
+      var escapedKey = row.student_key.replace(/'/g,"\'");
+      h += '<td><button class="gbtn" style="font-size:10px;padding:4px 10px" onclick="rpOpenAssign('+ri+','+si+',''+escapedKey+'')">'+
+        (sk.remedial_assigned?'🔄 تغيير':'➕ عيّني علاجي')+'</button></td>';
+      h += '</tr>';
+    });
+  });
+  h += '</tbody></table></div>';
+  document.getElementById('rpBody').innerHTML = h;
+}
+
+function rpOpenAssign(ri, si, key){
+  if(!_rpData) return;
+  var row=_rpData.rows[ri], sk=row.failed_skills[si];
+  _rpTarget = {key:key, name:row.student_name, skill:sk.skill_title, ri:ri, si:si};
+  var opts='<option value="">— اختاري الاختبار —</option>';
+  _rpExams.forEach(function(e){ opts+='<option value="'+e.id+'">'+e.skill__title+' ('+e.exam_type+') — '+e.questions_count+' سؤال</option>'; });
+  document.getElementById('rpExamSel').innerHTML = opts;
+  document.getElementById('rpModalSub').textContent = row.student_name+' — '+sk.skill_title;
+  document.getElementById('rpMsg').style.display='none';
+  document.getElementById('rpModal').classList.add('on');
+}
+
+function rpCloseModal(){
+  document.getElementById('rpModal').classList.remove('on');
+  _rpTarget=null;
+}
+
+function rpConfirm(){
+  if(!_rpTarget) return;
+  var examId=document.getElementById('rpExamSel').value;
+  if(!examId){ rpShowMsg('اختاري اختباراً أولاً',false); return; }
+  var btn=document.getElementById('rpConfirmBtn');
+  btn.disabled=true; btn.textContent='⏳';
+  fetch('/teachers/api/assign-remedial/',{
+    method:'POST',credentials:'same-origin',
+    headers:{'Content-Type':'application/json','X-CSRFToken':_rpCsrf},
+    body:JSON.stringify({exam_id:parseInt(examId),student_key:_rpTarget.key})
+  }).then(function(r){return r.json();}).then(function(d){
+    btn.disabled=false; btn.textContent='تعيين ✓';
+    if(d.ok){
+      rpShowMsg('✅ تم التعيين لـ '+d.student,true);
+      _rpData.rows[_rpTarget.ri].failed_skills[_rpTarget.si].remedial_assigned=true;
+      setTimeout(function(){rpCloseModal();renderRemedialPlan(_rpData);},1200);
+    } else { rpShowMsg('❌ '+(d.error||'حدث خطأ'),false); }
+  }).catch(function(){
+    btn.disabled=false; btn.textContent='تعيين ✓';
+    rpShowMsg('❌ خطأ في الاتصال',false);
+  });
+}
+
+function rpShowMsg(text,ok){
+  var el=document.getElementById('rpMsg');
+  el.textContent=text;
+  el.style.cssText='display:block;font-size:11px;padding:7px 10px;border-radius:7px;margin-top:8px;'+
+    (ok?'background:rgba(16,185,129,0.1);color:var(--green)':'background:rgba(239,68,68,0.1);color:#ef4444');
+}
+
+function printRemedialPlan(){
+  var cls = document.getElementById('rpCls');
+  var clsName = cls?.options[cls.selectedIndex]?.text || 'الفصل';
+  var table = document.getElementById('rpTable');
+  if(!table){ alert('اختاري فصلاً أولاً'); return; }
+  var win=window.open('','_blank','width=900,height=700');
+  win.document.write('<html dir="rtl"><head><meta charset="utf-8"><title>خطة العلاج — '+clsName+'</title>'+
+    '<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">'+
+    '<style>*{font-family:Tajawal,sans-serif;margin:0;box-sizing:border-box}'+
+    'body{padding:20px;direction:rtl}'+
+    'h2{font-size:16px;font-weight:800;margin-bottom:4px}'+
+    'p{font-size:11px;color:#555;margin-bottom:12px}'+
+    'table{width:100%;border-collapse:collapse;font-size:11px}'+
+    'th{background:#6366f1;color:#fff;padding:8px 10px;text-align:right;font-weight:700}'+
+    'td{padding:7px 10px;border-bottom:1px solid #e5e7eb}'+
+    'tr:nth-child(even) td{background:#f8f9fa}'+
+    '.red{color:#ef4444;font-weight:700}.grn{color:#10b981;font-weight:700}.org{color:#f59e0b;font-weight:700}'+
+    '@media print{button{display:none}}'+
+    '</style></head><body>'+
+    '<h2>🩺 خطة العلاج — '+clsName+'</h2>'+
+    '<p>تاريخ الطباعة: '+new Date().toLocaleDateString('ar-SA')+'</p>'+
+    table.outerHTML+
+    '<script>window.onload=function(){window.print();}<\/script>'+
+    '</body></html>');
+  win.document.close();
+}
+
 // تحميل التحليل تلقائياً عند فتح التبويب
 const origGP = window.gp;
 if(origGP){
