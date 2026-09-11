@@ -3185,13 +3185,14 @@ function printTracking(){
     tr.querySelectorAll('th,td').forEach(cell => {
       const tag = cell.tagName.toLowerCase();
       const bg = cell.style.background || '';
-      let cls = '';
-      if(bg.includes('82,82')) cls = 'miss';
-      else if(bg.includes('16,185')) cls = 'pass';
-      else if(bg.includes('245,158')) cls = 'fail';
+      let inlineStyle = '';
+      if(bg.includes('82,82'))       inlineStyle = 'background:#fde8e8;color:#c00;font-weight:800;font-size:9px;';
+      else if(bg.includes('16,185')) inlineStyle = 'background:#d4edda;color:#1a6b3c;font-weight:700;';
+      else if(bg.includes('245,158'))inlineStyle = 'background:#fff3cd;color:#b45309;font-weight:700;';
       const span = cell.colSpan > 1 ? ` colspan="${cell.colSpan}"` : '';
       const rspan = cell.rowSpan > 1 ? ` rowspan="${cell.rowSpan}"` : '';
-      win.document.write(`<${tag}${span}${rspan}${cls ? ` class="${cls}"` : ''}>${cell.innerHTML}</${tag}>`);
+      const styleAttr = inlineStyle ? ` style="${inlineStyle}"` : '';
+      win.document.write(`<${tag}${span}${rspan}${styleAttr}>${cell.innerHTML}</${tag}>`);
     });
     win.document.write('</tr>');
   });
