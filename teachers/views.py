@@ -1973,13 +1973,20 @@ def student_tracking_json(request):
     # طالبات الفصل — مرتبة أبجدياً
     students = list(classroom.students.all().order_by('full_name'))
 
-    # مهارات المعلمة مع اختباراتها (قبلي/بعدي/درس)
-    skills = (
+    # مهارات المعلمة مع اختباراتها (قبلي/بعدي/درس) — مفلترة بالفصل
+    all_skills = (
         TeacherSkill.objects
         .filter(created_by=teacher)
         .prefetch_related('exams')
         .order_by('content_type', 'created_at')
     )
+    cls_name = classroom.name.strip()
+    skills = [
+        sk for sk in all_skills
+        if not sk.target_classes.strip()
+        or 'جميع' in sk.target_classes
+        or cls_name in sk.target_classes
+    ]
 
     # بناء أعمدة الجدول
     columns = []
