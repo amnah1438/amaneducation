@@ -1453,14 +1453,14 @@ body {
 
   <div class="g2e">
     <div class="card">
-      <div class="ch"><span class="ct">نتائج بنك الأسئلة حسب المهارة</span></div>
+      <div class="ch"><span class="ct">نتائج الاختبارات حسب المهارة</span></div>
       <div class="cb">
         {% if skill_hardness %}
         <div style="position:relative;height:190px"><canvas id="bankC" role="img" aria-label="بنك الأسئلة">بار</canvas></div>
         {% else %}
         <div style="text-align:center;padding:40px;color:var(--text3);font-size:12px">
           <div style="font-size:32px;margin-bottom:8px">📊</div>
-          ستظهر نتائج بنك الأسئلة بعد خوض الطالبات للاختبارات
+          ستظهر نتائج المهارات هنا بعد أداء الطالبات للاختبارات
         </div>
         {% endif %}
       </div>
@@ -1483,17 +1483,18 @@ body {
   <div class="card">
     <div class="ch"><span class="ct">سجل الاختبارات المفعّلة</span><button class="cab" onclick="printSection('pg-ex','سجل الاختبارات المفعّلة')">طباعة PDF</button></div>
     <div class="cb" style="padding:0">
-      {% if sessions %}
+      {% if my_exams_list %}
       <table class="tb">
-        <thead><tr><th>التاريخ</th><th>المهارة</th><th>النوع</th><th>الفصل المستهدف</th><th>الحالة</th></tr></thead>
+        <thead><tr><th>#</th><th>المهارة</th><th>نوع الاختبار</th><th>الأسئلة</th><th>المدة</th><th>الحالة</th></tr></thead>
         <tbody>
-          {% for s in sessions %}
+          {% for ex in my_exams_list %}
           <tr>
-            <td>{{ s.session_date|date:"Y/m/d" }}</td>
-            <td style="font-weight:600">{{ s.skill.title|default:"—"|truncatechars:30 }}</td>
-            <td><span class="bd {% if s.session_type == 'qodrat' %}bb{% elif s.session_type == 'tahsili' %}be{% else %}bp{% endif %}">{{ s.get_session_type_display }}</span></td>
-            <td>{{ s.target_class|default:"—" }}</td>
-            <td><span class="bd bp">مسجّلة</span></td>
+            <td style="color:var(--text3);font-size:10px">{{ forloop.counter }}</td>
+            <td style="font-weight:600">{{ ex.skill.title|default:"—"|truncatechars:30 }}</td>
+            <td><span class="bd {% if ex.exam_type == 'pre' %}bb{% elif ex.exam_type == 'post' %}be{% elif ex.exam_type == 'comprehensive_qodrat' or ex.exam_type == 'comprehensive_tahsili' %}bp{% else %}bo{% endif %}">{{ ex.get_exam_type_display }}</span></td>
+            <td style="text-align:center">{{ ex.questions_count }}</td>
+            <td style="text-align:center">{{ ex.duration_minutes }} د</td>
+            <td><span class="bd {% if ex.is_active %}bp{% else %}bo{% endif %}">{% if ex.is_active %}✓ مفعّل{% else %}⏸ موقوف{% endif %}</span></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -1501,8 +1502,8 @@ body {
       {% else %}
       <div style="text-align:center;padding:40px;color:var(--text3);font-size:12px">
         <div style="font-size:32px;margin-bottom:8px">📝</div>
-        <div style="font-weight:600;margin-bottom:4px">لا توجد اختبارات مسجّلة بعد</div>
-        <div>أنشئي مهارة وفعّلي اختبارها من «إدارة المهارات» لتظهر هنا</div>
+        <div style="font-weight:600;margin-bottom:4px">لا توجد اختبارات بعد</div>
+        <div>أنشئي مهارة وأضيفي عليها اختباراً من «إدارة المهارات» لتظهر هنا</div>
       </div>
       {% endif %}
     </div>

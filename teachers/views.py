@@ -1459,148 +1459,144 @@ def manage_skill_standard(request):
 @login_required
 def gap_analysis_json(request):
     """
-    محرك تحليل الفجوات — يحسب نسبة الإتقان لكل مهارة معيارية.
-    GET params:
-      scope  = student | classroom | school
-      key    = u_123 | sr_456 | classroom_id (حسب scope)
-      track  = qodrat_kamy | qodrat_lafzy | tahsili_math | ... (اختياري)
-    يرجع: { skills: [{code, name, track, track_label, total, correct, mastery, status}], summary: {...} }
+    تحليل فجوات المهارات — مبني على نتائج الاختبارات الفعلية (TeacherSkill).
+    لا يعتمد على SkillStandard؛ يعمل مباشرة من ExamResult مجمّعة حسب exam.skill.
     """
     if not check_teacher_or_admin(request):
         return JsonResponse({'error': 'غير مصرّح'}, status=403)
 
-    scope = request.GET.get('scope', 'school')
-    key = request.GET.get('key', '')
+    scope     = request.GET.get('scope', 'school')
+    key       = request.GET.get('key', '')
     track_filter = request.GET.get('track', '')
 
     teacher = get_teacher(request)
 
-    # بناء queryset الإجابات المرتبطة بمعلمة (مفلترة للمعلمة الحالية فقط)
-    answers_qs = StudentAnswer.objects.filter(
-        question__skill_standard__isnull=False,
-        result__exam__skill__created_by__user=request.user
-    )
+    # نتائج الاختبارات للمعلمة الحالية
+    results_qs = ExamResult.objects.filter(
+        exam__skill__created_by=teacher
+    ).select_related('exam__skill')
 
-    # تحديد النطاق
-    if scope == 'student':
-        if key.startswith('u_'):
-            try:
-                uid = int(key[2:])
-                answers_qs = answers_qs.filter(result__student_id=uid)
-            except ValueError:
-                return JsonResponse({'error': 'مفتاح غير صالح'}, status=400)
-        elif key.startswith('sr_'):
-            try:
-                sr_id = int(key[3:])
-                answers_qs = answers_qs.filter(result__student_record_id=sr_id)
-            except ValueError:
-                return JsonResponse({'error': 'مفتاح غير صالح'}, status=400)
+    # تطبيق النطاق
+    if scope == 'classroom' and key:
+        try:
+            classroom_id = int(key)
+            classroom = ClassRoom.objects.get(id=classroom_id)
+            student_ids = classroom.students.values_list('user_id', flat=True)
+            sr_ids      = classroom.students.values_list('id', flat=True)
+            results_qs  = results_qs.filter(
+                Q(student_id__in=student_ids) | Q(student_record_id__in=sr_ids)
+            )
+        except (ValueError, ClassRoom.DoesNotExist):
+            return JsonResponse({'error': 'فصل غير موجود'}, status=400)
+
+    # فلترة بنوع المهارة/المادة
+    SKILL_SUBJ = {
+        'qodrat_kamy':  ('skill_type', 'qodrat_kamy'),
+        'qodrat_lafzy': ('skill_type', 'qodrat_lafzy'),
+        'tahsili_math': ('subject', 'math'),
+        'tahsili_bio':  ('subject', 'bio'),
+        'tahsili_chem': ('subject', 'chem'),
+        'tahsili_phys': ('subject', 'phys'),
+    }
+    if track_filter and track_filter in SKILL_SUBJ:
+        fld, val = SKILL_SUBJ[track_filter]
+        results_qs = results_qs.filter(**{f'exam__skill__{fld}': val})
+
+    TRACK_LABELS = {
+        'qodrat_kamy':  'قدرات — كمي',
+        'qodrat_lafzy': 'قدرات — لفظي',
+        'math':         'تحصيلي — رياضيات',
+        'bio':          'تحصيلي — أحياء',
+        'chem':         'تحصيلي — كيمياء',
+        'phys':         'تحصيلي — فيزياء',
+    }
+
+    from collections import defaultdict
+    bucket = defaultdict(lambda: {'sum': 0.0, 'count': 0, 'passed': 0, 'skill': None})
+    for r in results_qs:
+        sk = r.exam.skill if r.exam else None
+        if not sk:
+            continue
+        b = bucket[sk.id]
+        b['sum']   += float(r.percentage or 0)
+        b['count'] += 1
+        if float(r.percentage or 0) >= 70:
+            b['passed'] += 1
+        b['skill'] = sk
+
+    skills_data   = []
+    mastered = developing = weak = 0
+    total_mastery_sum = 0.0
+    idx = 1
+
+    for sk_id, v in bucket.items():
+        sk = v['skill']
+        if not sk or v['count'] == 0:
+            continue
+        avg = round(v['sum'] / v['count'], 1)
+
+        if avg >= 70:
+            status = 'mastered';  mastered   += 1
+        elif avg >= 40:
+            status = 'developing'; developing += 1
         else:
-            return JsonResponse({'error': 'مفتاح طالبة مطلوب'}, status=400)
-    elif scope == 'classroom':
-        if key:
-            try:
-                classroom_id = int(key)
-                classroom = ClassRoom.objects.get(id=classroom_id)
-                student_ids = classroom.students.values_list('user_id', flat=True)
-                sr_ids = classroom.students.values_list('id', flat=True)
-                answers_qs = answers_qs.filter(
-                    Q(result__student_id__in=student_ids) | Q(result__student_record_id__in=sr_ids)
-                )
-            except (ValueError, ClassRoom.DoesNotExist):
-                return JsonResponse({'error': 'فصل غير موجود'}, status=400)
-    # scope == 'school' → no extra filter
+            status = 'weak';       weak       += 1
 
-    # فلترة بالمسار
-    if track_filter:
-        answers_qs = answers_qs.filter(question__skill_standard__track=track_filter)
+        total_mastery_sum += avg
 
-    # تجميع النتائج حسب المهارة المعيارية
-    from django.db.models import Sum, Case, When, IntegerField, Value
-    skill_stats = (
-        answers_qs
-        .values(
-            'question__skill_standard__id',
-            'question__skill_standard__code',
-            'question__skill_standard__name',
-            'question__skill_standard__track',
-        )
-        .annotate(
-            total=Count('id'),
-            correct=Sum(Case(When(is_correct=True, then=Value(1)), default=Value(0), output_field=IntegerField())),
-        )
-        .order_by('question__skill_standard__track', 'question__skill_standard__order')
-    )
-
-    # بناء الاستجابة
-    TRACK_LABELS = dict(SkillStandard.TRACK_CHOICES)
-    skills_data = []
-    total_q = 0
-    total_correct = 0
-    mastered = 0  # >= 70%
-    developing = 0  # 40-69%
-    weak = 0  # < 40%
-
-    for s in skill_stats:
-        t = s['total'] or 0
-        c = s['correct'] or 0
-        mastery = round((c / t * 100) if t > 0 else 0, 1)
-        trk = s['question__skill_standard__track'] or ''
-
-        if mastery >= 70:
-            status = 'mastered'
-            mastered += 1
-        elif mastery >= 40:
-            status = 'developing'
-            developing += 1
+        if sk.skill_type:
+            tkey, tlabel = sk.skill_type, TRACK_LABELS.get(sk.skill_type, sk.skill_type)
+        elif sk.subject:
+            tkey, tlabel = sk.subject, TRACK_LABELS.get(sk.subject, sk.subject)
         else:
-            status = 'weak'
-            weak += 1
-
-        total_q += t
-        total_correct += c
+            tkey, tlabel = '', '—'
 
         skills_data.append({
-            'id': s['question__skill_standard__id'],
-            'code': s['question__skill_standard__code'],
-            'name': s['question__skill_standard__name'],
-            'track': trk,
-            'track_label': TRACK_LABELS.get(trk, trk),
-            'total': t,
-            'correct': c,
-            'mastery': mastery,
+            'id': sk.id,
+            'code': f'م{idx:02d}',
+            'name': sk.title,
+            'track': tkey,
+            'track_label': tlabel,
+            'total': v['count'],
+            'correct': v['passed'],
+            'mastery': avg,
             'status': status,
         })
+        idx += 1
 
-    # ترتيب: الأضعف أولاً (لتحديد الفجوات)
     skills_data.sort(key=lambda x: x['mastery'])
 
-    # المهارات المعيارية التي لا يوجد لها إجابات (فجوات غير مُختبرة)
-    tested_ids = {s['id'] for s in skills_data}
-    untested_qs = SkillStandard.objects.filter(
-        is_active=True,
-        questions__exam__skill__created_by__user=request.user
-    ).distinct().exclude(id__in=tested_ids)
-    if track_filter:
-        untested_qs = untested_qs.filter(track=track_filter)
-    untested = [
-        {
-            'id': s.id, 'code': s.code, 'name': s.name,
-            'track': s.track, 'track_label': s.track_label,
-            'total': 0, 'correct': 0, 'mastery': 0, 'status': 'untested',
-        }
-        for s in untested_qs.order_by('track', 'order')
-    ]
+    # المهارات غير المختبرة
+    tested_ids = set(bucket.keys())
+    untest_qs  = TeacherSkill.objects.filter(created_by=teacher)
+    if track_filter and track_filter in SKILL_SUBJ:
+        fld, val = SKILL_SUBJ[track_filter]
+        untest_qs = untest_qs.filter(**{fld: val})
 
-    overall_mastery = round((total_correct / total_q * 100) if total_q > 0 else 0, 1)
+    untested = []
+    for sk in untest_qs:
+        if sk.id not in tested_ids:
+            if sk.skill_type:
+                tlabel = TRACK_LABELS.get(sk.skill_type, sk.skill_type)
+            elif sk.subject:
+                tlabel = TRACK_LABELS.get(sk.subject, sk.subject)
+            else:
+                tlabel = '—'
+            untested.append({
+                'id': sk.id, 'code': '—', 'name': sk.title,
+                'track': '', 'track_label': tlabel,
+                'total': 0, 'correct': 0, 'mastery': 0, 'status': 'untested',
+            })
 
-    # توصيات
+    n = len(skills_data)
+    overall = round(total_mastery_sum / n, 1) if n > 0 else 0
+
     recommendations = []
     weak_skills = [s for s in skills_data if s['status'] == 'weak']
     if weak_skills:
         recommendations.append(f"يوجد {len(weak_skills)} مهارة ضعيفة تحتاج تركيز فوري")
         for ws in weak_skills[:5]:
-            recommendations.append(f"• [{ws['code']}] {ws['name']} — نسبة الإتقان: {ws['mastery']}%")
+            recommendations.append(f"• {ws['name']} — نسبة الإتقان: {ws['mastery']}%")
     if untested:
         recommendations.append(f"يوجد {len(untested)} مهارة لم تُختبر بعد")
 
@@ -1608,14 +1604,12 @@ def gap_analysis_json(request):
         'skills': skills_data,
         'untested': untested,
         'summary': {
-            'total_questions': total_q,
-            'total_correct': total_correct,
-            'overall_mastery': overall_mastery,
+            'overall_mastery': overall,
             'mastered_count': mastered,
             'developing_count': developing,
             'weak_count': weak,
             'untested_count': len(untested),
-            'total_standards': len(skills_data) + len(untested),
+            'total_standards': n + len(untested),
         },
         'recommendations': recommendations,
     })
