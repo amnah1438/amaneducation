@@ -2156,12 +2156,12 @@ def remedial_plan_json(request):
             exam_ids.append(ex.id)
             exam_skill_map[ex.id] = (sk.title, ex.get_exam_type_display(), sk.id, ex.pass_score)
 
-    # نتائج الاختبارات للطالبات في الفصل (الراسبات — أقل من 70%)
+    # نتائج الاختبارات للطالبات في الفصل (الراسبات فعلاً — passed=False)
     failed_results = (
         ExamResult.objects
         .filter(
             exam_id__in=exam_ids,
-            percentage__lt=70,
+            passed=False,
         )
         .filter(
             Q(student_record_id__in=sr_ids) | Q(student_id__in=user_ids)
