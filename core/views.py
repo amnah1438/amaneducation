@@ -611,86 +611,100 @@ def _v2_top_students(limit=10):
 
 def _v2_teachers_impact():
     """
-    تحليل أداء المعلمات — أرقام دقيقة بدون تضخم.
+    تحليل أثر المعلمات — الإسناد بفصول المعلمة، والتحسّن مقارنة مزدوجة.
 
-    الإصلاحات:
-    - كل مقياس يُحسب بـ Subquery منفصل → لا تضخم من JOINs متداخلة.
-    - التأثير الحقيقي = متوسط البعدي − متوسط القبلي (تحسّن فعلي).
-      · لو عندها بعدي فقط → متوسط البعدي.
-      · لو لا يوجد بعدي ولا قبلي → المتوسط العام.
+    الأساس:
+    - نتائج المعلمة = نتائج طالبات الفصول المُسندة لها (Teacher.classrooms).
+      · لو لم تُسند لها فصول → نرجع لمهاراتها (created_by) ونعلّم الصف
+        بـ attribution='skill' ليظهر تنبيه في اللوحة.
+    - التحسّن الفعلي = متوسط الفروق (بعدي − قبلي) لنفس الطالبة في نفس
+      المهارة. لا نطرح متوسطاً من متوسط، لأن من أدّت القبلي قد تختلف
+      عمّن أدّت البعدي فيخرج رقم مضلّل.
     """
-    # ── Subqueries منفصلة لكل مقياس ─────────────────────────────
-    def _count_sq(qs, group_field):
-        return Subquery(
-            qs.filter(**{group_field: OuterRef('pk')})
-              .values(group_field)
-              .annotate(c=Count('id'))
-              .values('c')[:1],
-            output_field=IntegerField()
-        )
+    # ── ١) خريطة الطالبة → الفصل ────────────────────────────────
+    student_class_by_record = {}   # Student.id       → classroom_id
+    student_class_by_user = {}     # User.id (طالبة)  → classroom_id
+    for sid, uid, cid in Student.objects.values_list('id', 'user_id', 'classroom_id'):
+        if cid:
+            student_class_by_record[sid] = cid
+            if uid:
+                student_class_by_user[uid] = cid
 
-    def _avg_sq(exam_type_filter=None):
-        qs = ExamResult.objects.filter(exam__skill__created_by=OuterRef('pk'))
-        if exam_type_filter:
-            qs = qs.filter(exam__exam_type=exam_type_filter)
-        return Subquery(
-            qs.values('exam__skill__created_by')
-              .annotate(avg=Avg('percentage'))
-              .values('avg')[:1],
-            output_field=FloatField()
-        )
-
-    teachers = (
-        Teacher.objects
-        .select_related('user')
-        .annotate(
-            sessions_count=_count_sq(ClassSession.objects.all(), 'teacher'),
-            skills_count=_count_sq(TeacherSkill.objects.all(), 'created_by'),
-            exams_count=Subquery(
-                TeacherExam.objects
-                .filter(skill__created_by=OuterRef('pk'))
-                .values('skill__created_by')
-                .annotate(c=Count('id'))
-                .values('c')[:1],
-                output_field=IntegerField()
-            ),
-            results_count=Subquery(
-                ExamResult.objects
-                .filter(exam__skill__created_by=OuterRef('pk'))
-                .values('exam__skill__created_by')
-                .annotate(c=Count('id'))
-                .values('c')[:1],
-                output_field=IntegerField()
-            ),
-            pre_avg=_avg_sq('pre'),
-            post_avg=_avg_sq('post'),
-            all_avg=_avg_sq(),
-        )
+    # ── ٢) كل النتائج دفعة واحدة ────────────────────────────────
+    rows = list(
+        ExamResult.objects
+        .values('student_id', 'student_record_id', 'percentage',
+                'exam__exam_type', 'exam__skill_id', 'exam__skill__created_by_id')
     )
 
-    out = []
-    for t in teachers:
-        pre  = float(t.pre_avg  or 0)
-        post = float(t.post_avg or 0)
-        avg  = float(t.all_avg  or 0)
-        engagement_val = int(t.results_count or 0)
+    by_classroom = {}   # classroom_id      → [rows]
+    by_creator = {}     # teacher_id        → [rows]
+    for r in rows:
+        cid = (student_class_by_record.get(r['student_record_id'])
+               or student_class_by_user.get(r['student_id']))
+        r['_classroom'] = cid
+        if cid:
+            by_classroom.setdefault(cid, []).append(r)
+        creator = r['exam__skill__created_by_id']
+        if creator:
+            by_creator.setdefault(creator, []).append(r)
 
-        # حد أدنى للمصداقية الإحصائية
+    def _paired_improvement(subset):
+        """متوسط (بعدي − قبلي) لنفس الطالبة في نفس المهارة."""
+        pre_map, post_map = {}, {}
+        for r in subset:
+            key = (r['student_id'] or f"rec{r['student_record_id']}", r['exam__skill_id'])
+            pct = float(r['percentage'] or 0)
+            if r['exam__exam_type'] == 'pre':
+                pre_map.setdefault(key, []).append(pct)
+            elif r['exam__exam_type'] == 'post':
+                post_map.setdefault(key, []).append(pct)
+        deltas, students = [], set()
+        for key, pres in pre_map.items():
+            posts = post_map.get(key)
+            if not posts:
+                continue
+            deltas.append(sum(posts) / len(posts) - sum(pres) / len(pres))
+            students.add(key[0])
+        if not deltas:
+            return None, 0
+        return round(sum(deltas) / len(deltas), 1), len(students)
+
+    def _avg(subset, exam_type=None):
+        vals = [float(r['percentage'] or 0) for r in subset
+                if exam_type is None or r['exam__exam_type'] == exam_type]
+        return round(sum(vals) / len(vals), 1) if vals else 0.0
+
+    out = []
+    for t in (Teacher.objects.select_related('user')
+              .prefetch_related('classrooms')
+              .annotate(
+                  sessions_count=Count('sessions', distinct=True),
+                  skills_count=Count('teacher_skills', distinct=True),
+                  exams_count=Count('teacher_skills__exams', distinct=True),
+              )):
+        # ── الإسناد ────────────────────────────────────────────
+        class_ids = [c.id for c in t.classrooms.all()]
+        if class_ids:
+            attribution = 'classroom'
+            subset = [r for cid in class_ids for r in by_classroom.get(cid, [])]
+            scope = '، '.join(c.name for c in t.classrooms.all())
+        else:
+            attribution = 'skill'
+            subset = by_creator.get(t.id, [])
+            scope = 'مهاراتها (لم تُسند لها فصول)'
+
+        engagement_val = len(subset)
         insufficient_data = engagement_val < 5
 
-        # التأثير الحقيقي: تحسن من القبلي للبعدي
-        if pre > 0 and post > 0:
-            improvement = round(post - pre, 1)
-            impact = round(post, 1)
-            has_improvement = True
-        elif post > 0:
-            improvement = None
-            impact = round(post, 1)
-            has_improvement = False
-        else:
-            improvement = None
-            impact = round(avg, 1)
-            has_improvement = False
+        pre = _avg(subset, 'pre')
+        post = _avg(subset, 'post')
+        avg = _avg(subset)
+
+        improvement, paired_students = _paired_improvement(subset)
+        has_improvement = improvement is not None
+
+        impact = round(post, 1) if post > 0 else round(avg, 1)
 
         # ── تصنيف الأثر التعليمي (وصفي لا حكمي) ──────────────────
         if insufficient_data:
@@ -717,14 +731,17 @@ def _v2_teachers_impact():
             'id':               t.id,
             'name':             t.full_name,
             'sessions':         int(t.sessions_count or 0),
-            'skills':           int(t.skills_count   or 0),
-            'exams':            int(t.exams_count    or 0),
+            'skills':           int(t.skills_count or 0),
+            'exams':            int(t.exams_count or 0),
             'engagement':       engagement_val,
             'impact':           impact,
-            'pre_avg':          round(pre,  1),
-            'post_avg':         round(post, 1),
+            'pre_avg':          pre,
+            'post_avg':         post,
             'improvement':      improvement,
             'has_improvement':  has_improvement,
+            'paired_students':  paired_students,
+            'attribution':      attribution,
+            'scope':            scope,
             'insufficient_data': insufficient_data,
             'tier':             tier,
         })
