@@ -39,6 +39,7 @@ urlpatterns = [
     path('admin-dashboard/delete-classroom/<int:classroom_id>/', views.admin_delete_classroom, name='admin_delete_classroom'),
     path('admin-dashboard/delete-user/<int:user_id>/', views.admin_delete_user, name='admin_delete_user'),
     path('admin-dashboard/edit-user/<int:user_id>/', views.admin_edit_user, name='admin_edit_user'),
+    path('admin-dashboard/move-student/<int:user_id>/', views.admin_move_student, name='admin_move_student'),
     path('admin-dashboard/view-as/<int:user_id>/', views.admin_view_as, name='admin_view_as'),
     path('admin-dashboard/return/', views.admin_return, name='admin_return'),
 

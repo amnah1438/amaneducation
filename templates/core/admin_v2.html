@@ -536,7 +536,15 @@ body.display-mode .card-t { font-size: 18px; }
             <td>{{ forloop.counter }}</td>
             <td style="font-weight:700;color:var(--text)">{{ s.name }}</td>
             <td style="font-family:monospace;color:var(--blue)">{{ s.national_id }}</td>
-            <td>{{ s.classroom }}</td>
+            <td>
+              <form method="post" action="{% url 'admin_move_student' s.id %}" style="display:flex;gap:4px;align-items:center">{% csrf_token %}
+                <select name="classroom_id" class="fi" style="padding:3px 6px;font-size:10px;min-width:78px">
+                  <option value="">— بدون فصل —</option>
+                  {% for c in classrooms %}<option value="{{ c.id }}" {% if s.classroom_id == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                </select>
+                <button class="btn btn-info" style="padding:3px 8px;font-size:9px" title="نقل الطالبة للفصل المختار">🔄 نقل</button>
+              </form>
+            </td>
             <td>{{ s.results }}</td>
             <td><span class="bd {% if s.avg >= 70 %}bd-g{% elif s.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ s.avg }}%</span></td>
             <td>{% if s.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>

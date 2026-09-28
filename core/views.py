@@ -1003,6 +1003,7 @@ def admin_v2_dashboard(request):
             'id': p.user.id, 'name': full_name,
             'national_id': p.national_id,
             'classroom': s.classroom.name if s and s.classroom else '—',
+            'classroom_id': s.classroom_id if s and s.classroom_id else '',
             'is_active': p.user.is_active,
             'results': p.results_count or 0,
             'avg': round(p.avg_score or 0, 1),
@@ -1599,6 +1600,57 @@ def admin_add_student(request):
                 student_obj.user = user
                 student_obj.save(update_fields=['user'])
     messages.success(request, f'✅ تم إضافة الطالبة {full_name} (رقم الهوية: {national_id})')
+    return redirect('admin_dashboard')
+
+
+@admin_required
+@require_POST
+def admin_move_student(request, user_id):
+    """نقل طالبة من فصل إلى فصل آخر — لا يمسّ نتائجها أو اختباراتها."""
+    target = get_object_or_404(User, id=user_id)
+    classroom_id = (request.POST.get('classroom_id') or '').strip()
+
+    if not classroom_id.isdigit():
+        messages.error(request, 'يرجى اختيار الفصل الجديد')
+        return redirect('admin_dashboard')
+
+    classroom = ClassRoom.objects.filter(id=classroom_id).first()
+    if classroom is None:
+        messages.error(request, 'الفصل غير موجود')
+        return redirect('admin_dashboard')
+
+    full_name = target.get_full_name() or target.username
+
+    # ١) الربط الصحيح: بحساب الطالبة أولاً
+    student = Student.objects.filter(user_id=target.id).first()
+
+    # ٢) احتياطياً: بالاسم — ونربطه بالحساب حتى لا تتكرر المشكلة
+    if student is None:
+        student = Student.objects.filter(full_name=full_name, user__isnull=True).first()
+        if student is None:
+            student = Student.objects.filter(full_name=full_name).first()
+        if student is not None and student.user_id is None:
+            student.user = target
+            student.save(update_fields=['user'])
+
+    # ٣) لا يوجد سجل للطالبة أصلاً → ننشئه مربوطاً بحسابها
+    if student is None:
+        student = Student.objects.create(
+            full_name=full_name,
+            classroom=classroom,
+            user=target,
+        )
+        messages.success(request, f'✅ تم تسجيل الطالبة {full_name} في فصل {classroom.name}')
+        return redirect('admin_dashboard')
+
+    old_name = student.classroom.name if student.classroom_id else '—'
+    if student.classroom_id == classroom.id:
+        messages.info(request, f'الطالبة {full_name} موجودة أصلاً في فصل {classroom.name}')
+        return redirect('admin_dashboard')
+
+    student.classroom = classroom
+    student.save(update_fields=['classroom'])
+    messages.success(request, f'✅ تم نقل {full_name} من {old_name} إلى {classroom.name}')
     return redirect('admin_dashboard')
 
 
