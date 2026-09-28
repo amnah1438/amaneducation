@@ -254,16 +254,15 @@ body {
 
 /* ── طباعة ── */
 @media print {
-  @page { size: A4; margin: 12mm 10mm; }
-  body { background: #fff; }
+  /* قواعد محافظة — Safari يتعثّر في @page size وفي break-inside على الصفوف */
+  body {
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .print-bar { display: none !important; }
   .page { margin: 0; box-shadow: none; border: none; max-width: 100%; }
-  .page-inner { padding: 0; }
-  /* الشعارات والخلفيات الملوّنة تُطبع كما تظهر */
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  .dibajah { break-inside: avoid; }
-  table { break-inside: auto; }
-  tr, .kpi, .card, .notes-box, .family-box, .approve-row, .qr-box { break-inside: avoid; }
+  .page-inner { padding: 20px 28px 28px; }
   thead { display: table-header-group; }
 }
 </style>
