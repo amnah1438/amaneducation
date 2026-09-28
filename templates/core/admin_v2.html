@@ -1,4 +1,5 @@
 {% load static %}
+{% load l10n %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" data-theme="dark">
 <head>
@@ -967,8 +968,8 @@ body.display-mode .card-t { font-size: 18px; }
     <!-- Performance Matrix (Bubble) -->
     <div class="card">
       <div class="card-h">
-        <span class="card-t">🌌 مصفوفة أداء المعلمات</span>
-        <span style="font-size:9px;color:var(--text3)">العمل × التأثير</span>
+        <span class="card-t">🌌 مصفوفة أداء الفصول</span>
+        <span style="font-size:9px;color:var(--text3)">مستوى البعدي × التحسّن — حجم الدائرة = عدد المقارنات</span>
       </div>
       <div class="card-b" style="height:280px"><canvas id="matrixChart"></canvas></div>
     </div>
@@ -1001,110 +1002,90 @@ body.display-mode .card-t { font-size: 18px; }
   </div>
 
   <!-- ═══════════ Teachers Impact ═══════════ -->
-  <div class="section-title">🧠 مؤشرات الأثر التعليمي للمعلمات</div>
+  <div class="section-title">🏫 أثر التعلّم لكل فصل</div>
   <div class="card">
     <div class="card-h" style="flex-wrap:wrap;gap:8px">
-      <span class="card-t">📡 تحليل الأثر المباشر لكل معلمة على نتائج الطالبات</span>
+      <span class="card-t">📡 تحسّن كل فصل بين القبلي والبعدي</span>
       <span style="font-size:9px;color:var(--text3);display:flex;align-items:center;gap:4px">
-        <span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>الأثر محسوب من نتائج طالبات فصول المعلمة · التحسّن = مقارنة نفس الطالبة قبلياً وبعدياً
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>الفصل هو وحدة القياس — لأن معلمات الفصل الواحد يُدرّسن الطالبات أنفسهن
       </span>
     </div>
     <div class="card-b" style="padding:0">
-      {% if teachers_impact %}
+      {% if classrooms_impact %}
       <table class="tbl">
         <thead><tr>
-          <th>المعلمة</th>
-          <th>الإنتاج</th>
-          <th style="text-align:center">التفاعل</th>
-          <th>مستوى البعدي</th>
+          <th>الفصل</th>
+          <th style="text-align:center">الطالبات</th>
+          <th style="text-align:center">المحاولات</th>
+          <th>القبلي → البعدي</th>
           <th>التحسّن الفعلي</th>
-          <th>مؤشر الأثر</th>
+          <th>القراءة</th>
+          <th>معلمات الفصل</th>
         </tr></thead>
         <tbody>
-          {% for t in teachers_impact %}
-          <tr style="{% if t.tier == 'exceptional' %}background:rgba(34,197,94,0.04){% elif t.tier == 'review' %}background:rgba(148,163,184,0.03){% endif %}">
+          {% for c in classrooms_impact %}
+          <tr style="{% if c.tier == 'exceptional' %}background:rgba(34,197,94,0.04){% elif c.tier == 'review' %}background:rgba(239,68,68,0.03){% endif %}">
 
-            <!-- المعلمة -->
+            <td style="font-weight:700;font-size:12px;color:var(--text)">{{ c.name }}</td>
+            <td style="text-align:center;font-size:12px;font-weight:700">{{ c.students }}</td>
+            <td style="text-align:center;font-size:12px;color:{% if c.attempts >= 20 %}var(--green){% elif c.attempts > 0 %}var(--orange){% else %}var(--text3){% endif %};font-weight:700">{{ c.attempts }}</td>
+
+            <!-- القبلي → البعدي -->
             <td>
-              <div style="font-weight:700;font-size:12px;color:var(--text)">{{ t.name }}</div>
-              {% if t.attribution == 'classroom' %}
-              <div style="font-size:9px;color:var(--text3);margin-top:2px" title="الأثر محسوب من نتائج طالبات هذه الفصول">🏫 {{ t.scope }}</div>
+              {% if c.attempts %}
+                <span style="font-size:11px;color:var(--text3)">{{ c.pre_avg }}%</span>
+                <span style="font-size:11px;color:var(--text3)"> ← </span>
+                <span style="font-size:13px;font-weight:800;color:{% if c.post_avg >= 70 %}var(--green){% elif c.post_avg >= 50 %}var(--orange){% else %}var(--red){% endif %}">{{ c.post_avg }}%</span>
               {% else %}
-              <div style="font-size:9px;color:var(--orange);margin-top:2px" title="لم تُسند فصول لهذه المعلمة، فحُسب الأثر من نتائج مهاراتها — أسنديها فصولاً من زر «فصولها» ليكون الرقم دقيقاً">⚠️ بلا فصول مُسندة</div>
-              {% endif %}
-              {% if t.insufficient_data %}
-              <div style="font-size:9px;color:var(--text3);margin-top:2px">⏳ بيانات تحت التجميع</div>
+                <span style="font-size:10px;color:var(--text3)">—</span>
               {% endif %}
             </td>
 
-            <!-- الإنتاج: مهارات + اختبارات + حصص -->
+            <!-- التحسّن -->
             <td>
-              <div style="display:flex;gap:4px;flex-wrap:wrap">
-                <span title="مهارات" style="font-size:9px;background:rgba(99,102,241,0.1);color:var(--accent);padding:2px 7px;border-radius:5px;font-weight:700">📚 {{ t.skills }}</span>
-                <span title="اختبارات" style="font-size:9px;background:rgba(99,102,241,0.1);color:var(--accent);padding:2px 7px;border-radius:5px;font-weight:700">📝 {{ t.exams }}</span>
-                <span title="حصص" style="font-size:9px;background:rgba(99,102,241,0.1);color:var(--accent);padding:2px 7px;border-radius:5px;font-weight:700">🏫 {{ t.sessions }}</span>
-              </div>
-            </td>
-
-            <!-- التفاعل -->
-            <td style="text-align:center">
-              <div style="font-size:15px;font-weight:800;color:{% if t.engagement >= 20 %}var(--green){% elif t.engagement >= 5 %}var(--orange){% else %}var(--text3){% endif %}">{{ t.engagement }}</div>
-              <div style="font-size:8px;color:var(--text3)">محاولة</div>
-            </td>
-
-            <!-- مستوى البعدي — شريط مرئي -->
-            <td>
-              {% if t.impact > 0 %}
-              <div style="display:flex;align-items:center;gap:7px">
-                <div style="width:64px;height:7px;background:var(--border);border-radius:4px;overflow:hidden;flex-shrink:0">
-                  <div style="width:{{ t.impact }}%;height:100%;background:{% if t.impact >= 70 %}var(--green){% elif t.impact >= 50 %}var(--orange){% else %}#94a3b8{% endif %};border-radius:4px"></div>
-                </div>
-                <span style="font-size:11px;font-weight:800;color:{% if t.impact >= 70 %}var(--green){% elif t.impact >= 50 %}var(--orange){% else %}var(--text2){% endif %}">{{ t.impact }}%</span>
-              </div>
+              {% if c.improvement is None %}
+                <span class="bd" style="background:rgba(148,163,184,0.1);color:var(--text3);font-size:9px">لا مقارنة</span>
               {% else %}
-              <span style="font-size:10px;color:var(--text3)">—</span>
-              {% endif %}
-            </td>
-
-            <!-- التحسّن الفعلي -->
-            <td>
-              {% if t.insufficient_data %}
-                <span class="bd" style="background:rgba(148,163,184,0.1);color:var(--text3);font-size:9px">⏳ غير كافٍ</span>
-              {% elif t.has_improvement %}
-                {% if t.improvement > 0 %}
-                  <span class="bd bd-g" style="font-size:10px;font-weight:700">▲ +{{ t.improvement }}%</span>
-                {% elif t.improvement < 0 %}
-                  <span class="bd" style="background:rgba(148,163,184,0.15);color:var(--text2);font-size:10px">▼ {{ t.improvement }}%</span>
+                {% if c.improvement > 0 %}
+                  <span class="bd {% if c.enough_sample %}bd-g{% endif %}" style="font-size:11px;font-weight:700{% if not c.enough_sample %};background:rgba(148,163,184,0.15);color:var(--text2){% endif %}">▲ +{{ c.improvement }}%</span>
+                {% elif c.improvement < 0 %}
+                  <span class="bd" style="font-size:11px;font-weight:700;{% if c.enough_sample %}background:rgba(239,68,68,0.12);color:var(--red){% else %}background:rgba(148,163,184,0.15);color:var(--text2){% endif %}">▼ {{ c.improvement }}%</span>
                 {% else %}
-                  <span class="bd bd-o" style="font-size:10px">← ثابت</span>
+                  <span class="bd bd-o" style="font-size:11px">← ثابت</span>
                 {% endif %}
-                <div style="font-size:9px;color:var(--text3);margin-top:3px" title="عدد الطالبات اللاتي أدّين القبلي والبعدي معاً — وعليهن حُسبت المقارنة">👥 {{ t.paired_students }} طالبة قورنت</div>
-              {% else %}
-                <span class="bd" style="background:rgba(148,163,184,0.1);color:var(--text3);font-size:9px">لا مقارنة ممكنة</span>
-                <div style="font-size:9px;color:var(--text3);margin-top:3px">لا توجد طالبة أدّت القبلي والبعدي</div>
+                <div style="font-size:9px;color:var(--text3);margin-top:3px">👥 {{ c.paired_students }} طالبة أدّت الاثنين</div>
               {% endif %}
             </td>
 
-            <!-- مؤشر الأثر — badge إبداعي -->
+            <!-- القراءة -->
             <td>
-              {% if t.tier == 'collecting' %}
-                <span class="bd" style="background:rgba(148,163,184,0.12);color:var(--text3);font-size:9px">⏳ بيانات غير كافية</span>
-              {% elif t.tier == 'exceptional' %}
-                <span class="bd" style="background:rgba(34,197,94,0.15);color:#16a34a;font-size:10px;font-weight:700;border:1px solid rgba(34,197,94,0.3)">🌟 أثر استثنائي</span>
-              {% elif t.tier == 'growing' %}
-                <span class="bd" style="background:rgba(34,197,94,0.1);color:#16a34a;font-size:10px;font-weight:700">📈 نمو ملحوظ</span>
-              {% elif t.tier == 'stable' %}
-                <span class="bd bd-o" style="font-size:10px">📊 أثر ثابت</span>
-              {% elif t.tier == 'review' %}
-                <span class="bd" style="background:rgba(148,163,184,0.12);color:var(--text2);font-size:10px">🔍 مسار تحت المراجعة</span>
-              {% elif t.tier == 'high' %}
-                <span class="bd bd-b" style="font-size:10px;font-weight:700">✨ نتائج عالية</span>
-              {% elif t.tier == 'moderate' %}
-                <span class="bd bd-o" style="font-size:10px">💡 أداء إيجابي</span>
-              {% elif t.tier == 'early' %}
-                <span class="bd" style="background:rgba(99,102,241,0.1);color:var(--accent);font-size:10px">🔬 في طور التقييم</span>
+              {% if c.tier == 'exceptional' %}
+                <span class="bd" style="background:rgba(34,197,94,0.15);color:#16a34a;font-size:10px;font-weight:700;border:1px solid rgba(34,197,94,0.3)">🌟 تحسّن استثنائي</span>
+              {% elif c.tier == 'growing' %}
+                <span class="bd" style="background:rgba(34,197,94,0.1);color:#16a34a;font-size:10px;font-weight:700">📈 تحسّن ملحوظ</span>
+              {% elif c.tier == 'stable' %}
+                <span class="bd bd-o" style="font-size:10px">📊 ثابت</span>
+              {% elif c.tier == 'review' %}
+                <span class="bd" style="background:rgba(239,68,68,0.1);color:var(--red);font-size:10px;font-weight:700">🔍 يحتاج مراجعة</span>
+              {% elif c.tier == 'small_sample' %}
+                <span class="bd" style="background:rgba(148,163,184,0.12);color:var(--text2);font-size:10px">⚖️ عيّنة صغيرة — لا حكم</span>
+                <div style="font-size:9px;color:var(--text3);margin-top:3px">{{ c.paired_students }} طالبة فقط من {{ c.students }}</div>
+              {% elif c.tier == 'no_pairs' %}
+                <span class="bd" style="background:rgba(245,158,11,0.12);color:var(--orange);font-size:10px">🔗 لم تُقارن طالبة</span>
+                <div style="font-size:9px;color:var(--text3);margin-top:3px">فعّلي القبلي والبعدي لنفس الطالبات</div>
               {% else %}
-                <span class="bd" style="background:rgba(148,163,184,0.1);color:var(--text3);font-size:9px">📭 لا بيانات</span>
+                <span class="bd" style="background:rgba(148,163,184,0.1);color:var(--text3);font-size:9px">📭 لا نتائج بعد</span>
+              {% endif %}
+            </td>
+
+            <!-- معلمات الفصل -->
+            <td>
+              {% if c.teachers %}
+                <div style="display:flex;gap:3px;flex-wrap:wrap">
+                  {% for tn in c.teachers %}<span class="bd" style="background:rgba(99,102,241,0.1);color:var(--accent);font-size:9px">{{ tn }}</span>{% endfor %}
+                </div>
+              {% else %}
+                <span style="font-size:9px;color:var(--orange)">⚠️ لا معلمة مُسندة</span>
               {% endif %}
             </td>
 
@@ -1113,16 +1094,99 @@ body.display-mode .card-t { font-size: 18px; }
         </tbody>
       </table>
 
-      <!-- مفتاح التصنيفات -->
       <div style="padding:10px 16px;font-size:9px;color:var(--text3);border-top:1px solid var(--border);display:flex;gap:14px;flex-wrap:wrap;line-height:1.8">
-        <span>🌟 <strong>أثر استثنائي</strong> = تحسّن ≥ 10%</span>
-        <span>📈 <strong>نمو ملحوظ</strong> = تحسّن 1–9%</span>
-        <span>📊 <strong>أثر ثابت</strong> = لا فرق بين القبلي والبعدي</span>
-        <span>🔍 <strong>مسار تحت المراجعة</strong> = انخفاض في البعدي</span>
-        <span>✨ <strong>نتائج عالية</strong> = بعدي ≥ 70% (بدون قبلي)</span>
-        <span>⏳ <strong>بيانات غير كافية</strong> = أقل من 5 محاولات &nbsp;·&nbsp; <strong>بلا فصول مُسندة</strong> = حُسب من مهاراتها بدل فصولها</span>
+        <span>🌟 <strong>تحسّن استثنائي</strong> = +10% فأكثر</span>
+        <span>📈 <strong>تحسّن ملحوظ</strong> = +1 إلى +9%</span>
+        <span>🔍 <strong>يحتاج مراجعة</strong> = انخفاض في البعدي</span>
+        <span>⚖️ <strong>عيّنة صغيرة</strong> = أقل من 10 طالبات أدّين القبلي والبعدي — الرقم يظهر بلا حكم</span>
+        <span>🔗 <strong>لم تُقارن طالبة</strong> = لا توجد طالبة أدّت الاختبارين معاً</span>
       </div>
+      {% else %}
+      <div class="empty"><div class="empty-ico">🏫</div>لا توجد فصول بعد</div>
+      {% endif %}
+    </div>
+  </div>
 
+  <div class="section-title">👩‍🏫 سجل عمل المعلمات</div>
+  <div class="card">
+    <div class="card-h" style="flex-wrap:wrap;gap:8px">
+      <span class="card-t">🗂️ ما أنتجته كل معلمة ونشاطها على المنصة</span>
+      <span style="font-size:9px;color:var(--text3);display:flex;align-items:center;gap:4px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block"></span>أرقام تخصّ المعلمة وحدها — أثر التعلّم يخصّ الفصل في الجدول أعلاه
+      </span>
+    </div>
+    <div class="card-b" style="padding:0">
+      {% if teachers_work %}
+      <table class="tbl">
+        <thead><tr>
+          <th>المعلمة</th>
+          <th>المهارات</th>
+          <th>الاختبارات</th>
+          <th style="text-align:center">المحتوى</th>
+          <th>الحصص</th>
+          <th style="text-align:center">التصحيح اليدوي</th>
+          <th style="text-align:center">استخدام محتواها</th>
+        </tr></thead>
+        <tbody>
+          {% for t in teachers_work %}
+          <tr>
+            <td>
+              <div style="font-weight:700;font-size:12px;color:var(--text)">{{ t.name }}</div>
+              {% if t.classrooms %}
+              <div style="font-size:9px;color:var(--text3);margin-top:2px">🏫 {{ t.classrooms|join:"، " }}</div>
+              {% else %}
+              <div style="font-size:9px;color:var(--orange);margin-top:2px">⚠️ بلا فصول مُسندة</div>
+              {% endif %}
+            </td>
+
+            <td>
+              <span style="font-size:15px;font-weight:800;color:{% if t.skills %}var(--accent){% else %}var(--text3){% endif %}">{{ t.skills }}</span>
+              {% if t.skills %}<div style="font-size:9px;color:var(--text3);margin-top:2px">{{ t.skills_active }} مفعّلة</div>{% endif %}
+            </td>
+
+            <td>
+              <span style="font-size:15px;font-weight:800;color:{% if t.exams %}var(--accent){% else %}var(--text3){% endif %}">{{ t.exams }}</span>
+              {% if t.exams %}
+              <div style="display:flex;gap:3px;flex-wrap:wrap;margin-top:3px">
+                {% if t.exams_pre %}<span class="bd" style="background:rgba(245,158,11,0.1);color:var(--orange);font-size:8px">قبلي {{ t.exams_pre }}</span>{% endif %}
+                {% if t.exams_post %}<span class="bd" style="background:rgba(16,185,129,0.1);color:var(--green);font-size:8px">بعدي {{ t.exams_post }}</span>{% endif %}
+                {% if t.exams_lesson %}<span class="bd" style="background:rgba(99,102,241,0.1);color:var(--accent);font-size:8px">تدريبي {{ t.exams_lesson }}</span>{% endif %}
+              </div>
+              <div style="font-size:9px;color:var(--text3);margin-top:2px">{{ t.exams_active }} مفعّل</div>
+              {% endif %}
+            </td>
+
+            <td style="text-align:center">
+              {% if t.content %}
+                <span class="bd bd-b" style="font-size:10px;font-weight:700">📎 {{ t.content }}</span>
+              {% else %}
+                <span style="font-size:10px;color:var(--text3)">—</span>
+              {% endif %}
+            </td>
+
+            <td>
+              <span style="font-size:15px;font-weight:800;color:{% if t.sessions %}var(--green){% else %}var(--text3){% endif %}">{{ t.sessions }}</span>
+              {% if t.last_session %}<div style="font-size:9px;color:var(--text3);margin-top:2px">آخرها {{ t.last_session|date:"Y/m/d" }}</div>{% endif %}
+            </td>
+
+            <td style="text-align:center">
+              <span style="font-size:13px;font-weight:700;color:{% if t.corrections %}var(--text){% else %}var(--text3){% endif %}">{{ t.corrections }}</span>
+            </td>
+
+            <td style="text-align:center">
+              <span style="font-size:13px;font-weight:700;color:{% if t.usage %}var(--text){% else %}var(--text3){% endif %}">{{ t.usage }}</span>
+              {% if t.usage %}<div style="font-size:9px;color:var(--text3)">محاولة</div>{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div style="padding:10px 16px;font-size:9px;color:var(--text3);border-top:1px solid var(--border);display:flex;gap:14px;flex-wrap:wrap;line-height:1.8">
+        <span>📎 <strong>المحتوى</strong> = مهارات أرفقت لها شرحاً أو ملفاً أو فيديو</span>
+        <span><strong>التصحيح اليدوي</strong> = أوراق صحّحتها المعلمة بنفسها</span>
+        <span><strong>استخدام محتواها</strong> = محاولات الطالبات على اختباراتها — يقيس انتشار محتواها لا أثرها على طالباتها</span>
+      </div>
       {% else %}
       <div class="empty"><div class="empty-ico">👥</div>لا توجد معلمات بعد</div>
       {% endif %}
@@ -1543,9 +1607,9 @@ body.display-mode .card-t { font-size: 18px; }
 <script id="data-classrooms" type="application/json">{{ classrooms_json|safe }}</script>
 <script id="data-levels" type="application/json">{{ levels_json|safe }}</script>
 <script>
-window.__teachersImpactData = [
-  {% for t in teachers_impact %}
-  { name: "{{ t.name|escapejs }}", impact: {{ t.impact|default:0 }}, exams: {{ t.exams|default:0 }}, engagement: {{ t.engagement|default:0 }}, sessions: {{ t.sessions|default:0 }}, improvement: {{ t.improvement|default:"null" }}, pre_avg: {{ t.pre_avg|default:0 }}, post_avg: {{ t.post_avg|default:0 }} }{% if not forloop.last %},{% endif %}
+window.__classImpactData = [
+  {% for c in classrooms_impact %}
+  { name: "{{ c.name|escapejs }}", post_avg: {{ c.post_avg|unlocalize }}, pre_avg: {{ c.pre_avg|unlocalize }}, attempts: {{ c.attempts|unlocalize }}, students: {{ c.students|unlocalize }}, improvement: {% if c.improvement is None %}null{% else %}{{ c.improvement|unlocalize }}{% endif %}, paired: {{ c.paired_students|unlocalize }}, enough: {% if c.enough_sample %}true{% else %}false{% endif %} }{% if not forloop.last %},{% endif %}
   {% endfor %}
 ];
 </script>
@@ -1795,22 +1859,25 @@ function buildMatrixChart(){
   const ctx = document.getElementById('matrixChart');
   if (!ctx) return;
   if (charts.matrix) charts.matrix.destroy();
-  // teachers_impact يأتي من القالب — نلتقطه من DOM data-attr
-  const data = window.__teachersImpactData || [];
-  const points = data.map(t => ({
-    x: t.exams || 0,
-    y: t.impact || 0,
-    r: Math.max(6, Math.min(22, (t.engagement || 1) * 1.5)),
-    label: t.name,
+  // classrooms_impact يأتي من القالب — الفصل هو وحدة القياس
+  const data = (window.__classImpactData || []).filter(c => c.attempts > 0);
+  const points = data.map(c => ({
+    x: c.post_avg || 0,
+    y: c.improvement === null ? 0 : c.improvement,
+    r: Math.max(6, Math.min(22, (c.paired || 1) * 1.2)),
+    label: c.name,
+    enough: c.enough,
+    paired: c.paired,
+    noPair: c.improvement === null,
   }));
   charts.matrix = new Chart(ctx, {
     type: 'bubble',
     data: {
       datasets: [{
-        label: 'المعلمات',
+        label: 'الفصول',
         data: points,
-        backgroundColor: points.map(p => p.y >= 70 ? 'rgba(16,185,129,0.55)' : (p.y >= 50 ? 'rgba(245,158,11,0.55)' : 'rgba(239,68,68,0.55)')),
-        borderColor: points.map(p => p.y >= 70 ? c.green : (p.y >= 50 ? c.orange : c.red)),
+        backgroundColor: points.map(p => !p.enough ? 'rgba(148,163,184,0.45)' : (p.y > 0 ? 'rgba(16,185,129,0.55)' : (p.y === 0 ? 'rgba(245,158,11,0.55)' : 'rgba(239,68,68,0.55)'))),
+        borderColor: points.map(p => !p.enough ? c.text : (p.y > 0 ? c.green : (p.y === 0 ? c.orange : c.red))),
         borderWidth: 2,
       }]
     },
@@ -1818,11 +1885,13 @@ function buildMatrixChart(){
       maintainAspectRatio: false, responsive: true,
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: ctx => `${ctx.raw.label}: تأثير ${ctx.raw.y}% • ${ctx.raw.x} اختبارات` } }
+        tooltip: { callbacks: { label: ctx => ctx.raw.noPair
+            ? `${ctx.raw.label}: بعدي ${ctx.raw.x}% • لا مقارنة قبلية`
+            : `${ctx.raw.label}: بعدي ${ctx.raw.x}% • تحسّن ${ctx.raw.y}% • ${ctx.raw.paired} طالبة${ctx.raw.enough ? '' : ' (عيّنة صغيرة)'}` } }
       },
       scales: {
-        x: { title: { display:true, text:'عدد الاختبارات', color:c.text, font:{family:'Tajawal'} }, ticks:{color:c.text}, grid:{color:c.grid}, beginAtZero:true },
-        y: { title: { display:true, text:'الأثر %', color:c.text, font:{family:'Tajawal'} }, ticks:{color:c.text}, grid:{color:c.grid}, beginAtZero:true, max: 100 }
+        x: { title: { display:true, text:'مستوى البعدي %', color:c.text, font:{family:'Tajawal'} }, ticks:{color:c.text}, grid:{color:c.grid}, beginAtZero:true, max: 100 },
+        y: { title: { display:true, text:'التحسّن %', color:c.text, font:{family:'Tajawal'} }, ticks:{color:c.text}, grid:{color:c.grid} }
       }
     }
   });

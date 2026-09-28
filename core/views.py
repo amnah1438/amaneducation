@@ -22,7 +22,7 @@ from django.contrib import messages
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count, Q, Subquery, OuterRef, FloatField, IntegerField
+from django.db.models import Avg, Count, Q, Subquery, OuterRef, FloatField, IntegerField, Max
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -39,6 +39,7 @@ from teachers.models import (
     TeacherExam,
     TeacherQuestion,
     TeacherSkill,
+    TeacherSkillContent,
 )
 
 
@@ -609,144 +610,197 @@ def _v2_top_students(limit=10):
     return out
 
 
-def _v2_teachers_impact():
-    """
-    تحليل أثر المعلمات — الإسناد بفصول المعلمة، والتحسّن مقارنة مزدوجة.
-
-    الأساس:
-    - نتائج المعلمة = نتائج طالبات الفصول المُسندة لها (Teacher.classrooms).
-      · لو لم تُسند لها فصول → نرجع لمهاراتها (created_by) ونعلّم الصف
-        بـ attribution='skill' ليظهر تنبيه في اللوحة.
-    - التحسّن الفعلي = متوسط الفروق (بعدي − قبلي) لنفس الطالبة في نفس
-      المهارة. لا نطرح متوسطاً من متوسط، لأن من أدّت القبلي قد تختلف
-      عمّن أدّت البعدي فيخرج رقم مضلّل.
-    """
-    # ── ١) خريطة الطالبة → الفصل ────────────────────────────────
-    student_class_by_record = {}   # Student.id       → classroom_id
-    student_class_by_user = {}     # User.id (طالبة)  → classroom_id
+def _v2_result_rows():
+    """كل النتائج مرة واحدة + خريطة الطالبة → الفصل (تُستخدم في تحليلي الفصول والمعلمات)."""
+    by_record, by_user = {}, {}
     for sid, uid, cid in Student.objects.values_list('id', 'user_id', 'classroom_id'):
         if cid:
-            student_class_by_record[sid] = cid
+            by_record[sid] = cid
             if uid:
-                student_class_by_user[uid] = cid
+                by_user[uid] = cid
 
-    # ── ٢) كل النتائج دفعة واحدة ────────────────────────────────
     rows = list(
         ExamResult.objects
         .values('student_id', 'student_record_id', 'percentage',
                 'exam__exam_type', 'exam__skill_id', 'exam__skill__created_by_id')
     )
-
-    by_classroom = {}   # classroom_id      → [rows]
-    by_creator = {}     # teacher_id        → [rows]
     for r in rows:
-        cid = (student_class_by_record.get(r['student_record_id'])
-               or student_class_by_user.get(r['student_id']))
-        r['_classroom'] = cid
+        r['_classroom'] = (by_record.get(r['student_record_id'])
+                           or by_user.get(r['student_id']))
+    return rows
+
+
+def _v2_paired_improvement(subset):
+    """متوسط (بعدي − قبلي) لنفس الطالبة في نفس المهارة — لا متوسط ناقص متوسط."""
+    pre_map, post_map = {}, {}
+    for r in subset:
+        key = (r['student_id'] or f"rec{r['student_record_id']}", r['exam__skill_id'])
+        pct = float(r['percentage'] or 0)
+        if r['exam__exam_type'] == 'pre':
+            pre_map.setdefault(key, []).append(pct)
+        elif r['exam__exam_type'] == 'post':
+            post_map.setdefault(key, []).append(pct)
+    deltas, students = [], set()
+    for key, pres in pre_map.items():
+        posts = post_map.get(key)
+        if not posts:
+            continue
+        deltas.append(sum(posts) / len(posts) - sum(pres) / len(pres))
+        students.add(key[0])
+    if not deltas:
+        return None, 0
+    return round(sum(deltas) / len(deltas), 1), len(students)
+
+
+def _v2_avg(subset, exam_type=None):
+    vals = [float(r['percentage'] or 0) for r in subset
+            if exam_type is None or r['exam__exam_type'] == exam_type]
+    return round(sum(vals) / len(vals), 1) if vals else 0.0
+
+
+# الحد الأدنى لعيّنة يُبنى عليها حكم
+MIN_PAIRED = 10
+
+
+def _v2_classrooms_impact():
+    """
+    أثر التعلّم لكل فصل — الفصل هو وحدة القياس لا المعلمة.
+
+    السبب: معلمتان تشتركان في فصل واحد تُدرّسان الطالبات أنفسهن، فلا تفرّق
+    البيانات بين أثر إحداهما وأثر الأخرى. نقيس ما نعرفه: تحسّن الفصل،
+    ونُظهر معلماته بأسمائهن.
+    """
+    rows = _v2_result_rows()
+    by_class = {}
+    for r in rows:
+        if r['_classroom']:
+            by_class.setdefault(r['_classroom'], []).append(r)
+
+    counts = {}
+    for cid, n in (Student.objects.values_list('classroom_id')
+                   .annotate(n=Count('id')).values_list('classroom_id', 'n')):
         if cid:
-            by_classroom.setdefault(cid, []).append(r)
-        creator = r['exam__skill__created_by_id']
-        if creator:
-            by_creator.setdefault(creator, []).append(r)
+            counts[cid] = n
 
-    def _paired_improvement(subset):
-        """متوسط (بعدي − قبلي) لنفس الطالبة في نفس المهارة."""
-        pre_map, post_map = {}, {}
-        for r in subset:
-            key = (r['student_id'] or f"rec{r['student_record_id']}", r['exam__skill_id'])
-            pct = float(r['percentage'] or 0)
-            if r['exam__exam_type'] == 'pre':
-                pre_map.setdefault(key, []).append(pct)
-            elif r['exam__exam_type'] == 'post':
-                post_map.setdefault(key, []).append(pct)
-        deltas, students = [], set()
-        for key, pres in pre_map.items():
-            posts = post_map.get(key)
-            if not posts:
-                continue
-            deltas.append(sum(posts) / len(posts) - sum(pres) / len(pres))
-            students.add(key[0])
-        if not deltas:
-            return None, 0
-        return round(sum(deltas) / len(deltas), 1), len(students)
+    teachers_of = {}
+    for t in Teacher.objects.prefetch_related('classrooms'):
+        for c in t.classrooms.all():
+            teachers_of.setdefault(c.id, []).append(t.full_name)
 
-    def _avg(subset, exam_type=None):
-        vals = [float(r['percentage'] or 0) for r in subset
-                if exam_type is None or r['exam__exam_type'] == exam_type]
-        return round(sum(vals) / len(vals), 1) if vals else 0.0
+    out = []
+    for c in ClassRoom.objects.all().order_by('name'):
+        subset = by_class.get(c.id, [])
+        improvement, paired = _v2_paired_improvement(subset)
+        post = _v2_avg(subset, 'post')
+        pre = _v2_avg(subset, 'pre')
+        avg = _v2_avg(subset)
+
+        if not subset:
+            tier = 'no_data'                 # 📭 لا نتائج بعد
+        elif paired == 0:
+            tier = 'no_pairs'                # 🔗 لا طالبة أدّت القبلي والبعدي
+        elif paired < MIN_PAIRED:
+            tier = 'small_sample'            # ⚖️ عيّنة صغيرة — لا حكم
+        elif improvement >= 10:
+            tier = 'exceptional'             # 🌟 تحسّن استثنائي
+        elif improvement > 0:
+            tier = 'growing'                 # 📈 تحسّن ملحوظ
+        elif improvement == 0:
+            tier = 'stable'                  # 📊 ثابت
+        else:
+            tier = 'review'                  # 🔍 يحتاج مراجعة
+
+        out.append({
+            'id': c.id,
+            'name': c.name,
+            'students': counts.get(c.id, 0),
+            'attempts': len(subset),
+            'pre_avg': pre,
+            'post_avg': post,
+            'avg': avg,
+            'improvement': improvement,
+            'paired_students': paired,
+            'enough_sample': paired >= MIN_PAIRED,
+            'teachers': teachers_of.get(c.id, []),
+            'tier': tier,
+        })
+
+    out.sort(key=lambda x: (x['improvement'] is None, -(x['improvement'] or 0)))
+    return out
+
+
+def _v2_teachers_work():
+    """
+    سجل عمل المعلمة — أرقام تخصّها وحدها ولا تشاركها فيها زميلاتها.
+
+    لا يحتوي «مؤشر أثر»: الأثر يخصّ الفصل (انظري _v2_classrooms_impact)، لأن
+    البيانات لا تنسب درجة الطالبة لمعلمة بعينها حين يشترك أكثر من معلمة في فصلها.
+    """
+    rows = _v2_result_rows()
+    usage = {}
+    for r in rows:
+        cb = r['exam__skill__created_by_id']
+        if cb:
+            usage[cb] = usage.get(cb, 0) + 1
+
+    corrections = dict(
+        ExamResult.objects.filter(corrected_by__isnull=False)
+        .values_list('corrected_by')
+        .annotate(n=Count('id'))
+        .values_list('corrected_by', 'n')
+    )
+
+    # الاختبارات حسب النوع لكل معلمة
+    exam_types = {}
+    for cb, et, n in (TeacherExam.objects
+                      .values_list('skill__created_by_id', 'exam_type')
+                      .annotate(n=Count('id'))
+                      .values_list('skill__created_by_id', 'exam_type', 'n')):
+        if cb:
+            exam_types.setdefault(cb, {})[et] = n
+
+    content_counts = dict(
+        TeacherSkillContent.objects
+        .values_list('skill__created_by_id')
+        .annotate(n=Count('id'))
+        .values_list('skill__created_by_id', 'n')
+    )
 
     out = []
     for t in (Teacher.objects.select_related('user')
               .prefetch_related('classrooms')
               .annotate(
-                  sessions_count=Count('sessions', distinct=True),
-                  skills_count=Count('teacher_skills', distinct=True),
-                  exams_count=Count('teacher_skills__exams', distinct=True),
+                  skills_total=Count('teacher_skills', distinct=True),
+                  skills_active=Count('teacher_skills',
+                                      filter=Q(teacher_skills__is_active=True), distinct=True),
+                  exams_total=Count('teacher_skills__exams', distinct=True),
+                  exams_active=Count('teacher_skills__exams',
+                                     filter=Q(teacher_skills__exams__is_active=True), distinct=True),
+                  sessions_total=Count('sessions', distinct=True),
+                  last_session=Max('sessions__session_date'),
+                  last_skill=Max('teacher_skills__created_at'),
               )):
-        # ── الإسناد ────────────────────────────────────────────
-        class_ids = [c.id for c in t.classrooms.all()]
-        if class_ids:
-            attribution = 'classroom'
-            subset = [r for cid in class_ids for r in by_classroom.get(cid, [])]
-            scope = '، '.join(c.name for c in t.classrooms.all())
-        else:
-            attribution = 'skill'
-            subset = by_creator.get(t.id, [])
-            scope = 'مهاراتها (لم تُسند لها فصول)'
-
-        engagement_val = len(subset)
-        insufficient_data = engagement_val < 5
-
-        pre = _avg(subset, 'pre')
-        post = _avg(subset, 'post')
-        avg = _avg(subset)
-
-        improvement, paired_students = _paired_improvement(subset)
-        has_improvement = improvement is not None
-
-        impact = round(post, 1) if post > 0 else round(avg, 1)
-
-        # ── تصنيف الأثر التعليمي (وصفي لا حكمي) ──────────────────
-        if insufficient_data:
-            tier = 'collecting'          # بيانات غير كافية بعد
-        elif has_improvement:
-            if improvement >= 10:
-                tier = 'exceptional'     # 🌟 أثر استثنائي
-            elif improvement > 0:
-                tier = 'growing'         # 📈 نمو ملحوظ
-            elif improvement == 0:
-                tier = 'stable'          # 📊 أثر ثابت
-            else:
-                tier = 'review'          # 🔍 مسار تحت المراجعة
-        elif impact >= 70:
-            tier = 'high'                # ✨ نتائج عالية
-        elif impact >= 50:
-            tier = 'moderate'            # 💡 أداء إيجابي
-        elif impact > 0:
-            tier = 'early'               # 🔬 في طور التقييم
-        else:
-            tier = 'no_data'             # 📭 لا بيانات
-
+        et = exam_types.get(t.id, {})
         out.append({
-            'id':               t.id,
-            'name':             t.full_name,
-            'sessions':         int(t.sessions_count or 0),
-            'skills':           int(t.skills_count or 0),
-            'exams':            int(t.exams_count or 0),
-            'engagement':       engagement_val,
-            'impact':           impact,
-            'pre_avg':          pre,
-            'post_avg':         post,
-            'improvement':      improvement,
-            'has_improvement':  has_improvement,
-            'paired_students':  paired_students,
-            'attribution':      attribution,
-            'scope':            scope,
-            'insufficient_data': insufficient_data,
-            'tier':             tier,
+            'id': t.id,
+            'name': t.full_name,
+            'classrooms': [c.name for c in t.classrooms.all()],
+            'skills': int(t.skills_total or 0),
+            'skills_active': int(t.skills_active or 0),
+            'exams': int(t.exams_total or 0),
+            'exams_active': int(t.exams_active or 0),
+            'exams_pre': int(et.get('pre', 0)),
+            'exams_post': int(et.get('post', 0)),
+            'exams_lesson': int(sum(v for k, v in et.items() if k not in ('pre', 'post'))),
+            'content': int(content_counts.get(t.id, 0)),
+            'sessions': int(t.sessions_total or 0),
+            'last_session': t.last_session,
+            'corrections': int(corrections.get(t.id, 0)),
+            'usage': int(usage.get(t.id, 0)),
+            'last_activity': t.last_skill,
         })
 
-    out.sort(key=lambda x: -(x['improvement'] if x['improvement'] is not None else x['impact']))
+    out.sort(key=lambda x: -(x['skills'] * 10 + x['exams'] * 5 + x['sessions']))
     return out
 
 
@@ -775,7 +829,7 @@ def _v2_active_exams_inline():
     return out
 
 
-def _v2_smart_alerts(kpis, level_dist, teachers_impact, top_students):
+def _v2_smart_alerts(kpis, level_dist, classrooms_impact, top_students):
     """تنبيهات ذكية + استنتاجات + توصيات."""
     alerts = []
 
@@ -814,18 +868,31 @@ def _v2_smart_alerts(kpis, level_dist, teachers_impact, top_students):
             'msg': 'فعّلي خطة دعم فردية أو حصصاً علاجية لهؤلاء الطالبات.',
         })
 
-    # 4) معلمة تحتاج دعم
-    if teachers_impact:
-        worst = min((t for t in teachers_impact if t['impact'] > 0),
-                    key=lambda t: t['impact'], default=None)
-        best = max(teachers_impact, key=lambda t: t['impact'], default=None)
-        if worst and best and best['impact'] - worst['impact'] >= 20:
+    # 4) فصل يحتاج دعم — المقارنة بين الفصول ذات العيّنة الكافية فقط
+    solid = [c for c in (classrooms_impact or []) if c['enough_sample']]
+    if len(solid) >= 2:
+        best = max(solid, key=lambda c: c['improvement'])
+        worst = min(solid, key=lambda c: c['improvement'])
+        if best['improvement'] - worst['improvement'] >= 10:
+            names = '، '.join(worst['teachers']) or 'معلماته'
             alerts.append({
                 'level': 'info',
-                'icon': '👩‍🏫',
-                'title': f"{best['name']} الأعلى تأثيراً ({best['impact']}%) • {worst['name']} الأقل ({worst['impact']}%)",
-                'msg': f'يمكن لـ {best["name"]} مشاركة خبرتها مع {worst["name"]} لدعم الأداء.',
+                'icon': '🏫',
+                'title': f"فصل {best['name']} الأعلى تحسّناً (+{best['improvement']}%) • فصل {worst['name']} الأقل ({worst['improvement']}%)",
+                'msg': f'يُنصح بمراجعة خطة فصل {worst["name"]} مع {names}، والاستفادة مما نجح في {best["name"]}.',
             })
+
+    # 4ب) فصول بلا مقارنة قبلية/بعدية
+    blind = [c['name'] for c in (classrooms_impact or [])
+             if c['tier'] in ('no_pairs', 'small_sample')]
+    if blind:
+        alerts.append({
+            'level': 'warning',
+            'icon': '🔗',
+            'title': f"{len(blind)} فصل لا يمكن قياس تحسّنه — العيّنة غير كافية",
+            'msg': 'الفصول: ' + '، '.join(blind[:6]) + ('...' if len(blind) > 6 else '')
+                   + ' — فعّلي الاختبار القبلي والبعدي لنفس الطالبات ليظهر أثر التعلّم.',
+        })
 
     # 5) تشجيع الطالبات المتفوقات
     if top_students and top_students[0]['avg'] >= 90:
@@ -976,11 +1043,12 @@ def admin_v2_dashboard(request):
     classroom_cmp = _v2_classroom_compare()
     level_dist = _v2_level_distribution()
     top_students = _v2_top_students(limit=10)
-    teachers_impact = _v2_teachers_impact()
+    teachers_work = _v2_teachers_work()
+    classrooms_impact = _v2_classrooms_impact()
     hardest_skills = _v2_hardest_skills(limit=10)
     students_support = _v2_students_support(limit=50)
     active_exams = _v2_active_exams_inline()
-    alerts = _v2_smart_alerts(kpis, level_dist, teachers_impact, top_students)
+    alerts = _v2_smart_alerts(kpis, level_dist, classrooms_impact, top_students)
     decisions = _v2_decisions(kpis, level_dist, alerts)
     predictions = _v2_predictions()
 
@@ -1057,7 +1125,8 @@ def admin_v2_dashboard(request):
         'classrooms_json': _to_json(classroom_cmp),
         'levels_json': _to_json(level_dist),
         'top_students': top_students,
-        'teachers_impact': teachers_impact,
+        'teachers_work': teachers_work,
+        'classrooms_impact': classrooms_impact,
         'hardest_skills': hardest_skills,
         'students_support': students_support,
         'active_exams': active_exams,
@@ -1119,7 +1188,8 @@ def admin_v2_data_json(request):
         'classrooms': _v2_classroom_compare(),
         'levels': _v2_level_distribution(),
         'top_students': _v2_top_students(),
-        'teachers_impact': _v2_teachers_impact(),
+        'teachers_work': _v2_teachers_work(),
+        'classrooms_impact': _v2_classrooms_impact(),
         'predictions': _v2_predictions(),
     })
 
@@ -1517,7 +1587,8 @@ def _admin_report_inner(request):
             'passed': all_results.filter(passed=True).count(),
             'classrooms_perf': _v2_classroom_compare(),
             'top_students': _v2_top_students(limit=10),
-            'teachers_impact': _v2_teachers_impact(),
+            'teachers_work': _v2_teachers_work(),
+        'classrooms_impact': _v2_classrooms_impact(),
             'levels': _v2_level_distribution(),
         })
 
