@@ -1501,6 +1501,8 @@ def _admin_report_inner(request):
             profile = None
         ctx.update({
             'student': user, 'profile': profile,
+            'weak_skills': [r['name'] for r in skills if r['pct'] < 70][:6],
+            'strong_skills': [r['name'] for r in skills if r['pct'] >= 70][:6],
             'results': qs.order_by('-submitted_at'),
             'avg': round(qs.aggregate(a=Avg('percentage'))['a'] or 0, 1),
             'attempts': qs.count(),
@@ -1588,11 +1590,36 @@ def _admin_report_inner(request):
             'classrooms_perf': _v2_classroom_compare(),
             'top_students': _v2_top_students(limit=10),
             'teachers_work': _v2_teachers_work(),
-        'classrooms_impact': _v2_classrooms_impact(),
+            'classrooms_impact': _v2_classrooms_impact(),
             'levels': _v2_level_distribution(),
         })
 
+    ctx['ref_code'] = _report_ref_code(kind, target_id)
+    ctx['qr_data_uri'] = _report_qr(request)
     return render(request, 'core/report.html', ctx)
+
+
+def _report_ref_code(kind, target_id):
+    """رقم مرجعي ثابت للتقرير — يسهّل الأرشفة والرجوع."""
+    prefix = {'student': 'ST', 'classroom': 'CL', 'teacher': 'TR'}.get(kind, 'SC')
+    stamp = timezone.localtime().strftime('%Y%m%d')
+    tail = ''.join(ch for ch in str(target_id) if ch.isdigit())[-4:] or '0000'
+    return f"{prefix}-{stamp}-{tail.zfill(4)}"
+
+
+def _report_qr(request):
+    """رمز QR يفتح التقرير رقمياً — يُولَّد محلياً بلا أي خدمة خارجية."""
+    try:
+        import base64
+        import io as _io
+        import qrcode
+        img = qrcode.make(request.build_absolute_uri(), box_size=4, border=1)
+        buf = _io.BytesIO()
+        img.save(buf, format='PNG')
+        return 'data:image/png;base64,' + base64.b64encode(buf.getvalue()).decode()
+    except Exception:
+        # حزمة qrcode غير متاحة — التقرير يُطبع بلا رمز ولا يتعطّل
+        return ''
 
 
 # ─── إدارة المستخدمين ─────────────────────────────────────────

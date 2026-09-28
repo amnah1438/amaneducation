@@ -70,6 +70,41 @@ body {
   border-top: 1px solid var(--border2); padding-top: 5px;
 }
 
+/* ── رمز QR ── */
+.qr-box {
+  float: left; margin: 0 0 8px 0; text-align: center;
+  border: 1px solid var(--border2); border-radius: 8px; padding: 6px 8px;
+}
+.qr-box img { width: 68px; height: 68px; display: block; }
+.qr-cap { font-size: 7px; color: var(--ink3); margin-top: 3px; line-height: 1.5; }
+
+/* ── ملاحظات مكتوبة بخط اليد ── */
+.notes-box {
+  border: 1px solid var(--border2); border-radius: 8px;
+  padding: 10px 12px 14px; margin-top: 14px;
+}
+.notes-title { font-size: 11px; font-weight: 800; color: var(--ink2); margin-bottom: 8px; }
+.notes-line { border-bottom: 1px dotted var(--border2); height: 22px; }
+
+/* ── توصيات الأسرة ── */
+.family-box {
+  border: 1px solid var(--green); border-radius: 8px;
+  padding: 12px 14px; margin-top: 14px; background: rgba(31,122,99,0.04);
+}
+.family-title { font-size: 12px; font-weight: 800; color: var(--green); margin-bottom: 7px; }
+.family-body { font-size: 11px; line-height: 2; color: var(--ink); }
+.family-body ul { margin: 6px 0 0; padding-inline-start: 18px; }
+
+/* ── اعتماد وتوقيع ── */
+.approve-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px; margin-top: 22px; text-align: center;
+}
+.approve-cell { padding-top: 6px; }
+.approve-role { font-size: 10px; font-weight: 800; color: var(--ink2); margin-bottom: 30px; }
+.approve-name { font-size: 10px; color: var(--ink); min-height: 14px; }
+.approve-line { border-top: 1px solid var(--ink3); margin: 0 10px; padding-top: 4px; font-size: 9px; color: var(--ink3); }
+
 /* ── عنوان التقرير ── */
 .report-title-bar {
   background: var(--green);
@@ -228,7 +263,7 @@ body {
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   .dibajah { break-inside: avoid; }
   table { break-inside: auto; }
-  tr, .kpi, .card { break-inside: avoid; }
+  tr, .kpi, .card, .notes-box, .family-box, .approve-row, .qr-box { break-inside: avoid; }
   thead { display: table-header-group; }
 }
 </style>
@@ -284,8 +319,18 @@ body {
     {% elif kind == 'teacher' %}تقرير أداء المعلمة
     {% else %}التقرير الشامل للمدرسة{% endif %}
   </h1>
-  <div class="sub">📅 {% now "j / n / Y" %} &nbsp;|&nbsp; 🕐 {% now "H:i" %}</div>
+  <div class="sub">
+    📅 <span id="hijriDate">—</span> هـ &nbsp;|&nbsp; {% now "j / n / Y" %} م &nbsp;|&nbsp; 🕐 {% now "H:i" %}
+    {% if ref_code %}&nbsp;|&nbsp; 🔖 رقم التقرير: <span style="direction:ltr;display:inline-block">{{ ref_code }}</span>{% endif %}
+  </div>
 </div>
+
+{% if qr_data_uri %}
+<div class="qr-box">
+  <img src="{{ qr_data_uri }}" alt="رمز التقرير">
+  <div class="qr-cap">امسحي الرمز<br>لفتح التقرير</div>
+</div>
+{% endif %}
 
 <!-- ═══ خطأ ═══ -->
 {% if error %}
@@ -363,6 +408,43 @@ body {
     </div>
     {% endfor %}
   </div>
+</div>
+{% endif %}
+
+{% if audience == 'parent' %}
+<div class="family-box">
+  <div class="family-title">👨‍👩‍👧 توصيات للأسرة</div>
+  <div class="family-body">
+    {% if avg >= 75 %}
+      ابنتكم تسير في مسار متميّز — متوسطها {{ avg }}% من {{ attempts }} اختباراً.
+      <ul>
+        <li>شجّعوها على الاستمرار، والثناء على الجهد لا الدرجة وحدها.</li>
+        <li>وجّهوها لمهارات إثرائية أعلى حتى لا يتراجع حماسها.</li>
+        {% if weak_skills %}<li>تحتاج تثبيتاً بسيطاً في: {{ weak_skills|join:"، " }}.</li>{% endif %}
+      </ul>
+    {% elif avg >= 50 %}
+      ابنتكم في مستوى متوسط — متوسطها {{ avg }}% من {{ attempts }} اختباراً، ولديها قدرة واضحة على التحسّن.
+      <ul>
+        {% if weak_skills %}<li>المهارات التي تحتاج دعماً: {{ weak_skills|join:"، " }}.</li>{% endif %}
+        <li>خصّصوا لها وقتاً ثابتاً يومياً للمراجعة — خمس عشرة دقيقة منتظمة أنفع من ساعتين متقطعتين.</li>
+        <li>تابعوا حلّها للاختبارات التدريبية على المنصة.</li>
+      </ul>
+    {% else %}
+      ابنتكم تحتاج دعماً قريباً — متوسطها {{ avg }}% من {{ attempts }} اختباراً.
+      <ul>
+        {% if weak_skills %}<li>نبدأ من الأساس: {{ weak_skills|join:"، " }}.</li>{% endif %}
+        <li>نرجو التواصل مع معلمة المادة لوضع خطة دعم فردية.</li>
+        <li>الانتظام في حضور الحصص وحلّ الاختبارات العلاجية هو أسرع طريق للتحسّن.</li>
+      </ul>
+    {% endif %}
+    {% if strong_skills %}<div style="margin-top:6px">✅ أتقنت: {{ strong_skills|join:"، " }}.</div>{% endif %}
+  </div>
+</div>
+
+<div class="notes-box">
+  <div class="notes-title">✍️ ملاحظات معلمة المادة</div>
+  <div class="notes-line"></div>
+  <div class="notes-line"></div>
 </div>
 {% endif %}
 
@@ -620,16 +702,59 @@ body {
 
 {% endif %}
 
+{% if not error and audience != 'parent' %}
+<div class="notes-box">
+  <div class="notes-title">✍️ ملاحظات وتوصيات</div>
+  <div class="notes-line"></div>
+  <div class="notes-line"></div>
+</div>
+{% endif %}
+
+{% if not error %}
+<!-- ═══ الاعتماد ═══ -->
+<div class="approve-row">
+  <div class="approve-cell">
+    <div class="approve-role">معلمة المادة</div>
+    <div class="approve-name">{% if kind == 'teacher' and teacher %}{{ teacher.full_name }}{% endif %}</div>
+    <div class="approve-line">التوقيع</div>
+  </div>
+  <div class="approve-cell">
+    <div class="approve-role">الختم الرسمي</div>
+    <div class="approve-name"></div>
+    <div class="approve-line">ختم المدرسة</div>
+  </div>
+  <div class="approve-cell">
+    <div class="approve-role">مديرة المدرسة</div>
+    <div class="approve-name">{% if settings and settings.principal_name %}{{ settings.principal_name }}{% endif %}</div>
+    <div class="approve-line">التوقيع</div>
+  </div>
+</div>
+{% endif %}
+
 <!-- ═══ تذييل ═══ -->
 <div class="footer">
   <div>{% if settings %}{{ settings.platform_name }}{% else %}منصة آمنة{% endif %} · نظام إدارة الأداء الأكاديمي</div>
   <div class="footer-center">
     {% if settings and settings.principal_name %}المديرة: {{ settings.principal_name }}{% endif %}
   </div>
-  <div>{% now "Y/m/d" %} — سري وخاص بالمدرسة</div>
+  <div>{% if ref_code %}<span style="direction:ltr;display:inline-block">{{ ref_code }}</span> · {% endif %}{% now "Y/m/d" %} — سري وخاص بالمدرسة</div>
 </div>
 
 </div><!-- /page-inner -->
+
+<script>
+// التاريخ الهجري (تقويم أم القرى من المتصفح — بلا أي حزمة خارجية)
+(function(){
+  var el = document.getElementById('hijriDate');
+  if (!el) return;
+  try {
+    el.textContent = new Date().toLocaleDateString('ar-SA-u-ca-islamic-umalqura',
+      { day: 'numeric', month: 'long', year: 'numeric' }).replace(/\s*هـ\s*$/, '');
+  } catch (e) {
+    el.parentNode.removeChild(el);
+  }
+})();
+</script>
 </div><!-- /page -->
 </body>
 </html>
