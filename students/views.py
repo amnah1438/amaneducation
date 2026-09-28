@@ -246,11 +246,7 @@ def student_dashboard(request):
         student=request.user
     ).values_list('exam_id', flat=True)
 
-    # اختبارات لها تعيينات محددة (علاجية) — لا تظهر للكل
     from .models import RemedialExamAssignment
-    restricted_exam_ids = set(
-        RemedialExamAssignment.objects.values_list('exam_id', flat=True).distinct()
-    )
     # اختبارات معيّنة لهذه الطالبة تحديداً
     my_student = _student_for(request.user)
     my_assigned_ids = set(
@@ -268,8 +264,13 @@ def student_dashboard(request):
         .filter(is_active=True)
         .filter(classroom_q)
         .filter(
-            Q(id__in=my_assigned_ids) |  # علاجية مُعيَّنة: تظهر حتى لو أُدّيت
-            (~Q(id__in=restricted_exam_ids) & ~Q(id__in=done_exam_ids))  # عادية: غير مكتملة وغير محجوبة
+            # علاجي مُعيَّن لها: يظهر حتى لو سبق أن أدّته
+            Q(id__in=my_assigned_ids)
+            # أو اختبار مفعّل لفصلها لم تؤدّه بعد.
+            # ملاحظة: كان هنا شرط يحجب أي اختبار عُيّن علاجياً لأي طالبة عن
+            # الجميع، فتختفي اختبارات الفصل عن كل من لم تؤدّها. أُزيل الشرط
+            # لأن خصوصية العلاجي مكفولة أصلاً بأنه يظهر لصاحبته وحدها فوق ذلك.
+            | ~Q(id__in=done_exam_ids)
         )
         .select_related('skill')
         .distinct()
