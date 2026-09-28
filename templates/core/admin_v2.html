@@ -1136,7 +1136,12 @@ body.display-mode .card-t { font-size: 18px; }
     <div class="card-h" style="flex-wrap:wrap;gap:8px">
       <span class="card-t">📋 قائمة الطالبات اللواتي لم يدخلن المنصة</span>
       <div style="display:flex;align-items:center;gap:8px">
-        <span class="bd bd-r" style="font-size:11px;font-weight:700">{{ never_logged|length }} طالبة</span>
+        <select id="nlClassFilter" class="fi" style="padding:4px 8px;font-size:10px;min-width:110px" onchange="filterNeverLogged()">
+          <option value="">🏫 كل الفصول</option>
+          {% for c in classrooms %}<option value="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+        </select>
+        <span class="bd bd-r" id="nlCount" style="font-size:11px;font-weight:700">{{ never_logged|length }} طالبة</span>
+        <button class="btn btn-primary" style="padding:4px 10px;font-size:10px" onclick="printNeverLogged()">🖨️ طباعة كشف المتابعة</button>
         <span style="font-size:9px;color:var(--text3)">بدون دخول = لا حساب أو حساب لم يُستخدم</span>
       </div>
     </div>
@@ -1148,10 +1153,10 @@ body.display-mode .card-t { font-size: 18px; }
           <th>الفصل</th>
           <th>الحساب</th>
         </tr></thead>
-        <tbody>
+        <tbody id="nlBody">
           {% for s in never_logged %}
-          <tr>
-            <td style="color:var(--text3);font-size:10px">{{ forloop.counter }}</td>
+          <tr data-classroom="{{ s.classroom }}" data-name="{{ s.name }}" data-account="{% if s.has_account %}حساب موجود — لم تدخل{% else %}لا يوجد حساب{% endif %}">
+            <td class="nl-num" style="color:var(--text3);font-size:10px">{{ forloop.counter }}</td>
             <td style="font-weight:700">{{ s.name }}</td>
             <td>
               <span class="bd" style="background:rgba(99,102,241,0.1);color:var(--accent);font-size:9px">{{ s.classroom }}</span>
@@ -1968,6 +1973,84 @@ function renderAnalytics(d){
 }
 
 // ─── Reports ────────────────────────────────────────────────
+
+// ── كشف الطالبات اللواتي لم يسجلن الدخول: فلترة + طباعة ──────────
+function nlRows(){
+  const body = document.getElementById('nlBody');
+  return body ? Array.from(body.querySelectorAll('tr')) : [];
+}
+
+function filterNeverLogged(){
+  const sel = document.getElementById('nlClassFilter');
+  if (!sel) return;
+  const want = sel.value;
+  let shown = 0;
+  nlRows().forEach(tr => {
+    const ok = !want || tr.dataset.classroom === want;
+    tr.style.display = ok ? '' : 'none';
+    if (ok){ shown++; const n = tr.querySelector('.nl-num'); if (n) n.textContent = shown; }
+  });
+  const c = document.getElementById('nlCount');
+  if (c) c.textContent = shown + ' طالبة' + (want ? ' في ' + want : '');
+}
+
+function printNeverLogged(){
+  const sel = document.getElementById('nlClassFilter');
+  const want = sel ? sel.value : '';
+  const rows = nlRows().filter(tr => !want || tr.dataset.classroom === want);
+  if (!rows.length){ alert('لا توجد طالبات في هذا الفصل'); return; }
+
+  const esc = t => String(t == null ? '' : t)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const today = new Date().toLocaleDateString('ar-SA-u-ca-islamic', {day:'numeric', month:'long', year:'numeric'});
+  const scope = want ? ('فصل ' + want) : 'جميع الفصول';
+
+  let trs = '';
+  rows.forEach((tr, i) => {
+    trs += '<tr><td class="n">' + (i+1) + '</td><td class="nm">' + esc(tr.dataset.name) + '</td><td>'
+         + esc(tr.dataset.classroom) + '</td><td>' + esc(tr.dataset.account)
+         + '</td><td></td><td></td></tr>';
+  });
+
+  const html = '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8">'
+    + '<title>كشف متابعة دخول الطالبات</title><style>'
+    + '@page{size:A4;margin:14mm}'
+    + '*{box-sizing:border-box}'
+    + 'body{font-family:"Tajawal","Segoe UI",Arial,sans-serif;color:#0f172a;margin:0;padding:10px}'
+    + '@media print{body{padding:0}}'
+    + 'h1{font-size:19px;margin:0 0 2px}'
+    + '.sub{font-size:12px;color:#475569;margin-bottom:2px}'
+    + '.hd{border-bottom:2px solid #0a8c5f;padding-bottom:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end}'
+    + '.meta{font-size:11px;color:#475569;text-align:left;line-height:1.9}'
+    + '.meta b{color:#0a5c3d}'
+    + 'table{width:100%;border-collapse:collapse;font-size:12px}'
+    + 'th{background:#e8f5f0;color:#0a5c3d;border:1px solid #cbd5e1;padding:7px 6px;font-weight:700}'
+    + 'td{border:1px solid #cbd5e1;padding:6px;height:26px}'
+    + 'tr:nth-child(even) td{background:#f8fafc}'
+    + '.n{width:34px;text-align:center;color:#64748b}'
+    + '.nm{font-weight:700}'
+    + 'th.f{width:78px}th.s{width:120px}'
+    + '.ft{margin-top:16px;font-size:11px;color:#475569;display:flex;justify-content:space-between}'
+    + '@media print{.noprint{display:none}}'
+    + '.noprint{margin-bottom:12px;text-align:center}'
+    + '.noprint button{font-family:inherit;font-size:14px;padding:8px 22px;border:0;border-radius:8px;background:#0a8c5f;color:#fff;font-weight:700;cursor:pointer}'
+    + '</style></head><body>'
+    + '<div class="noprint"><button onclick="window.print()">🖨️ اطبعي الكشف</button></div>'
+    + '<div class="hd"><div><h1>كشف متابعة دخول الطالبات للمنصة</h1>'
+    + '<div class="sub">الطالبات اللواتي لم يسجّلن الدخول بعد — ' + esc(scope) + '</div></div>'
+    + '<div class="meta">العدد: <b>' + rows.length + '</b> طالبة<br>التاريخ: <b>' + esc(today) + '</b></div></div>'
+    + '<table><thead><tr><th class="n">#</th><th>اسم الطالبة</th><th class="f">الفصل</th>'
+    + '<th class="s">حالة الحساب</th><th class="s">تاريخ المتابعة</th><th class="s">ملاحظات</th>'
+    + '</tr></thead><tbody>' + trs + '</tbody></table>'
+    + '<div class="ft"><span>منصة بقدراتنا نحلم ونحقق</span><span>توقيع المتابِعة: ..............................</span></div>'
+    + '</body></html>';
+
+  const w = window.open('', '_blank');
+  if (!w){ alert('المتصفح منع فتح نافذة الطباعة — اسمحي بالنوافذ المنبثقة ثم أعيدي المحاولة'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
 function openReport(kind, audience='admin'){
   const params = new URLSearchParams();
   params.set('kind', kind);
