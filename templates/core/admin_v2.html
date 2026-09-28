@@ -488,31 +488,41 @@ body.display-mode .card-t { font-size: 18px; }
   </div>
 
   <!-- ═══════════ KPI CARDS ═══════════ -->
-  <div class="section-title">📊 مؤشرات الأداء الرئيسية</div>
+  <div class="section-title">📊 مؤشرات الأداء الرئيسية <span id="scopeBadge" style="font-size:10px;font-weight:700;color:var(--accent);background:rgba(99,102,241,0.12);padding:3px 10px;border-radius:20px;margin-right:8px;display:none"></span></div>
+  {% if kpis.total_results %}
+  <div style="font-size:10px;color:var(--text3);margin:-6px 0 10px;padding-right:4px">
+    📅 النتائج المسجّلة: <strong style="color:var(--text2)">{{ kpis.total_results }}</strong> محاولة
+    من <span style="direction:ltr;display:inline-block">{{ kpis.first_result|date:"Y/m/d" }}</span>
+    إلى <span style="direction:ltr;display:inline-block">{{ kpis.last_result|date:"Y/m/d" }}</span>
+    {% if kpis.all_within_30 %}
+      — <span style="color:var(--orange)">كل النتائج تقع ضمن آخر ٣٠ يوماً، لذلك يتطابق المتوسط التراكمي مع متوسط الفترة</span>
+    {% endif %}
+  </div>
+  {% endif %}
   <div class="kpi-grid">
     <div class="kpi" style="--kpi-color:var(--blue);--kpi-shadow:rgba(59,130,246,0.4)">
       <div class="kpi-icon">👩‍🎓</div>
-      <div class="kpi-val">{{ kpis.total_students }}</div>
+      <div class="kpi-val" id="kpiStudents">{{ kpis.total_students }}</div>
       <div class="kpi-lbl">إجمالي الطالبات</div>
     </div>
     <div class="kpi" style="--kpi-color:var(--green);--kpi-shadow:rgba(16,185,129,0.4)">
       <div class="kpi-icon">👩‍🏫</div>
-      <div class="kpi-val">{{ kpis.total_teachers }}</div>
+      <div class="kpi-val" id="kpiTeachers">{{ kpis.total_teachers }}</div>
       <div class="kpi-lbl">إجمالي المعلمات</div>
     </div>
     <div class="kpi" style="--kpi-color:var(--orange);--kpi-shadow:rgba(245,158,11,0.4)">
       <div class="kpi-icon">📅</div>
-      <div class="kpi-val">{{ kpis.active_sessions }}</div>
+      <div class="kpi-val" id="kpiSessions">{{ kpis.active_sessions }}</div>
       <div class="kpi-lbl">حصص آخر 30 يوم</div>
     </div>
     <div class="kpi" style="--kpi-color:var(--purple);--kpi-shadow:rgba(168,85,247,0.4)">
       <div class="kpi-icon">📝</div>
-      <div class="kpi-val">{{ kpis.active_exams }}</div>
+      <div class="kpi-val" id="kpiExams">{{ kpis.active_exams }}</div>
       <div class="kpi-lbl">اختبارات نشطة</div>
     </div>
     <div class="kpi" style="--kpi-color:var(--teal);--kpi-shadow:rgba(20,184,166,0.4)">
       <div class="kpi-icon">📈</div>
-      <div class="kpi-val">{{ kpis.avg_score }}%</div>
+      <div class="kpi-val" id="kpiAvgTotal">{{ kpis.avg_score }}%</div>
       <div class="kpi-lbl">متوسط الدرجات التراكمي</div>
     </div>
     <div class="kpi" style="--kpi-color:{% if kpis.improvement_delta >= 0 %}var(--green){% else %}var(--red){% endif %};--kpi-shadow:rgba(99,102,241,0.4)">
@@ -521,7 +531,7 @@ body.display-mode .card-t { font-size: 18px; }
         {% if kpis.improvement_delta > 0 %}↑{% elif kpis.improvement_delta < 0 %}↓{% else %}→{% endif %}
         {{ kpis.improvement_delta }}%
       </div>
-      <div class="kpi-val">{{ kpis.avg_score_30d }}%</div>
+      <div class="kpi-val" id="kpiAvg30">{{ kpis.avg_score_30d }}%</div>
       <div class="kpi-lbl">متوسط آخر ٣٠ يوماً</div>
     </div>
   </div>
@@ -1938,10 +1948,41 @@ function flashToast(msg){
   setTimeout(() => t.remove(), 2500);
 }
 
-// ─── Filters (client-side; v2 sends them to server later) ────
+// ─── Filters — فلترة حقيقية على الخادم ──────────────────────
 function applyFilters(){
-  // placeholder — يطبّق الفلاتر داخلياً عبر fetch إلى endpoint مع query params
-  flashToast('🎛️ تم تحديث الفلاتر');
+  const cls  = (document.getElementById('filterClass')   || {}).value || '';
+  const tch  = (document.getElementById('filterTeacher') || {}).value || '';
+  const days = (document.getElementById('filterPeriod')  || {}).value || '';
+
+  const params = new URLSearchParams();
+  if (cls)  params.set('class', cls);
+  if (tch)  params.set('teacher', tch);
+  if (days) params.set('days', days);
+
+  fetch('{% url "admin_v2_data_json" %}?' + params.toString(), { headers:{'Accept':'application/json'} })
+    .then(r => r.json())
+    .then(d => {
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      if (d.kpis) {
+        set('kpiStudents', d.kpis.total_students);
+        set('kpiTeachers', d.kpis.total_teachers);
+        set('kpiSessions', d.kpis.active_sessions);
+        set('kpiExams',    d.kpis.active_exams);
+        set('kpiAvgTotal', d.kpis.avg_score + '%');
+        set('kpiAvg30',    d.kpis.avg_score_30d + '%');
+      }
+      const badge = document.getElementById('scopeBadge');
+      if (badge && d.scope) {
+        badge.textContent = '🎛️ ' + d.scope.label + (d.kpis && d.kpis.attempts !== undefined ? ' · ' + d.kpis.attempts + ' محاولة' : '');
+        badge.style.display = d.scope.filtered ? '' : 'none';
+      }
+      if (d.time_series) document.getElementById('data-time-series').textContent = JSON.stringify(d.time_series);
+      if (d.classrooms)  document.getElementById('data-classrooms').textContent  = JSON.stringify(d.classrooms);
+      if (d.levels)      document.getElementById('data-levels').textContent      = JSON.stringify(d.levels);
+      redrawAllCharts();
+      flashToast('🎛️ ' + (d.scope ? d.scope.label : 'تم تحديث الفلاتر'));
+    })
+    .catch(() => flashToast('❌ تعذّر تطبيق الفلتر'));
 }
 
 // ─── Analytics scope + run ──────────────────────────────────

@@ -22,7 +22,7 @@ from django.contrib import messages
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Avg, Count, Q, Subquery, OuterRef, FloatField, IntegerField, Max
+from django.db.models import Avg, Count, Q, Subquery, OuterRef, FloatField, IntegerField, Max, Min
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -502,7 +502,17 @@ def _v2_kpis():
 
     avg_total = ExamResult.objects.aggregate(a=Avg('percentage'))['a'] or 0
 
+    # مدى تغطية البيانات — يفسّر تطابق المتوسط التراكمي مع متوسط الفترة
+    span = ExamResult.objects.aggregate(first=Min('submitted_at'), last=Max('submitted_at'))
+    total_results = ExamResult.objects.count()
+    first_at, last_at = span['first'], span['last']
+    all_within_30 = bool(first_at and first_at >= last_30)
+
     return {
+        'first_result': timezone.localtime(first_at).date() if first_at else None,
+        'last_result': timezone.localtime(last_at).date() if last_at else None,
+        'total_results': total_results,
+        'all_within_30': all_within_30,
         'total_students': total_students,
         'total_teachers': total_teachers,
         'active_exams': active_exams,
@@ -1178,19 +1188,182 @@ def admin_v2_student_trend(request, student_id):
     return JsonResponse({'trend': data, 'name': student_name})
 
 
+def _v2_scoped_results(classroom='', teacher_id='', days=''):
+    """نتائج مفلترة بالفصل/المعلمة/الفترة — تُستخدم في فلاتر اللوحة الحيّة."""
+    from datetime import timedelta
+    qs = ExamResult.objects.all()
+
+    names = []
+    if classroom:
+        names = [classroom]
+    elif str(teacher_id).isdigit():
+        t = Teacher.objects.filter(user_id=teacher_id).prefetch_related('classrooms').first()
+        if t:
+            names = [c.name for c in t.classrooms.all()]
+            if not names:
+                names = ['__none__']   # معلمة بلا فصول مُسندة → لا نتائج
+
+    if names:
+        qs = qs.filter(
+            Q(student_record__classroom__name__in=names)
+            | Q(student__student_record__classroom__name__in=names)
+        ).distinct()
+
+    if str(days).isdigit():
+        qs = qs.filter(submitted_at__gte=timezone.now() - timedelta(days=int(days)))
+
+    return qs, names
+
+
+def _v2_kpis_scoped(qs, names, days):
+    """نفس مؤشرات اللوحة لكن على النطاق المختار."""
+    from datetime import timedelta
+    now = timezone.now()
+    window = int(days) if str(days).isdigit() else 30
+    last_w = now - timedelta(days=window)
+    prev_w = now - timedelta(days=window * 2)
+
+    avg_now = qs.filter(submitted_at__gte=last_w).aggregate(a=Avg('percentage'))['a'] or 0
+    avg_prev = qs.filter(submitted_at__gte=prev_w, submitted_at__lt=last_w).aggregate(a=Avg('percentage'))['a'] or 0
+    avg_total = qs.aggregate(a=Avg('percentage'))['a'] or 0
+
+    if names:
+        students = Student.objects.filter(classroom__name__in=names).count()
+        teachers = Teacher.objects.filter(classrooms__name__in=names).distinct().count()
+        exams = TeacherExam.objects.filter(is_active=True).count()
+        sessions = ClassSession.objects.filter(
+            session_date__gte=last_w.date(), target_class__in=names).count()
+    else:
+        students = Profile.objects.filter(role='STUDENT').count()
+        teachers = Profile.objects.filter(role='TEACHER').count()
+        exams = TeacherExam.objects.filter(is_active=True).count()
+        sessions = ClassSession.objects.filter(session_date__gte=last_w.date()).count()
+
+    delta = round(avg_now - avg_prev, 1)
+    return {
+        'total_students': students,
+        'total_teachers': teachers,
+        'active_exams': exams,
+        'active_sessions': sessions,
+        'avg_score': round(avg_total, 1),
+        'avg_score_30d': round(avg_now, 1),
+        'avg_prev': round(avg_prev, 1),
+        'improvement_delta': delta,
+        'window': window,
+        'attempts': qs.count(),
+    }
+
+
+def _v2_time_series_scoped(qs, days):
+    from datetime import timedelta
+    window = int(days) if str(days).isdigit() else 30
+    today = timezone.localtime().date()
+    start = today - timedelta(days=window - 1)
+
+    buckets = {}
+    for r in qs.filter(submitted_at__date__gte=start).values('submitted_at', 'percentage'):
+        d = timezone.localtime(r['submitted_at']).date()
+        b = buckets.setdefault(d, [0, 0.0])
+        b[0] += 1
+        b[1] += float(r['percentage'] or 0)
+
+    series = []
+    for i in range(window - 1, -1, -1):
+        d = today - timedelta(days=i)
+        c, s = buckets.get(d, (0, 0.0))
+        series.append({'date': d.isoformat(), 'count': c,
+                       'avg': round(s / c, 1) if c else 0})
+    return series
+
+
+def _v2_levels_scoped(qs, names):
+    perf = (qs.filter(student__core_profile__role='STUDENT')
+              .exclude(student__is_superuser=True)
+              .values('student_id').annotate(avg=Avg('percentage')))
+    excellent = mid = weak = 0
+    for row in perf:
+        a = row['avg'] or 0
+        if a >= 90:
+            excellent += 1
+        elif a >= 50:
+            mid += 1
+        else:
+            weak += 1
+    if names:
+        total = Student.objects.filter(classroom__name__in=names).count()
+    else:
+        total = Profile.objects.filter(role='STUDENT').count()
+    return {'excellent': excellent, 'mid': mid, 'weak': weak,
+            'untested': max(0, total - (excellent + mid + weak))}
+
+
+def _v2_classrooms_scoped(qs, names):
+    rooms = ClassRoom.objects.all().order_by('name')
+    if names:
+        rooms = rooms.filter(name__in=names)
+    out = []
+    for c in rooms:
+        sub = qs.filter(Q(student_record__classroom_id=c.id)
+                        | Q(student__student_record__classroom_id=c.id)).distinct()
+        n = sub.count()
+        out.append({
+            'name': c.name,
+            'avg': round(sub.aggregate(a=Avg('percentage'))['a'] or 0, 1),
+            'count': n,
+            'students': Student.objects.filter(classroom_id=c.id).count(),
+        })
+    return out
+
+
+def _v2_predictions_scoped(qs):
+    from datetime import timedelta
+    now = timezone.now()
+    week = qs.filter(submitted_at__gte=now - timedelta(days=7)).aggregate(a=Avg('percentage'))['a'] or 0
+    month = qs.filter(submitted_at__gte=now - timedelta(days=30)).aggregate(a=Avg('percentage'))['a'] or 0
+    momentum = week - month
+    return {
+        'last_week': round(week, 1),
+        'last_month': round(month, 1),
+        'forecast': round(max(0, min(100, week + momentum * 0.5)), 1),
+        'momentum': round(momentum, 1),
+    }
+
+
 @admin_required
 def admin_v2_data_json(request):
-    """API للتحديثات الحية — يرجع JSON نظيف."""
+    """API للتحديثات الحية والفلاتر — يقبل class / teacher / days."""
     from django.http import JsonResponse
+    cls = (request.GET.get('class') or '').strip()
+    tid = (request.GET.get('teacher') or '').strip()
+    days = (request.GET.get('days') or '').strip()
+
+    qs, names = _v2_scoped_results(cls, tid, days)
+    scoped = bool(names) or str(days).isdigit()
+
+    if not scoped:
+        return JsonResponse({
+            'kpis': _v2_kpis(),
+            'time_series': _v2_time_series(),
+            'classrooms': _v2_classroom_compare(),
+            'levels': _v2_level_distribution(),
+            'top_students': _v2_top_students(),
+            'teachers_work': _v2_teachers_work(),
+            'classrooms_impact': _v2_classrooms_impact(),
+            'predictions': _v2_predictions(),
+            'scope': {'label': 'كل المدرسة', 'filtered': False},
+        })
+
+    label = '، '.join(names) if names else 'كل المدرسة'
+    if str(days).isdigit():
+        label += f' · آخر {days} يوماً'
+
     return JsonResponse({
-        'kpis': _v2_kpis(),
-        'time_series': _v2_time_series(),
-        'classrooms': _v2_classroom_compare(),
-        'levels': _v2_level_distribution(),
-        'top_students': _v2_top_students(),
-        'teachers_work': _v2_teachers_work(),
-        'classrooms_impact': _v2_classrooms_impact(),
-        'predictions': _v2_predictions(),
+        'kpis': _v2_kpis_scoped(qs, names, days),
+        'time_series': _v2_time_series_scoped(qs, days),
+        'classrooms': _v2_classrooms_scoped(qs, names),
+        'levels': _v2_levels_scoped(qs, names),
+        'predictions': _v2_predictions_scoped(qs),
+        'scope': {'label': label, 'filtered': True},
     })
 
 
