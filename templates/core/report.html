@@ -51,16 +51,14 @@ body {
   align-items: center;
   gap: 12px;
 }
-.dibajah-logo {
-  width: 72px; height: 72px;
-  object-fit: contain;
-}
-.dibajah-logo-placeholder {
-  width: 72px; height: 72px;
-  border: 2px solid var(--green);
-  border-radius: 50%;
+.dibajah-logo-cell {
   display: flex; align-items: center; justify-content: center;
-  font-size: 28px; color: var(--green);
+  min-height: 72px;
+}
+.dibajah-logo {
+  max-width: 76px; max-height: 72px;
+  width: auto; height: auto;
+  object-fit: contain;
 }
 .dibajah-center { text-align: center; }
 .dibajah-line1 { font-size: 11px; font-weight: 500; color: var(--ink2); letter-spacing: 0.5px; }
@@ -221,10 +219,17 @@ body {
 
 /* ── طباعة ── */
 @media print {
+  @page { size: A4; margin: 12mm 10mm; }
   body { background: #fff; }
   .print-bar { display: none !important; }
   .page { margin: 0; box-shadow: none; border: none; max-width: 100%; }
-  .page-inner { padding: 20px 28px 28px; }
+  .page-inner { padding: 0; }
+  /* الشعارات والخلفيات الملوّنة تُطبع كما تظهر */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .dibajah { break-inside: avoid; }
+  table { break-inside: auto; }
+  tr, .kpi, .card { break-inside: avoid; }
+  thead { display: table-header-group; }
 }
 </style>
 </head>
@@ -247,12 +252,10 @@ body {
 
 <!-- ═══ ديباجة رسمية ═══ -->
 <div class="dibajah">
-  <!-- شعار يمين -->
-  <div style="text-align:center">
-    {% if settings and settings.school_logo %}
-      <img src="{{ settings.school_logo.url }}" class="dibajah-logo" alt="شعار">
-    {% else %}
-      <div class="dibajah-logo-placeholder">🏫</div>
+  <!-- شعار يمين: وزارة التعليم (الجهة الأعلى تتصدّر في الاتجاه العربي) -->
+  <div class="dibajah-logo-cell">
+    {% if settings and settings.ministry_logo_url %}
+      <img src="{{ settings.ministry_logo_url }}" class="dibajah-logo" alt="شعار وزارة التعليم">
     {% endif %}
   </div>
 
@@ -265,9 +268,11 @@ body {
     <div class="dibajah-platform">منصة: {% if settings %}{{ settings.platform_name|default:"آمنة التعليمية" }}{% else %}آمنة التعليمية{% endif %}</div>
   </div>
 
-  <!-- شعار يسار (شعار الوزارة) -->
-  <div style="text-align:center">
-    <div class="dibajah-logo-placeholder" style="font-size:22px;border-color:var(--gold);color:var(--gold)">📋</div>
+  <!-- شعار يسار: المدرسة -->
+  <div class="dibajah-logo-cell">
+    {% if settings and settings.school_logo_url %}
+      <img src="{{ settings.school_logo_url }}" class="dibajah-logo" alt="شعار المدرسة">
+    {% endif %}
   </div>
 </div>
 
