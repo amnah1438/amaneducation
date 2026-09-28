@@ -7,7 +7,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>لوحة المديرة — {{ platform.platform_name|default:"منصة آمنة" }} (Enterprise)</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- مكتبة الرسوم: نسخة داخل المنصة تعمل بلا إنترنت، والخارجية احتياط فقط -->
+<script src="{% static 'vendor/chart.umd.min.js' %}"></script>
+<script>
+if (typeof Chart === 'undefined') {
+  document.write('<scr' + 'ipt src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/scr' + 'ipt>');
+}
+</script>
 <script>window.MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']],displayMath:[['$$','$$']],processEscapes:true},options:{skipHtmlTags:['script','noscript','style','textarea']}}</script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 <style>
@@ -481,147 +487,6 @@ body.display-mode .card-t { font-size: 18px; }
     <button class="btn btn-ghost" onclick="refreshLiveData()">🔄 تحديث البيانات</button>
   </div>
 
-  <!-- ═══════════ Tabs: المعلمات / الطالبات / الحصص / الاختبارات ═══════════ -->
-  <div class="section-title">👥 إدارة الطالبات والمعلمات</div>
-  <div class="card">
-    <div class="tabs">
-      <button class="tab" onclick="switchTab(event,'tab-teachers')">👩‍🏫 المعلمات</button>
-      <button class="tab on" onclick="switchTab(event,'tab-students')">👩‍🎓 الطالبات</button>
-      <button class="tab" onclick="switchTab(event,'tab-exams')">📝 الاختبارات</button>
-      <button class="tab" onclick="switchTab(event,'tab-comprehensive')">🏆 الشاملة</button>
-    </div>
-
-    <!-- التبويب: المعلمات -->
-    <div class="tab-content" id="tab-teachers">
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <div class="search-wrap"><input class="filter-inp" id="searchTeachers" placeholder="ابحثي بالاسم أو رقم الهوية..." oninput="filterTable('teachersTbl', this.value)"></div>
-        <button class="btn btn-success" onclick="openDrawer('addTeacherDrawer')">➕ إضافة معلمة</button>
-      </div>
-      <table class="tbl" id="teachersTbl">
-        <thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>PIN</th><th>اختبارات</th><th>متوسط الطالبات</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-        <tbody>
-          {% for t in teachers_list %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td style="font-weight:700;color:var(--text)">{{ t.name }}</td>
-            <td style="font-family:monospace;color:var(--blue)">{{ t.national_id }}</td>
-            <td style="font-family:monospace;color:var(--text3)">{{ t.pin|default:"—" }}</td>
-            <td>{{ t.results }}</td>
-            <td><span class="bd {% if t.avg >= 70 %}bd-g{% elif t.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.avg }}%</span></td>
-            <td>{% if t.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
-            <td>
-              <form method="post" action="{% url 'admin_view_as' t.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️ معاينة</button></form>
-              <button class="btn btn-success" style="padding:4px 8px;font-size:9px" onclick="openAssignClassrooms({{ t.id }}, '{{ t.name|escapejs }}', [{{ t.teacher_classrooms|join:',' }}])">🏫 فصولها</button>
-              <form method="post" action="{% url 'admin_delete_user' t.id %}" style="display:inline" onsubmit="return confirm('حذف المعلمة؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="8" class="empty">لا توجد معلمات بعد</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- التبويب: الطالبات -->
-    <div class="tab-content on" id="tab-students">
-      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-        <div class="search-wrap" style="flex:1;min-width:180px"><input class="filter-inp" id="searchStudents" placeholder="ابحثي بالاسم أو الهوية..." oninput="filterTable('studentsTbl', this.value)"></div>
-        <button class="btn btn-info" onclick="openDrawer('addStudentDrawer')">➕ إضافة طالبة</button>
-        <button class="btn" onclick="openDrawer('importDrawer')">📥 استيراد Excel</button>
-      </div>
-      <table class="tbl" id="studentsTbl">
-        <thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>الفصل</th><th>اختبارات</th><th>المتوسط</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-        <tbody>
-          {% for s in students_list %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td style="font-weight:700;color:var(--text)">{{ s.name }}</td>
-            <td style="font-family:monospace;color:var(--blue)">{{ s.national_id }}</td>
-            <td>
-              <form method="post" action="{% url 'admin_move_student' s.id %}" style="display:flex;gap:4px;align-items:center">{% csrf_token %}
-                <select name="classroom_id" class="fi" style="padding:3px 6px;font-size:10px;min-width:78px">
-                  <option value="">— بدون فصل —</option>
-                  {% for c in classrooms %}<option value="{{ c.id }}" {% if s.classroom_id == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
-                </select>
-                <button class="btn btn-info" style="padding:3px 8px;font-size:9px" title="نقل الطالبة للفصل المختار">🔄 نقل</button>
-              </form>
-            </td>
-            <td>{{ s.results }}</td>
-            <td><span class="bd {% if s.avg >= 70 %}bd-g{% elif s.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ s.avg }}%</span></td>
-            <td>{% if s.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
-            <td>
-              <form method="post" action="{% url 'admin_view_as' s.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️</button></form>
-              <form method="post" action="{% url 'admin_delete_user' s.id %}" style="display:inline" onsubmit="return confirm('حذف الطالبة نهائياً؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 10px;font-size:10px">🗑️ حذف</button></form>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="8" class="empty">لا توجد طالبات بعد</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- التبويب: الاختبارات -->
-    <div class="tab-content" id="tab-exams">
-      <table class="tbl">
-        <thead><tr><th>الاختبار</th><th>النوع</th><th>المعلمة</th><th>المشاركات</th><th>المدة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-        <tbody>
-          {% for e in active_exams %}
-          <tr>
-            <td style="font-weight:700">{{ e.title }}</td>
-            <td>{{ e.type }}</td>
-            <td style="color:var(--text3)">{{ e.teacher }}</td>
-            <td>{{ e.participants }}</td>
-            <td>{{ e.duration }} د</td>
-            <td>{% if e.is_active %}<span class="bd bd-g">▶️ مفعّل</span>{% else %}<span class="bd bd-r">⏸️ موقوف</span>{% endif %}</td>
-            <td>
-              {% if e.is_comprehensive %}
-              <a href="{% url 'admin_comp_questions' e.skill_id %}" class="btn btn-warn" style="padding:4px 8px;font-size:9px">✏️ أسئلة</a>
-              {% endif %}
-              <a href="{% url 'exam_print' e.id %}?answers=1" target="_blank" class="btn btn-info" style="padding:4px 8px;font-size:9px">🖨️</a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="7" class="empty">لا توجد اختبارات بعد</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- التبويب: الاختبارات الشاملة -->
-    <div class="tab-content" id="tab-comprehensive">
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <span style="font-size:11px;color:var(--text2);align-self:center;font-weight:700">إدارة الاختبارات الشاملة (قدرات/تحصيلي):</span>
-        <button class="btn btn-primary" onclick="openDrawer('addCompDrawer')">➕ إضافة شامل جديد</button>
-        <a href="{% url 'admin_comprehensive' %}" class="btn btn-ghost">🔗 الصفحة المخصصة الكاملة</a>
-      </div>
-      <table class="tbl">
-        <thead><tr><th>العنوان</th><th>النوع</th><th>الأسئلة</th><th>المدة</th><th>الفصل</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-        <tbody>
-          {% for s in comprehensive_skills %}
-          {% with exam=s.exams.first %}
-          <tr>
-            <td style="font-weight:700">{% if s.skill_type == 'qodrat_kamy' %}🎯{% else %}📚{% endif %} {{ s.title }}</td>
-            <td>{{ s.skill_type|default:"—" }}</td>
-            <td>{% if exam %}{{ exam.questions.count }}/{{ exam.questions_count }}{% else %}0{% endif %}</td>
-            <td>{% if exam %}{{ exam.duration_minutes }} د{% else %}—{% endif %}</td>
-            <td>{{ s.target_classes|default:"—" }}</td>
-            <td>{% if s.is_active %}<span class="bd bd-g">✓ مفعّل</span>{% else %}<span class="bd bd-r">⏸️</span>{% endif %}</td>
-            <td>
-              <a href="{% url 'admin_comp_questions' s.id %}" class="btn btn-warn" style="padding:4px 8px;font-size:9px">✏️ الأسئلة</a>
-              <form method="post" action="{% url 'admin_delete_comprehensive' s.id %}" style="display:inline" onsubmit="return confirm('حذف نهائي؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
-            </td>
-          </tr>
-          {% endwith %}
-          {% empty %}
-          <tr><td colspan="7" class="empty">لا توجد اختبارات شاملة بعد</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-
   <!-- ═══════════ KPI CARDS ═══════════ -->
   <div class="section-title">📊 مؤشرات الأداء الرئيسية</div>
   <div class="kpi-grid">
@@ -648,7 +513,7 @@ body.display-mode .card-t { font-size: 18px; }
     <div class="kpi" style="--kpi-color:var(--teal);--kpi-shadow:rgba(20,184,166,0.4)">
       <div class="kpi-icon">📈</div>
       <div class="kpi-val">{{ kpis.avg_score }}%</div>
-      <div class="kpi-lbl">متوسط الدرجات</div>
+      <div class="kpi-lbl">متوسط الدرجات التراكمي</div>
     </div>
     <div class="kpi" style="--kpi-color:{% if kpis.improvement_delta >= 0 %}var(--green){% else %}var(--red){% endif %};--kpi-shadow:rgba(99,102,241,0.4)">
       <div class="kpi-icon">{% if kpis.improvement_delta >= 0 %}📈{% else %}📉{% endif %}</div>
@@ -657,7 +522,7 @@ body.display-mode .card-t { font-size: 18px; }
         {{ kpis.improvement_delta }}%
       </div>
       <div class="kpi-val">{{ kpis.avg_score_30d }}%</div>
-      <div class="kpi-lbl">آخر 30 يوم</div>
+      <div class="kpi-lbl">متوسط آخر ٣٠ يوماً</div>
     </div>
   </div>
 
@@ -739,13 +604,19 @@ body.display-mode .card-t { font-size: 18px; }
             <div style="font-size:10px;color:var(--text3);margin-bottom:4px">آخر أسبوع</div>
             <div style="font-size:22px;font-weight:900;color:var(--accent)">{{ predictions.last_week }}%</div>
           </div>
-          <div style="background:linear-gradient(135deg,var(--green),var(--blue));border-radius:10px;padding:12px;color:white">
+          <div style="background:{% if predictions.last_week == predictions.last_month %}var(--card2){% else %}linear-gradient(135deg,var(--green),var(--blue)){% endif %};border-radius:10px;padding:12px;color:{% if predictions.last_week == predictions.last_month %}var(--text3){% else %}white{% endif %}">
             <div style="font-size:10px;opacity:0.85;margin-bottom:4px">المتوقع</div>
-            <div style="font-size:22px;font-weight:900">{{ predictions.forecast }}%</div>
+            {% if predictions.last_week == predictions.last_month %}
+              <div style="font-size:13px;font-weight:700;padding-top:4px">يحتاج فترتين مختلفتين</div>
+            {% else %}
+              <div style="font-size:22px;font-weight:900">{{ predictions.forecast }}%</div>
+            {% endif %}
           </div>
         </div>
         <div style="font-size:11px;color:var(--text2);line-height:1.8;background:var(--card2);padding:10px 14px;border-radius:9px;border-right:3px solid var(--accent)">
-          {% if predictions.momentum >= 5 %}
+          {% if predictions.last_week == predictions.last_month %}
+            ⏳ <strong>لا يمكن التنبؤ بعد</strong> — نتائج الأسبوع والشهر متطابقة، أي أن النشاط كله يقع في فترة واحدة. التنبؤ يحتاج نتائج موزّعة على أسابيع مختلفة.
+          {% elif predictions.momentum >= 5 %}
             🚀 <strong>زخم إيجابي قوي</strong> — نسبة النجاح المتوقعة في الاختبارات القادمة تشير إلى تحسّن مستمر.
           {% elif predictions.momentum >= 0 %}
             ✨ <strong>أداء مستقر</strong> — يمكن تحسينه بدفعة تحفيز للطالبات.
@@ -1405,6 +1276,148 @@ body.display-mode .card-t { font-size: 18px; }
     </div>
   </div>
 
+  <!-- ═══════════ Tabs: المعلمات / الطالبات / الحصص / الاختبارات ═══════════ -->
+  <div class="section-title non-display" id="manage">👥 إدارة الطالبات والمعلمات</div>
+  <div class="card non-display">
+    <div class="tabs">
+      <button class="tab" onclick="switchTab(event,'tab-teachers')">👩‍🏫 المعلمات</button>
+      <button class="tab on" onclick="switchTab(event,'tab-students')">👩‍🎓 الطالبات</button>
+      <button class="tab" onclick="switchTab(event,'tab-exams')">📝 الاختبارات</button>
+      <button class="tab" onclick="switchTab(event,'tab-comprehensive')">🏆 الشاملة</button>
+    </div>
+
+    <!-- التبويب: المعلمات -->
+    <div class="tab-content" id="tab-teachers">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div class="search-wrap"><input class="filter-inp" id="searchTeachers" placeholder="ابحثي بالاسم أو رقم الهوية..." oninput="filterTable('teachersTbl', this.value)"></div>
+        <button class="btn btn-success" onclick="openDrawer('addTeacherDrawer')">➕ إضافة معلمة</button>
+      </div>
+      <table class="tbl" id="teachersTbl">
+        <thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>PIN</th><th>اختبارات</th><th>متوسط الطالبات</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for t in teachers_list %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td style="font-weight:700;color:var(--text)">{{ t.name }}</td>
+            <td style="font-family:monospace;color:var(--blue)">{{ t.national_id }}</td>
+            <td style="font-family:monospace;color:var(--text3)">{{ t.pin|default:"—" }}</td>
+            <td>{{ t.results }}</td>
+            <td><span class="bd {% if t.avg >= 70 %}bd-g{% elif t.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ t.avg }}%</span></td>
+            <td>{% if t.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
+            <td>
+              <form method="post" action="{% url 'admin_view_as' t.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️ معاينة</button></form>
+              <button class="btn btn-success" style="padding:4px 8px;font-size:9px" onclick="openAssignClassrooms({{ t.id }}, '{{ t.name|escapejs }}', [{{ t.teacher_classrooms|join:',' }}])">🏫 فصولها</button>
+              <form method="post" action="{% url 'admin_delete_user' t.id %}" style="display:inline" onsubmit="return confirm('حذف المعلمة؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="empty">لا توجد معلمات بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- التبويب: الطالبات -->
+    <div class="tab-content on" id="tab-students">
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <div class="search-wrap" style="flex:1;min-width:180px"><input class="filter-inp" id="searchStudents" placeholder="ابحثي بالاسم أو الهوية..." oninput="filterTable('studentsTbl', this.value)"></div>
+        <button class="btn btn-info" onclick="openDrawer('addStudentDrawer')">➕ إضافة طالبة</button>
+        <button class="btn" onclick="openDrawer('importDrawer')">📥 استيراد Excel</button>
+      </div>
+      <table class="tbl" id="studentsTbl">
+        <thead><tr><th>#</th><th>الاسم</th><th>الهوية</th><th>الفصل</th><th>اختبارات</th><th>المتوسط</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for s in students_list %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td style="font-weight:700;color:var(--text)">{{ s.name }}</td>
+            <td style="font-family:monospace;color:var(--blue)">{{ s.national_id }}</td>
+            <td>
+              <form method="post" action="{% url 'admin_move_student' s.id %}" style="display:flex;gap:4px;align-items:center">{% csrf_token %}
+                <select name="classroom_id" class="fi" style="padding:3px 6px;font-size:10px;min-width:78px">
+                  <option value="">— بدون فصل —</option>
+                  {% for c in classrooms %}<option value="{{ c.id }}" {% if s.classroom_id == c.id %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+                </select>
+                <button class="btn btn-info" style="padding:3px 8px;font-size:9px" title="نقل الطالبة للفصل المختار">🔄 نقل</button>
+              </form>
+            </td>
+            <td>{{ s.results }}</td>
+            <td><span class="bd {% if s.avg >= 70 %}bd-g{% elif s.avg >= 50 %}bd-o{% else %}bd-r{% endif %}">{{ s.avg }}%</span></td>
+            <td>{% if s.is_active %}<span class="bd bd-g">✓ نشطة</span>{% else %}<span class="bd bd-r">✗ معطّلة</span>{% endif %}</td>
+            <td>
+              <form method="post" action="{% url 'admin_view_as' s.id %}" style="display:inline">{% csrf_token %}<button class="btn btn-info" style="padding:4px 8px;font-size:9px">👁️</button></form>
+              <form method="post" action="{% url 'admin_delete_user' s.id %}" style="display:inline" onsubmit="return confirm('حذف الطالبة نهائياً؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 10px;font-size:10px">🗑️ حذف</button></form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="empty">لا توجد طالبات بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- التبويب: الاختبارات -->
+    <div class="tab-content" id="tab-exams">
+      <table class="tbl">
+        <thead><tr><th>الاختبار</th><th>النوع</th><th>المعلمة</th><th>المشاركات</th><th>المدة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for e in active_exams %}
+          <tr>
+            <td style="font-weight:700">{{ e.title }}</td>
+            <td>{{ e.type }}</td>
+            <td style="color:var(--text3)">{{ e.teacher }}</td>
+            <td>{{ e.participants }}</td>
+            <td>{{ e.duration }} د</td>
+            <td>{% if e.is_active %}<span class="bd bd-g">▶️ مفعّل</span>{% else %}<span class="bd bd-r">⏸️ موقوف</span>{% endif %}</td>
+            <td>
+              {% if e.is_comprehensive %}
+              <a href="{% url 'admin_comp_questions' e.skill_id %}" class="btn btn-warn" style="padding:4px 8px;font-size:9px">✏️ أسئلة</a>
+              {% endif %}
+              <a href="{% url 'exam_print' e.id %}?answers=1" target="_blank" class="btn btn-info" style="padding:4px 8px;font-size:9px">🖨️</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="empty">لا توجد اختبارات بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- التبويب: الاختبارات الشاملة -->
+    <div class="tab-content" id="tab-comprehensive">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <span style="font-size:11px;color:var(--text2);align-self:center;font-weight:700">إدارة الاختبارات الشاملة (قدرات/تحصيلي):</span>
+        <button class="btn btn-primary" onclick="openDrawer('addCompDrawer')">➕ إضافة شامل جديد</button>
+        <a href="{% url 'admin_comprehensive' %}" class="btn btn-ghost">🔗 الصفحة المخصصة الكاملة</a>
+      </div>
+      <table class="tbl">
+        <thead><tr><th>العنوان</th><th>النوع</th><th>الأسئلة</th><th>المدة</th><th>الفصل</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+        <tbody>
+          {% for s in comprehensive_skills %}
+          {% with exam=s.exams.first %}
+          <tr>
+            <td style="font-weight:700">{% if s.skill_type == 'qodrat_kamy' %}🎯{% else %}📚{% endif %} {{ s.title }}</td>
+            <td>{{ s.skill_type|default:"—" }}</td>
+            <td>{% if exam %}{{ exam.questions.count }}/{{ exam.questions_count }}{% else %}0{% endif %}</td>
+            <td>{% if exam %}{{ exam.duration_minutes }} د{% else %}—{% endif %}</td>
+            <td>{{ s.target_classes|default:"—" }}</td>
+            <td>{% if s.is_active %}<span class="bd bd-g">✓ مفعّل</span>{% else %}<span class="bd bd-r">⏸️</span>{% endif %}</td>
+            <td>
+              <a href="{% url 'admin_comp_questions' s.id %}" class="btn btn-warn" style="padding:4px 8px;font-size:9px">✏️ الأسئلة</a>
+              <form method="post" action="{% url 'admin_delete_comprehensive' s.id %}" style="display:inline" onsubmit="return confirm('حذف نهائي؟')">{% csrf_token %}<button class="btn btn-danger" style="padding:4px 8px;font-size:9px">🗑️</button></form>
+            </td>
+          </tr>
+          {% endwith %}
+          {% empty %}
+          <tr><td colspan="7" class="empty">لا توجد اختبارات شاملة بعد</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+
   <!-- ═══════════ Footer ═══════════ -->
   <div style="text-align:center;margin-top:30px;font-size:10px;color:var(--text3);line-height:1.8">
     {{ platform.platform_name|default:"منصة آمنة التعليمية" }} · Enterprise Dashboard · {{ kpis.total_students }} طالبة · {{ kpis.total_teachers }} معلمة
@@ -1752,7 +1765,7 @@ function buildLevelsChart(){
       labels: ['متفوقات (90%+)', 'جيدات (50-89%)', 'يحتجن دعم (<50%)', 'لم تُختبر بعد'],
       datasets: [{
         data: [data.excellent, data.mid, data.weak, data.untested],
-        backgroundColor: [c.green, c.blue, c.red, c.grid],
+        backgroundColor: [c.green, c.blue, c.red, '#94a3b8'],
         borderColor: 'transparent', borderWidth: 0
       }]
     },
