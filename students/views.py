@@ -259,6 +259,24 @@ def student_dashboard(request):
     else:
         classroom_q = Q()  # لا يوجد سجل طالبة → لا قيد على الفصل
 
+    # فلتر الفصل المستهدف من المهارة نفسها.
+    # كانت المنصة تكتفي بإسناد المعلمة للفصل، فمعلمة تدرّس أول ٣ وثالث معاً
+    # تظهر مهاراتها الموجَّهة لثالث لطالبات أول ٣. نحترم هنا الفصل المستهدف
+    # المحفوظ في المهارة (نفس منطق teachers/views.py).
+    # المهارات القديمة بلا فصل مستهدف تبقى ظاهرة كما كانت — لا نُخفي شيئاً كان ظاهراً.
+    cls_name = (my_student.classroom.name.strip()
+                if (my_student and my_student.classroom and my_student.classroom.name)
+                else '')
+    if cls_name:
+        target_q = (
+            Q(skill__target_classes__isnull=True)
+            | Q(skill__target_classes='')
+            | Q(skill__target_classes__icontains='جميع')
+            | Q(skill__target_classes__icontains=cls_name)
+        )
+    else:
+        target_q = Q()
+
     available_exams = (
         TeacherExam.objects
         .filter(is_active=True)
@@ -270,7 +288,7 @@ def student_dashboard(request):
             # ملاحظة: كان هنا شرط يحجب أي اختبار عُيّن علاجياً لأي طالبة عن
             # الجميع، فتختفي اختبارات الفصل عن كل من لم تؤدّها. أُزيل الشرط
             # لأن خصوصية العلاجي مكفولة أصلاً بأنه يظهر لصاحبته وحدها فوق ذلك.
-            | ~Q(id__in=done_exam_ids)
+            | (target_q & ~Q(id__in=done_exam_ids))
         )
         .select_related('skill')
         .distinct()
