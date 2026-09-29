@@ -433,6 +433,24 @@ body.display-mode .card-t { font-size: 18px; }
 .chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .chip { padding: 5px 12px; border-radius: 14px; font-size: 10px; font-weight: 700; background: var(--card2); border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; color: var(--text2); }
 .chip.on, .chip:hover { background: var(--accent); color: white; border-color: var(--accent); }
+/* ── خريطة الإتقان ─────────────────────────────────────────── */
+/* تدرّج لوني بهوية واحدة (فاتح→غامق) = مقياس مقدار، لا ألوان قوس قزح.
+   والرقم مكتوب داخل كل خلية فلا تعتمد القراءة على اللون وحده. */
+.hm-tbl td, .hm-tbl th { white-space: nowrap; }
+.hm-box {
+  margin: 2px; padding: 8px 6px; border-radius: 6px;
+  min-width: 46px; font-variant-numeric: tabular-nums;
+}
+.hm-cell[data-v] .hm-box { background: #e6efec; color: #0a3f2c; }
+.hm-key {
+  padding: 3px 10px; border-radius: 6px; font-weight: 700; color: #0a3f2c;
+}
+.hm-key[style*="--p:15"]  { background: #f6d8d4; color: #7f1d1d; }
+.hm-key[style*="--p:40"]  { background: #f7e4cf; color: #7c3f12; }
+.hm-key[style*="--p:60"]  { background: #dbeae4; }
+.hm-key[style*="--p:78"]  { background: #a8cfc0; }
+.hm-key[style*="--p:92"]  { background: #5aa58a; color: #06281c; }
+
 /* لوحة رسم لم يبنِها Chart.js بعد: تمدّد بدل مقاس 300×150 الافتراضي
    الذي يترك فراغاً أبيض إلى جانبها حتى تُشغَّل */
 .chart-box canvas:not([style]) { width: 100% !important; height: 100% !important; }
@@ -1061,6 +1079,82 @@ body.display-mode .card-t { font-size: 18px; }
     </div>
   </div>
 
+
+  <!-- ═══ خريطة الإتقان: الفصول × المهارات ═══ -->
+  <div class="card" style="margin-top:14px">
+    <div class="card-h" style="flex-wrap:wrap;gap:8px">
+      <span class="card-t">🗺️ خريطة الإتقان — الفصول × المهارات</span>
+      <span style="font-size:9px;color:var(--text3)">عمود ضعيف كامل = خلل في تدريس المهارة · صف ضعيف كامل = فصل يحتاج تدخّلاً</span>
+    </div>
+    <div class="card-b">
+      {% if mastery.skills %}
+      <div style="overflow-x:auto">
+        <table class="tbl hm-tbl" style="min-width:640px">
+          <thead>
+            <tr>
+              <th style="position:sticky;right:0;background:var(--card);z-index:2">الفصل</th>
+              {% for sk in mastery.skills %}
+              <th style="text-align:center;font-size:9px;font-weight:700;max-width:78px;line-height:1.5"
+                  title="{{ sk.name }} — متوسط {{ sk.avg }}% من {{ sk.attempts }} محاولة">{{ sk.name|truncatechars:22 }}</th>
+              {% endfor %}
+              <th style="text-align:center">متوسط الفصل</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in mastery.classrooms %}
+            <tr>
+              <td style="font-weight:700;font-size:11px;position:sticky;right:0;background:var(--card);z-index:1">{{ c.name }}</td>
+              {% for cellv in c.cells %}
+                {% if cellv %}
+                <td class="hm-cell" data-v="{{ cellv.v|unlocalize }}"
+                    title="{{ c.name }} — {{ cellv.v }}% من {{ cellv.n }} محاولة"
+                    style="text-align:center;font-size:11px;font-weight:800;padding:0">
+                  <div class="hm-box">{{ cellv.v }}</div>
+                </td>
+                {% else %}
+                <td style="text-align:center;color:var(--text3);font-size:10px">—</td>
+                {% endif %}
+              {% endfor %}
+              <td style="text-align:center;font-weight:800;font-size:12px">{% if c.avg is None %}—{% else %}{{ c.avg }}%{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px;font-size:9px;color:var(--text3)">
+        <span>مقياس الإتقان:</span>
+        <span class="hm-key" style="--p:15">أقل من 30</span>
+        <span class="hm-key" style="--p:40">30–49</span>
+        <span class="hm-key" style="--p:60">50–69</span>
+        <span class="hm-key" style="--p:78">70–84</span>
+        <span class="hm-key" style="--p:92">85 فأكثر</span>
+        <span>· الخلية تحمل الرقم أيضاً، فالقراءة لا تعتمد على اللون وحده</span>
+      </div>
+      {% else %}
+      <div class="empty"><div class="empty-ico">🗺️</div>لا توجد نتائج كافية لبناء الخريطة بعد</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ═══ توزيع الدرجات: قبلي مقابل بعدي ═══ -->
+  <div class="card" style="margin-top:14px">
+    <div class="card-h" style="flex-wrap:wrap;gap:8px">
+      <span class="card-t">📊 توزيع الدرجات — القبلي مقابل البعدي</span>
+      <span style="font-size:9px;color:var(--text3)">المتوسط يخفي الشكل: هل انزاح الصف كلّه أم قفزت قلّة؟</span>
+    </div>
+    <div class="card-b">
+      {% if distribution.post_stats.n %}
+      <div class="chart-box" style="height:360px;position:relative"><canvas id="distChart"></canvas></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:10px;font-size:10px;color:var(--text3)">
+        <span>القبلي: {{ distribution.pre_stats.n }} محاولة · متوسط {{ distribution.pre_stats.mean }}%</span>
+        <span>البعدي: {{ distribution.post_stats.n }} محاولة · متوسط {{ distribution.post_stats.mean }}%</span>
+      </div>
+      {% else %}
+      <div class="empty"><div class="empty-ico">📊</div>يحتاج نتائج قبلية وبعدية على مهارات القدرات</div>
+      {% endif %}
+    </div>
+  </div>
+
   <!-- ═══ تحليل المفردات — Item Analysis ═══ -->
   <div class="section-title">🔬 تحليل المفردات (Item Analysis)</div>
   <div class="card">
@@ -1095,6 +1189,15 @@ body.display-mode .card-t { font-size: 18px; }
         </select>
         <button class="btn btn-primary" onclick="runItemAnalysis()">🔬 حلّلي الأسئلة</button>
       </div>
+      <div id="iaQuadCard" style="display:none;margin-bottom:14px;border:1px solid var(--border);border-radius:12px;padding:12px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+          <strong style="font-size:12px">🎯 خريطة جودة الأسئلة — الصعوبة × التمييز</strong>
+          <span style="font-size:9px;color:var(--text3)">كل نقطة سؤال، ورقمه مكتوب داخلها · المستطيل الرمادي = نطاق الصعوبة المفيد</span>
+        </div>
+        <div id="iaQuadWrap" class="chart-box" style="height:340px;position:relative"><canvas id="iaQuadrant"></canvas></div>
+        <div id="iaQuadNote" style="display:none;text-align:center;color:var(--text3);font-size:11px;padding:24px"></div>
+      </div>
+
       <div id="iaBody">
         <div style="text-align:center;color:var(--text3);padding:26px;font-size:11px;line-height:2">
           اختاري اختباراً ثم اضغطي «حلّلي الأسئلة».<br>
@@ -1748,6 +1851,11 @@ body.display-mode .card-t { font-size: 18px; }
 <script id="data-classrooms" type="application/json">{{ classrooms_json|safe }}</script>
 <script id="data-levels" type="application/json">{{ levels_json|safe }}</script>
 <script>
+window.__distData = {
+  labels: [{% for l in distribution.labels %}"{{ l|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+  pre:  [{% for n in distribution.pre %}{{ n|unlocalize }}{% if not forloop.last %},{% endif %}{% endfor %}],
+  post: [{% for n in distribution.post %}{{ n|unlocalize }}{% if not forloop.last %},{% endif %}{% endfor %}]
+};
 window.__classImpactData = [
   {% for c in classrooms_impact %}
   { name: "{{ c.name|escapejs }}", post_avg: {{ c.post_avg|unlocalize }}, pre_avg: {{ c.pre_avg|unlocalize }}, attempts: {{ c.attempts|unlocalize }}, students: {{ c.students|unlocalize }}, improvement: {% if c.improvement is None %}null{% else %}{{ c.improvement|unlocalize }}{% endif %}, paired: {{ c.paired_students|unlocalize }}, enough: {% if c.enough_sample %}true{% else %}false{% endif %} }{% if not forloop.last %},{% endif %}
@@ -2508,6 +2616,9 @@ function renderItemAnalysis(d){
                    + iaEsc(d.note || 'لا توجد محاولات على هذا الاختبار بعد.') + '</div>';
     return;
   }
+  const qc = document.getElementById('iaQuadCard');
+  if (qc) qc.style.display = '';
+  try { drawItemQuadrant(d); } catch(e){ /* الرسم إضافي — لا يُسقط الجدول */ }
   iaRenderTable('all');
   flashToast('✅ تم تحليل ' + ((d.summary || {}).total || 0) + ' سؤال');
 }
@@ -3004,6 +3115,210 @@ document.addEventListener('DOMContentLoaded', initSlopeChart);
   window.addEventListener('load', boot);
   window.addEventListener('resize', () => setTimeout(fitAll, 120));
 })();
+
+
+// ═══ تلوين خريطة الإتقان ════════════════════════════════════════
+// تدرّج بهوية لونية واحدة: الأفتح أضعف والأغمق أعلى إتقاناً،
+// مع لونين للتحذير في القاع. الرقم داخل الخلية دائماً.
+(function paintMastery(){
+  function run(){
+    document.querySelectorAll('.hm-cell[data-v]').forEach(td => {
+      const v = parseFloat(td.dataset.v);
+      const box = td.querySelector('.hm-box');
+      if (!box || isNaN(v)) return;
+      let bg, fg;
+      if (v < 30)      { bg = '#f0b7b0'; fg = '#7f1d1d'; }
+      else if (v < 50) { bg = '#f3d2ab'; fg = '#7c3f12'; }
+      else if (v < 70) { bg = '#dbeae4'; fg = '#0a3f2c'; }
+      else if (v < 85) { bg = '#a8cfc0'; fg = '#06281c'; }
+      else             { bg = '#4f9a80'; fg = '#ffffff'; }
+      box.style.background = bg;
+      box.style.color = fg;
+    });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+})();
+
+// ═══ توزيع الدرجات: القبلي مقابل البعدي ═════════════════════════
+function initDistChart(){
+  const cv = document.getElementById('distChart');
+  if (!cv || typeof Chart === 'undefined' || !window.__distData) return;
+  const d = window.__distData;
+  const css = getComputedStyle(document.documentElement);
+  const v = n => (css.getPropertyValue(n) || '').trim();
+  const MUTED = v('--text3') || '#6b7799';
+  const GRID  = v('--border') || 'rgba(148,163,184,0.25)';
+  const PRE   = v('--orange') || '#f59e0b';
+  const POST  = v('--green')  || '#10b981';
+
+  new Chart(cv, {
+    type: 'bar',
+    data: {
+      labels: d.labels,
+      datasets: [
+        { label: 'القبلي', data: d.pre,  backgroundColor: PRE,  borderRadius: 4,
+          borderSkipped: false, borderWidth: 2, borderColor: 'transparent' },
+        { label: 'البعدي', data: d.post, backgroundColor: POST, borderRadius: 4,
+          borderSkipped: false, borderWidth: 2, borderColor: 'transparent' },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 12 } },
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: MUTED, font: { size: 11 }, boxWidth: 14, usePointStyle: true } },
+        tooltip: {
+          rtl: true, textDirection: 'rtl',
+          callbacks: {
+            title: items => 'شريحة ' + items[0].label + '%',
+            label: item => item.dataset.label + ': ' + item.parsed.y + ' محاولة',
+          },
+        },
+      },
+      scales: {
+        x: { title: { display: true, text: 'شريحة الدرجة %', color: MUTED, font: { size: 10 } },
+             grid: { display: false }, ticks: { color: MUTED, font: { size: 10 } } },
+        y: { beginAtZero: true,
+             title: { display: true, text: 'عدد المحاولات', color: MUTED, font: { size: 10 } },
+             grid: { color: GRID }, ticks: { color: MUTED, font: { size: 10 }, precision: 0 } },
+      },
+    },
+  });
+}
+document.addEventListener('DOMContentLoaded', initDistChart);
+
+
+// ═══ مخطط الصعوبة × التمييز (الشكل القياسي لتحليل المفردات) ══════
+// كل نقطة سؤال: الصعوبة على المحور الأفقي، التمييز على الرأسي.
+// اللون والشكل يحملان الحكم، ورقم السؤال مكتوب داخل النقطة —
+// فالقراءة لا تعتمد على اللون وحده.
+function drawItemQuadrant(d){
+  const cv = document.getElementById('iaQuadrant');
+  if (!cv || typeof Chart === 'undefined') return;
+  if (window.__iaQuad) { try { window.__iaQuad.destroy(); } catch(e){} }
+
+  const pts = (d.questions || []).filter(q => !q.no_data && q.d !== null);
+  const wrap = document.getElementById('iaQuadWrap');
+  const note = document.getElementById('iaQuadNote');
+  if (!pts.length){
+    if (wrap) wrap.style.display = 'none';
+    if (note){
+      note.style.display = 'block';
+      note.textContent = d.groups_valid === false
+        ? 'المحاولات قليلة — لم يُحسب معامل التمييز، فلا يمكن رسم المخطط.'
+        : 'لا توجد أسئلة لها معامل تمييز محسوب بعد.';
+    }
+    return;
+  }
+  if (wrap) wrap.style.display = '';
+  if (note) note.style.display = 'none';
+
+  const css = getComputedStyle(document.documentElement);
+  const v = n => (css.getPropertyValue(n) || '').trim();
+  const MUTED = v('--text3') || '#6b7799';
+  const GRID  = v('--border') || 'rgba(148,163,184,0.25)';
+  const SURF  = v('--card') || '#fff';
+  const GOOD  = v('--green') || '#10b981';
+  const BAD   = v('--red') || '#ef4444';
+  const WARN  = v('--orange') || '#f59e0b';
+
+  const group = q => q.d < 0 ? 'broken'
+                : q.d < 0.20 ? 'weak'
+                : (q.p >= 0.90 || q.p <= 0.20) ? 'edge' : 'good';
+  const meta = {
+    good:   { label: 'سؤال جيد',        color: GOOD, style: 'circle'   },
+    edge:   { label: 'سهل/صعب جداً',    color: WARN, style: 'triangle' },
+    weak:   { label: 'تمييز ضعيف',      color: WARN, style: 'rect'     },
+    broken: { label: 'يحتاج مراجعة',    color: BAD,  style: 'rectRot'  },
+  };
+
+  const sets = Object.keys(meta).map(k => {
+    const rows = pts.filter(q => group(q) === k);
+    return {
+      label: meta[k].label + ' (' + rows.length + ')',
+      data: rows.map(q => ({ x: q.p_pct, y: q.d, q })),
+      backgroundColor: meta[k].color,
+      borderColor: SURF,
+      borderWidth: 2,
+      pointStyle: meta[k].style,
+      pointRadius: 9,
+      pointHoverRadius: 13,
+    };
+  }).filter(s => s.data.length);
+
+  // خطوط الأرباع + رقم كل سؤال داخل نقطته
+  const guides = {
+    id: 'iaGuides',
+    beforeDatasetsDraw(chart){
+      const { ctx, chartArea: a, scales } = chart;
+      const yz = scales.y.getPixelForValue(0.20), y0 = scales.y.getPixelForValue(0);
+      const x1 = scales.x.getPixelForValue(30), x2 = scales.x.getPixelForValue(80);
+      ctx.save();
+      ctx.fillStyle = 'rgba(148,163,184,0.07)';
+      ctx.fillRect(x1, a.top, x2 - x1, a.bottom - a.top);      // نطاق الصعوبة المفيد
+      ctx.setLineDash([5, 4]); ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(148,163,184,0.55)';
+      [yz, y0].forEach(y => { ctx.beginPath(); ctx.moveTo(a.left, y); ctx.lineTo(a.right, y); ctx.stroke(); });
+      [x1, x2].forEach(x => { ctx.beginPath(); ctx.moveTo(x, a.top); ctx.lineTo(x, a.bottom); ctx.stroke(); });
+      ctx.restore();
+    },
+    afterDatasetsDraw(chart){
+      const { ctx } = chart;
+      ctx.save();
+      ctx.font = '700 8px Tajawal, system-ui, sans-serif';
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      chart.data.datasets.forEach((ds, i) => {
+        const m = chart.getDatasetMeta(i);
+        if (m.hidden) return;
+        (m.data || []).forEach((pt, j) => {
+          const q = ds.data[j] && ds.data[j].q;
+          if (q) ctx.fillText(String(q.order), pt.x, pt.y);
+        });
+      });
+      ctx.restore();
+    },
+  };
+
+  window.__iaQuad = new Chart(cv, {
+    type: 'scatter',
+    data: { datasets: sets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      layout: { padding: { top: 10, right: 10, bottom: 4, left: 10 } },
+      plugins: {
+        legend: { labels: { color: MUTED, font: { size: 10 }, usePointStyle: true, boxWidth: 12 } },
+        tooltip: {
+          rtl: true, textDirection: 'rtl',
+          callbacks: {
+            title: items => 'السؤال ' + items[0].raw.q.order,
+            label: item => {
+              const q = item.raw.q;
+              const out = ['الصعوبة ' + q.p_pct + '%  ·  التمييز ' + q.d.toFixed(2),
+                           q.attempts + ' محاولة  ·  المفتاح ' + q.correct];
+              if (q.top_distractor && q.top_distractor.pct >= 30)
+                out.push('مشتّت مهيمن: (' + q.top_distractor.letter + ') ' + q.top_distractor.pct + '%');
+              return out;
+            },
+          },
+        },
+      },
+      scales: {
+        x: { min: -4, max: 104, reverse: true,
+             title: { display: true, text: 'الصعوبة % (يمين = أصعب) — النطاق المفيد 30 إلى 80', color: MUTED, font: { size: 10 } },
+             grid: { color: GRID },
+             ticks: { color: MUTED, font: { size: 10 }, stepSize: 10,
+                      callback: x => (x < 0 || x > 100) ? '' : x + '%' } },
+        y: { position: 'right', suggestedMin: -0.4, suggestedMax: 1,
+             title: { display: true, text: 'معامل التمييز (فوق 0.20 مقبول)', color: MUTED, font: { size: 10 } },
+             grid: { color: GRID }, ticks: { color: MUTED, font: { size: 10 } } },
+      },
+    },
+    plugins: [guides],
+  });
+}
 
 </script>
 </body>

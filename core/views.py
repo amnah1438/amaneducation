@@ -1090,6 +1090,98 @@ def _v2_students_support(limit=50):
     return out
 
 
+def _v2_mastery_matrix(max_skills=14):
+    """
+    خريطة الإتقان: متوسط كل فصل في كل مهارة.
+
+    تكشف ما لا يكشفه المتوسط العام: عمود كامل ضعيف = مهارة فشل فيها الجميع
+    (خلل تدريس)، وصف كامل ضعيف = فصل يحتاج تدخّلاً. قراءة فقط.
+    """
+    rows = _v2_result_rows()
+    titles = dict(TeacherSkill.objects.values_list('id', 'title'))
+    names = dict(ClassRoom.objects.values_list('id', 'name'))
+
+    cell = {}          # (فصل, مهارة) → [مجموع, عدد]
+    skill_tot = {}     # مهارة → [مجموع, عدد]  — لترتيب الأعمدة
+    for r in rows:
+        cid, sid = r['_classroom'], r['exam__skill_id']
+        if not cid or not sid:
+            continue
+        pct = float(r['percentage'] or 0)
+        c = cell.setdefault((cid, sid), [0.0, 0]); c[0] += pct; c[1] += 1
+        t = skill_tot.setdefault(sid, [0.0, 0]);   t[0] += pct; t[1] += 1
+
+    if not cell:
+        return {'classrooms': [], 'skills': []}
+
+    # أكثر المهارات محاولاتٍ أولاً — الأعمدة المحدودة تبقى ذات معنى
+    top = sorted(skill_tot.items(), key=lambda kv: -kv[1][1])[:max_skills]
+    skill_ids = [sid for sid, _ in top]
+    skills = [{'id': sid,
+               'name': titles.get(sid, '—'),
+               'avg': round(skill_tot[sid][0] / skill_tot[sid][1], 1),
+               'attempts': skill_tot[sid][1]} for sid in skill_ids]
+
+    class_ids = sorted({cid for (cid, sid) in cell if sid in skill_ids},
+                       key=lambda cid: names.get(cid, ''))
+    classrooms = []
+    for cid in class_ids:
+        vals, row = [], []
+        for sid in skill_ids:
+            c = cell.get((cid, sid))
+            if c and c[1]:
+                v = round(c[0] / c[1], 1)
+                row.append({'v': v, 'n': c[1]})
+                vals.append(v)
+            else:
+                row.append(None)
+        classrooms.append({'id': cid, 'name': names.get(cid, '—'),
+                           'cells': row,
+                           'avg': round(sum(vals) / len(vals), 1) if vals else None})
+    return {'classrooms': classrooms, 'skills': skills}
+
+
+def _v2_score_distribution(bucket=10):
+    """
+    توزيع الدرجات في القبلي مقابل البعدي — بشرائح 10%.
+
+    المتوسط يخفي الشكل: قد يرتفع لأن قلّة قفزت. التوزيع يُظهر
+    هل انزاح الصف كلّه أم طرفٌ منه. قراءة فقط.
+    """
+    edges = list(range(0, 100, bucket))
+    labels = [f'{e}–{e + bucket}' for e in edges]
+    pre = [0] * len(edges)
+    post = [0] * len(edges)
+
+    for r in _v2_result_rows():
+        if r['exam__skill__content_type'] != 'skill':
+            continue               # القدرات وحدها لها قبلي/بعدي
+        t = r['exam__exam_type']
+        if t not in ('pre', 'post'):
+            continue
+        v = float(r['percentage'] or 0)
+        i = min(len(edges) - 1, max(0, int(v // bucket)))
+        (pre if t == 'pre' else post)[i] += 1
+
+    def stats(counts):
+        n = sum(counts)
+        if not n:
+            return {'n': 0, 'mean': None, 'median': None}
+        mids = [e + bucket / 2 for e in edges]
+        mean = sum(c * m for c, m in zip(counts, mids)) / n
+        half, run = n / 2, 0
+        median = mids[-1]
+        for c, m in zip(counts, mids):
+            run += c
+            if run >= half:
+                median = m
+                break
+        return {'n': n, 'mean': round(mean, 1), 'median': median}
+
+    return {'labels': labels, 'pre': pre, 'post': post,
+            'pre_stats': stats(pre), 'post_stats': stats(post)}
+
+
 def _v2_hardest_skills(limit=10):
     """
     المهارات الأصعب على الطالبات — مرتبة تصاعدياً بالمتوسط.
@@ -1137,6 +1229,15 @@ def admin_v2_dashboard(request):
     alerts = _v2_smart_alerts(kpis, level_dist, classrooms_impact, top_students)
     decisions = _v2_decisions(kpis, level_dist, alerts)
     predictions = _v2_predictions()
+    try:
+        mastery = _v2_mastery_matrix()
+    except Exception:
+        mastery = {'classrooms': [], 'skills': []}
+    try:
+        distribution = _v2_score_distribution()
+    except Exception:
+        distribution = {'labels': [], 'pre': [], 'post': [],
+                        'pre_stats': {'n': 0}, 'post_stats': {'n': 0}}
 
     # قوائم لإدارة المستخدمين (modals)
     teacher_profiles = (
@@ -1219,6 +1320,8 @@ def admin_v2_dashboard(request):
         'alerts': alerts,
         'decisions': decisions,
         'predictions': predictions,
+        'mastery': mastery,
+        'distribution': distribution,
         'teachers_list': teachers_list,
         'students_list': students_list,
         'comprehensive_skills': comprehensive_skills,
