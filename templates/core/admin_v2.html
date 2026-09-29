@@ -913,9 +913,9 @@ body.display-mode .card-t { font-size: 18px; }
             <td style="text-align:center;font-size:12px;color:{% if c.attempts >= 20 %}var(--green){% elif c.attempts > 0 %}var(--orange){% else %}var(--text3){% endif %};font-weight:700">{{ c.attempts }}
               {% if c.attempts %}
               <div style="font-size:9px;font-weight:400;color:var(--text3);margin-top:3px;line-height:1.6">
-                {% if c.qodrat_attempts %}<div>قدرات {{ c.qodrat_attempts }} · قابلة للمقارنة</div>{% endif %}
+                {% if c.qodrat_attempts %}<div>قدرات {{ c.qodrat_attempts }}{% if c.comparable_attempts %} · منها {{ c.comparable_attempts }} قبلي/بعدي{% endif %}</div>{% endif %}
                 {% if c.tahsili_attempts %}<div>تحصيلي {{ c.tahsili_attempts }} · بلا قبلي</div>{% endif %}
-                {% if c.other_attempts %}<div>أخرى {{ c.other_attempts }}</div>{% endif %}
+                {% if c.other_attempts %}<div>بنك/شامل {{ c.other_attempts }}</div>{% endif %}
               </div>
               {% endif %}
             </td>

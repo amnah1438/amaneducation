@@ -760,18 +760,22 @@ def _v2_classrooms_impact():
         pre = _v2_avg(subset, 'pre')
         avg = _v2_avg(subset)
 
-        # فصل محاولات القدرات عن التحصيلي.
-        # دروس التحصيلي ليس لها اختبار قبلي بطبيعتها (نوع اختبارها 'lesson' فقط)،
-        # فإدخالها في عدّاد المحاولات يوحي بأن القياس ضعيف، والسبب بنيوي لا قصور.
-        qodrat_n  = sum(1 for r in subset if r['exam__exam_type'] in ('pre', 'post'))
-        tahsili_n = sum(1 for r in subset
-                        if r['exam__exam_type'] == 'lesson'
-                        or r['exam__skill__content_type'] == 'lesson')
+        # فصل المحاولات حسب نوع المهارة نفسها (content_type) لا نوع الاختبار.
+        # سبب مهم: نوع الاختبار 'lesson' اسمه «درس تحصيلي» لكن المعلمات يستخدمنه
+        # أيضاً كاختبار تدريبي على مهارات القدرات — فالاعتماد عليه يصنّف تدريبات
+        # القدرات تحصيلياً خطأً. أمّا content_type فهو ما تختاره المعلمة صراحةً.
+        # ودروس التحصيلي ليس لها قبلي بطبيعتها، فعزلها يمنع إيهام القارئ بضعف القياس.
+        qodrat_n  = sum(1 for r in subset if r['exam__skill__content_type'] == 'skill')
+        tahsili_n = sum(1 for r in subset if r['exam__skill__content_type'] == 'lesson')
         other_n = len(subset) - qodrat_n - tahsili_n
+        # القابل للمقارنة: قبلي/بعدي على مهارة قدرات فقط
+        comparable_n = sum(1 for r in subset
+                           if r['exam__skill__content_type'] == 'skill'
+                           and r['exam__exam_type'] in ('pre', 'post'))
 
         if not subset:
             tier = 'no_data'                 # 📭 لا نتائج بعد
-        elif paired == 0 and qodrat_n == 0:
+        elif paired == 0 and comparable_n == 0 and tahsili_n:
             tier = 'tahsili_only'            # 📘 تحصيلي فقط — لا قبلي بطبيعته
         elif paired == 0:
             tier = 'no_pairs'                # 🔗 لا طالبة أدّت القبلي والبعدي
@@ -794,6 +798,7 @@ def _v2_classrooms_impact():
             'qodrat_attempts': qodrat_n,
             'tahsili_attempts': tahsili_n,
             'other_attempts': other_n,
+            'comparable_attempts': comparable_n,
             'pre_avg': pre,
             'post_avg': post,
             'avg': avg,
