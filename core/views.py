@@ -662,6 +662,59 @@ def _v2_paired_improvement(subset):
     return round(sum(deltas) / len(deltas), 1), len(students)
 
 
+def _v2_paired_effect_size(subset):
+    """
+    حجم الأثر (Cohen's d للعيّنات المزدوجة) = متوسط الفروق ÷ الانحراف المعياري للفروق.
+
+    لماذا نحتاجه بجانب نسبة التحسّن؟ لأن «+٧٪» وحدها لا تقول إن كان التحسّن
+    منتظماً في الفصل أم ناتجاً عن قفزة طالبتين. حجم الأثر مقياس معياري عالمي
+    يجعل مقارنة فصلين عادلة رغم اختلاف صعوبة اختباراتهما.
+    يرجع (d, وصف) أو (None, '') إن لم تكفِ البيانات.
+    """
+    try:
+        pre_map, post_map = {}, {}
+        for r in subset:
+            key = (r['student_id'] or f"rec{r['student_record_id']}", r['exam__skill_id'])
+            pct = float(r['percentage'] or 0)
+            if r['exam__exam_type'] == 'pre':
+                pre_map.setdefault(key, []).append(pct)
+            elif r['exam__exam_type'] == 'post':
+                post_map.setdefault(key, []).append(pct)
+
+        deltas = []
+        for key, pres in pre_map.items():
+            posts = post_map.get(key)
+            if not posts:
+                continue
+            deltas.append(sum(posts) / len(posts) - sum(pres) / len(pres))
+
+        # الانحراف المعياري يحتاج فرقين على الأقل
+        if len(deltas) < 2:
+            return None, ''
+
+        mean = sum(deltas) / len(deltas)
+        var = sum((x - mean) ** 2 for x in deltas) / (len(deltas) - 1)
+        sd = var ** 0.5
+        if sd == 0:
+            # كل الطالبات تحرّكن بالمقدار نفسه — أثر متسق تماماً
+            return (None, '') if mean == 0 else (None, 'أثر متسق')
+
+        d = mean / sd
+        a = abs(d)
+        if a < 0.2:
+            label = 'ضئيل'
+        elif a < 0.5:
+            label = 'صغير'
+        elif a < 0.8:
+            label = 'متوسط'
+        else:
+            label = 'كبير'
+        return round(d, 2), label
+    except Exception:
+        # حساب إضافي لا يجوز أن يُسقط اللوحة
+        return None, ''
+
+
 def _v2_avg(subset, exam_type=None):
     vals = [float(r['percentage'] or 0) for r in subset
             if exam_type is None or r['exam__exam_type'] == exam_type]
@@ -701,6 +754,7 @@ def _v2_classrooms_impact():
     for c in ClassRoom.objects.all().order_by('name'):
         subset = by_class.get(c.id, [])
         improvement, paired = _v2_paired_improvement(subset)
+        effect_d, effect_label = _v2_paired_effect_size(subset)
         post = _v2_avg(subset, 'post')
         pre = _v2_avg(subset, 'pre')
         avg = _v2_avg(subset)
@@ -731,6 +785,8 @@ def _v2_classrooms_impact():
             'improvement': improvement,
             'paired_students': paired,
             'enough_sample': paired >= MIN_PAIRED,
+            'effect_size': effect_d,
+            'effect_label': effect_label,
             'teachers': teachers_of.get(c.id, []),
             'tier': tier,
         })
@@ -1529,6 +1585,210 @@ def _exam_types_breakdown(qs):
             out.append({'type': k, 'label': v['label'], 'avg': round(v['sum'] / v['count'], 1), 'count': v['count']})
     out.sort(key=lambda x: -x['avg'])
     return out
+
+
+# ═══════════════════════════════════════════════════════════════════
+#  تحليل المفردات (Item Analysis)
+#  يعتمد على إجابات الطالبات المحفوظة سؤالاً بسؤال (StudentAnswer).
+#  قراءة فقط: لا كتابة ولا تعديل على أي سجل.
+# ═══════════════════════════════════════════════════════════════════
+
+# الحد الأدنى لمحاولات يُبنى عليها حكم على السؤال
+MIN_ITEM_ATTEMPTS = 10
+# نسبة المجموعتين العليا والدنيا في معامل التمييز (المعتمد تربوياً: 27%)
+UPPER_LOWER_FRACTION = 0.27
+
+_CHOICE_AR = {'A': 'أ', 'B': 'ب', 'C': 'ج', 'D': 'د'}
+
+
+def _item_flags(p, d, attempts):
+    """قراءة تربوية للسؤال — ماذا تعني أرقامه عملياً."""
+    flags = []
+    if attempts < MIN_ITEM_ATTEMPTS:
+        flags.append(('sample', f'عيّنة صغيرة ({attempts}) — الأرقام مؤشّر لا حكم'))
+        return flags
+    if d is not None:
+        if d < 0:
+            flags.append(('broken', 'تمييز سالب — المتفوقات تخطئ فيه أكثر؛ راجعي صياغته أو مفتاحه'))
+        elif d < 0.20:
+            flags.append(('weak', 'تمييز ضعيف — لا يفرّق بين المستويات'))
+        elif d >= 0.40:
+            flags.append(('good', 'تمييز ممتاز'))
+    if p >= 0.90:
+        flags.append(('easy', 'سهل جداً — لا يضيف معلومة عن المستوى'))
+    elif p <= 0.20:
+        flags.append(('hard', 'صعب جداً — راجعي إن كان المفهوم لم يُدرَّس بعد'))
+    return flags
+
+
+def _v2_item_analysis(exam_id, classroom=''):
+    """
+    تحليل مفردات اختبار واحد:
+      • معامل الصعوبة p = نسبة من أجابت صحيحاً
+      • معامل التمييز D = p(أعلى 27%) − p(أدنى 27%)
+      • تحليل المشتّتات: كم اختارت كل خيار، وأيّ خيار خاطئ جذب أكثر
+    """
+    exam = TeacherExam.objects.select_related('skill').filter(pk=exam_id).first()
+    if not exam:
+        return {'error': 'الاختبار غير موجود'}
+
+    results = ExamResult.objects.filter(exam_id=exam_id)
+    if classroom:
+        results = results.filter(
+            Q(student_record__classroom__name=classroom)
+            | Q(student__student_record__classroom__name=classroom)
+        ).distinct()
+
+    # ترتيب المحاولات بالدرجة — لتحديد المجموعتين العليا والدنيا
+    ranked = sorted(
+        results.values_list('id', 'percentage'),
+        key=lambda t: float(t[1] or 0), reverse=True
+    )
+    total_attempts = len(ranked)
+    if total_attempts == 0:
+        return {
+            'exam': f'{exam.get_exam_type_display()} — {exam.skill.title}',
+            'attempts': 0, 'questions': [], 'summary': {},
+            'note': 'لا توجد محاولات على هذا الاختبار بعد.',
+        }
+
+    group_n = max(1, int(round(total_attempts * UPPER_LOWER_FRACTION)))
+    upper_ids = {rid for rid, _ in ranked[:group_n]}
+    lower_ids = {rid for rid, _ in ranked[-group_n:]}
+    # عند قلّة المحاولات قد تتداخل المجموعتان — عندها لا معنى للتمييز
+    groups_valid = total_attempts >= 2 * group_n and not (upper_ids & lower_ids)
+
+    answers = StudentAnswer.objects.filter(result_id__in=[r for r, _ in ranked]).values_list(
+        'result_id', 'question_id', 'chosen_answer', 'is_correct'
+    )
+
+    per_q = {}
+    for rid, qid, chosen, correct in answers:
+        q = per_q.setdefault(qid, {
+            'n': 0, 'correct': 0, 'choices': {'A': 0, 'B': 0, 'C': 0, 'D': 0}, 'blank': 0,
+            'up_n': 0, 'up_c': 0, 'lo_n': 0, 'lo_c': 0,
+        })
+        q['n'] += 1
+        if correct:
+            q['correct'] += 1
+        c = (chosen or '').strip().upper()
+        if c in q['choices']:
+            q['choices'][c] += 1
+        else:
+            q['blank'] += 1
+        if rid in upper_ids:
+            q['up_n'] += 1
+            q['up_c'] += 1 if correct else 0
+        if rid in lower_ids:
+            q['lo_n'] += 1
+            q['lo_c'] += 1 if correct else 0
+
+    questions = []
+    broken = weak = easy = hard = 0
+    for q in TeacherQuestion.objects.filter(exam_id=exam_id).order_by('order', 'id'):
+        st = per_q.get(q.id)
+        if not st or st['n'] == 0:
+            questions.append({
+                'order': q.order or 0,
+                'text': (q.question_plain or '')[:160] or '—',
+                'correct': _CHOICE_AR.get(q.correct_answer, q.correct_answer or '—'),
+                'attempts': 0, 'p': None, 'p_pct': None, 'd': None,
+                'choices': [], 'top_distractor': None, 'flags': [],
+                'no_data': True,
+            })
+            continue
+
+        p = st['correct'] / st['n']
+        d = None
+        if groups_valid and st['up_n'] and st['lo_n']:
+            d = round(st['up_c'] / st['up_n'] - st['lo_c'] / st['lo_n'], 2)
+
+        choices, top_dist = [], None
+        for letter in ('A', 'B', 'C', 'D'):
+            cnt = st['choices'][letter]
+            is_key = (q.correct_answer or '').upper() == letter
+            choices.append({
+                'letter': _CHOICE_AR[letter],
+                'count': cnt,
+                'pct': round(100 * cnt / st['n']),
+                'is_key': is_key,
+            })
+            if not is_key and cnt and (top_dist is None or cnt > top_dist['count']):
+                top_dist = {'letter': _CHOICE_AR[letter], 'count': cnt,
+                            'pct': round(100 * cnt / st['n'])}
+
+        flags = _item_flags(p, d, st['n'])
+        for kind, _ in flags:
+            if kind == 'broken':
+                broken += 1
+            elif kind == 'weak':
+                weak += 1
+            elif kind == 'easy':
+                easy += 1
+            elif kind == 'hard':
+                hard += 1
+
+        questions.append({
+            'order': q.order or 0,
+            'text': (q.question_plain or '')[:160] or '—',
+            'correct': _CHOICE_AR.get(q.correct_answer, q.correct_answer or '—'),
+            'attempts': st['n'],
+            'p': round(p, 2),
+            'p_pct': round(100 * p),
+            'd': d,
+            'choices': choices,
+            'top_distractor': top_dist,
+            'flags': [{'kind': k, 'text': t} for k, t in flags],
+            'no_data': False,
+        })
+
+    return {
+        'exam': f'{exam.get_exam_type_display()} — {exam.skill.title}',
+        'classroom': classroom or 'كل الفصول',
+        'attempts': total_attempts,
+        'group_n': group_n,
+        'groups_valid': groups_valid,
+        'questions': questions,
+        'summary': {
+            'total': len(questions),
+            'broken': broken, 'weak': weak, 'easy': easy, 'hard': hard,
+        },
+    }
+
+
+@admin_required
+def admin_item_analysis_json(request):
+    """تحليل المفردات لاختبار مختار — قراءة فقط."""
+    try:
+        exam_id = int(request.GET.get('exam', '') or 0)
+    except ValueError:
+        exam_id = 0
+    if not exam_id:
+        return JsonResponse({'error': 'اختاري الاختبار أولاً'}, status=200)
+    try:
+        return JsonResponse(_v2_item_analysis(exam_id, request.GET.get('class', '').strip()))
+    except Exception as exc:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': f'تعذّر التحليل: {exc}',
+                             'questions': [], 'summary': {}}, status=200)
+
+
+@admin_required
+def admin_exams_list_json(request):
+    """قائمة الاختبارات التي عليها محاولات — لتغذية قائمة اختيار تحليل المفردات."""
+    try:
+        out = []
+        for e in (TeacherExam.objects.select_related('skill', 'skill__created_by')
+                  .annotate(n=Count('results'))
+                  .filter(n__gt=0).order_by('skill__title', 'exam_type')):
+            out.append({
+                'id': e.id,
+                'label': f'{e.skill.title} — {e.get_exam_type_display()} ({e.n} محاولة)',
+            })
+        return JsonResponse({'exams': out})
+    except Exception as exc:
+        return JsonResponse({'exams': [], 'error': str(exc)})
 
 
 @admin_required

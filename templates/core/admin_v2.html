@@ -900,6 +900,7 @@ body.display-mode .card-t { font-size: 18px; }
           <th style="text-align:center">المحاولات</th>
           <th>القبلي → البعدي</th>
           <th>التحسّن الفعلي</th>
+          <th>حجم الأثر</th>
           <th>القراءة</th>
           <th>معلمات الفصل</th>
         </tr></thead>
@@ -935,6 +936,16 @@ body.display-mode .card-t { font-size: 18px; }
                   <span class="bd bd-o" style="font-size:11px">← ثابت</span>
                 {% endif %}
                 <div style="font-size:9px;color:var(--text3);margin-top:3px">👥 {{ c.paired_students }} طالبة أدّت الاثنين</div>
+              {% endif %}
+            </td>
+
+            <!-- حجم الأثر (Cohen's d) — هل التحسّن منتظم أم قفزة فرديّة؟ -->
+            <td>
+              {% if c.effect_size is None %}
+                <span style="font-size:10px;color:var(--text3)">{{ c.effect_label|default:"—" }}</span>
+              {% else %}
+                <span class="bd" style="font-size:11px;font-weight:800;{% if c.effect_label == 'كبير' %}background:rgba(34,197,94,0.15);color:#16a34a{% elif c.effect_label == 'متوسط' %}background:rgba(34,197,94,0.10);color:#16a34a{% elif c.effect_label == 'صغير' %}background:rgba(245,158,11,0.12);color:var(--orange){% else %}background:rgba(148,163,184,0.12);color:var(--text2){% endif %}">{{ c.effect_label }}</span>
+                <div style="font-size:9px;color:var(--text3);margin-top:3px">d = {{ c.effect_size|unlocalize }}</div>
               {% endif %}
             </td>
 
@@ -981,10 +992,43 @@ body.display-mode .card-t { font-size: 18px; }
         <span>🔍 <strong>يحتاج مراجعة</strong> = انخفاض في البعدي</span>
         <span>⚖️ <strong>عيّنة صغيرة</strong> = أقل من 10 طالبات أدّين القبلي والبعدي — الرقم يظهر بلا حكم</span>
         <span>🔗 <strong>لم تُقارن طالبة</strong> = لا توجد طالبة أدّت الاختبارين معاً</span>
+        <span>📐 <strong>حجم الأثر (Cohen's d)</strong> = مقياس معياري عالمي: هل تحسّن الفصل كلّه أم قفزت طالبتان؟ ضئيل &lt;0.2 · صغير 0.2–0.5 · متوسط 0.5–0.8 · كبير ≥0.8</span>
       </div>
       {% else %}
       <div class="empty"><div class="empty-ico">🏫</div>لا توجد فصول بعد</div>
       {% endif %}
+    </div>
+  </div>
+
+  <!-- ═══ تحليل المفردات — Item Analysis ═══ -->
+  <div class="section-title">🔬 تحليل المفردات (Item Analysis)</div>
+  <div class="card">
+    <div class="card-h" style="flex-wrap:wrap;gap:8px">
+      <span class="card-t">🧪 جودة كل سؤال ومواطن الفهم المغلوط</span>
+      <span style="font-size:9px;color:var(--text3);display:flex;align-items:center;gap:4px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block"></span>
+        يقرأ إجابة كل طالبة على كل سؤال — لا الدرجة النهائية فقط
+      </span>
+    </div>
+    <div class="card-b">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+        <select class="filter-sel" id="iaExam" style="min-width:300px">
+          <option value="">— جاري تحميل الاختبارات… —</option>
+        </select>
+        <select class="filter-sel" id="iaClass" style="min-width:160px">
+          <option value="">كل الفصول</option>
+          {% for c in classrooms %}<option value="{{ c.name }}">{{ c.name }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-primary" onclick="runItemAnalysis()">🔬 حلّلي الأسئلة</button>
+      </div>
+      <div id="iaBody">
+        <div style="text-align:center;color:var(--text3);padding:26px;font-size:11px;line-height:2">
+          اختاري اختباراً ثم اضغطي «حلّلي الأسئلة».<br>
+          يُحسب لكل سؤال: <strong>معامل الصعوبة</strong> (كم أجابت صحيحاً)،
+          و<strong>معامل التمييز</strong> (هل يفرّق بين المتفوقات والمتعثرات)،
+          و<strong>المشتّت المهيمن</strong> (أي خيار خاطئ جذب أكثر — وهو غالباً مفهوم مغلوط مشترك).
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2297,6 +2341,140 @@ document.addEventListener('click', e => {
   if (link) { openTrendModal(link.dataset.sid); return; }
   if (e.target.id === 'trendModal') closeTrendModal();
 });
+
+// ═══ تحليل المفردات (Item Analysis) ═══════════════════════════════
+(function loadExamsForItemAnalysis(){
+  const sel = document.getElementById('iaExam');
+  if (!sel) return;
+  fetch('/admin-dashboard/exams-list.json', { credentials: 'same-origin' })
+    .then(r => r.json())
+    .then(d => {
+      const list = d.exams || [];
+      if (!list.length){
+        sel.innerHTML = '<option value="">لا توجد اختبارات عليها محاولات بعد</option>';
+        return;
+      }
+      sel.innerHTML = '<option value="">— اختاري الاختبار —</option>'
+        + list.map(e => '<option value="' + e.id + '">' + iaEsc(e.label) + '</option>').join('');
+    })
+    .catch(() => { sel.innerHTML = '<option value="">تعذّر تحميل قائمة الاختبارات</option>'; });
+})();
+
+function iaEsc(t){
+  return String(t == null ? '' : t)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function runItemAnalysis(){
+  const exam = document.getElementById('iaExam').value;
+  const cls  = document.getElementById('iaClass').value;
+  const body = document.getElementById('iaBody');
+  if (!exam){ flashToast('⚠️ اختاري الاختبار أولاً'); return; }
+
+  body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">⏳ جاري تحليل الأسئلة…</div>';
+  const p = new URLSearchParams({ exam: exam });
+  if (cls) p.set('class', cls);
+
+  fetch('/admin-dashboard/item-analysis.json?' + p.toString(), { credentials: 'same-origin' })
+    .then(r => r.json())
+    .then(renderItemAnalysis)
+    .catch(err => {
+      body.innerHTML = '<div style="padding:20px;color:var(--red);font-size:11px">❌ تعذّر التحليل: '
+                     + iaEsc(err.message || '') + '</div>';
+    });
+}
+
+function renderItemAnalysis(d){
+  const body = document.getElementById('iaBody');
+  if (d.error){
+    body.innerHTML = '<div style="padding:20px;color:var(--red);font-size:11px">❌ ' + iaEsc(d.error) + '</div>';
+    return;
+  }
+  if (!d.attempts){
+    body.innerHTML = '<div style="text-align:center;padding:26px;color:var(--text3);font-size:11px">📭 '
+                   + iaEsc(d.note || 'لا توجد محاولات على هذا الاختبار بعد.') + '</div>';
+    return;
+  }
+
+  const s = d.summary || {};
+  const chip = (txt, bg, col) => '<span class="bd" style="background:' + bg + ';color:' + col
+      + ';font-size:10px;font-weight:700">' + txt + '</span>';
+
+  let head = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">'
+    + '<strong style="font-size:12px">' + iaEsc(d.exam) + '</strong>'
+    + '<span style="font-size:10px;color:var(--text3)">' + iaEsc(d.classroom)
+    + ' • ' + d.attempts + ' محاولة • ' + (s.total || 0) + ' سؤال</span>';
+  if (s.broken) head += chip('⛔ ' + s.broken + ' سؤال معطوب', 'rgba(239,68,68,0.12)', 'var(--red)');
+  if (s.weak)   head += chip('⚠️ ' + s.weak + ' ضعيف التمييز', 'rgba(245,158,11,0.12)', 'var(--orange)');
+  if (s.easy)   head += chip('😴 ' + s.easy + ' سهل جداً', 'rgba(148,163,184,0.15)', 'var(--text2)');
+  if (s.hard)   head += chip('🧗 ' + s.hard + ' صعب جداً', 'rgba(148,163,184,0.15)', 'var(--text2)');
+  head += '</div>';
+
+  if (!d.groups_valid){
+    head += '<div style="font-size:10px;color:var(--orange);margin-bottom:10px">'
+          + '⚖️ المحاولات قليلة (' + d.attempts + ') — لم يُحسب معامل التمييز لأن المجموعتين العليا والدنيا تتداخلان.</div>';
+  }
+
+  let rows = '';
+  (d.questions || []).forEach(q => {
+    if (q.no_data){
+      rows += '<tr><td style="font-weight:700">س' + q.order + '</td>'
+            + '<td colspan="5" style="color:var(--text3);font-size:10px">لا إجابات مسجّلة لهذا السؤال</td></tr>';
+      return;
+    }
+    const pCol = q.p >= 0.9 ? 'var(--text2)' : q.p <= 0.2 ? 'var(--red)' : 'var(--green)';
+    const dTxt = q.d === null ? '—' : (q.d > 0 ? '+' : '') + q.d.toFixed(2);
+    const dCol = q.d === null ? 'var(--text3)'
+               : q.d < 0 ? 'var(--red)' : q.d < 0.2 ? 'var(--orange)' : 'var(--green)';
+
+    let bars = '<div style="display:flex;gap:4px;flex-wrap:wrap">';
+    (q.choices || []).forEach(c => {
+      const bg = c.is_key ? 'rgba(34,197,94,0.15)' : (c.pct >= 30 ? 'rgba(239,68,68,0.10)' : 'rgba(148,163,184,0.10)');
+      const co = c.is_key ? '#16a34a' : (c.pct >= 30 ? 'var(--red)' : 'var(--text2)');
+      bars += '<span class="bd" style="background:' + bg + ';color:' + co + ';font-size:9px;font-weight:700">'
+            + (c.is_key ? '✅ ' : '') + c.letter + ' ' + c.pct + '%</span>';
+    });
+    bars += '</div>';
+
+    let notes = '';
+    (q.flags || []).forEach(f => {
+      const col = f.kind === 'broken' ? 'var(--red)'
+                : f.kind === 'good'   ? '#16a34a'
+                : f.kind === 'sample' ? 'var(--text3)' : 'var(--orange)';
+      notes += '<div style="font-size:9px;color:' + col + ';line-height:1.7">• ' + iaEsc(f.text) + '</div>';
+    });
+    if (q.top_distractor && q.top_distractor.pct >= 30){
+      notes += '<div style="font-size:9px;color:var(--red);line-height:1.7">• مشتّت مهيمن: ('
+             + iaEsc(q.top_distractor.letter) + ') اختارته ' + q.top_distractor.pct
+             + '% — يُرجَّح مفهوم مغلوط مشترك</div>';
+    }
+
+    rows += '<tr>'
+      + '<td style="font-weight:700;white-space:nowrap">س' + q.order
+        + '<div style="font-size:9px;color:var(--text3);font-weight:400">مفتاح: ' + iaEsc(q.correct) + '</div></td>'
+      + '<td style="font-size:10px;max-width:260px">' + iaEsc(q.text) + '</td>'
+      + '<td style="text-align:center;font-weight:800;font-size:13px;color:' + pCol + '">' + q.p_pct + '%'
+        + '<div style="font-size:9px;color:var(--text3);font-weight:400">' + q.attempts + ' محاولة</div></td>'
+      + '<td style="text-align:center;font-weight:800;font-size:13px;color:' + dCol + '">' + dTxt + '</td>'
+      + '<td>' + bars + '</td>'
+      + '<td>' + (notes || '<span style="font-size:9px;color:var(--text3)">سؤال سليم</span>') + '</td>'
+      + '</tr>';
+  });
+
+  body.innerHTML = head
+    + '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'
+    + '<th>السؤال</th><th>النص</th><th style="text-align:center">الصعوبة</th>'
+    + '<th style="text-align:center">التمييز</th><th>توزيع الخيارات</th><th>القراءة التربوية</th>'
+    + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+    + '<div style="padding:10px 4px 0;font-size:9px;color:var(--text3);display:flex;gap:14px;flex-wrap:wrap;line-height:1.8">'
+    + '<span><strong>الصعوبة</strong> = نسبة من أجابت صحيحاً. المثالي 30–80%.</span>'
+    + '<span><strong>التمييز</strong> = نسبة نجاح أعلى 27% ناقص أدنى 27%. المقبول ≥ 0.20، والممتاز ≥ 0.40.</span>'
+    + '<span><strong>تمييز سالب</strong> = المتفوقات تخطئ أكثر — غالباً صياغة ملتبسة أو مفتاح خاطئ.</span>'
+    + '</div>';
+
+  flashToast('✅ تم تحليل ' + (d.summary.total || 0) + ' سؤال');
+}
+
 </script>
 </body>
 </html>
