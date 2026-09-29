@@ -1778,15 +1778,29 @@ def admin_item_analysis_json(request):
 def admin_exams_list_json(request):
     """قائمة الاختبارات التي عليها محاولات — لتغذية قائمة اختيار تحليل المفردات."""
     try:
-        out = []
+        out, teachers = [], {}
         for e in (TeacherExam.objects.select_related('skill', 'skill__created_by')
                   .annotate(n=Count('results'))
                   .filter(n__gt=0).order_by('skill__title', 'exam_type')):
+            tch = e.skill.created_by
+            tid = tch.id if tch else 0
+            tname = tch.full_name if tch else '—'
+            teachers[tid] = tname
             out.append({
                 'id': e.id,
                 'label': f'{e.skill.title} — {e.get_exam_type_display()} ({e.n} محاولة)',
+                'skill': e.skill.title,
+                'type': e.exam_type,
+                'type_label': e.get_exam_type_display(),
+                'teacher_id': tid,
+                'teacher': tname,
+                'attempts': e.n,
             })
-        return JsonResponse({'exams': out})
+        return JsonResponse({
+            'exams': out,
+            'teachers': [{'id': k, 'name': v} for k, v in
+                         sorted(teachers.items(), key=lambda kv: kv[1])],
+        })
     except Exception as exc:
         return JsonResponse({'exams': [], 'error': str(exc)})
 

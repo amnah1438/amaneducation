@@ -1011,6 +1011,19 @@ body.display-mode .card-t { font-size: 18px; }
       </span>
     </div>
     <div class="card-b">
+      <!-- الصف الأول: فلترة تضيّق قائمة الاختبارات -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <span style="font-size:10px;color:var(--text3);font-weight:700">🔍 ضيّقي القائمة:</span>
+        <select class="filter-sel" id="iaTeacher" style="min-width:180px" onchange="iaRefillExams()">
+          <option value="">كل المعلمات</option>
+        </select>
+        <select class="filter-sel" id="iaType" style="min-width:150px" onchange="iaRefillExams()">
+          <option value="">كل الأنواع</option>
+        </select>
+        <span id="iaCount" style="font-size:10px;color:var(--text3)"></span>
+      </div>
+
+      <!-- الصف الثاني: اختيار الاختبار والفصل -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
         <select class="filter-sel" id="iaExam" style="min-width:300px">
           <option value="">— جاري تحميل الاختبارات… —</option>
@@ -2343,26 +2356,64 @@ document.addEventListener('click', e => {
 });
 
 // ═══ تحليل المفردات (Item Analysis) ═══════════════════════════════
+let IA_EXAMS = [];      // كل الاختبارات التي عليها محاولات
+let IA_LAST = null;     // آخر نتيجة تحليل — للفلترة والطباعة بلا إعادة طلب
+
+function iaEsc(t){
+  return String(t == null ? '' : t)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 (function loadExamsForItemAnalysis(){
   const sel = document.getElementById('iaExam');
   if (!sel) return;
   fetch('/admin-dashboard/exams-list.json', { credentials: 'same-origin' })
     .then(r => r.json())
     .then(d => {
-      const list = d.exams || [];
-      if (!list.length){
+      IA_EXAMS = d.exams || [];
+      if (!IA_EXAMS.length){
         sel.innerHTML = '<option value="">لا توجد اختبارات عليها محاولات بعد</option>';
         return;
       }
-      sel.innerHTML = '<option value="">— اختاري الاختبار —</option>'
-        + list.map(e => '<option value="' + e.id + '">' + iaEsc(e.label) + '</option>').join('');
+      // قائمة المعلمات
+      const tSel = document.getElementById('iaTeacher');
+      if (tSel) tSel.innerHTML = '<option value="">كل المعلمات</option>'
+        + (d.teachers || []).map(t => '<option value="' + t.id + '">' + iaEsc(t.name) + '</option>').join('');
+      // أنواع الاختبارات الموجودة فعلاً
+      const seen = {};
+      IA_EXAMS.forEach(e => { seen[e.type] = e.type_label; });
+      const ySel = document.getElementById('iaType');
+      if (ySel) ySel.innerHTML = '<option value="">كل الأنواع</option>'
+        + Object.keys(seen).map(k => '<option value="' + iaEsc(k) + '">' + iaEsc(seen[k]) + '</option>').join('');
+      iaRefillExams();
     })
     .catch(() => { sel.innerHTML = '<option value="">تعذّر تحميل قائمة الاختبارات</option>'; });
 })();
 
-function iaEsc(t){
-  return String(t == null ? '' : t)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// تضييق قائمة الاختبارات حسب المعلمة والنوع
+function iaRefillExams(){
+  const sel = document.getElementById('iaExam');
+  if (!sel) return;
+  const tv = (document.getElementById('iaTeacher') || {}).value || '';
+  const yv = (document.getElementById('iaType') || {}).value || '';
+  const keep = sel.value;
+
+  const list = IA_EXAMS.filter(e =>
+    (!tv || String(e.teacher_id) === String(tv)) && (!yv || e.type === yv));
+
+  const cnt = document.getElementById('iaCount');
+  if (cnt) cnt.textContent = list.length
+    ? list.length + ' اختباراً مطابقاً من ' + IA_EXAMS.length
+    : 'لا اختبار مطابق — وسّعي الفلترة';
+
+  if (!list.length){
+    sel.innerHTML = '<option value="">— لا اختبار مطابق —</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">— اختاري الاختبار —</option>'
+    + list.map(e => '<option value="' + e.id + '">' + iaEsc(e.label) + '</option>').join('');
+  // نُبقي اختيارها إن كان ما زال ضمن المطابق
+  if (keep && list.some(e => String(e.id) === String(keep))) sel.value = keep;
 }
 
 function runItemAnalysis(){
@@ -2385,6 +2436,7 @@ function runItemAnalysis(){
 }
 
 function renderItemAnalysis(d){
+  IA_LAST = d;
   const body = document.getElementById('iaBody');
   if (d.error){
     body.innerHTML = '<div style="padding:20px;color:var(--red);font-size:11px">❌ ' + iaEsc(d.error) + '</div>';
@@ -2395,28 +2447,75 @@ function renderItemAnalysis(d){
                    + iaEsc(d.note || 'لا توجد محاولات على هذا الاختبار بعد.') + '</div>';
     return;
   }
+  iaRenderTable('all');
+  flashToast('✅ تم تحليل ' + ((d.summary || {}).total || 0) + ' سؤال');
+}
 
+// هل ينطبق على السؤال فلتر معيّن؟
+function iaMatches(q, f){
+  if (f === 'all') return true;
+  const kinds = (q.flags || []).map(x => x.kind);
+  if (f === 'review') return kinds.indexOf('broken') >= 0;
+  if (f === 'weak')   return kinds.indexOf('weak') >= 0;
+  if (f === 'easy')   return kinds.indexOf('easy') >= 0;
+  if (f === 'hard')   return kinds.indexOf('hard') >= 0;
+  if (f === 'distractor') return !!(q.top_distractor && q.top_distractor.pct >= 30);
+  return true;
+}
+
+function iaFilter(f){ iaRenderTable(f); }
+
+function iaRenderTable(active){
+  const d = IA_LAST;
+  const body = document.getElementById('iaBody');
+  if (!d || !body) return;
   const s = d.summary || {};
-  const chip = (txt, bg, col) => '<span class="bd" style="background:' + bg + ';color:' + col
-      + ';font-size:10px;font-weight:700">' + txt + '</span>';
+  const all = (d.questions || []).filter(q => !q.no_data);
 
-  let head = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">'
+  const count = f => all.filter(q => iaMatches(q, f)).length;
+  const chip = (f, label, color) => {
+    const n = f === 'all' ? all.length : count(f);
+    const on = f === active;
+    return '<button onclick="iaFilter(\'' + f + '\')" style="font-family:inherit;cursor:pointer;'
+      + 'border:1px solid ' + (on ? color : 'var(--border)') + ';'
+      + 'background:' + (on ? color : 'transparent') + ';'
+      + 'color:' + (on ? '#fff' : (n ? color : 'var(--text3)')) + ';'
+      + 'border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;opacity:'
+      + (n || f === 'all' ? '1' : '0.45') + '">' + label + ' (' + n + ')</button>';
+  };
+
+  let head = '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">'
     + '<strong style="font-size:12px">' + iaEsc(d.exam) + '</strong>'
     + '<span style="font-size:10px;color:var(--text3)">' + iaEsc(d.classroom)
-    + ' • ' + d.attempts + ' محاولة • ' + (s.total || 0) + ' سؤال</span>';
-  if (s.broken) head += chip('⛔ ' + s.broken + ' سؤال معطوب', 'rgba(239,68,68,0.12)', 'var(--red)');
-  if (s.weak)   head += chip('⚠️ ' + s.weak + ' ضعيف التمييز', 'rgba(245,158,11,0.12)', 'var(--orange)');
-  if (s.easy)   head += chip('😴 ' + s.easy + ' سهل جداً', 'rgba(148,163,184,0.15)', 'var(--text2)');
-  if (s.hard)   head += chip('🧗 ' + s.hard + ' صعب جداً', 'rgba(148,163,184,0.15)', 'var(--text2)');
-  head += '</div>';
+    + ' • ' + d.attempts + ' محاولة • ' + (s.total || 0) + ' سؤال</span>'
+    + '<button onclick="iaPrint()" style="font-family:inherit;cursor:pointer;margin-right:auto;'
+    + 'border:0;border-radius:8px;padding:5px 14px;font-size:10px;font-weight:700;'
+    + 'background:var(--accent);color:#fff">🖨️ طباعة التقرير</button>'
+    + '</div>';
+
+  head += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'
+    + chip('all', 'الكل', 'var(--accent)')
+    + chip('review', '⛔ تحتاج مراجعة', '#b42318')
+    + chip('weak', '⚠️ ضعيفة التمييز', '#b45309')
+    + chip('distractor', '🎯 مشتّت مهيمن', '#b42318')
+    + chip('easy', '😴 سهلة جداً', '#64748b')
+    + chip('hard', '🧗 صعبة جداً', '#64748b')
+    + '</div>';
 
   if (!d.groups_valid){
     head += '<div style="font-size:10px;color:var(--orange);margin-bottom:10px">'
           + '⚖️ المحاولات قليلة (' + d.attempts + ') — لم يُحسب معامل التمييز لأن المجموعتين العليا والدنيا تتداخلان.</div>';
   }
 
+  const shown = (d.questions || []).filter(q => q.no_data ? active === 'all' : iaMatches(q, active));
+  if (!shown.length){
+    body.innerHTML = head + '<div style="text-align:center;padding:26px;color:var(--green);font-size:11px">'
+      + '✅ لا يوجد سؤال في هذه الفئة — وهذا خبر جيد.</div>';
+    return;
+  }
+
   let rows = '';
-  (d.questions || []).forEach(q => {
+  shown.forEach(q => {
     if (q.no_data){
       rows += '<tr><td style="font-weight:700">س' + q.order + '</td>'
             + '<td colspan="5" style="color:var(--text3);font-size:10px">لا إجابات مسجّلة لهذا السؤال</td></tr>';
@@ -2455,7 +2554,8 @@ function renderItemAnalysis(d){
       + '<td style="font-size:10px;max-width:260px">' + iaEsc(q.text) + '</td>'
       + '<td style="text-align:center;font-weight:800;font-size:13px;color:' + pCol + '">' + q.p_pct + '%'
         + '<div style="font-size:9px;color:var(--text3);font-weight:400">' + q.attempts + ' محاولة</div></td>'
-      + '<td style="text-align:center;font-weight:800;font-size:13px;color:' + dCol + '">' + dTxt + '</td>'
+      + '<td style="text-align:center;font-weight:800;font-size:13px;color:' + dCol + '">'
+        + '<span dir="ltr">' + dTxt + '</span></td>'
       + '<td>' + bars + '</td>'
       + '<td>' + (notes || '<span style="font-size:9px;color:var(--text3)">سؤال سليم</span>') + '</td>'
       + '</tr>';
@@ -2471,8 +2571,97 @@ function renderItemAnalysis(d){
     + '<span><strong>التمييز</strong> = نسبة نجاح أعلى 27% ناقص أدنى 27%. المقبول ≥ 0.20، والممتاز ≥ 0.40.</span>'
     + '<span><strong>تمييز سالب</strong> = المتفوقات تخطئ أكثر — غالباً صياغة ملتبسة أو مفتاح خاطئ.</span>'
     + '</div>';
+}
 
-  flashToast('✅ تم تحليل ' + (d.summary.total || 0) + ' سؤال');
+// ── طباعة تقرير تحليل المفردات ──────────────────────────────────
+// النافذة تُفتح فوراً داخل ضغطة الزر — لا انتظار لأي طلب — فلا يمنعها سفاري.
+function iaPrint(){
+  const d = IA_LAST;
+  if (!d || !d.attempts){ flashToast('⚠️ شغّلي التحليل أولاً'); return; }
+
+  const w = window.open('', '_blank');
+  if (!w){ alert('المتصفح منع فتح نافذة الطباعة — اسمحي بالنوافذ المنبثقة ثم أعيدي المحاولة'); return; }
+
+  const s = d.summary || {};
+  const today = new Date().toLocaleDateString('ar-SA-u-ca-islamic', {day:'numeric', month:'long', year:'numeric'});
+
+  let rows = '';
+  (d.questions || []).forEach(q => {
+    if (q.no_data){
+      rows += '<tr><td class="n">س' + q.order + '</td><td colspan="5" class="muted">لا إجابات مسجّلة</td></tr>';
+      return;
+    }
+    const dTxt = q.d === null ? '—' : (q.d > 0 ? '+' : '') + q.d.toFixed(2);
+    const cls  = (q.flags || []).some(f => f.kind === 'broken') ? ' class="bad"'
+               : (q.flags || []).some(f => f.kind === 'weak')   ? ' class="warn"' : '';
+    let ch = '';
+    (q.choices || []).forEach(c => {
+      ch += '<span class="' + (c.is_key ? 'key' : (c.pct >= 30 ? 'dist' : 'opt')) + '">'
+          + c.letter + ' ' + c.pct + '%</span> ';
+    });
+    let notes = (q.flags || []).map(f => '• ' + f.text).join('<br>');
+    if (q.top_distractor && q.top_distractor.pct >= 30){
+      notes += (notes ? '<br>' : '') + '• مشتّت مهيمن: (' + q.top_distractor.letter + ') '
+             + q.top_distractor.pct + '% — يُرجَّح مفهوم مغلوط مشترك';
+    }
+    rows += '<tr' + cls + '><td class="n">س' + q.order + '<div class="muted">مفتاح: ' + q.correct + '</div></td>'
+          + '<td>' + iaEsc(q.text) + '</td>'
+          + '<td class="c"><b>' + q.p_pct + '%</b><div class="muted">' + q.attempts + ' محاولة</div></td>'
+          + '<td class="c"><b dir="ltr">' + dTxt + '</b></td>'
+          + '<td>' + ch + '</td>'
+          + '<td class="notes">' + (notes || 'سؤال سليم') + '</td></tr>';
+  });
+
+  const html = '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8">'
+    + '<title>تحليل مفردات — ' + iaEsc(d.exam) + '</title><style>'
+    + '@page{size:A4 landscape;margin:12mm}'
+    + '*{box-sizing:border-box}'
+    + 'body{font-family:"Tajawal","Segoe UI",Arial,sans-serif;color:#0f172a;margin:0;font-size:11px}'
+    + 'h1{font-size:18px;margin:0 0 3px;color:#0a5c3d}'
+    + '.sub{font-size:11px;color:#475569}'
+    + '.hd{border-bottom:2px solid #0a8c5f;padding-bottom:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:flex-end}'
+    + '.meta{font-size:10px;color:#475569;text-align:left;line-height:1.9}'
+    + '.chips{margin-bottom:10px;font-size:10px}'
+    + '.chips span{display:inline-block;border:1px solid #cbd5e1;border-radius:12px;padding:2px 9px;margin-left:5px}'
+    + 'table{width:100%;border-collapse:collapse;font-size:10px}'
+    + 'th{background:#e8f5f0;color:#0a5c3d;border:1px solid #cbd5e1;padding:6px 5px;font-weight:700}'
+    + 'td{border:1px solid #cbd5e1;padding:5px;vertical-align:top}'
+    + 'tr.bad td{background:#fef2f2}tr.warn td{background:#fffbeb}'
+    + '.n{width:56px;font-weight:700;text-align:center}.c{width:60px;text-align:center}'
+    + '.muted{color:#64748b;font-size:9px;font-weight:400}'
+    + '.notes{width:210px;font-size:9px;line-height:1.7;color:#334155}'
+    + '.key{color:#0a7c45;font-weight:700}.dist{color:#b42318;font-weight:700}.opt{color:#64748b}'
+    + '.legend{margin-top:10px;font-size:9px;color:#475569;line-height:1.8;border-top:1px dashed #cbd5e1;padding-top:7px}'
+    + '.ft{margin-top:14px;font-size:10px;color:#475569;display:flex;justify-content:space-between}'
+    + '@media print{.noprint{display:none}}'
+    + '.noprint{margin-bottom:10px;text-align:center}'
+    + '.noprint button{font-family:inherit;font-size:14px;padding:8px 22px;border:0;border-radius:8px;background:#0a8c5f;color:#fff;font-weight:700;cursor:pointer}'
+    + '</style></head><body>'
+    + '<div class="noprint"><button onclick="window.print()">🖨️ اطبعي التقرير</button></div>'
+    + '<div class="hd"><div><h1>تقرير تحليل مفردات الاختبار</h1>'
+    + '<div class="sub">' + iaEsc(d.exam) + ' — ' + iaEsc(d.classroom) + '</div></div>'
+    + '<div class="meta">المحاولات: <b>' + d.attempts + '</b> • الأسئلة: <b>' + (s.total || 0) + '</b>'
+    + '<br>التاريخ: <b>' + iaEsc(today) + '</b></div></div>'
+    + '<div class="chips">'
+    + (s.broken ? '<span>⛔ تحتاج مراجعة: ' + s.broken + '</span>' : '')
+    + (s.weak   ? '<span>⚠️ ضعيفة التمييز: ' + s.weak + '</span>' : '')
+    + (s.easy   ? '<span>😴 سهلة جداً: ' + s.easy + '</span>' : '')
+    + (s.hard   ? '<span>🧗 صعبة جداً: ' + s.hard + '</span>' : '')
+    + (!(s.broken || s.weak || s.easy || s.hard) ? '<span>✅ لا ملاحظات على الأسئلة</span>' : '')
+    + '</div>'
+    + '<table><thead><tr><th>السؤال</th><th>النص</th><th>الصعوبة</th><th>التمييز</th>'
+    + '<th>توزيع الخيارات</th><th>القراءة التربوية</th></tr></thead><tbody>' + rows + '</tbody></table>'
+    + '<div class="legend">'
+    + '<b>الصعوبة</b> = نسبة من أجابت صحيحاً؛ المدى المفيد 30–80%. &nbsp;&nbsp;'
+    + '<b>التمييز</b> = نسبة نجاح أعلى 27% ناقص أدنى 27%؛ المقبول ≥ 0.20 والممتاز ≥ 0.40. &nbsp;&nbsp;'
+    + '<b>تمييز سالب</b> = المتفوقات تخطئ أكثر — راجعي صياغة السؤال أو مفتاحه.'
+    + '</div>'
+    + '<div class="ft"><span>منصة بقدراتنا نحلم ونحقق</span>'
+    + '<span>اطّلعت المعلمة: ..............................</span></div>'
+    + '</body></html>';
+
+  w.document.write(html);
+  w.document.close();
 }
 
 </script>
