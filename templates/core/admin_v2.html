@@ -433,6 +433,28 @@ body.display-mode .card-t { font-size: 18px; }
 .chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .chip { padding: 5px 12px; border-radius: 14px; font-size: 10px; font-weight: 700; background: var(--card2); border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; color: var(--text2); }
 .chip.on, .chip:hover { background: var(--accent); color: white; border-color: var(--accent); }
+/* ── تكبير الرسم البياني ملء الشاشة ─────────────────────────── */
+.chart-box { position: relative; }
+.chart-zoom {
+  position: absolute; top: 6px; left: 6px; z-index: 5;
+  border: 1px solid var(--border); background: var(--card2); color: var(--text2);
+  border-radius: 8px; padding: 3px 9px; font-size: 11px; font-family: inherit;
+  cursor: pointer; opacity: 0; transition: opacity .15s;
+}
+.chart-box:hover .chart-zoom, .chart-zoom:focus { opacity: 1; }
+.chart-box.is-zoomed {
+  position: fixed !important; inset: 3vh 3vw; z-index: 9999;
+  height: auto !important; background: var(--card);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 44px 18px 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+}
+.chart-box.is-zoomed .chart-zoom { opacity: 1; font-size: 13px; padding: 6px 14px; }
+#chartZoomBackdrop {
+  position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(2px); display: none;
+}
+#chartZoomBackdrop.on { display: block; }
+
 </style>
 </head>
 <body class="{% if display_mode %}display-mode{% endif %}">
@@ -579,23 +601,23 @@ body.display-mode .card-t { font-size: 18px; }
         <span class="card-t">📈 تطور الأداء خلال الـ 30 يوم</span>
         <span style="font-size:9px;color:var(--text3)">متوسط النسبة + عدد المحاولات</span>
       </div>
-      <div class="card-b" style="height: 280px"><canvas id="trendChart"></canvas></div>
+      <div class="card-b chart-box" style="height:390px"><canvas id="trendChart"></canvas></div>
     </div>
 
     <!-- Donut Chart -->
     <div class="card">
       <div class="card-h"><span class="card-t">🎯 توزيع مستويات الطالبات</span></div>
-      <div class="card-b" style="height: 280px"><canvas id="levelsChart"></canvas></div>
+      <div class="card-b chart-box" style="height:390px"><canvas id="levelsChart"></canvas></div>
     </div>
   </div>
 
-  <div class="row-2-equal" style="margin-top:14px">
-    <!-- Bar Chart -->
-    <div class="card">
-      <div class="card-h"><span class="card-t">🏫 مقارنة أداء الفصول</span></div>
-      <div class="card-b" style="height: 260px"><canvas id="classroomsChart"></canvas></div>
-    </div>
+  <!-- مقارنة الفصول بعرض الصفحة كاملاً — أوضح حين تكون الفصول كثيرة -->
+  <div class="card" style="margin-top:14px">
+    <div class="card-h"><span class="card-t">🏫 مقارنة أداء الفصول</span></div>
+    <div class="card-b chart-box" style="height:400px"><canvas id="classroomsChart"></canvas></div>
+  </div>
 
+  <div style="margin-top:14px">
     <!-- Prediction -->
     <div class="card">
       <div class="card-h">
@@ -778,7 +800,7 @@ body.display-mode .card-t { font-size: 18px; }
       <div style="font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px" id="trendStudentName">...</div>
       <div style="font-size:10px;color:var(--text3);margin-bottom:16px">مسار الأداء عبر الزمن</div>
       <div id="trendEmpty" style="display:none;text-align:center;padding:32px;color:var(--text3)">📭 لا توجد نتائج مسجّلة لهذه الطالبة</div>
-      <div style="height:260px;position:relative"><canvas id="trendChart"></canvas></div>
+      <div class="chart-box" style="height:360px;position:relative"><canvas id="trendChart"></canvas></div>
       <div id="trendStats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px"></div>
     </div>
   </div>
@@ -811,7 +833,7 @@ body.display-mode .card-t { font-size: 18px; }
     <!-- Radar — Skills vs Subjects -->
     <div class="card">
       <div class="card-h"><span class="card-t">🎯 رادار المهارات الأساسية</span></div>
-      <div class="card-b" style="height:250px"><canvas id="radarChart"></canvas></div>
+      <div class="card-b chart-box" style="height:340px"><canvas id="radarChart"></canvas></div>
     </div>
 
     <!-- Engagement KPI Mini-cards -->
@@ -852,7 +874,7 @@ body.display-mode .card-t { font-size: 18px; }
         <span class="card-t">🌌 مصفوفة أداء الفصول</span>
         <span style="font-size:9px;color:var(--text3)">مستوى البعدي × التحسّن — حجم الدائرة = عدد المقارنات</span>
       </div>
-      <div class="card-b" style="height:280px"><canvas id="matrixChart"></canvas></div>
+      <div class="card-b chart-box" style="height:380px"><canvas id="matrixChart"></canvas></div>
     </div>
 
     <!-- Live Activity Feed -->
@@ -1030,7 +1052,7 @@ body.display-mode .card-t { font-size: 18px; }
         📭 لا يوجد فصل أدّت فيه طالبة القبلي والبعدي معاً بعد.<br>
         فعّلي اختباراً قبلياً وبعدياً لنفس المهارة ولنفس الطالبات ليظهر المسار.
       </div>
-      <div id="slopeWrap" style="height:330px;position:relative"><canvas id="slopeChart"></canvas></div>
+      <div id="slopeWrap" class="chart-box" style="height:430px;position:relative"><canvas id="slopeChart"></canvas></div>
       <div id="slopeLegend" style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:10px;font-size:10px;color:var(--text3)"></div>
     </div>
   </div>
@@ -1299,7 +1321,7 @@ body.display-mode .card-t { font-size: 18px; }
         <!-- توزيع حسب نوع الاختبار -->
         <div style="background:var(--card2);border-radius:11px;padding:14px">
           <div style="font-size:11px;font-weight:800;color:var(--blue);margin-bottom:10px">📚 الأداء حسب نوع الاختبار</div>
-          <div style="height:240px"><canvas id="examTypesChart"></canvas></div>
+          <div class="chart-box" style="height:330px"><canvas id="examTypesChart"></canvas></div>
         </div>
       </div>
     </div>
@@ -2870,6 +2892,65 @@ function initSlopeChart(){
 }
 
 document.addEventListener('DOMContentLoaded', initSlopeChart);
+
+
+// ═══ تكبير أي رسم بياني ملء الشاشة ══════════════════════════════
+(function setupChartZoom(){
+  function init(){
+    if (!document.getElementById('chartZoomBackdrop')){
+      const bd = document.createElement('div');
+      bd.id = 'chartZoomBackdrop';
+      bd.addEventListener('click', () => closeZoom());
+      document.body.appendChild(bd);
+    }
+    document.querySelectorAll('.chart-box').forEach(box => {
+      if (box.querySelector('.chart-zoom')) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chart-zoom';
+      btn.textContent = '🔎 تكبير';
+      btn.title = 'تكبير ملء الشاشة (Esc للإغلاق)';
+      btn.addEventListener('click', e => { e.stopPropagation(); toggleZoom(box); });
+      box.appendChild(btn);
+    });
+  }
+
+  function resizeCharts(){
+    if (!window.Chart || !Chart.instances) return;
+    Object.values(Chart.instances).forEach(c => { try { c.resize(); } catch(e){} });
+  }
+
+  function closeZoom(){
+    const open = document.querySelector('.chart-box.is-zoomed');
+    if (!open) return;
+    open.classList.remove('is-zoomed');
+    open.style.height = open.dataset.h || '';
+    const b = open.querySelector('.chart-zoom');
+    if (b) b.textContent = '🔎 تكبير';
+    document.getElementById('chartZoomBackdrop').classList.remove('on');
+    document.body.style.overflow = '';
+    setTimeout(resizeCharts, 60);
+  }
+
+  function toggleZoom(box){
+    if (box.classList.contains('is-zoomed')){ closeZoom(); return; }
+    closeZoom();
+    box.dataset.h = box.style.height || '';
+    box.classList.add('is-zoomed');
+    const b = box.querySelector('.chart-zoom');
+    if (b) b.textContent = '✕ إغلاق';
+    document.getElementById('chartZoomBackdrop').classList.add('on');
+    document.body.style.overflow = 'hidden';
+    setTimeout(resizeCharts, 60);
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeZoom(); });
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', init);
+  else init();
+  // الرسوم التي تُبنى لاحقاً
+  window.addEventListener('load', init);
+})();
 
 </script>
 </body>
