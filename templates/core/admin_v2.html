@@ -433,6 +433,10 @@ body.display-mode .card-t { font-size: 18px; }
 .chip-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .chip { padding: 5px 12px; border-radius: 14px; font-size: 10px; font-weight: 700; background: var(--card2); border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; color: var(--text2); }
 .chip.on, .chip:hover { background: var(--accent); color: white; border-color: var(--accent); }
+/* لوحة رسم لم يبنِها Chart.js بعد: تمدّد بدل مقاس 300×150 الافتراضي
+   الذي يترك فراغاً أبيض إلى جانبها حتى تُشغَّل */
+.chart-box canvas:not([style]) { width: 100% !important; height: 100% !important; }
+
 /* ── تكبير الرسم البياني ملء الشاشة ─────────────────────────── */
 .chart-box { position: relative; }
 .chart-zoom {
@@ -2950,6 +2954,55 @@ document.addEventListener('DOMContentLoaded', initSlopeChart);
   else init();
   // الرسوم التي تُبنى لاحقاً
   window.addEventListener('load', init);
+})();
+
+
+// ═══ ضمان امتلاء كل رسم لعرض بطاقته ═════════════════════════════
+// Chart.js يقيس عرض الحاوية لحظة الإنشاء فقط. لو قاسها قبل أن يستقرّ
+// تخطيط الصفحة (خطوط، جداول، شاشة عريضة) بقي الرسم صغيراً ويبقى بجانبه
+// فراغ أبيض. هنا نراقب كل بطاقة ونعيد القياس كلما تغيّر عرضها.
+(function keepChartsFitted(){
+  function instOf(canvas){
+    try { return (window.Chart && Chart.getChart) ? Chart.getChart(canvas) : null; }
+    catch(e){ return null; }
+  }
+
+  function fitAll(){
+    document.querySelectorAll('canvas').forEach(cv => {
+      const c = instOf(cv);
+      if (c) { try { c.resize(); } catch(e){} }
+    });
+  }
+
+  function observe(){
+    if (!window.ResizeObserver) return;
+    document.querySelectorAll('.chart-box, .card-b').forEach(box => {
+      if (box.__fitObserved || !box.querySelector('canvas')) return;
+      box.__fitObserved = true;
+      let t = null;
+      new ResizeObserver(() => {
+        clearTimeout(t);
+        t = setTimeout(() => {
+          box.querySelectorAll('canvas').forEach(cv => {
+            const c = instOf(cv);
+            if (c) { try { c.resize(); } catch(e){} }
+          });
+        }, 80);
+      }).observe(box);
+    });
+  }
+
+  function boot(){
+    observe();
+    // إعادة قياس بعد استقرار الخطوط والتخطيط
+    [120, 400, 1000, 2000].forEach(ms => setTimeout(fitAll, ms));
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAll).catch(()=>{});
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  window.addEventListener('load', boot);
+  window.addEventListener('resize', () => setTimeout(fitAll, 120));
 })();
 
 </script>
