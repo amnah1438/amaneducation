@@ -1090,6 +1090,12 @@ def _v2_students_support(limit=50):
     return out
 
 
+# أقل عدد محاولات تُعتبر معه خلية ممثِّلة للفصل.
+# مهارة أدّتها طالبة واحدة لا تمثّل فصلاً، وإدخالها في المتوسط يشوّهه:
+# صفر يتيم من مهارة غير مستهدفة خفض متوسط فصل من 62.6% إلى 41.7%.
+MIN_CELL_ATTEMPTS = 3
+
+
 def _v2_mastery_matrix(max_skills=14):
     """
     خريطة الإتقان: متوسط كل فصل في كل مهارة.
@@ -1112,7 +1118,7 @@ def _v2_mastery_matrix(max_skills=14):
         t = skill_tot.setdefault(sid, [0.0, 0]);   t[0] += pct; t[1] += 1
 
     if not cell:
-        return {'classrooms': [], 'skills': []}
+        return {'classrooms': [], 'skills': [], 'min_cell': MIN_CELL_ATTEMPTS}
 
     # أكثر المهارات محاولاتٍ أولاً — الأعمدة المحدودة تبقى ذات معنى
     top = sorted(skill_tot.items(), key=lambda kv: -kv[1][1])[:max_skills]
@@ -1126,19 +1132,29 @@ def _v2_mastery_matrix(max_skills=14):
                        key=lambda cid: names.get(cid, ''))
     classrooms = []
     for cid in class_ids:
-        vals, row = [], []
+        solid, allv, row = [], [], []
         for sid in skill_ids:
             c = cell.get((cid, sid))
             if c and c[1]:
                 v = round(c[0] / c[1], 1)
-                row.append({'v': v, 'n': c[1]})
-                vals.append(v)
+                enough = c[1] >= MIN_CELL_ATTEMPTS
+                row.append({'v': v, 'n': c[1], 'enough': enough})
+                allv.append(v)
+                if enough:
+                    solid.append(v)
             else:
                 row.append(None)
-        classrooms.append({'id': cid, 'name': names.get(cid, '—'),
-                           'cells': row,
-                           'avg': round(sum(vals) / len(vals), 1) if vals else None})
-    return {'classrooms': classrooms, 'skills': skills}
+        classrooms.append({
+            'id': cid,
+            'name': names.get(cid, '—'),
+            'cells': row,
+            # متوسط الفصل يُحسب من الخلايا ذات العيّنة الكافية وحدها
+            'avg': round(sum(solid) / len(solid), 1) if solid else None,
+            'avg_all': round(sum(allv) / len(allv), 1) if allv else None,
+            'skipped': len(allv) - len(solid),
+        })
+    return {'classrooms': classrooms, 'skills': skills,
+            'min_cell': MIN_CELL_ATTEMPTS}
 
 
 def _v2_score_distribution(bucket=10):
@@ -1232,7 +1248,7 @@ def admin_v2_dashboard(request):
     try:
         mastery = _v2_mastery_matrix()
     except Exception:
-        mastery = {'classrooms': [], 'skills': []}
+        mastery = {'classrooms': [], 'skills': [], 'min_cell': 3}
     try:
         distribution = _v2_score_distribution()
     except Exception:
