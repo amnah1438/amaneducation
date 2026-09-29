@@ -632,7 +632,8 @@ def _v2_result_rows():
     rows = list(
         ExamResult.objects
         .values('student_id', 'student_record_id', 'percentage',
-                'exam__exam_type', 'exam__skill_id', 'exam__skill__created_by_id')
+                'exam__exam_type', 'exam__skill_id', 'exam__skill__created_by_id',
+                'exam__skill__content_type')
     )
     for r in rows:
         r['_classroom'] = (by_record.get(r['student_record_id'])
@@ -759,8 +760,19 @@ def _v2_classrooms_impact():
         pre = _v2_avg(subset, 'pre')
         avg = _v2_avg(subset)
 
+        # فصل محاولات القدرات عن التحصيلي.
+        # دروس التحصيلي ليس لها اختبار قبلي بطبيعتها (نوع اختبارها 'lesson' فقط)،
+        # فإدخالها في عدّاد المحاولات يوحي بأن القياس ضعيف، والسبب بنيوي لا قصور.
+        qodrat_n  = sum(1 for r in subset if r['exam__exam_type'] in ('pre', 'post'))
+        tahsili_n = sum(1 for r in subset
+                        if r['exam__exam_type'] == 'lesson'
+                        or r['exam__skill__content_type'] == 'lesson')
+        other_n = len(subset) - qodrat_n - tahsili_n
+
         if not subset:
             tier = 'no_data'                 # 📭 لا نتائج بعد
+        elif paired == 0 and qodrat_n == 0:
+            tier = 'tahsili_only'            # 📘 تحصيلي فقط — لا قبلي بطبيعته
         elif paired == 0:
             tier = 'no_pairs'                # 🔗 لا طالبة أدّت القبلي والبعدي
         elif paired < MIN_PAIRED:
@@ -779,6 +791,9 @@ def _v2_classrooms_impact():
             'name': c.name,
             'students': counts.get(c.id, 0),
             'attempts': len(subset),
+            'qodrat_attempts': qodrat_n,
+            'tahsili_attempts': tahsili_n,
+            'other_attempts': other_n,
             'pre_avg': pre,
             'post_avg': post,
             'avg': avg,

@@ -910,7 +910,15 @@ body.display-mode .card-t { font-size: 18px; }
 
             <td style="font-weight:700;font-size:12px;color:var(--text)">{{ c.name }}</td>
             <td style="text-align:center;font-size:12px;font-weight:700">{{ c.students }}</td>
-            <td style="text-align:center;font-size:12px;color:{% if c.attempts >= 20 %}var(--green){% elif c.attempts > 0 %}var(--orange){% else %}var(--text3){% endif %};font-weight:700">{{ c.attempts }}</td>
+            <td style="text-align:center;font-size:12px;color:{% if c.attempts >= 20 %}var(--green){% elif c.attempts > 0 %}var(--orange){% else %}var(--text3){% endif %};font-weight:700">{{ c.attempts }}
+              {% if c.attempts %}
+              <div style="font-size:9px;font-weight:400;color:var(--text3);margin-top:3px;line-height:1.6">
+                {% if c.qodrat_attempts %}<div>قدرات {{ c.qodrat_attempts }} · قابلة للمقارنة</div>{% endif %}
+                {% if c.tahsili_attempts %}<div>تحصيلي {{ c.tahsili_attempts }} · بلا قبلي</div>{% endif %}
+                {% if c.other_attempts %}<div>أخرى {{ c.other_attempts }}</div>{% endif %}
+              </div>
+              {% endif %}
+            </td>
 
             <!-- القبلي → البعدي -->
             <td>
@@ -944,7 +952,11 @@ body.display-mode .card-t { font-size: 18px; }
               {% if c.effect_size is None %}
                 <span style="font-size:10px;color:var(--text3)">{{ c.effect_label|default:"—" }}</span>
               {% else %}
+                {% if not c.enough_sample %}
+                  <span class="bd" style="font-size:10px;font-weight:700;background:rgba(148,163,184,0.15);color:var(--text2)">{{ c.effect_label }} — لا حكم</span>
+                {% else %}
                 <span class="bd" style="font-size:11px;font-weight:800;{% if c.effect_label == 'كبير' %}background:rgba(34,197,94,0.15);color:#16a34a{% elif c.effect_label == 'متوسط' %}background:rgba(34,197,94,0.10);color:#16a34a{% elif c.effect_label == 'صغير' %}background:rgba(245,158,11,0.12);color:var(--orange){% else %}background:rgba(148,163,184,0.12);color:var(--text2){% endif %}">{{ c.effect_label }}</span>
+                {% endif %}
                 <div style="font-size:9px;color:var(--text3);margin-top:3px">d = {{ c.effect_size|unlocalize }}</div>
               {% endif %}
             </td>
@@ -962,6 +974,9 @@ body.display-mode .card-t { font-size: 18px; }
               {% elif c.tier == 'small_sample' %}
                 <span class="bd" style="background:rgba(148,163,184,0.12);color:var(--text2);font-size:10px">⚖️ عيّنة صغيرة — لا حكم</span>
                 <div style="font-size:9px;color:var(--text3);margin-top:3px">{{ c.paired_students }} طالبة فقط من {{ c.students }}</div>
+              {% elif c.tier == 'tahsili_only' %}
+                <span class="bd" style="background:rgba(99,102,241,0.12);color:var(--accent);font-size:10px;font-weight:700">📘 تحصيلي فقط</span>
+                <div style="font-size:9px;color:var(--text3);margin-top:3px">دروس التحصيلي بلا اختبار قبلي بطبيعتها — أثر التعلّم يُقاس على القدرات</div>
               {% elif c.tier == 'no_pairs' %}
                 <span class="bd" style="background:rgba(245,158,11,0.12);color:var(--orange);font-size:10px">🔗 لم تُقارن طالبة</span>
                 <div style="font-size:9px;color:var(--text3);margin-top:3px">فعّلي القبلي والبعدي لنفس الطالبات</div>
@@ -992,11 +1007,31 @@ body.display-mode .card-t { font-size: 18px; }
         <span>🔍 <strong>يحتاج مراجعة</strong> = انخفاض في البعدي</span>
         <span>⚖️ <strong>عيّنة صغيرة</strong> = أقل من 10 طالبات أدّين القبلي والبعدي — الرقم يظهر بلا حكم</span>
         <span>🔗 <strong>لم تُقارن طالبة</strong> = لا توجد طالبة أدّت الاختبارين معاً</span>
+        <span>📘 <strong>تحصيلي فقط</strong> = كل محاولات الفصل دروس تحصيلي، ولا قبلي لها بطبيعتها — فلا يُقاس أثر التعلّم عليها</span>
         <span>📐 <strong>حجم الأثر (Cohen's d)</strong> = مقياس معياري عالمي: هل تحسّن الفصل كلّه أم قفزت طالبتان؟ ضئيل &lt;0.2 · صغير 0.2–0.5 · متوسط 0.5–0.8 · كبير ≥0.8</span>
       </div>
       {% else %}
       <div class="empty"><div class="empty-ico">🏫</div>لا توجد فصول بعد</div>
       {% endif %}
+    </div>
+  </div>
+
+  <!-- ═══ مخطط الميل: القبلي ← البعدي لكل فصل ═══ -->
+  <div class="card">
+    <div class="card-h" style="flex-wrap:wrap;gap:8px">
+      <span class="card-t">📐 مسار كل فصل من القبلي إلى البعدي</span>
+      <span style="font-size:9px;color:var(--text3);display:flex;align-items:center;gap:4px">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block"></span>
+        كل خط فصل — صعوده يعني تعلّماً. الفصول التي لم تُقارَن فيها طالبة لا تظهر
+      </span>
+    </div>
+    <div class="card-b">
+      <div id="slopeEmpty" style="display:none;text-align:center;color:var(--text3);padding:30px;font-size:11px;line-height:2">
+        📭 لا يوجد فصل أدّت فيه طالبة القبلي والبعدي معاً بعد.<br>
+        فعّلي اختباراً قبلياً وبعدياً لنفس المهارة ولنفس الطالبات ليظهر المسار.
+      </div>
+      <div id="slopeWrap" style="height:330px;position:relative"><canvas id="slopeChart"></canvas></div>
+      <div id="slopeLegend" style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:10px;font-size:10px;color:var(--text3)"></div>
     </div>
   </div>
 
@@ -2663,6 +2698,178 @@ function iaPrint(){
   w.document.write(html);
   w.document.close();
 }
+
+
+// ═══ مخطط الميل: القبلي ← البعدي لكل فصل ═══════════════════════
+// اللون يحمل الاتجاه (تحسّن / تراجع / ثبات) لا هويّة الفصل،
+// واسم الفصل مكتوب على طرف الخط — فالهوية لا تعتمد على اللون وحده.
+function initSlopeChart(){
+  const cv = document.getElementById('slopeChart');
+  if (!cv || typeof Chart === 'undefined') return;
+
+  const css = getComputedStyle(document.documentElement);
+  const v = n => (css.getPropertyValue(n) || '').trim();
+  const GREEN = v('--green') || '#10b981';
+  const RED   = v('--red')   || '#ef4444';
+  const MUTED = v('--text3') || '#6b7799';
+  const INK   = v('--text2') || MUTED;
+  const GRID  = v('--border') || 'rgba(148,163,184,0.25)';
+  const SURF  = v('--card') || v('--bg2') || '#ffffff';
+
+  // الفصول التي تُقارَن فيها طالبة واحدة على الأقل
+  const rows = (window.__classImpactData || [])
+    .filter(c => c.paired > 0 && c.improvement !== null)
+    .sort((a, b) => b.improvement - a.improvement);
+
+  const wrap = document.getElementById('slopeWrap');
+  const empty = document.getElementById('slopeEmpty');
+  const legend = document.getElementById('slopeLegend');
+  if (!rows.length){
+    if (wrap) wrap.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (wrap) wrap.style.display = '';
+  if (empty) empty.style.display = 'none';
+
+  const colorOf = c => c.improvement > 0 ? GREEN : (c.improvement < 0 ? RED : MUTED);
+
+  // نُقرّب المحور من البيانات ليظهر الميل — مع إبقاء التدرّج معلَناً على المحور
+  const vals = rows.flatMap(c => [c.pre_avg, c.post_avg]);
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  const yMin = Math.max(0,   Math.floor((lo - 8) / 10) * 10);
+  const yMax = Math.min(100, Math.ceil((hi + 8) / 10) * 10);
+
+  const datasets = rows.map(c => ({
+    label: c.name,
+    data: [c.pre_avg, c.post_avg],
+    borderColor: colorOf(c),
+    backgroundColor: colorOf(c),
+    borderWidth: c.enough ? 2.5 : 1.5,
+    borderDash: c.enough ? [] : [5, 4],   // عيّنة صغيرة → خط متقطّع
+    pointRadius: 5,
+    pointHoverRadius: 8,
+    pointBackgroundColor: colorOf(c),
+    pointBorderColor: SURF,
+    pointBorderWidth: 2,
+    tension: 0,
+    _meta: c,
+  }));
+
+  // كتابة اسم الفصل على طرف البعدي
+  const endLabels = {
+    id: 'slopeEndLabels',
+    afterDatasetsDraw(chart){
+      const { ctx, chartArea } = chart;
+      // نجمع مواضع الأسماء ثم نباعد بينها رأسياً حتى لا تتراكب
+      const items = [];
+      chart.data.datasets.forEach((ds, i) => {
+        const meta = chart.getDatasetMeta(i);
+        if (meta.hidden || !meta.data || !meta.data[1]) return;
+        const pt = meta.data[1];
+        items.push({ text: ds.label, color: ds.borderColor, x: pt.x, y0: pt.y, y: pt.y });
+      });
+      if (!items.length) return;
+
+      const GAPY = 14;
+      items.sort((a, b) => a.y0 - b.y0);
+      // تمريرة للأسفل ثم للأعلى — تضمن أقل إزاحة ممكنة
+      for (let i = 1; i < items.length; i++)
+        if (items[i].y - items[i-1].y < GAPY) items[i].y = items[i-1].y + GAPY;
+      const bottom = chartArea.bottom - 4;
+      if (items[items.length-1].y > bottom){
+        items[items.length-1].y = bottom;
+        for (let i = items.length - 2; i >= 0; i--)
+          if (items[i+1].y - items[i].y < GAPY) items[i].y = items[i+1].y - GAPY;
+      }
+
+      ctx.save();
+      ctx.font = '700 10px Tajawal, system-ui, sans-serif';
+      ctx.textBaseline = 'middle';
+      ctx.textAlign = 'right';
+      items.forEach(it => {
+        // خيط رفيع يربط الاسم بنقطته إن أُزيح
+        if (Math.abs(it.y - it.y0) > 1){
+          ctx.strokeStyle = it.color;
+          ctx.globalAlpha = 0.45;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(it.x - 7, it.y0);
+          ctx.lineTo(it.x - 12, it.y);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+        ctx.fillStyle = it.color;
+        ctx.fillText(it.text, it.x - 15, it.y);
+      });
+      ctx.restore();
+    },
+  };
+
+  if (window.charts && charts.slope) charts.slope.destroy();
+  const inst = new Chart(cv, {
+    type: 'line',
+    data: { labels: ['القبلي', 'البعدي'], datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { left: 104, right: 18, top: 14, bottom: 4 } },
+      interaction: { mode: 'nearest', intersect: false },
+      plugins: {
+        legend: { display: false },   // الأسماء مكتوبة على الخطوط مباشرة
+        tooltip: {
+          rtl: true, textDirection: 'rtl',
+          callbacks: {
+            title: items => 'فصل ' + items[0].dataset.label,
+            label: item => {
+              const c = item.dataset._meta;
+              const sign = c.improvement > 0 ? '+' : '';
+              return [
+                'القبلي ' + c.pre_avg + '%  ←  البعدي ' + c.post_avg + '%',
+                'التحسّن ' + sign + c.improvement + '%',
+                c.paired + ' طالبة أدّت الاختبارين'
+                  + (c.enough ? '' : ' — عيّنة صغيرة، لا حكم'),
+              ];
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          reverse: true,                 // القبلي يميناً — اتجاه القراءة العربية
+          grid: { color: GRID, drawTicks: false },
+          ticks: { color: INK, font: { size: 12, weight: '700' } },
+        },
+        y: {
+          min: yMin, max: yMax,
+          position: 'right',            // المحور يميناً — يفرّغ اليسار لأسماء الفصول
+          title: { display: true, text: 'متوسط النسبة %', color: MUTED, font: { size: 10 } },
+          grid: { color: GRID },
+          ticks: { color: MUTED, font: { size: 10 }, callback: val => val + '%' },
+        },
+      },
+    },
+    plugins: [endLabels],
+  });
+  if (window.charts) charts.slope = inst;
+
+  // مفتاح الألوان — مع نص، لا لوناً وحده
+  if (legend){
+    const up = rows.filter(c => c.improvement > 0).length;
+    const dn = rows.filter(c => c.improvement < 0).length;
+    const fl = rows.filter(c => c.improvement === 0).length;
+    const sm = rows.filter(c => !c.enough).length;
+    const dot = col => '<span style="display:inline-block;width:10px;height:3px;background:'
+      + col + ';border-radius:2px;margin-left:5px;vertical-align:middle"></span>';
+    legend.innerHTML =
+        dot(GREEN) + 'تحسّن (' + up + ' فصل)'
+      + '<span>' + dot(RED) + 'تراجع (' + dn + ')</span>'
+      + '<span>' + dot(MUTED) + 'ثابت (' + fl + ')</span>'
+      + (sm ? '<span>▬ ▬ خط متقطّع = عيّنة أقل من 10 طالبات (' + sm + ')</span>' : '');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initSlopeChart);
 
 </script>
 </body>
