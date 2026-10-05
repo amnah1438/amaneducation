@@ -1,0 +1,368 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>أداة المستقيمان والقاطع</title></head><body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Noto+Serif:ital@1&display=swap">
+<style>
+/* Layout: one board — a slim tab rail on top, a big stage (figure) beside a control column; stacks on phones */
+:root{
+  --bg:#f3f6f7; --panel:#ffffff; --ink:#15262f; --mute:#5c6d76; --line:#d5dee2;
+  --pri:#0f4c5c; --pri-soft:#e3eff2; --acc:#e07a2d;
+  --s1:#1f6fd1; --s2:#e2552d; --ok:#1f9a5a; --vio:#8b3fc7; --plane:rgba(31,111,209,.14);
+  --f-ui:'Tajawal',system-ui,sans-serif; --f-math:'Noto Serif','Times New Roman',serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e171b; --panel:#15232a; --ink:#e6eef1; --mute:#9db0b8; --line:#2a3b43;
+  --pri:#5fb8cc; --pri-soft:#1b3139; --acc:#f0a560; --s1:#6aa8ff; --s2:#ff7a57; --ok:#4cc98a; --vio:#c08bff; --plane:rgba(106,168,255,.18); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e171b; --panel:#15232a; --ink:#e6eef1; --mute:#9db0b8; --line:#2a3b43;
+  --pri:#5fb8cc; --pri-soft:#1b3139; --acc:#f0a560; --s1:#6aa8ff; --s2:#ff7a57; --ok:#4cc98a; --vio:#c08bff; --plane:rgba(106,168,255,.18); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{direction:rtl}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:17px;line-height:1.55;padding-inline:16px;padding-block:14px 28px}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px}
+header h1{font-size:clamp(22px,3vw,30px);margin:0;font-weight:800;color:var(--pri);text-wrap:balance}
+header .sub{color:var(--mute);font-size:15px}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-inline-start:auto}
+nav button{font:inherit;font-weight:700;border:2px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:6px 16px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--pri);border-color:var(--pri);color:var(--panel)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.board{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:14px}
+@media (max-width:820px){.board{grid-template-columns:1fr}}
+.stage,.side{background:var(--panel);border:1px solid var(--line);border-radius:16px;min-width:0}
+.stage{padding:8px;position:relative}
+.stage canvas,.stage svg{width:100%;height:auto;display:block;touch-action:none}
+.hint{position:absolute;bottom:10px;inset-inline-start:14px;font-size:13px;color:var(--mute)}
+.side{padding:16px;display:grid;gap:14px;align-content:start}
+.side h2{margin:0;font-size:19px;color:var(--pri)}
+label.f{display:grid;gap:4px;font-size:15px;color:var(--mute)}
+select,input[type=number]{font:inherit;font-size:20px;padding:6px 10px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{font:inherit;font-weight:800;font-size:18px;border:none;border-radius:12px;padding:10px 16px;cursor:pointer;background:var(--acc);color:#fff}
+.btn.ghost{background:var(--pri-soft);color:var(--pri)}
+.btn.sm{font-size:15px;padding:7px 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.result{border-radius:14px;padding:12px 14px;background:var(--pri-soft);min-height:72px}
+.result b.name{display:block;font-size:26px}
+.result .why{font-size:15px;color:var(--mute)}
+.chip{display:inline-block;border-radius:999px;padding:1px 12px;font-weight:700;color:#fff;font-size:15px}
+.m{font-family:var(--f-math);font-style:italic;direction:ltr;unicode-bidi:isolate}
+.m.s{text-decoration:overline}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.tog{display:flex;gap:8px;align-items:center;font-size:16px}
+.tog input{width:20px;height:20px;accent-color:var(--pri)}
+.big{font-size:clamp(90px,16vw,190px);font-weight:800;text-align:center;color:var(--pri);font-variant-numeric:tabular-nums;line-height:1.1}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:820px){.tools{grid-template-columns:1fr}}
+.tools .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:12px;min-width:0}
+.used{font-size:14px;color:var(--mute);word-break:break-word}
+.timer.done{color:var(--s2)}
+.sec{font-size:14px;font-weight:700;color:var(--mute);margin:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>المستقيمان والقاطع</h1><span class="sub">أداة العرض الصفي · رياضيات 1 · الدرس 1-2</span>
+  <nav role="tablist">
+    <button id="t-cube" role="tab" aria-selected="true" data-p="cube">المجسم ثلاثي الأبعاد</button>
+    <button id="t-sp" role="tab" aria-selected="false" data-p="sp">مستقيمات في الفراغ</button>
+    <button id="t-tr" role="tab" aria-selected="false" data-p="tr">منزلق القاطع</button>
+    <button id="t-tools" role="tab" aria-selected="false" data-p="tools">أدوات الصف</button>
+  </nav>
+</header>
+
+<!-- CUBE -->
+<section id="p-cube" class="board">
+  <div class="stage"><canvas id="cv" width="900" height="620" aria-label="متوازي مستطيلات يمكن تدويره"></canvas><div class="hint">اسحبي لتدوير المجسم</div></div>
+  <div class="side">
+    <h2>اختاري حرفين، ثم تنبئي</h2>
+    <div class="pair">
+      <label class="f">الحرف الأول<select id="e1"></select></label>
+      <label class="f">الحرف الثاني<select id="e2"></select></label>
+    </div>
+    <div class="row"><button class="btn" id="reveal1">اكشفي العلاقة</button><button class="btn ghost" id="spin">تدوير تلقائي</button></div>
+    <div class="result" id="res1"><span class="why">صوّتي أولًا: متوازيان، أم متقاطعان، أم متخالفان؟</span></div>
+    <p class="why" style="margin:0;color:var(--mute);font-size:14px">الحروف المتقطعة مخفية خلف المجسم. عند التوازي يظهر المستوى الذي يجمع الحرفين مظللًا.</p>
+  </div>
+</section>
+
+<!-- SPACE LINES -->
+<section id="p-sp" class="board" hidden>
+  <div class="stage"><canvas id="cv2" width="900" height="620" aria-label="مستقيمان في الفراغ ثلاثي الأبعاد يمكن تدويرهما"></canvas><div class="hint">اسحبي لتدوير المشهد</div></div>
+  <div class="side">
+    <h2>حرّكي <span class="m">m</span>، ثم تنبئي</h2>
+    <p class="sec">المستقيم <span class="m">ℓ</span> ثابت على الأرضية. حرّكي <span class="m">m</span>:</p>
+    <label class="f">ارتفاع <span class="m">m</span> عن الأرضية: <b id="hv">0.8</b><input type="range" id="hh" min="0" max="1.4" step="0.2" value="0.8"></label>
+    <label class="f">دوران <span class="m">m</span> حول المحور الرأسي: <b id="av">0°</b><input type="range" id="aa" min="-70" max="70" step="10" value="0"></label>
+    <div class="row">
+      <button class="btn ghost sm" id="pp">متوازيان</button>
+      <button class="btn ghost sm" id="pi">متقاطعان</button>
+      <button class="btn ghost sm" id="ps">متخالفان</button>
+    </div>
+    <div class="row"><button class="btn" id="reveal3">اكشفي العلاقة</button></div>
+    <div class="result" id="res3"><span class="why">صوّتي أولًا: متوازيان، أم متقاطعان، أم متخالفان؟</span></div>
+    <p class="sec">زاوية النظر</p>
+    <div class="row">
+      <button class="btn ghost sm" id="vtop">منظر علوي</button>
+      <button class="btn ghost sm" id="vside">منظر جانبي</button>
+      <button class="btn ghost sm" id="vreset">الزاوية الأصلية</button>
+    </div>
+    <label class="tog"><input type="checkbox" id="pl" checked> أظهري المستوى</label>
+    <label class="tog"><input type="checkbox" id="dr" checked> خطوط الإسقاط على الأرضية</label>
+  </div>
+</section>
+
+<!-- TRANSVERSAL -->
+<section id="p-tr" class="board" hidden>
+  <div class="stage"><svg id="sv" viewBox="0 0 640 440" aria-label="مستقيمان يقطعهما قاطع"></svg><div class="hint">اضغطي على زاويتين</div></div>
+  <div class="side">
+    <h2>اضغطي على زاويتين، ثم تنبئي</h2>
+    <label class="f">ميل المستقيم r<input type="range" id="rr" min="-22" max="22" value="9"></label>
+    <label class="f">ميل القاطع t<input type="range" id="rt" min="50" max="130" value="62"></label>
+    <label class="tog"><input type="checkbox" id="par"> اجعلي r موازيًا لـ q</label>
+    <label class="tog"><input type="checkbox" id="meas"> أظهري القياسات</label>
+    <div class="row"><button class="btn" id="reveal2">اكشفي الاسم</button><button class="btn ghost" id="clr">مسح الاختيار</button></div>
+    <div class="result" id="res2"><span class="why">اختاري زاويتين من الشكل.</span></div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section id="p-tools" class="tools" hidden>
+  <div class="card">
+    <h2 style="margin:0;color:var(--pri)">من تجيب؟</h2>
+    <div class="row"><label class="f" style="flex:1">عدد الطالبات<input type="number" id="n" min="2" max="60" value="30"></label></div>
+    <div class="big" id="pick">؟</div>
+    <div class="row"><button class="btn" id="go">اختاري رقمًا</button><button class="btn ghost" id="reset">بدء جديد</button></div>
+    <div class="used" id="used">لم يُختر أحد بعد. لا يتكرر الرقم حتى تشارك الجميع.</div>
+  </div>
+  <div class="card">
+    <h2 style="margin:0;color:var(--pri)">المؤقت</h2>
+    <div class="row" id="presets"></div>
+    <div class="big timer" id="clock">3:00</div>
+    <div class="row"><button class="btn" id="startT">ابدئي</button><button class="btn ghost" id="resetT">إعادة</button></div>
+  </div>
+</section>
+</div>
+
+<script>
+(function(){
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+/* ---------- tabs ---------- */
+const tabs=[...document.querySelectorAll('nav button')];
+const PAGES=['cube','sp','tr','tools'];
+function show(p){tabs.forEach(b=>b.setAttribute('aria-selected',b.dataset.p===p));
+  PAGES.forEach(k=>document.getElementById('p-'+k).hidden=(k!==p)); if(p==='cube')draw(); if(p==='tr')drawT(); if(p==='sp')drawS();}
+tabs.forEach(b=>b.onclick=()=>{show(b.dataset.p); try{history.replaceState(null,'','#'+b.dataset.p)}catch(e){}});
+/* ---------- cube ---------- */
+const V={A:[-1.5,.85,.85],B:[1.5,.85,.85],C:[1.5,-.85,.85],D:[-1.5,-.85,.85],E:[-1.5,.85,-.85],F:[1.5,.85,-.85],G:[1.5,-.85,-.85],H:[-1.5,-.85,-.85]};
+const FACES={front:['A','B','C','D'],back:['E','F','G','H'],top:['A','B','F','E'],bottom:['D','C','G','H'],right:['B','C','G','F'],left:['A','D','H','E']};
+const NORM={front:[0,0,1],back:[0,0,-1],top:[0,1,0],bottom:[0,-1,0],right:[1,0,0],left:[-1,0,0]};
+const EDGES=['AB','BC','CD','DA','EF','FG','GH','HE','AE','BF','CG','DH'];
+const edgeFaces=e=>Object.keys(FACES).filter(f=>{const q=FACES[f];return q.includes(e[0])&&q.includes(e[1])});
+const e1=document.getElementById('e1'),e2=document.getElementById('e2');
+EDGES.forEach(e=>{e1.add(new Option(e,e));e2.add(new Option(e,e));}); e1.value='AB'; e2.value='CG';
+let yaw=-.55,pitch=.38,shown=false,auto=false;
+const cv=document.getElementById('cv'),cx=cv.getContext('2d');
+function rot(p){let[x,y,z]=p;let c=Math.cos(yaw),s=Math.sin(yaw);[x,z]=[x*c+z*s,-x*s+z*c];c=Math.cos(pitch);s=Math.sin(pitch);[y,z]=[y*c-z*s,y*s+z*c];return[x,y,z]}
+function proj(p){const r=rot(p),k=4.2/(4.2-r[2]);return[450+r[0]*135*k,310-r[1]*135*k,r[2]]}
+function rel(a,b){
+  if(a===b)return null;
+  if([...a].some(ch=>b.includes(ch)))return{n:'متقاطعان',c:'--s2',w:'يلتقيان في الرأس '+[...a].find(ch=>b.includes(ch))+'.'};
+  const d=(e)=>{const p=V[e[0]],q=V[e[1]];return[q[0]-p[0],q[1]-p[1],q[2]-p[2]]};
+  const u=d(a),v=d(b),cr=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];
+  if(Math.hypot(...cr)<1e-9)return{n:'متوازيان',c:'--s1',w:'لا يتقاطعان، ويقعان في مستوى واحد: '+(()=>{const D=(x,y)=>Math.hypot(V[x][0]-V[y][0],V[x][1]-V[y][1],V[x][2]-V[y][2]);const bb=D(a[1],b[0])<D(a[1],b[1])?b:b[1]+b[0];return a+bb})()+' (المظلل).',plane:true};
+  return{n:'متخالفان',c:'--vio',w:'لا يتقاطعان، ولا يوجد مستوى يمر بهما معًا. دوّري المجسم وتأكدي!'};
+}
+function draw(){
+  const W=cv.width,H=cv.height;cx.clearRect(0,0,W,H);
+  const ink=css('--ink'),mute=css('--mute');
+  const vis={};for(const f in NORM){vis[f]=rot(NORM[f])[2]>0}
+  const a=e1.value,b=e2.value,R=shown?rel(a,b):null;
+  if(R&&R.plane){
+    const d=(p,q)=>Math.hypot(p[0]-q[0],p[1]-q[1]);let P=[proj(V[a[0]]),proj(V[a[1]])];let Q=[proj(V[b[0]]),proj(V[b[1]])];
+    if(d(P[1],Q[0])>d(P[1],Q[1]))Q.reverse();
+    cx.beginPath();cx.moveTo(...P[0]);cx.lineTo(...P[1]);cx.lineTo(...Q[0]);cx.lineTo(...Q[1]);cx.closePath();cx.fillStyle=css('--plane');cx.fill();}
+  EDGES.forEach(e=>{const hidden=edgeFaces(e).every(f=>!vis[f]);const p=proj(V[e[0]]),q=proj(V[e[1]]);
+    let col=ink,lw=4;if(e===a){col=css('--s2');lw=11}else if(e===b){col=css('--s1');lw=11}
+    cx.setLineDash(hidden?[14,10]:[]);cx.strokeStyle=col;cx.lineWidth=lw;cx.lineCap='round';cx.globalAlpha=hidden&&lw<5?.6:1;
+    cx.beginPath();cx.moveTo(p[0],p[1]);cx.lineTo(q[0],q[1]);cx.stroke();});
+  cx.setLineDash([]);cx.globalAlpha=1;
+  const cen=proj([0,0,0]);
+  for(const k in V){const p=proj(V[k]);const dx=p[0]-cen[0],dy=p[1]-cen[1],L=Math.hypot(dx,dy)||1;
+    cx.font='italic 38px "Noto Serif",serif';cx.fillStyle=ink;cx.textAlign='center';cx.textBaseline='middle';cx.fillText(k,p[0]+dx/L*30,p[1]+dy/L*30);}
+}
+function showRes(){const R=rel(e1.value,e2.value),box=document.getElementById('res1');
+  if(!R){box.innerHTML='<span class="why">اختاري حرفين مختلفين.</span>';return}
+  box.innerHTML=`<b class="name" style="color:var(${R.c})">${R.n}</b><span class="why"><span class="m s">${e1.value}</span> و <span class="m s">${e2.value}</span>: ${R.w}</span>`;}
+document.getElementById('reveal1').onclick=()=>{shown=true;showRes();draw()};
+[e1,e2].forEach(s=>s.onchange=()=>{shown=false;document.getElementById('res1').innerHTML='<span class="why">صوّتي أولًا: متوازيان، أم متقاطعان، أم متخالفان؟</span>';draw()});
+let drag=null;cv.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{if(!drag)return;yaw-= (e.clientX-drag[0])*.008;pitch=Math.max(-1.3,Math.min(1.3,pitch+(e.clientY-drag[1])*.008));drag=[e.clientX,e.clientY];draw()});
+cv.addEventListener('pointerup',()=>drag=null);
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.getElementById('spin').onclick=()=>{auto=!auto;if(auto&&!reduce)loop()};
+function loop(){if(!auto)return;yaw+=.012;draw();requestAnimationFrame(loop)}
+
+/* ---------- lines in space ---------- */
+const cv2=document.getElementById('cv2'),c2=cv2.getContext('2d');
+const hh=document.getElementById('hh'),aa=document.getElementById('aa'),pl=document.getElementById('pl'),dr=document.getElementById('dr');
+const DZ=.6, HL=5;
+let yaw2=-.5,pitch2=.42,shown3=false;
+function rot2(p){let[x,y,z]=p;let c=Math.cos(yaw2),s=Math.sin(yaw2);[x,z]=[x*c+z*s,-x*s+z*c];c=Math.cos(pitch2);s=Math.sin(pitch2);[y,z]=[y*c-z*s,y*s+z*c];return[x,y,z]}
+function pj2(p){const r=rot2(p),k=9/(9-r[2]);return[450+r[0]*68*k,330-r[1]*68*k,r[2]]}
+function spState(){
+  const h=+hh.value,th=+aa.value*Math.PI/180;
+  let kind;
+  if(+aa.value===0)kind='par'; else if(h===0)kind='int'; else kind='skew';
+  return{h,th,kind};
+}
+function arrow(p,q,col){ // arrowhead at q, pointing away from p
+  const dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,s=16;
+  c2.beginPath();c2.moveTo(q[0]+ux*s,q[1]+uy*s);c2.lineTo(q[0]-uy*s*.5,q[1]+ux*s*.5);c2.lineTo(q[0]+uy*s*.5,q[1]-ux*s*.5);c2.closePath();c2.fillStyle=col;c2.fill();
+}
+function drawS(){
+  const W=cv2.width,H=cv2.height;c2.clearRect(0,0,W,H);
+  const ink=css('--ink'),line=css('--line'),pri=css('--pri');
+  const {h,th,kind}=spState();
+  document.getElementById('hv').textContent=h.toFixed(1);
+  document.getElementById('av').textContent=aa.value+'°';
+  // floor y=0
+  const fl=[[-HL-.5,0,-2.6],[HL+.5,0,-2.6],[HL+.5,0,2.6],[-HL-.5,0,2.6]].map(pj2);
+  c2.beginPath();fl.forEach((p,i)=>i?c2.lineTo(p[0],p[1]):c2.moveTo(p[0],p[1]));c2.closePath();
+  c2.fillStyle=(shown3&&kind==='int'&&pl.checked)?css('--plane'):'rgba(127,150,160,.10)';c2.fill();
+  c2.strokeStyle=line;c2.lineWidth=2;c2.stroke();
+  c2.lineWidth=1;c2.strokeStyle=line;c2.globalAlpha=.7;
+  for(let x=-HL;x<=HL;x++){const a=pj2([x,0,-2.6]),b=pj2([x,0,2.6]);c2.beginPath();c2.moveTo(a[0],a[1]);c2.lineTo(b[0],b[1]);c2.stroke()}
+  for(let z=-2;z<=2;z++){const a=pj2([-HL-.5,0,z]),b=pj2([HL+.5,0,z]);c2.beginPath();c2.moveTo(a[0],a[1]);c2.lineTo(b[0],b[1]);c2.stroke()}
+  c2.globalAlpha=1;
+  // line m
+  const d=[Math.cos(th),0,Math.sin(th)], Q=[0,h,DZ];
+  const m0=[Q[0]-d[0]*HL,Q[1],Q[2]-d[2]*HL], m1=[Q[0]+d[0]*HL,Q[1],Q[2]+d[2]*HL];
+  const l0=[-HL,0,0], l1=[HL,0,0];
+  // plane containing both lines (parallel case)
+  if(shown3&&kind==='par'&&pl.checked){
+    const P=[l0,l1,[HL,h,DZ],[-HL,h,DZ]].map(pj2);
+    c2.beginPath();P.forEach((p,i)=>i?c2.lineTo(p[0],p[1]):c2.moveTo(p[0],p[1]));c2.closePath();c2.fillStyle=css('--plane');c2.fill();
+    c2.strokeStyle=css('--s1');c2.globalAlpha=.35;c2.lineWidth=2;c2.stroke();c2.globalAlpha=1;
+  }
+  // drop lines
+  if(dr.checked&&h>0){
+    c2.setLineDash([8,8]);c2.lineWidth=2;c2.strokeStyle=css('--s1');c2.globalAlpha=.6;
+    for(let t=-4;t<=4;t+=2){const a=pj2([Q[0]+d[0]*t,h,Q[2]+d[2]*t]),b=pj2([Q[0]+d[0]*t,0,Q[2]+d[2]*t]);c2.beginPath();c2.moveTo(a[0],a[1]);c2.lineTo(b[0],b[1]);c2.stroke();}
+    c2.setLineDash([]);c2.globalAlpha=1;
+    // shadow of m on floor
+    const s0=pj2([m0[0],0,m0[2]]),s1=pj2([m1[0],0,m1[2]]);
+    c2.strokeStyle=css('--s1');c2.globalAlpha=.35;c2.lineWidth=4;c2.beginPath();c2.moveTo(s0[0],s0[1]);c2.lineTo(s1[0],s1[1]);c2.stroke();c2.globalAlpha=1;
+  }
+  // lines
+  const draw3=(a,b,col,name,at)=>{const p=pj2(a),q=pj2(b);
+    c2.strokeStyle=col;c2.lineWidth=7;c2.lineCap='round';c2.beginPath();c2.moveTo(p[0],p[1]);c2.lineTo(q[0],q[1]);c2.stroke();
+    arrow(p,q,col);arrow(q,p,col);
+    const e=pj2(at);c2.font='italic 40px "Noto Serif",serif';c2.fillStyle=col;c2.textAlign='center';c2.textBaseline='middle';c2.fillText(name,e[0],e[1]-26);};
+  draw3(l0,l1,css('--s2'),'ℓ',[HL-.7,0,0]);
+  draw3(m0,m1,css('--s1'),'m',[Q[0]+d[0]*(HL-.7),h,Q[2]+d[2]*(HL-.7)]);
+  // intersection point
+  if(kind==='int'){const t=-DZ/Math.sin(th),x=t*Math.cos(th);const ip=pj2([x,0,0]);
+    c2.beginPath();c2.arc(ip[0],ip[1],10,0,7);c2.fillStyle=ink;c2.fill();c2.strokeStyle=css('--panel');c2.lineWidth=3;c2.stroke();}
+}
+function showS(){
+  const {h,th,kind}=spState(),box=document.getElementById('res3');
+  let n,c,w;
+  if(kind==='par'){n='متوازيان';c='--s1';w='<span class="m">ℓ</span> و <span class="m">m</span> لا يتقاطعان ويقعان في مستوى واحد (المظلل). الاتجاه نفسه، والمسافة بينهما ثابتة.'}
+  else if(kind==='int'){n='متقاطعان';c='--s2';w='<span class="m">ℓ</span> و <span class="m">m</span> يقعان على الأرضية معًا ويلتقيان في نقطة (النقطة السوداء).'}
+  else{n='متخالفان';c='--vio';w='لا يتقاطعان، و<span class="m">m</span> أعلى من <span class="m">ℓ</span> بمقدار '+h.toFixed(1)+'. لا يوجد مستوى يحملهما معًا. جرّبي «منظر علوي»: يبدو أنهما يتقاطعان وهما ليسا كذلك!'}
+  box.innerHTML=`<b class="name" style="color:var(${c})">${n}</b><span class="why">${w}</span>`;
+}
+function resetS(){shown3=false;document.getElementById('res3').innerHTML='<span class="why">صوّتي أولًا: متوازيان، أم متقاطعان، أم متخالفان؟</span>';drawS()}
+[hh,aa].forEach(x=>x.oninput=resetS);
+[pl,dr].forEach(x=>x.oninput=drawS);
+document.getElementById('reveal3').onclick=()=>{shown3=true;showS();drawS()};
+const setS=(h,a)=>{hh.value=h;aa.value=a;resetS()};
+document.getElementById('pp').onclick=()=>setS(.8,0);
+document.getElementById('pi').onclick=()=>setS(0,30);
+document.getElementById('ps').onclick=()=>setS(.8,40);
+const view=(y,p)=>{yaw2=y;pitch2=p;drawS()};
+document.getElementById('vtop').onclick=()=>view(0,1.5);
+document.getElementById('vside').onclick=()=>view(0,0);
+document.getElementById('vreset').onclick=()=>view(-.5,.42);
+let drag2=null;cv2.addEventListener('pointerdown',e=>{drag2=[e.clientX,e.clientY];cv2.setPointerCapture(e.pointerId)});
+cv2.addEventListener('pointermove',e=>{if(!drag2)return;yaw2-=(e.clientX-drag2[0])*.008;pitch2=Math.max(-1.55,Math.min(1.55,pitch2+(e.clientY-drag2[1])*.008));drag2=[e.clientX,e.clientY];drawS()});
+cv2.addEventListener('pointerup',()=>drag2=null);
+
+/* ---------- transversal ---------- */
+const sv=document.getElementById('sv'),NS='http://www.w3.org/2000/svg';
+let sel=[],shown2=false;
+const rr=document.getElementById('rr'),rt=document.getElementById('rt'),par=document.getElementById('par'),meas=document.getElementById('meas');
+const unit=d=>{const r=d*Math.PI/180;return[Math.cos(r),-Math.sin(r)]};
+const inter=(P,u,Q,v)=>{const den=u[0]*v[1]-u[1]*v[0];const t=((Q[0]-P[0])*v[1]-(Q[1]-P[1])*v[0])/den;return[P[0]+u[0]*t,P[1]+u[1]*t]};
+function el(t,a,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;sv.appendChild(e);return e}
+const INT=[3,4,5,6],LEFT=[1,4,5,8];
+function name(a,b){
+  const sameV=(a<=4)===(b<=4);
+  if(sameV){const d=Math.abs(a-b);return d===2?['متقابلتان بالرأس','--mute','عند نقطة التقاطع نفسها، وليستا من أزواج القاطع.']:['تكوّنان زوجًا خطيًا','--mute','عند نقطة التقاطع نفسها، وليستا من أزواج القاطع.']}
+  const ia=INT.includes(a),ib=INT.includes(b),same=LEFT.includes(a)===LEFT.includes(b);
+  if(ia&&ib)return same?['متحالفتان','--ok','داخليتان وفي جهة واحدة من القاطع t.']:['متبادلتان داخليًا','--s2','داخليتان وفي جهتين من القاطع t.'];
+  if(!ia&&!ib)return same?['خارجيتان في جهة واحدة','--mute','لم يسمّهما الدرس: الخلية الفارغة!']:['متبادلتان خارجيًا','--vio','خارجيتان وفي جهتين من القاطع t.'];
+  if(Math.abs(a-b)===4)return['متناظرتان','--s1','في الموقع نفسه عند نقطتي التقاطع، وفي جهة واحدة من القاطع.'];
+  return['ليس لهما اسم في الدرس','--mute','إحداهما داخلية والأخرى خارجية، وفي جهتين من القاطع.'];
+}
+let MEAS={};
+function drawT(){
+  sv.innerHTML='';const ink=css('--ink');
+  const qd=0, rd=par.checked?0:+rr.value, td=+rt.value;
+  rr.disabled=par.checked;
+  const Q0=[320,140],R0=[320,310],T0=[320,225];
+  const uq=unit(qd),ur=unit(rd),ut=unit(td);
+  const Pq=inter(Q0,uq,T0,ut),Pr=inter(R0,ur,T0,ut);
+  const line=(P,u,lab,col)=>{const a=[P[0]-u[0]*700,P[1]-u[1]*700],b=[P[0]+u[0]*700,P[1]+u[1]*700];
+    el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':4,'stroke-linecap':'round'});};
+  const up=ut[1]<0?ut:[-ut[0],-ut[1]],dn=[-up[0],-up[1]];
+  const regions=(P,u,base)=>[[base+1,[-u[0],-u[1]],up],[base+2,u,up],[base+3,u,dn],[base+4,[-u[0],-u[1]],dn]].map(([n,a,b])=>({n,P,a,b}));
+  const R=[...regions(Pq,uq,0),...regions(Pr,ur,4)];
+  R.forEach(g=>{const r=46,p1=[g.P[0]+g.a[0]*r,g.P[1]+g.a[1]*r],p2=[g.P[0]+g.b[0]*r,g.P[1]+g.b[1]*r];
+    const cr=g.a[0]*g.b[1]-g.a[1]*g.b[0];const deg=Math.round(Math.acos(Math.max(-1,Math.min(1,g.a[0]*g.b[0]+g.a[1]*g.b[1])))*180/Math.PI);MEAS[g.n]=deg;
+    const i=sel.indexOf(g.n);const col=i===0?css('--s2'):i===1?css('--s1'):'transparent';
+    const w=el('path',{d:`M${g.P[0]},${g.P[1]} L${p1[0]},${p1[1]} A${r},${r} 0 0 ${cr>0?1:0} ${p2[0]},${p2[1]} Z`,fill:col,'fill-opacity':i>=0?.45:0,stroke:i>=0?col:'none','stroke-width':2,style:'cursor:pointer'});
+    w.addEventListener('click',()=>pick(g.n));
+    const bx=g.a[0]+g.b[0],by=g.a[1]+g.b[1],L=Math.hypot(bx,by);
+    const t=el('text',{x:g.P[0]+bx/L*62,y:g.P[1]+by/L*62+9,'text-anchor':'middle','font-size':meas.checked?22:26,'font-weight':800,'font-family':'Tajawal',fill:i>=0?col:ink,style:'cursor:pointer'},meas.checked?deg+'°':g.n);
+    t.addEventListener('click',()=>pick(g.n));});
+  line(Q0,uq,'q',ink);line(R0,ur,'r',ink);line(T0,ut,'t',css('--pri'));
+  const lab=(P,u,s,col)=>{el('text',{x:P[0]+u[0]*215,y:P[1]+u[1]*215-12,'font-size':30,'font-style':'italic','font-family':'Noto Serif,serif',fill:col},s)};
+  lab(Q0,uq,'q',ink);lab(R0,ur,'r',ink);lab(T0,up,'t',css('--pri'));
+  R.forEach(g=>{const r=46,p1=[g.P[0]+g.a[0]*r,g.P[1]+g.a[1]*r],p2=[g.P[0]+g.b[0]*r,g.P[1]+g.b[1]*r];const cr=g.a[0]*g.b[1]-g.a[1]*g.b[0];
+    const h=el('path',{d:`M${g.P[0]},${g.P[1]} L${p1[0]},${p1[1]} A${r},${r} 0 0 ${cr>0?1:0} ${p2[0]},${p2[1]} Z`,fill:'transparent',style:'cursor:pointer'});h.addEventListener('click',()=>pick(g.n));});
+  if(shown2)res();
+}
+function pick(n){const i=sel.indexOf(n);if(i>=0)sel.splice(i,1);else{if(sel.length===2)sel.shift();sel.push(n)}shown2=false;
+  document.getElementById('res2').innerHTML=sel.length===2?`<span class="why">اخترتِ ∠${sel[0]} و ∠${sel[1]}. تنبئي بالاسم، ثم اكشفيه.</span>`:'<span class="why">اختاري زاويتين من الشكل.</span>';drawT()}
+function res(){const box=document.getElementById('res2');if(sel.length<2){box.innerHTML='<span class="why">اختاري زاويتين أولًا.</span>';return}
+  const [a,b]=sel,[n,c,w]=name(a,b);const eq=MEAS[a]===MEAS[b];
+  box.innerHTML=`<b class="name" style="color:var(${c})">${n}</b><span class="why">∠${a} و ∠${b}: ${w}<br>القياسان: ${MEAS[a]}° و ${MEAS[b]}° ${eq?'(متساويان)':'(غير متساويين)'}. ${par.checked?'المستقيمان متوازيان الآن.':'الاسم لا يتغير بتغير الميل.'}</span>`}
+document.getElementById('reveal2').onclick=()=>{shown2=true;res()};
+document.getElementById('clr').onclick=()=>{sel=[];shown2=false;document.getElementById('res2').innerHTML='<span class="why">اختاري زاويتين من الشكل.</span>';drawT()};
+[rr,rt,par,meas].forEach(x=>x.oninput=drawT);
+/* ---------- picker ---------- */
+let pool=[],usedL=[];const nIn=document.getElementById('n');
+function refill(){const N=Math.max(2,Math.min(60,+nIn.value||30));pool=[...Array(N)].map((_,i)=>i+1);usedL=[];document.getElementById('pick').textContent='؟';document.getElementById('used').textContent='لم يُختر أحد بعد. لا يتكرر الرقم حتى تشارك الجميع.'}
+document.getElementById('go').onclick=()=>{if(!pool.length)refill();const k=Math.floor(Math.random()*pool.length);const v=pool.splice(k,1)[0];usedL.push(v);
+  document.getElementById('pick').textContent=v;document.getElementById('used').textContent='شاركت: '+usedL.join('، ')+(pool.length?'':' · اكتملت الجولة.')};
+document.getElementById('reset').onclick=refill;nIn.onchange=refill;refill();
+/* ---------- timer ---------- */
+let total=180,left=180,tick=null;const clock=document.getElementById('clock'),st=document.getElementById('startT');
+const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+function setT(m){clearInterval(tick);tick=null;total=left=m*60;clock.textContent=fmt(left);clock.classList.remove('done');st.textContent='ابدئي'}
+[1,2,3,4,5,7].forEach(m=>{const b=document.createElement('button');b.className='btn ghost';b.textContent=m+' د';b.onclick=()=>setT(m);document.getElementById('presets').appendChild(b)});
+st.onclick=()=>{if(tick){clearInterval(tick);tick=null;st.textContent='تابعي';return}
+  st.textContent='إيقاف';tick=setInterval(()=>{left--;clock.textContent=fmt(Math.max(0,left));if(left<=0){clearInterval(tick);tick=null;clock.classList.add('done');clock.textContent='انتهى!';st.textContent='ابدئي'}},1000)};
+document.getElementById('resetT').onclick=()=>setT(total/60);
+/* boot */
+const h=(location.hash||'').slice(1);show(PAGES.includes(h)?h:'cube');drawT();draw();drawS();
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{draw();drawT();drawS()});
+document.fonts&&document.fonts.ready.then(()=>{draw();drawT();drawS()});
+})();
+</script>
+
+</body></html>
