@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>الدرس ٣-٢ معادلات الجمع والطرح</title>
+<style>
+@font-face{font-family:Tajawal;src:url(fonts/Tajawal-Regular.ttf);font-weight:400}
+@font-face{font-family:Tajawal;src:url(fonts/Tajawal-Bold.ttf);font-weight:700}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1280px;height:720px;overflow:hidden;background:#fff8ec}
+#stage{position:relative;width:1280px;height:720px;overflow:hidden;font-family:Tajawal,sans-serif;color:#1f2a44;
+  background:radial-gradient(circle at 82% 12%,#ffe9c7 0,#fff8ec 45%,#e3f2ff 100%)}
+.a{position:absolute}
+.c{left:0;width:1280px;text-align:center}
+.row{position:absolute;width:1280px;display:flex;justify-content:center;direction:rtl;font-weight:700;white-space:nowrap}
+.S{width:var(--sw,330px);display:flex;direction:rtl;justify-content:center}
+.M{width:var(--mw,80px);text-align:center}
+.t{display:inline-block;direction:ltr;unicode-bidi:isolate;margin:0 .16em}
+.ie{display:inline-flex;direction:rtl;vertical-align:middle;unicode-bidi:isolate;font-weight:700}
+.r{color:#ef476f}.g{color:#1fa971}.x{color:#7c4dff}.b{color:#1f4fa0}
+.lab{position:absolute;left:20px;width:340px;text-align:center;font-size:27px;font-weight:700;color:#1f4fa0;line-height:1.25}
+.chip{display:inline-block;background:#118ab2;color:#fff;font-size:36px;font-weight:700;padding:4px 34px;border-radius:30px}
+.prompt{font-size:32px;font-weight:700}
+#cap{left:90px;width:1100px;bottom:24px;padding:12px 28px;border-radius:22px;background:rgba(31,42,68,.93);color:#fff;
+  font-size:32px;font-weight:700;text-align:center;line-height:1.35}
+.gt{position:absolute;width:52px;height:52px;border-radius:8px;background:#e6b422;color:#5b4300;font-size:34px;font-weight:700;text-align:center;line-height:50px;box-shadow:inset 0 -5px 0 #b88a00}
+.mat{position:absolute;width:250px;height:250px;border-radius:18px;background:#fff;border:6px solid #c9c2a8;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.ann{position:absolute;border:3px solid #1f4fa0;background:#eef4ff;border-radius:10px;padding:8px 14px;font-size:24px;font-weight:700;color:#1f4fa0;text-align:center;line-height:1.3}
+.card{position:absolute;left:130px;top:58px;width:1020px;height:520px;border-radius:22px;background:#fffbea;border:4px solid #1f4fa0;overflow:hidden;box-shadow:0 12px 36px rgba(0,0,0,.14)}
+.card .hd{position:absolute;left:0;top:0;width:100%;height:62px;background:#1f4fa0;color:#fff;font-size:34px;font-weight:700;text-align:center;line-height:62px}
+.hl{padding:0 6px;border-radius:6px}
+.bul{position:absolute;left:100px;width:1080px;font-size:40px;font-weight:700;direction:rtl;text-align:right}
+.bul i{display:inline-block;width:54px;height:54px;line-height:54px;border-radius:50%;background:#118ab2;color:#fff;font-style:normal;text-align:center;margin-left:18px;font-size:32px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bgsyms"></div>
+  <div id="scenes"></div>
+  <div id="cap" class="a"></div>
+</div>
+
+<script>
+const DURATION = 262;
+const $ = id => document.getElementById(id);
+const clamp = v => Math.min(1, Math.max(0, v));
+const S = (t, a, b) => clamp((t - a) / (b - a));
+const eo = p => 1 - Math.pow(1 - p, 3);
+const eb = p => { const c = 2.4; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+const win = (t, a, b, f = .5) => S(t, a, a + f) * (1 - S(t, b - f, b));
+
+function mk(cls, css, html, parent) {
+  const d = document.createElement('div');
+  d.className = cls; d.style.cssText = css; if (html) d.innerHTML = html;
+  parent.appendChild(d); return d;
+}
+function put(el, o, x = 0, y = 0, s = 1, r = 0) {
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px,${y}px) scale(${s}) rotate(${r}deg)`;
+}
+
+/* ---------- المعادلات: كل رمز في خانة مستقلة، وترتيبها من اليمين إلى اليسار كما في الكتاب ---------- */
+// بادئات: ~ أحمر ، ^ أخضر ، @ بنفسجي
+function toks(s) {
+  return s.split(' ').map(w => {
+    let c = '';
+    if (w[0] === '~') { c = 'r'; w = w.slice(1); } else if (w[0] === '^') { c = 'g'; w = w.slice(1); } else if (w[0] === '@') { c = 'x'; w = w.slice(1); }
+    return `<span class="t ${c}">${w}</span>`;
+  }).join('');
+}
+const eqrow = (L, R, fs, vars = '') =>
+  `<div class="row" style="font-size:${fs}px;${vars}"><div class="S">${toks(L)}</div><div class="M">=</div><div class="S">${toks(R)}</div></div>`;
+const ieq = (L, R) => `<span class="ie">${toks(L)}<span class="t">=</span>${toks(R)}</span>`;
+const ieqH = (L, R) => `<span class="ie">${L.map(x=>`<span class="t">${x}</span>`).join('')}<span class="t">=</span>${R.map(x=>`<span class="t">${x}</span>`).join('')}</span>`;
+const hl = (txt, col) => `<span class="hl" style="background:${col}">${txt}</span>`;
+
+/* ---------- ظهور العناصر بالتتابع ---------- */
+function Parts() {
+  const L = [];
+  return {
+    add(n, at, until, kind) { L.push({ n, at, until, kind }); n.style.opacity = 0; return n; },
+    upd(lt) {
+      for (const p of L) {
+        const o = S(lt, p.at, p.at + .5) * (p.until ? 1 - S(lt, p.until - .4, p.until) : 1);
+        const pop = p.kind === 'pop';
+        put(p.n, o, 0, pop ? 0 : (1 - eo(S(lt, p.at, p.at + .6))) * 24, pop ? .7 + .3 * eb(S(lt, p.at, p.at + .8)) : 1);
+      }
+    }
+  };
+}
+
+const SC = [], CAPS = [];
+const scenesEl = $('scenes');
+function scene(a, b, build, caps) {
+  const el = mk('a', 'left:0;top:0;width:1280px;height:720px', '', scenesEl);
+  const upd = build(el);
+  SC.push({ a, b, el, upd });
+  (caps || []).forEach(c => CAPS.push([a + c[0], a + c[1], c[2]]));
+}
+function header(el, P, chipTxt, promptHtml) {
+  P.add(mk('a c', 'top:28px', `<span class="chip">${chipTxt}</span>`, el), .3);
+  if (promptHtml) P.add(mk('a c prompt', 'top:98px', promptHtml, el), .8);
+}
+
+/* ---------- مشهد حلّ معادلة خطوة بخطوة (أسلوب أمثلة الكتاب) ---------- */
+function solveScene(a, b, cfg, caps) {
+  scene(a, b, el => {
+    const P = Parts();
+    header(el, P, cfg.chip, cfg.prompt);
+    let t0 = 0;
+    if (cfg.intro) t0 = cfg.intro(el, P);
+    const tops = [165, 245, 325];
+    cfg.steps.forEach((s, i) => {
+      const y = tops[i];
+      P.add(mk('a', `left:150px;top:${y}px;width:1280px`, eqrow(s.L, s.R, 58), el), t0 + s.t, 0, s.final ? 'pop' : '');
+      P.add(mk('lab', `top:${y + 8}px`, s.label, el), t0 + s.t);
+      if (s.rule) P.add(mk('a', `left:420px;top:${y + 76}px;width:740px;height:4px;background:#ef476f;border-radius:2px`, '', el), t0 + s.t + .6);
+    });
+    if (cfg.check) cfg.check.forEach((c, i) => {
+      const y = 425 + i * 62;
+      P.add(mk('a', `left:150px;top:${y}px;width:1280px`, eqrow(c.L, c.R, 42), el), t0 + c.t);
+      P.add(mk('lab', `top:${y + 6}px;font-size:24px`, c.label, el), t0 + c.t);
+    });
+    if (cfg.checkTitle) P.add(mk('a', 'left:1060px;top:392px;font-size:32px;font-weight:700;color:#ef476f', 'تحقّق:', el), t0 + cfg.checkTitle);
+    if (cfg.answer) P.add(mk('a c', 'top:455px;font-size:46px;font-weight:700;color:#1fa971', cfg.answer.txt, el), t0 + cfg.answer.t, 0, 'pop');
+    return lt => P.upd(lt);
+  }, caps);
+}
+
+</script>
+<script>
+/* ===== الرسم الفعلي للمشاهد ===== */
+
+// بطاقة الخاصية (تُبنى مباشرةً لضبط المواضع)
+function propCard(a, b, cfg, caps) {
+  scene(a, b, el => {
+    const P = Parts();
+    const card = mk('card', '', '', el);
+    mk('hd', '', cfg.title, card);
+    const inCard = (css, html, at) => P.add(mk('a', css, html, card), at);
+    inCard('left:40px;top:84px;width:940px;font-size:30px;font-weight:700;text-align:right;line-height:1.45', `<span class="r">التعبير اللفظي:</span> ${cfg.verbal}`, 1);
+    inCard('left:40px;top:182px;width:940px;font-size:30px;font-weight:700;text-align:right;direction:rtl', `<span class="r">الرموز:</span> ${cfg.sym}`, 5);
+    inCard('left:40px;top:238px;width:940px;font-size:30px;font-weight:700;text-align:right', '<span class="r">الأمثلة:</span>', 8);
+    const colX = [250, 730]; // جبر (يسار) ، أعداد (يمين)
+    const vars = '--sw:200px;--mw:56px;';
+    [['جبر', cfg.alg, colX[0]], ['أعداد', cfg.num, colX[1]]].forEach(([nm, rows, cx]) => {
+      inCard(`left:${cx - 100}px;top:290px;width:200px;text-align:center;font-size:30px;font-weight:700;color:#1f4fa0`, nm, 8.5);
+      rows.forEach((r, i) => {
+        const y = 340 + i * 70;
+        P.add(mk('a', `left:${cx - 640 - 20}px;top:${y}px;width:1280px`, eqrow(r[0], r[1], 44, vars), card), 10 + i * 2.2, 0, i === 2 ? 'pop' : '');
+        if (i === 1) P.add(mk('a', `left:${cx - 235}px;top:${y + 58}px;width:470px;height:4px;background:#ef476f;border-radius:2px`, '', card), 12.6);
+      });
+    });
+    return lt => P.upd(lt);
+  }, caps);
+}
+
+/* ---------- الخلفية ---------- */
+const symList = ['+', '−', '=', 'س', '٥', '٩', 'ص', '+', '−', '='];
+const symEls = symList.map((s, i) => mk('a', `left:${(i * 131 + 40) % 1200}px;top:${(i * 197 + 60) % 560}px;font-size:${70 + (i % 3) * 24}px;font-weight:700;color:#7c4dff;opacity:.07`, s, $('bgsyms')));
+
+/* ===== المشهد 1: العنوان (0–8) ===== */
+scene(0, 8, el => {
+  const P = Parts();
+  P.add(mk('a c', 'top:90px', '<span class="chip" style="font-size:44px;background:#c0392b">الدرس ٣ - ٢</span>', el), .3, 0, 'pop');
+  P.add(mk('a c', 'top:190px;font-size:96px;font-weight:700', 'معادلات الجمع والطرح', el), .8, 0, 'pop');
+  P.add(mk('a c', 'top:330px;font-size:44px;font-weight:700;color:#118ab2', 'فكرة الدرس: أحلّ معادلات الجمع والطرح', el), 2.2);
+  P.add(mk('a', 'left:0;top:440px;width:1280px', eqrow('@س + ٢', '٦', 96), el), 3.6, 0, 'pop');
+  return lt => P.upd(lt);
+}, [[.6, 7.4, 'أهلاً بكم! في هذا الدرس نتعلّم كيف نحلّ معادلات الجمع والطرح']]);
+
+/* ===== المشهد 2: استعدّ — كتب أحمد (8–46) ===== */
+scene(8, 46, el => {
+  const P = Parts();
+  P.add(mk('a c', 'top:22px;font-size:27px;font-weight:700;padding:0 60px;line-height:1.35', 'عند أحمد بعض الكتب العلمية، ثمّ اشترى كتابين إضافيين فأصبح لديه ستة كتب علمية', el), .5);
+  P.add(mk('a c', 'top:228px;font-size:64px;font-weight:700;left:0', '=', el), 2.5);
+  const matL = P.add(mk('mat', 'left:340px;top:120px', '', el), 2.2);
+  const matR = P.add(mk('mat', 'left:690px;top:120px', '', el), 2.2);
+  const tl = [], tr = [];
+  for (let i = 0; i < 6; i++) tl.push(mk('gt', `left:${340 + 6 + 68 + (i % 2) * 62}px;top:${120 + 6 + 37 + Math.floor(i / 2) * 62}px`, '١', el));
+  const bar = mk('a', 'left:736px;top:156px;width:80px;height:190px;border-radius:10px;background:#1fa971;color:#fff;font-size:56px;font-weight:700;text-align:center;line-height:186px;box-shadow:inset 0 -8px 0 #12794f', 'س', el);
+  for (let i = 0; i < 2; i++) tr.push(mk('gt', `left:836px;top:${156 + i * 62}px`, '١', el));
+  const ann1 = P.add(mk('ann', 'left:955px;top:150px;width:290px', 'بدأ أحمد بعدد غير معلوم من الكتب', el), 5, 17.6);
+  const ann2 = P.add(mk('ann', 'left:700px;top:386px;width:240px', 'اشترى كتابين إضافيين', el), 8, 17.6);
+  const ann3 = P.add(mk('ann', 'left:30px;top:200px;width:290px', 'الآن أصبح لديه ستة كتب', el), 11, 17.6);
+  const r1 = P.add(mk('a', 'left:0;top:408px;width:1280px', eqrow('@س + ٢', '٦', 48), el), 18.4);
+  const r2 = P.add(mk('a', 'left:0;top:468px;width:1280px', eqrow('~−٢', '~−٢', 48), el), 22);
+  const rl = P.add(mk('a', 'left:420px;top:526px;width:440px;height:4px;background:#ef476f;border-radius:2px', '', el), 22.6);
+  const r3 = P.add(mk('a', 'left:0;top:540px;width:1280px', eqrow('@س', '^٤', 56), el), 27, 0, 'pop');
+  return lt => {
+    P.upd(lt);
+    const m = S(lt, 2.2, 2.7);
+    tl.forEach((e, i) => { const at = 2.6 + i * .12; put(e, S(lt, at, at + .3), 0, (1 - eo(S(lt, at, at + .6))) * -40); });
+    put(bar, S(lt, 2.6, 3.1), 0, (1 - eo(S(lt, 2.6, 3.2))) * -40);
+    tr.forEach((e, i) => { const at = 3.1 + i * .15; put(e, S(lt, at, at + .3), 0, (1 - eo(S(lt, at, at + .6))) * -40); });
+    // إبراز ثم حذف بطاقتين من كل لوحة
+    const hi = win(lt, 18, 21.6, .3), pulse = .5 + .5 * Math.sin(lt * 8);
+    [tl[4], tl[5], tr[0], tr[1]].forEach(e => { e.style.outline = hi > .01 ? `5px solid rgba(239,71,111,${hi * (.5 + .5 * pulse)})` : 'none'; });
+    const rm = (e, base, ts, dir) => { const p = S(lt, ts, ts + .9); put(e, base * (1 - p), 0, -90 * eo(p), 1 - .5 * p, dir * 25 * p); };
+    rm(tl[5], S(lt, 2.6 + 5 * .12, 3.2 + 5 * .12), 21.6, -1); rm(tr[0], S(lt, 3.1, 3.4), 21.6, 1);
+    rm(tl[4], S(lt, 2.6 + 4 * .12, 3.2 + 4 * .12), 22.8, -1); rm(tr[1], S(lt, 3.25, 3.55), 22.8, 1);
+    bar.style.transform += ` scale(${1 + .06 * Math.sin(Math.max(0, lt - 27) * 5) * S(lt, 27, 28)})`;
+  };
+}, [
+  [.6, 4.5, 'أحمد عنده بعض الكتب، واشترى كتابين فصار عنده ستة كتب'],
+  [4.5, 8, 'ماذا تمثّل س في الشكل؟ إنها عدد الكتب غير المعلوم'],
+  [8, 14, 'والمعادلة التي تمثّلها اللوحتان: س زائد ٢ يساوي ٦'],
+  [14, 18, 'كيف نحلّ المعادلة؟ نحذف العدد نفسه من كلا الطرفين'],
+  [18.2, 26.5, 'نحذف بطاقتين من كل لوحة، أي نطرح ٢ من الطرفين'],
+  [26.8, 37.4, 'تبقى س وحدها: س = ٤، أي كان عند أحمد ٤ كتب في البداية']
+]);
+
+/* ===== المشهد 3: خاصية الطرح (46–64) ===== */
+propCard(46, 64, {
+  title: 'خصائص المساواة (خاصية الطرح)',
+  verbal: 'إذا طرحت العدد نفسه من كلا طرفي المعادلة يبقى طرفا المعادلة متساويين.',
+  sym: `إذا كان أ = ب ، فإن أ − جـ = ب − جـ`,
+  alg: [['@س + ٢', '٦'], ['~−٢', '~−٢'], ['@س', '^٤']],
+  num: [['٦', '٦'], ['~−٢', '~−٢'], ['٤', '٤']]
+}, [
+  [.6, 5, 'خاصية الطرح: إذا طرحنا العدد نفسه من طرفي معادلة بقيا متساويين'],
+  [5, 9.5, 'أي أنه إذا كان أ يساوي ب، فإن أ ناقص جـ يساوي ب ناقص جـ'],
+  [9.5, 17.4, 'مثال: ٦ = ٦ ، نطرح ٢ من الطرفين فنحصل على ٤ = ٤']
+]);
+
+/* ===== المشهد 4: مثال ١ (64–96) ===== */
+solveScene(64, 96, {
+  chip: 'مثال ١ · حلّ معادلات الجمع',
+  prompt: `حلّ المعادلة: ${ieq('س + ٩', '٨')} ثمّ تحقّق من صحّة حلّك`,
+  steps: [
+    { t: 2, label: 'اكتب المعادلة', L: '@س + ٩', R: '٨' },
+    { t: 6.5, label: 'اطرح ٩ من كلّ طرف', L: '@س + ٩ ~− ~٩', R: '٨ ~− ~٩', rule: true },
+    { t: 12, label: 'بسِّط', L: '@س', R: '^−١', final: true }
+  ],
+  checkTitle: 17,
+  check: [
+    { t: 17.5, label: 'اكتب المعادلة الأصلية', L: '@س + ٩', R: '٨' },
+    { t: 21, label: 'عوّض عن س بـ (سالب ١)', L: '@−١ + ٩', R: '٨' },
+    { t: 25, label: 'الجملة صحيحة؛ إذن الحلّ هو (سالب ١)', L: '٨', R: '٨ ^✓' }
+  ]
+}, [
+  [.6, 6, 'نريد حلّ المعادلة س زائد ٩ يساوي ٨ ثم نتحقق من الحل'],
+  [6, 11.5, 'عكس الجمع هو الطرح، فنطرح ٩ من كلا الطرفين'],
+  [11.5, 17, '٨ ناقص ٩ يساوي سالب ١، إذن س تساوي سالب ١'],
+  [17, 24.5, 'للتحقق: نكتب المعادلة الأصلية ونعوّض عن س بسالب ١'],
+  [24.5, 31.5, '٨ تساوي ٨، الجملة صحيحة، إذن الحلّ هو سالب ١']
+]);
+
+/* ===== المشهد 5: مثال ٢ من واقع الحياة — الأسماك (96–134) ===== */
+solveScene(96, 134, {
+  chip: 'مثال ٢ · من واقع الحياة: أحياء بحرية',
+  prompt: '',
+  intro(el, P) {
+    P.add(mk('a c', 'top:96px;font-size:32px;font-weight:700;padding:0 110px;line-height:1.4',
+      `قد تنمو ${hl('السمكة الملائكية', '#ffd6e0')} ليصل طولها إلى ${hl('٣٠ سم', '#ffd6e0')}. وهي أطول من السمكة المهرّج ${hl('بـ ٢١ سم', '#c9f0dc')}. فما ${hl('طول السمكة المهرّج', '#cfe8ff')}؟`, el), .8, 14);
+    const box = P.add(mk('a', 'left:120px;top:270px;width:1040px;height:250px;border-radius:14px;background:#fff9c4;border:3px solid #1f4fa0', '', el), 5, 14);
+    P.add(mk('a', 'left:150px;top:290px;width:980px;font-size:30px;font-weight:700;text-align:right;line-height:1.4', `<span class="b">التعبير اللفظي:</span> ${hl('السمكة الملائكية', '#ffd6e0')} أطول ${hl('بـ ٢١ سم', '#c9f0dc')} من السمكة المهرّج`, el), 5.5, 14);
+    P.add(mk('a', 'left:150px;top:370px;width:980px;font-size:30px;font-weight:700;text-align:right', `<span class="b">المتغير:</span> لتكن ${hl('جـ', '#cfe8ff')} تمثّل طول السمكة المهرّج`, el), 7.5, 14);
+    P.add(mk('a', 'left:150px;top:440px;width:980px;text-align:right;font-size:30px;font-weight:700;direction:rtl', `<span class="b">المعادلة:</span> &nbsp; <span style="font-size:48px">${ieqH([hl('جـ', '#cfe8ff'), '+', hl('٢١', '#c9f0dc')], [hl('٣٠', '#ffd6e0')])}</span>`, el), 9.5, 14);
+    return 14.5;
+  },
+  steps: [
+    { t: 0, label: 'اكتب المعادلة', L: '@جـ + ٢١', R: '٣٠' },
+    { t: 4.5, label: 'اطرح ٢١ من كلا الطرفين', L: '@جـ + ٢١ ~− ~٢١', R: '٣٠ ~− ~٢١', rule: true },
+    { t: 9.5, label: 'بسِّط', L: '@جـ', R: '^٩', final: true }
+  ],
+  answer: { t: 13.5, txt: 'طول السمكة المهرّج هو ٩ سم' }
+}, [
+  [.6, 5, 'السمكة الملائكية أطول من السمكة المهرّج بـ ٢١ سم، وطولها ٣٠ سم'],
+  [5, 9.4, 'نترجم الكلام إلى معادلة: جـ زائد ٢١ يساوي ٣٠'],
+  [9.4, 14.5, 'جـ هي طول السمكة المهرّج الذي نريد معرفته'],
+  [15, 19, 'نطرح ٢١ من كلا الطرفين لنعزل جـ'],
+  [19, 24, '٣٠ ناقص ٢١ يساوي ٩، إذن جـ تساوي ٩'],
+  [24, 31.5, 'طول السمكة المهرّج هو ٩ سم']
+]);
+
+/* ===== المشهد 6: خاصية الجمع (134–150) ===== */
+propCard(134, 150, {
+  title: 'خصائص المساواة (خاصية الجمع)',
+  verbal: 'إذا أضفت العدد نفسه إلى طرفي المعادلة، فإنّ طرفيها يبقيان متساويين.',
+  sym: `إذا كانت أ = ب ، فإنّ أ + جـ = ب + جـ`,
+  alg: [['@س − ٢', '٤'], ['^+٢', '^+٢'], ['@س', '^٦']],
+  num: [['٥', '٥'], ['^+٣', '^+٣'], ['٨', '٨']]
+}, [
+  [.6, 5, 'خاصية الجمع: إذا أضفنا العدد نفسه إلى طرفي معادلة بقيا متساويين'],
+  [5, 9.5, 'أي أنه إذا كان أ يساوي ب، فإن أ زائد جـ يساوي ب زائد جـ'],
+  [9.5, 15.4, 'مثال: ٥ = ٥ ، نضيف ٣ للطرفين فيصبح ٨ = ٨']
+]);
+
+/* ===== المشهد 7: مثال ٣ — حلّ معادلات الطرح (150–180) ===== */
+solveScene(150, 180, {
+  chip: 'مثال ٣ · حلّ معادلات الطرح',
+  prompt: `حلّ المعادلة: ${ieq('س − ٢', '١')} ، وتحقّق من صحّة حلّك`,
+  steps: [
+    { t: 2, label: 'اكتب المعادلة', L: '@س − ٢', R: '١' },
+    { t: 6.5, label: 'أضف ٢ إلى كلا الطرفين', L: '@س − ٢ ^+ ^٢', R: '١ ^+ ^٢', rule: true },
+    { t: 12, label: 'بسِّط', L: '@س', R: '^٣', final: true }
+  ],
+  checkTitle: 17,
+  check: [
+    { t: 17.5, label: 'عوّض عن س بالعدد ٣', L: '٣ − ٢', R: '١' },
+    { t: 21.5, label: 'الجملة صحيحة؛ إذن الحلّ هو ٣', L: '١', R: '١ ^✓' }
+  ]
+}, [
+  [.6, 6, 'نحلّ المعادلة س ناقص ٢ يساوي ١'],
+  [6, 11.5, 'عكس الطرح هو الجمع، فنضيف ٢ إلى كلا الطرفين'],
+  [11.5, 17, '١ زائد ٢ يساوي ٣، إذن س تساوي ٣'],
+  [17, 23.5, 'نتحقق: ٣ ناقص ٢ يساوي ١، وهذه جملة صحيحة'],
+  [23.5, 29.5, 'إذن الحلّ هو ٣']
+]);
+
+/* ===== المشهد 8: مثال ٤ — تسوّق (180–220) ===== */
+solveScene(180, 220, {
+  chip: 'مثال ٤ · من واقع الحياة: تسوّق',
+  prompt: '',
+  intro(el, P) {
+    P.add(mk('a c', 'top:96px;font-size:32px;font-weight:700;padding:0 110px;line-height:1.4',
+      `ثمن ${hl('حذاء ٤٥ ريالاً', '#ffd6e0')}، وهو أقلّ ${hl('بـ ١٤ ريالاً', '#c9f0dc')} من ${hl('ثمن القميص', '#cfe8ff')}. فما ثمن القميص؟`, el), .8, 12);
+    P.add(mk('a', 'left:120px;top:270px;width:1040px;height:250px;border-radius:14px;background:#fff9c4;border:3px solid #1f4fa0', '', el), 4.5, 12);
+    P.add(mk('a', 'left:150px;top:290px;width:980px;font-size:30px;font-weight:700;text-align:right;line-height:1.4', `<span class="b">التعبير اللفظي:</span> ثمن ${hl('الحذاء', '#ffd6e0')} أقلّ ${hl('بـ ١٤ ريالاً', '#c9f0dc')} من ثمن ${hl('القميص', '#cfe8ff')}`, el), 5, 12);
+    P.add(mk('a', 'left:150px;top:370px;width:980px;font-size:30px;font-weight:700;text-align:right', `<span class="b">المتغير:</span> لتكن ${hl('س', '#cfe8ff')} تمثّل ثمن القميص`, el), 7, 12);
+    P.add(mk('a', 'left:150px;top:440px;width:980px;text-align:right;font-size:30px;font-weight:700;direction:rtl', `<span class="b">المعادلة:</span> &nbsp; <span style="font-size:48px">${ieqH([hl('٤٥', '#ffd6e0')], [hl('س', '#cfe8ff'), '−', hl('١٤', '#c9f0dc')])}</span>`, el), 9, 12);
+    return 12.5;
+  },
+  steps: [
+    { t: 0, label: 'اكتب المعادلة', L: '٤٥', R: '@س − ١٤' },
+    { t: 4.5, label: 'أضف ١٤ إلى كلا الطرفين', L: '٤٥ ^+ ^١٤', R: '@س − ١٤ ^+ ^١٤', rule: true },
+    { t: 9.5, label: 'بسِّط', L: '^٥٩', R: '@س', final: true }
+  ],
+  answer: { t: 13.5, txt: 'ثمن القميص هو ٥٩ ريالاً' }
+}, [
+  [.6, 4.5, 'ثمن الحذاء ٤٥ ريالاً، وهو أقل بـ ١٤ ريالاً من ثمن القميص'],
+  [4.5, 8.5, 'لتكن س ثمن القميص، فالمعادلة: ٤٥ يساوي س ناقص ١٤'],
+  [8.5, 12.5, 'نريد عزل س، وعكس الطرح هو الجمع'],
+  [13, 18, 'نضيف ١٤ إلى كلا الطرفين'],
+  [18, 23.5, '٤٥ زائد ١٤ يساوي ٥٩، إذن س تساوي ٥٩'],
+  [23.5, 31.5, 'ثمن القميص هو ٥٩ ريالاً']
+]);
+
+/* ===== المشهدان 9 و 10: تحقّق من فهمك (220–248) ===== */
+function quizScene(a, b, cfg, caps) {
+  scene(a, b, el => {
+    const P = Parts();
+    P.add(mk('a c', 'top:28px', `<span class="chip" style="background:#ef476f">تحقّق من فهمك — ${cfg.lab}</span>`, el), .3);
+    P.add(mk('a', 'left:150px;top:105px;width:1280px', eqrow(cfg.q[0], cfg.q[1], 92), el), .8, 0, 'pop');
+    P.add(mk('a c', 'top:228px;font-size:34px;font-weight:700;color:#1f4fa0', 'حلّ المعادلة وتحقّق من صحّة حلّك', el), 1.4, 6.8);
+    const ring = mk('a', 'left:540px;top:290px;width:200px;height:200px',
+      `<svg width="200" height="200" viewBox="0 0 200 200"><circle cx="100" cy="100" r="84" fill="#fff" stroke="#e3e8f0" stroke-width="14"/><circle id="arc${cfg.n}" cx="100" cy="100" r="84" fill="none" stroke="#ef476f" stroke-width="14" stroke-linecap="round" transform="rotate(-90 100 100)" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/></svg>`, el);
+    const cnt = mk('a', 'left:540px;top:318px;width:200px;text-align:center;font-size:104px;font-weight:700;color:#ef476f', '٥', el);
+    P.add(mk('a', 'left:150px;top:290px;width:1280px', eqrow(cfg.s1[0], cfg.s1[1], 62), el), 7.4);
+    P.add(mk('lab', 'top:300px', cfg.s1[2], el), 7.4);
+    P.add(mk('a', 'left:150px;top:400px;width:1280px', eqrow(cfg.s2[0], cfg.s2[1], 72), el), 10.4, 0, 'pop');
+    P.add(mk('lab', 'top:416px', 'بسِّط', el), 10.4);
+    const dg = ['٥', '٤', '٣', '٢', '١'];
+    return lt => {
+      P.upd(lt);
+      const o = win(lt, 2, 7, .3);
+      put(ring, o); put(cnt, o);
+      document.getElementById('arc' + cfg.n).style.strokeDashoffset = S(lt, 2.2, 6.8);
+      cnt.textContent = dg[Math.min(4, Math.floor(clamp((lt - 2.2) / 4.6) * 5))];
+    };
+  }, caps);
+}
+quizScene(220, 234, { n: 'a', lab: 'أ', q: ['@ص + ٦', '٩'], s1: ['@ص + ٦ ~− ~٦', '٩ ~− ~٦', 'اطرح ٦ من الطرفين'], s2: ['@ص', '^٣'] }, [
+  [.6, 2.2, 'جاء دورك! حلّ المعادلة: ص زائد ٦ يساوي ٩'],
+  [2.2, 7.2, 'فكّر: ماذا نفعل بالعدد ٦؟'],
+  [7.4, 10.4, 'نطرح ٦ من الطرفين'],
+  [10.4, 13.6, 'إذن ص = ٣']
+]);
+quizScene(234, 248, { n: 'b', lab: 'ب', q: ['@س + ٣', '١'], s1: ['@س + ٣ ~− ~٣', '١ ~− ~٣', 'اطرح ٣ من الطرفين'], s2: ['@س', '^−٢'] }, [
+  [.6, 2.2, 'والآن: س زائد ٣ يساوي ١'],
+  [2.2, 7.2, 'فكّر: انتبه، قد يكون الناتج سالباً!'],
+  [7.4, 10.4, 'نطرح ٣ من الطرفين'],
+  [10.4, 13.6, '١ ناقص ٣ يساوي سالب ٢، إذن س = سالب ٢']
+]);
+
+/* ===== المشهد 11: الخلاصة (248–262) ===== */
+scene(248, 262, el => {
+  const P = Parts();
+  P.add(mk('a c', 'top:36px;font-size:64px;font-weight:700;color:#118ab2', 'ماذا تعلّمنا؟', el), .3);
+  ['اعزل المتغير في أحد طرفي المعادلة', 'استعمل العملية العكسية: الطرح للجمع والجمع للطرح', 'افعل الشيء نفسه في الطرفين، ثمّ تحقّق من الحلّ']
+    .forEach((t, i) => P.add(mk('bul', `top:${150 + i * 105}px`, `<i>${'١٢٣'[i]}</i>${t}`, el), 1.2 + i * 1.8));
+  P.add(mk('a c', 'top:480px;font-size:84px;font-weight:700;color:#e07f00', 'أحسنتم! ★', el), 7, 0, 'pop');
+  return lt => P.upd(lt);
+}, [[.8, 13.6, 'تذكّر: اعزل المتغير واستعمل العملية العكسية']]);
+
+/* ---------- الرسم لكل لحظة ---------- */
+function render(t) {
+  symEls.forEach((e, i) => { e.style.transform = `translateY(${Math.sin(t * .6 + i) * 18}px) rotate(${Math.sin(t * .3 + i) * 8}deg)`; });
+  for (const s of SC) {
+    const o = win(t, s.a - .1, s.b + .1, .5);
+    s.el.style.opacity = o; s.el.style.display = o > .001 ? '' : 'none';
+    if (o > .001) s.upd(t - s.a);
+  }
+  let cap = null;
+  for (const c of CAPS) if (t >= c[0] && t < c[1]) cap = c;
+  const cb = $('cap');
+  if (cap) { if (cb.dataset.k !== String(cap[0])) { cb.textContent = cap[2]; cb.dataset.k = String(cap[0]); } cb.style.opacity = Math.min(S(t, cap[0], cap[0] + .3), 1 - S(t, cap[1] - .3, cap[1])); }
+  else cb.style.opacity = 0;
+}
+window.render = render; window.DURATION = DURATION;
+if (location.search.includes('play')) {
+  const t0 = performance.now();
+  (function loop() { render(Math.min(DURATION, (performance.now() - t0) / 1000)); requestAnimationFrame(loop); })();
+} else render(0);
+</script>
+</body>
+</html>
