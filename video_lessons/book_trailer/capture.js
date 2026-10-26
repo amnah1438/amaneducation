@@ -30,8 +30,8 @@ const ease = x => { x = Math.min(1, Math.max(0, x)); return x < .5 ? 4 * x * x *
   const END = '<h1>جرّب الكتاب بنفسك</h1><p>الميزان · المكعبات · الغطاء السرّي</p>';
 const fx = {
     lit: () => { const B = window.__book; B.CH[0].tap({ item: B.panL.items_.find(i => i.kind === 'x') }); },
-    go: n => () => window.__book.go(n),
-    pick: k => () => document.querySelectorAll('#opts .opt')[k].click(),
+    go: n => window.__book.go(n),
+    pick: k => document.querySelectorAll('#opts .opt')[k].click(),
     remL: () => { const B = window.__book; B.removeItem(B.panL, B.panL.items_.find(i => i.kind === 'unit' && !i.dying)); setTimeout(B.onChange, 700); },
     remR: () => { const B = window.__book; B.removeItem(B.panR, B.panR.items_.filter(i => i.kind === 'unit' && !i.dying)[0]); setTimeout(B.onChange, 700); },
     remBoth: () => { const B = window.__book; B.removeItem(B.panL, B.panL.items_.find(i => i.kind === 'unit' && !i.dying)); B.removeItem(B.panR, B.panR.items_.filter(i => i.kind === 'unit' && !i.dying)[0]); setTimeout(B.onChange, 900); },
@@ -47,13 +47,13 @@ const fx = {
     end: 45.2, title: 3.9,
     ev: [[4.0, 'lit'], [6.6, 'go', 1], [9.6, 'pick', 1], [12.6, 'remL'], [14.8, 'remR'], [16.4, 'remBoth'], [20.6, 'flap'], [27.0, 'go', 2], [30.0, 'pick', 1], [32.4, 'add2'], [36.0, 'go', 3], [39.0, 'pick', 0], [41.4, 'blkL'], [42.6, 'blkR']]
   };
-  const ev = T.ev.map(([t, k, a]) => [t, a === undefined ? fx[k] : fx[k](a)]).sort((a, c) => a[0] - c[0]);
+  const ev = T.ev.map(([t, k, a]) => [t, fx[k], a]).sort((a, c) => a[0] - c[0]);
   const out = process.env.OUT || __dirname + `/_silent_${MODE}.mp4`;
   const ff = spawn('ffmpeg', ['-y', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '17', out], { stdio: ['pipe', 'inherit', 'inherit'] });
   const t0 = Date.now(); let k = 0;
   for (let f = 0; f < DUR * FPS; f++) {
     const t = f / FPS;
-    while (k < ev.length && t >= ev[k][0]) { await p.evaluate(ev[k][1]); k++; }
+    while (k < ev.length && t >= ev[k][0]) { await p.evaluate(ev[k][1], ev[k][2]); k++; }
     const o = t < 3.9 ? Math.min(1, t / .6) * (1 - ease((t - 3.2) / .7)) : t >= T.end ? ease((t - T.end) / .8) : 0;
     await p.evaluate(([h, op]) => window.__ov(h, op), [t >= T.end - .4 ? END : TITLE, o]);
     const B_ty = t < 6.6 ? .55 * (1 - ease(t / 6.4)) : .16 * Math.sin((t - 6.6) * .55);
