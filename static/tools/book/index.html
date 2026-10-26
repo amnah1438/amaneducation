@@ -355,6 +355,7 @@ function burst(wp, n = 36) {
 /* ====================== الصوت ====================== */
 let AC = null, soundOn = true;
 function sfx(kind, f = 600) {
+  if (window.__sfxLog) window.__sfxLog.push([kind, f, performance.now()]);
   if (!soundOn) return;
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
@@ -903,7 +904,7 @@ function resize() {
 addEventListener('resize', resize); resize();
 
 let last = performance.now(), angle = 0, angVel = 0; const tmp = new THREE.Vector3();
-renderer.setAnimationLoop(now => {
+const frame = now => {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   // كاميرا
   const k = 1 - Math.exp(-dt * 3.2);
@@ -966,7 +967,8 @@ renderer.setAnimationLoop(now => {
   }
   if (tipObj) { const o = tipObj.mesh || tipObj.group || tipObj; o.getWorldPosition(tmp); tmp.y += .4; const s = proj(tmp); tip.style.left = s.x + 'px'; tip.style.top = s.y + 'px'; }
   renderer.render(scene, camera);
-});
+};
+if (window.__manual) window.__tick = frame; else renderer.setAnimationLoop(frame);
 
 /* ====================== الانطلاق ====================== */
 applyTheme();
@@ -974,7 +976,7 @@ const start = clamp((parseInt(location.hash.slice(1)) || 1) - 1, 0, CH.length - 
 planeL.material.map = leftPageTex('...'); planeR.material.map = textPageTex(CH[0].page);
 go(start);
 setTimeout(() => { $('#loading').style.opacity = 0; setTimeout(() => $('#loading').remove(), 700); }, 400);
-window.__book = { go, state, CH, status, onChange, applyBoth, panL, panR, removeItem, addItem, liftFlap, subBlock, THREE, camera };
+window.__book = { go, state, CH, status, onChange, applyOp, applyBoth, panL, panR, removeItem, addItem, liftFlap, subBlock, orbit, setCam, THREE, camera };
 </script>
 </body>
 </html>
