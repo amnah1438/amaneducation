@@ -243,7 +243,7 @@ function textPageTex(c) {
     g.fillStyle = '#9a8f78'; g.font = '400 24px Tajawal'; g.textAlign = 'left'; g.fillText(AR(103 + (c.n || 0)), 80, h - 52);
   });
 }
-function leftPageTex(cap) {
+function leftPageTex(cap, draw) {
   return canvasTex(1024, 1434, (g, w, h) => {
     paperBase(g, w, h, 'right');
     g.strokeStyle = 'rgba(120,130,140,.18)'; g.lineWidth = 1.5; g.setLineDash([6, 8]);
@@ -251,6 +251,7 @@ function leftPageTex(cap) {
     g.fillStyle = '#7a8790'; g.font = '400 27px Tajawal'; g.textAlign = 'right'; g.direction = 'rtl'; g.textBaseline = 'alphabetic';
     let y = h - 80; wrap(g, cap, w - 220).reverse().forEach(l => { g.fillText(l, w - 90, y); y -= 38; });
     g.fillStyle = '#9a8f78'; g.font = '400 24px Tajawal'; g.textAlign = 'right'; g.fillText(AR(102), w - 80, h - 28 + 0);
+    if (draw) draw(g, w, h);
   });
 }
 
@@ -399,25 +400,28 @@ function setFlap(label, answerLines, enabled) {
 
 /* ====================== الحالة والفصول ====================== */
 const state = { ch: -1, predicted: false, solved: false, busy: false, tourToken: 0, touring: false, problem: 0, lastWarn: 0 };
+const xPanOf = () => [panL, panR].find(p => p.items_.some(i => i.kind === 'x' && !i.dying)) || panL;
 function status() {
-  const wL = panWeight(panL), wR = panWeight(panR);
-  const onlyX = panL.items_.filter(i => !i.dying).every(i => i.kind === 'x') && panL.items_.some(i => i.kind === 'x' && !i.dying);
+  const wL = panWeight(panL), wR = panWeight(panR), live = xPanOf().items_.filter(i => !i.dying);
+  const onlyX = live.length > 0 && live.every(i => i.kind === 'x');
   return { wL, wR, balanced: wL === wR, onlyX };
 }
 const tokHTML = (s, c = '') => `<span class="t ${c}">${s}</span>`;
-function eqHTML() {
-  const live = p => p.items_.filter(i => !i.dying);
-  const L = live(panL), hasX = L.some(i => i.kind === 'x');
-  const pos = L.filter(i => i.kind === 'unit').length, neg = L.filter(i => i.kind === 'neg').length;
-  const bp = L.filter(i => i.kind === 'blk').reduce((s, i) => s + i.v, 0), bn = L.filter(i => i.kind === 'nblk').reduce((s, i) => s + i.v, 0);
-  const t = []; if (hasX) t.push(tokHTML(X_LABEL, 'x'));
-  const add = (n, sign) => { if (!n) return; if (t.length) t.push(tokHTML(sign)); t.push(tokHTML(sign === '−' && !t.length ? '−' + AR(n) : AR(n), sign === '−' ? 'r' : '')); };
-  add(pos + bp, '+'); add(neg + bn, '−');
-  if (!t.length) t.push(tokHTML('٠'));
-  const wR = panWeight(panR); const st = status();
-  const rightHas = panR.items_.some(i => !i.dying);
-  return `${t.join('')}${tokHTML('=')}${tokHTML(AR(rightHas || wR ? wR : 0), st.onlyX && st.balanced ? 'g' : '')}`;
+function exprTokens(p) {
+  const L = p.items_.filter(i => !i.dying), t = [];
+  if (L.some(i => i.kind === 'x')) t.push(tokHTML(X_LABEL, 'x'));
+  const pos = L.filter(i => i.kind === 'unit').length + L.filter(i => i.kind === 'blk').reduce((a, i) => a + i.v, 0);
+  const neg = L.filter(i => i.kind === 'neg').length + L.filter(i => i.kind === 'nblk').reduce((a, i) => a + i.v, 0);
+  if (pos) { if (t.length) t.push(tokHTML('+')); t.push(tokHTML(AR(pos))); }
+  if (neg) { if (t.length) { t.push(tokHTML('−')); t.push(tokHTML(AR(neg), 'r')); } else t.push(tokHTML('−' + AR(neg), 'r')); }
+  return t;
 }
+function eqHTML() {
+  const xp = xPanOf(), other = xp === panL ? panR : panL, t = exprTokens(xp); if (!t.length) t.push(tokHTML('٠'));
+  const st = status();
+  return `${t.join('')}${tokHTML('=')}${tokHTML(AR(panWeight(other)), st.onlyX && st.balanced ? 'g' : '')}`;
+}
+function showEq(on) { $('#eqchip').style.display = on ? '' : 'none'; }
 function refreshEq() {
   const st = status(), chip = $('#eqchip');
   $('#eq').innerHTML = eqHTML();
@@ -457,30 +461,53 @@ let tipObj = null, tipTimer = 0;
 function showTip(obj, txt) { tip.textContent = txt; tipObj = obj; tip.style.opacity = 1; clearTimeout(tipTimer); tipTimer = setTimeout(() => { tip.style.opacity = 0; tipObj = null; }, 2600); }
 
 /* ---------- بناء الميزان لفصل ---------- */
-function setupScale({ xl = 'س', xv, left = {}, right = {}, caption }) {
+function setupScale({ xl = 'س', xv, xSide = 'L', left = {}, right = {}, caption, drawLeft }) {
   X_LABEL = xl; XV = xv; const my = ++setupTok;
   [panL, panR].forEach(clearPan);
   let n = 0; const st = () => n++ * 90;
   const spawn = (p, kind, v) => setTimeout(() => { if (my === setupTok) addItem(p, kind, v, { drop: 1.8 }); }, st());
-  spawn(panL, 'x');
-  (left.blk ? [left.blk] : []).forEach(v => spawn(panL, 'blk', v));
-  for (let i = 0; i < (left.pos || 0); i++) spawn(panL, 'unit');
-  for (let i = 0; i < (left.neg || 0); i++) spawn(panL, 'neg');
-  (right.blk ? [right.blk] : []).forEach(v => spawn(panR, 'blk', v));
-  for (let i = 0; i < (right.pos || 0); i++) spawn(panR, 'unit');
-  planeL.material.map = leftPageTex(caption || 'الشكل: الميزان — المس أي شيء في المشهد ليضيء.'); planeL.material.needsUpdate = true;
+  const fill = (p, spec, hasX) => {
+    if (hasX) spawn(p, 'x');
+    [].concat(spec.blk || []).forEach(v => spawn(p, 'blk', v));
+    if (spec.nblk) spawn(p, 'nblk', spec.nblk);
+    for (let i = 0; i < (spec.pos || 0); i++) spawn(p, 'unit');
+    for (let i = 0; i < (spec.neg || 0); i++) spawn(p, 'neg');
+  };
+  fill(panL, left, xSide === 'L'); fill(panR, right, xSide === 'R');
+  planeL.material.map = leftPageTex(caption ?? 'الشكل: الميزان — المس أي شيء في المشهد ليضيء.', drawLeft); planeL.material.needsUpdate = true;
   popupAnim = { t0: performance.now() };
-  state.solved = false; panL.plus.visible = panR.plus.visible = false;
+  state.solved = false; panL.plus.visible = panR.plus.visible = false; showEq(true);
   setTimeout(() => { if (my === setupTok) refreshEq(); }, 900);
 }
 let popupAnim = { t0: 0 }, setupTok = 0;
 
 /* ---------- عمليات مشتركة ---------- */
 function unitsOf(p, kind) { return p.items_.filter(i => !i.dying && !i.cancel && i.kind === kind); }
-async function subUnits(p, n) { for (let i = 0; i < n; i++) { const u = unitsOf(p, 'unit').pop(); if (u) removeItem(p, u); else addItem(p, 'neg', 1, { drop: 1.6 }); await sleep(170); } }
-async function addUnits(p, n) { for (let i = 0; i < n; i++) { const g = unitsOf(p, 'neg').pop(); if (g) { cancelPair(p, g); } else addItem(p, 'unit', 1, { drop: 1.6 }); sfx('pop', 640); await sleep(170); } }
+const liveOf = (p, kind) => p.items_.filter(i => !i.dying && !i.cancel && i.kind === kind);
 function cancelPair(p, neg) { neg.cancel = true; const add = addItem(p, 'unit', 1, { drop: 1.4 }); setTimeout(() => { removeItem(p, add, 0); removeItem(p, neg, 0); burst(p.group.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, .5, 0)), 10); }, 430); }
-async function applyBoth(op, n) { await Promise.all([op === 'sub' ? subUnits(panL, n) : addUnits(panL, n), op === 'sub' ? subUnits(panR, n) : addUnits(panR, n)]); await sleep(900); onChange(); }
+function ghostOut(p, b, v) { const g = addItem(p, 'blk', v, { drop: 0 }); g.pos.copy(b.tgt); g.mesh.scale.setScalar(1); removeItem(p, g, 1.8); }
+/* تطبيق «اطرح n» أو «اجمع n» على كفّة واحدة، بحسب ما عليها من كتل ووحدات */
+async function opPan(p, kind, n) {
+  let rem = n;
+  if (kind === 'sub') {
+    for (const b of liveOf(p, 'blk')) { if (rem <= 0) break; const take = Math.min(b.v, rem); if (take === b.v) removeItem(p, b, 1.8); else { ghostOut(p, b, take); setBlockValue(b, b.v - take); } rem -= take; sfx('pop', 520); await sleep(300); }
+    while (rem > 0 && liveOf(p, 'unit').length) { removeItem(p, liveOf(p, 'unit').pop()); rem--; await sleep(150); }
+    if (rem > 0) {
+      const nb = liveOf(p, 'nblk')[0], hasBlk = p.items_.some(i => !i.dying && (i.kind === 'blk' || i.kind === 'nblk'));
+      if (nb) { setBlockValue(nb, nb.v + rem); sfx('pop', 420); } else if (rem >= 10 || hasBlk) { addItem(p, 'nblk', rem, { drop: 1.6 }); sfx('pop', 420); } else for (let i = 0; i < rem; i++) { addItem(p, 'neg', 1, { drop: 1.6 }); sfx('pop', 420); await sleep(150); }
+    }
+  } else {
+    for (const b of liveOf(p, 'nblk')) { if (rem <= 0) break; const take = Math.min(b.v, rem); if (take === b.v) removeItem(p, b, 1.8); else setBlockValue(b, b.v - take); rem -= take; sfx('pop', 700); await sleep(300); }
+    while (rem > 0 && liveOf(p, 'neg').length) { cancelPair(p, liveOf(p, 'neg').pop()); rem--; sfx('pop', 640); await sleep(170); }
+    if (rem > 0) {
+      const b = liveOf(p, 'blk')[0];
+      if (b) { setBlockValue(b, b.v + rem); sfx('pop', 700); } else if (rem >= 10) { addItem(p, 'blk', rem, { drop: 1.6 }); sfx('pop', 700); } else for (let i = 0; i < rem; i++) { addItem(p, 'unit', 1, { drop: 1.6 }); sfx('pop', 700); await sleep(150); }
+    }
+  }
+}
+async function applyOp(kind, n) { await Promise.all([opPan(panL, kind, n), opPan(panR, kind, n)]); await sleep(900); onChange(); }
+const applyBoth = applyOp;
+async function addUnits(p, n) { await opPan(p, 'add', n); }
 
 let onSolvedHook = null;
 function onChange() {
@@ -489,7 +516,7 @@ function onChange() {
     if (performance.now() - state.lastWarn > 1500) { state.lastWarn = performance.now(); sfx('bad'); }
     const p = $('#card p'); if (p && state.predicted) p.innerHTML = '<b>اختلّ الميزان!</b> ما فعلته في كفّة يجب أن تفعله في الكفّة الأخرى.';
   } else if (st.onlyX && !state.solved) {
-    state.solved = true; sfx('ding'); const xi = panL.items_.find(i => i.kind === 'x');
+    state.solved = true; sfx('ding'); const xi = [...panL.items_, ...panR.items_].find(i => i.kind === 'x' && !i.dying);
     burst(xi.mesh.getWorldPosition(new THREE.Vector3()), 50); xi.glow = 1.4; revealX(xi);
     setTimeout(() => onSolvedHook && onSolvedHook(st), 700);
   }
@@ -556,7 +583,7 @@ CH.push({
   },
   tour: ['جولة تلقائية', 'نطرح ٢ من الطرفين: نُزيل مكعبين من كل كفّة، فيبقى الميزان متوازناً وتبقى س = ٤'],
   async demo() {
-    await sleep(1200); await subUnits(panL, 1); await subUnits(panR, 1); await sleep(700); await subUnits(panL, 1); await subUnits(panR, 1); await sleep(1500); onChange(); await sleep(1800);
+    await sleep(1200); await applyOp('sub', 2); await sleep(1800);
   }
 });
 
@@ -611,7 +638,7 @@ CH.push({
       });
     onSolvedHook = () => {
       hintAt(null);
-      setCard({ tag: 'الحل', tagCls: 'ok', title: 'طول السمكة المهرّج ٩ سم', body: 'طرحنا ٢١ من الطرفين فبقيت جـ وحدها.', eqbox: `${tokHTML('جـ', 'x')}${tokHTML('+')}${tokHTML('٢١')}${tokHTML('−')}${tokHTML('٢١', 'r')}${tokHTML('=')}${tokHTML('٣٠')}${tokHTML('−')}${tokHTML('٢١', 'r')}<br>${tokHTML('جـ', 'x')}${tokHTML('=')}${tokHTML('٩', 'g')}`, acts: [{ label: 'جرّب بنفسك ←', fn: () => go(4) }] });
+      setCard({ tag: 'الحل', tagCls: 'ok', title: 'طول السمكة المهرّج ٩ سم', body: 'طرحنا ٢١ من الطرفين فبقيت جـ وحدها.', eqbox: `${tokHTML('جـ', 'x')}${tokHTML('+')}${tokHTML('٢١')}${tokHTML('−')}${tokHTML('٢١', 'r')}${tokHTML('=')}${tokHTML('٣٠')}${tokHTML('−')}${tokHTML('٢١', 'r')}<br>${tokHTML('جـ', 'x')}${tokHTML('=')}${tokHTML('٩', 'g')}`, acts: [{ label: 'مثال التسوّق ←', fn: () => go(4) }] });
       enableFlap('كم طول السمكة المهرّج؟ وكيف نتحقق؟', ['جـ + ٢١ − ٢١ = ٣٠ − ٢١  ⟹  جـ = ٩', 'طول السمكة المهرّج ٩ سم.', 'التحقّق: ٩ + ٢١ = ٣٠ ✓']);
     };
   },
@@ -629,35 +656,140 @@ function subBlock(p, it) {
   setTimeout(onChange, 900);
 }
 
-/* 4: جرّب بنفسك */
-const PROBS = [{ xl: 'ص', a: 6, b: 9, op: 'sub', xv: 3, e: ['ص + ٦ = ٩', 'ص + ٦ − ٦ = ٩ − ٦', 'ص = ٣', '٣ + ٦ = ٩ ✓'] }, { xl: 'س', a: 3, b: 1, op: 'sub', xv: -2, e: ['س + ٣ = ١', 'س + ٣ − ٣ = ١ − ٣', 'س = −٢', '−٢ + ٣ = ١ ✓'] }];
-CH.push({
-  title: 'تحقّق من فهمك', short: 'جرّب بنفسك',
-  page: T(4, { title: 'تحقّق من فهمك', paras: ['حلّ كلّ معادلة مما يأتي، وتحقّق من صحّة حلّك.'], formula: 'ص + ٦ = ٩', sub: ['اختر العملية المناسبة، ثم طبّقها على الطرفين، ثم ارفع الغطاء لترى الجواب.'], checks: ['أ) ص + ٦ = ٩', 'ب) س + ٣ = ١'] }),
-  cam: 'scale',
-  enter() { state.problem = 0; this.load(); },
-  load() {
-    const P = PROBS[state.problem]; const text = `${P.e[0]}`;
-    setupScale({ xl: P.xl, xv: P.xv, left: { pos: P.a }, right: { pos: P.b }, caption: `الشكل ٥: تدريب (${state.problem ? 'ب' : 'أ'})` });
-    planeR.material.map = textPageTex({ ...CH[4].page, formula: text, checks: [`${state.problem ? 'ب' : 'أ'}) ${text}`] }); planeR.material.needsUpdate = true;
-    flapPivot.visible = true; under.visible = true; flapAngle = 0; flapTarget = 0;
-    setFlap('ما قيمة المتغيّر؟ وما التحقّق؟', [P.e[1] + '  ⟹  ' + P.e[2], 'التحقّق: ' + P.e[3]], false);
-    const num = P.a;
-    predict(`المسألة (${state.problem ? 'ب' : 'أ'}): ${P.e[0]}`, 'اختر العملية التي نطبّقها على <b>الطرفين</b> لعزل المتغيّر.', [
-      { t: `نجمع ${AR(num)} إلى الطرفين`, hint: 'هذا يزيد الطرفين. نحتاج <b>عكس</b> الجمع.' },
-      { t: `نطرح ${AR(num)} من الطرفين`, ok: true },
-      { t: `نطرح ${AR(num)} من الطرف الأيسر فقط`, hint: 'يجب أن نفعل الشيء نفسه في <b>الطرفين</b>.' }], () => {
-        setCard({ tag: 'طبّق', tagCls: 'eq', title: `اطرح ${AR(num)} من الطرفين`, body: 'اضغط الزر ليُطبَّق الطرح على الكفّتين.', acts: [{ label: `طبّق: اطرح ${AR(num)} من الطرفين`, fn: async () => { setCard({ tag: 'جارٍ التطبيق…', title: '' }); await applyBoth('sub', num); } }] });
+/* ====== محرّك المسائل: توقّع العملية ← طبّقها ← توقّع القيمة ← ارفع الغطاء ====== */
+const vis = eq => eq.split(' ').reverse().join(' ');                       // الترتيب البصري من اليمين لليسار كما في الكتاب
+const opText = P => P.opLabel || (P.op[0] === 'sub' ? `نطرح ${AR(P.op[1])} من الطرفين` : `نجمع ${AR(P.op[1])} إلى الطرفين`);
+const opWrong = P => P.op[0] === 'sub'
+  ? [`نجمع ${AR(P.op[1])} إلى الطرفين`, `نطرح ${AR(P.op[1])} من طرف واحد فقط`]
+  : [`نطرح ${AR(P.op[1])} من الطرفين`, `نجمع ${AR(P.op[1])} إلى طرف واحد فقط`];
+function valueOptions(P) {
+  const d = P.op[0] === 'sub' ? P.op[1] : -P.op[1];
+  const v = [P.xv, P.xv + d, -P.xv, P.xv + 1, P.xv - 1].filter((x, i, a) => a.indexOf(x) === i).slice(0, 3);
+  return v.map((x, i) => v[(i + state.problem) % 3]);
+}
+function makeQuiz({ kicker, title, short, probs, nextLabel, next, intro }) {
+  const ch = {
+    title, short, cam: 'scale', probs, kicker,
+    page: T(5, { kicker, title, paras: [intro || 'حلّ كلّ معادلة وتحقّق من صحّة حلّك.'], formula: vis(probs[0].eq), checks: probs.map(q => `${q.no}) ${q.eq}`) }),
+    enter() { state.problem = 0; this.load(); },
+    load() {
+      const P = probs[state.problem], me = this;
+      setCam(P.cam || 'scale');
+      setupScale({ xl: P.xl, xv: P.xv, xSide: P.xSide || 'L', left: P.left, right: P.right, caption: P.drawLeft ? '' : `الشكل: ${P.cap || 'المس أي شيء ليضيء.'}`, drawLeft: P.drawLeft });
+      planeR.material.map = textPageTex(T(5, { kicker: `${kicker} · ${P.no}`, title, paras: [P.story || 'حلّ المعادلة وتحقّق من صحّة حلّك.'], formula: vis(P.eq), checks: probs.map(q => `${q.no}) ${q.eq}`) })); planeR.material.needsUpdate = true;
+      flapPivot.visible = true; under.visible = true; flapAngle = 0; flapTarget = 0;
+      setFlap('ما قيمة المتغيّر؟ وما التحقّق؟', [P.work[0] + '  ⟹  ' + P.work[1], 'التحقّق: ' + P.work[2]], false);
+      const ops = [{ t: opText(P), ok: true }, { t: opWrong(P)[0], hint: 'هذه العملية <b>لا تعزل</b> المتغيّر. فكّر في العملية العكسية.' }, { t: opWrong(P)[1], hint: 'يجب أن نفعل الشيء نفسه في <b>الطرفين</b>.' }];
+      const rot = state.problem % 3; const order = [...ops.slice(rot), ...ops.slice(0, rot)];
+      predict(`المسألة ${P.no}`, `${P.story ? P.story + '<br>' : ''}المعادلة: <b>${P.eq}</b>. اختر العملية التي نطبّقها لعزل المتغيّر.`, order, () => {
+        setCard({ tag: 'طبّق', tagCls: 'eq', title: opText(P), body: 'اضغط الزر ليُطبَّق على الكفّتين معاً.', acts: [{ label: 'طبّق على الطرفين', fn: async () => { setCard({ tag: 'جارٍ التطبيق…', title: '' }); await applyOp(P.op[0], P.op[1]); } }] });
+        hintAt(null);
       });
-    onSolvedHook = () => {
-      const P2 = PROBS[state.problem]; hintAt(null);
-      const opts = [P2.xv, P2.xv + 2, -P2.xv].filter((v, i, a) => a.indexOf(v) === i).slice(0, 3);
-      setCard({ tag: 'توقّع', title: `ما قيمة ${P2.xl}؟`, body: 'انظر إلى الميزان ثم اختر.', opts: opts.map(v => ({ label: `${P2.xl} = ${AR(v)}`, fn: b => { if (v === P2.xv) { b.classList.add('good'); sfx('ding'); setTimeout(() => { setCard({ tag: 'أحسنت', tagCls: 'ok', title: `${P2.xl} = ${AR(P2.xv)}`, body: 'ارفع الغطاء لترى التحقّق من الحلّ.', acts: state.problem < PROBS.length - 1 ? [{ label: 'المسألة التالية ←', fn: () => { state.problem++; CH[4].load(); } }] : [{ label: 'من البداية ↺', fn: () => go(0) }] }); enableFlap('ما قيمة المتغيّر؟ وما التحقّق؟', [P2.e[1] + '  ⟹  ' + P2.e[2], 'التحقّق: ' + P2.e[3]]); }, 600); } else { b.classList.add('bad'); sfx('bad'); } } })) });
-    };
+      onSolvedHook = () => {
+        hintAt(null); const vals = valueOptions(P);
+        setCard({ tag: 'توقّع', title: `ما قيمة ${P.xl}؟`, body: 'انظر إلى الميزان ثم اختر.', opts: vals.map(v => ({ label: `${P.xl} = ${AR(v)}`, fn: b => {
+          if (v === P.xv) {
+            b.classList.add('good'); sfx('ding');
+            setTimeout(() => {
+              const last = state.problem >= probs.length - 1;
+              setCard({ tag: 'أحسنت', tagCls: 'ok', title: `${P.xl} = ${AR(P.xv)}`, body: (P.tail ? P.tail + '<br>' : '') + 'ارفع الغطاء لترى التحقّق من الحلّ.', acts: [last ? { label: nextLabel, fn: () => go(next) } : { label: 'المسألة التالية ←', fn: () => { state.problem++; me.load(); } }] });
+              enableFlap('ما قيمة المتغيّر؟ وما التحقّق؟', [P.work[0] + '  ⟹  ' + P.work[1], 'التحقّق: ' + P.work[2]]);
+            }, 600);
+          } else { b.classList.add('bad'); sfx('bad'); }
+        } })) });
+      };
+    },
+    tap(hit) { if (hit.item) lightUp(hit.item, hit.item.kind === 'x' ? 'المتغيّر المجهول' : hit.item.kind === 'blk' ? 'كتلة ' + AR(hit.item.v) : hit.item.kind === 'nblk' ? 'كتلة سالبة ' + AR(hit.item.v) : 'وحدة'); },
+    tour: ['جولة تلقائية', `${probs[0].eq}: ${opText(probs[0])}`],
+    async demo() { await sleep(1000); await applyOp(probs[0].op[0], probs[0].op[1]); await sleep(1600); }
+  };
+  return ch;
+}
+const triDraw = (g, w, h) => {
+  g.save(); g.strokeStyle = '#1f4fa0'; g.lineWidth = 7; g.lineJoin = 'round'; g.beginPath(); g.moveTo(250, 1335); g.lineTo(730, 1335); g.lineTo(532, 1140); g.closePath(); g.stroke();
+  g.fillStyle = '#1f4fa0'; g.font = '700 44px Tajawal'; g.textAlign = 'center'; g.direction = 'rtl';
+  g.fillText('٣٥°', 345, 1315); g.fillText('٤٥°', 650, 1315); g.fillText('س', 532, 1205); g.restore();
+};
+
+/* 4: مثال التسوّق (المتغيّر في الكفّة اليمنى) */
+CH.push(makeQuiz({
+  kicker: 'مثال ٤ · من واقع الحياة', title: 'تسوّق', short: 'تسوّق', intro: 'ثمن حذاء ٤٥ ريالاً، وهو أقلّ بـ ١٤ ريالاً من ثمن القميص. ما ثمن القميص؟',
+  nextLabel: 'تحقّق وتأكّد ←', next: 5,
+  probs: [{ no: '٤', xl: 'س', xv: 59, xSide: 'R', left: { blk: 45 }, right: { nblk: 14 }, op: ['add', 14], eq: '٤٥ = س − ١٤', cap: 'كتلة ٤٥ ثمن الحذاء، والكفّة الأخرى: ثمن القميص س ناقص ١٤.', story: 'ثمن حذاء ٤٥ ريالاً، وهو أقلّ بـ ١٤ ريالاً من ثمن القميص (س). ما ثمن القميص؟', tail: 'ثمن القميص ٥٩ ريالاً.', work: ['٤٥ + ١٤ = س − ١٤ + ١٤', 'س = ٥٩', '٥٩ − ١٤ = ٤٥ ✓'] }]
+}));
+
+/* 5: تحقّق وتأكّد */
+CH.push(makeQuiz({
+  kicker: 'تحقّق من فهمك · تأكّد', title: 'تحقّق وتأكّد', short: 'تحقّق وتأكّد', nextLabel: 'مسائل لفظية ←', next: 6,
+  probs: [
+    { no: 'أ', xl: 'ص', xv: 3, left: { pos: 6 }, right: { pos: 9 }, op: ['sub', 6], eq: 'ص + ٦ = ٩', work: ['ص + ٦ − ٦ = ٩ − ٦', 'ص = ٣', '٣ + ٦ = ٩ ✓'] },
+    { no: 'ب', xl: 'س', xv: -2, left: { pos: 3 }, right: { pos: 1 }, op: ['sub', 3], eq: 'س + ٣ = ١', work: ['س + ٣ − ٣ = ١ − ٣', 'س = −٢', '−٢ + ٣ = ١ ✓'] },
+    { no: '٢', xl: 'ص', xv: 5, left: { pos: 2 }, right: { pos: 7 }, op: ['sub', 2], eq: 'ص + ٢ = ٧', work: ['ص + ٢ − ٢ = ٧ − ٢', 'ص = ٥', '٥ + ٢ = ٧ ✓'] },
+    { no: '٣', xl: 'م', xv: -2, left: { pos: 5 }, right: { pos: 3 }, op: ['sub', 5], eq: 'م + ٥ = ٣', work: ['م + ٥ − ٥ = ٣ − ٥', 'م = −٢', '−٢ + ٥ = ٣ ✓'] },
+    { no: '٩', xl: 'س', xv: 11, left: { neg: 5 }, right: { pos: 6 }, op: ['add', 5], eq: 'س − ٥ = ٦', cap: 'البطاقات الحمراء تمثّل «− ١».', work: ['س − ٥ + ٥ = ٦ + ٥', 'س = ١١', '١١ − ٥ = ٦ ✓'] }
+  ]
+}));
+
+/* 6: مسائل لفظية */
+CH.push(makeQuiz({
+  kicker: 'مسائل لفظية', title: 'مسائل من الحياة', short: 'مسائل لفظية', intro: 'اقرأ المسألة، اكتب المعادلة، ثم حلّها بالميزان.', nextLabel: 'تدريب على اختبار ←', next: 7,
+  probs: [
+    { no: '٥ · طيران', xl: 'ط', xv: 73, left: { blk: 36 }, right: { blk: 109 }, op: ['sub', 36], eq: 'ط + ٣٦ = ١٠٩', cap: 'كتلة ٣٦ تمثّل الفرق، وكتلة ١٠٩ مسافة ويلبر.', story: 'طار ويلبر مسافة ١٠٩ م، وهي أطول بـ ٣٦ م من المسافة التي طارها أورفيل (ط). اكتب معادلة ثم حلّها.', tail: 'طار أورفيل ٧٣ م.', work: ['ط + ٣٦ − ٣٦ = ١٠٩ − ٣٦', 'ط = ٧٣', '٧٣ + ٣٦ = ١٠٩ ✓'] },
+    { no: '٢٣ · نقود', xl: 'س', xv: 23, left: { nblk: 5 }, right: { blk: 18 }, op: ['add', 5], eq: 'س − ٥ = ١٨', cap: 'الكتلة الحمراء: ٥ ريالات أعطيتها لأختك.', story: 'معك س من الريالات، ثم أعطيت أختك ٥ ريالات فتبقّى معك ١٨ ريالاً. كم كان معك في البداية؟', tail: 'كان معك ٢٣ ريالاً.', work: ['س − ٥ + ٥ = ١٨ + ٥', 'س = ٢٣', '٢٣ − ٥ = ١٨ ✓'] },
+    { no: '٣٠ · هندسة', xl: 'س', xv: 100, left: { blk: [35, 45] }, right: { blk: 180 }, op: ['sub', 80], opLabel: 'نطرح ٣٥ و ٤٥ (أي ٨٠) من الطرفين', eq: 'س + ٣٥ + ٤٥ = ١٨٠', drawLeft: triDraw, cam: 'over', story: 'مجموع قياسات زوايا المثلث ١٨٠°. أوجد قياس الزاوية المجهولة س في الشكل (انظر الصفحة اليسرى).', tail: 'قياس الزاوية س = ١٠٠°.', work: ['س + ٨٠ − ٨٠ = ١٨٠ − ٨٠', 'س = ١٠٠°', '١٠٠ + ٣٥ + ٤٥ = ١٨٠ ✓'] }
+  ]
+}));
+
+/* 7: تدريب على اختبار */
+const EQL = (a, b) => `<span class="ie" style="display:inline-flex;direction:rtl">${a.split(' ').map(w => tokHTML(w)).join('')}${tokHTML('=')}${b.split(' ').map(w => tokHTML(w)).join('')}</span>`;
+CH.push({
+  title: 'تدريب على اختبار', short: 'تدريب على اختبار', cam: 'scale',
+  page: T(6, { kicker: 'تدريب على اختبار', title: 'اختبر نفسك', paras: ['أجب عن الأسئلة، ثم شاهد الميزان يؤكّد إجابتك.'], checks: ['٣٩) س + ٣ = ٧', '٣٨) طول هاني ١٤٥ سم', '٣٥) اكتشف المختلف'] }),
+  enter() { state.problem = 0; this.step(0); },
+  step(k) {
+    state.problem = k; hintAt(null); onSolvedHook = null; state.solved = false; panL.plus.visible = panR.plus.visible = false; flapTarget = 0; flapPivot.visible = false; under.visible = false;
+    const tell = (n, txt) => planeR.material.map = textPageTex(T(6, { kicker: 'تدريب على اختبار · ' + n, title: 'اختبر نفسك', paras: [txt], checks: ['٣٩) س + ٣ = ٧', '٣٨) طول هاني ١٤٥ سم', '٣٥) اكتشف المختلف'] }));
+    const next = k < 2 ? { label: 'السؤال التالي ←', fn: () => this.step(k + 1) } : { label: 'من البداية ↺', fn: () => go(0) };
+    if (k === 0) {
+      tell('٣٩', 'أيّ الجمل الآتية صحيحة اعتماداً على المعادلة س + ٣ = ٧؟');
+      setupScale({ xv: 4, left: { pos: 3 }, right: { pos: 7 }, caption: 'الشكل: س + ٣ = ٧' });
+      predict('السؤال ٣٩', `اعتماداً على المعادلة <b>س + ٣ = ٧</b>، أيّ الجمل صحيحة؟`, [
+        { t: 'أ) لإيجاد قيمة س، أضف ٣ إلى كلا الطرفين', hint: 'إضافة ٣ تزيد الطرف الأيسر ولا تعزل س.' },
+        { t: 'ب) لإيجاد قيمة س، أضف ٧ إلى كلا الطرفين', hint: 'إضافة ٧ لا تُلغي ٣.' },
+        { t: 'جـ) لإيجاد قيمة س، اجمع العددين ٣ و ٧', hint: 'جمع العددين لا يعزل س.' },
+        { t: 'د) لإيجاد قيمة س، اطرح ٣ من كلا الطرفين', ok: true }], async () => {
+          setCard({ tag: 'أحسنت', tagCls: 'ok', title: 'اطرح ٣ من كلا الطرفين', body: 'شاهد الميزان يؤكّد إجابتك…' }); await applyOp('sub', 3);
+          setCard({ tag: 'الحلّ', tagCls: 'ok', title: 'س = ٤', body: 'التحقّق: ٤ + ٣ = ٧ ✓', acts: [next] });
+        });
+    } else if (k === 1) {
+      tell('٣٨', 'يبلغ طول هاني ١٤٥ سم، وهو أقصر من أخيه مهند بمقدار ١٢ سم. أيّ المعادلات الآتية يمكنك استعمالها لمعرفة طول مهند؟');
+      [panL, panR].forEach(clearPan); showEq(false); planeL.material.map = leftPageTex('الشكل: يظهر الميزان بعد اختيار المعادلة الصحيحة.'); planeL.material.needsUpdate = true;
+      predict('السؤال ٣٨', 'طول هاني <b>١٤٥ سم</b>، وهو أقصر من أخيه مهند (س) بمقدار <b>١٢ سم</b>. أيّ المعادلات تُستعمل لمعرفة طول مهند؟', [
+        { t: `أ) ${EQL('١٤٥ + س', '١٢')}`, hint: 'هاني أقصر من مهند، فطول مهند أكبر من ١٤٥.' },
+        { t: `ب) ${EQL('١٢ − س', '١٤٥')}`, hint: 'الفرق بين الطولين ١٢، فكيف نكتب «س ناقص ١٢»؟' },
+        { t: `جـ) ${EQL('١٤٥', 'س − ١٢')}`, ok: true },
+        { t: `د) ${EQL('س', '١٤٥ − ١٢')}`, hint: 'مهند أطول من هاني، فلا نطرح ١٢ من ١٤٥.' }], async () => {
+          setupScale({ xl: 'س', xv: 157, xSide: 'R', left: { blk: 145 }, right: { nblk: 12 }, caption: 'الشكل: ١٤٥ = س − ١٢' });
+          setCard({ tag: 'أحسنت', tagCls: 'ok', title: '١٤٥ = س − ١٢', body: 'لنحلّها: نجمع ١٢ إلى الطرفين…' }); await sleep(2200); await applyOp('add', 12);
+          setCard({ tag: 'الحلّ', tagCls: 'ok', title: 'طول مهند ١٥٧ سم', body: 'التحقّق: ١٥٧ − ١٢ = ١٤٥ ✓', acts: [next] });
+        });
+    } else {
+      tell('٣٥', 'حدّد المعادلة التي يختلف حلّها عن حلّ المعادلات الثلاث الأخرى، ووضّح إجابتك.');
+      [panL, panR].forEach(clearPan); showEq(false); planeL.material.map = leftPageTex('اكتشف المختلف: حلّ كلّ معادلة في ذهنك أو على ورقة.'); planeL.material.needsUpdate = true;
+      const sols = [['س − ١ = −٤', 'س = −٣'], ['٥ + ب = −٨', 'ب = −١٣'], ['١١ + ص = ٨', 'ص = −٣'], ['−٦ + أ = −٩', 'أ = −٣']];
+      const lab = ['س − ١ = −٤', 'ب + ٥ = −٨', 'ص + ١١ = ٨', 'أ + −٦ = −٩'];
+      predict('السؤال ٣٥ · اكتشف المختلف', 'حلّ كلّ معادلة، ثم اختر المعادلة <b>المختلفة</b>.', [
+        { t: EQL('س − ١', '−٤'), hint: 'حلّها س = −٣ وهو يساوي حلّ معادلات أخرى.' },
+        { t: EQL('ب + ٥', '−٨'), ok: true },
+        { t: EQL('ص + ١١', '٨'), hint: 'حلّها ص = −٣، فهل تتشابه مع غيرها؟' },
+        { t: EQL('أ + −٦', '−٩'), hint: 'حلّها أ = −٣، فقارن بالحلول الأخرى.' }], () => {
+          setCard({ tag: 'أحسنت', tagCls: 'ok', title: 'المعادلة المختلفة: ب + ٥ = −٨', body: 'حلولها: س = −٣ ، ص = −٣ ، أ = −٣ ، أمّا <b>ب = −١٣</b> فتختلف عنها.', eqbox: `${tokHTML('ب', 'x')}${tokHTML('+')}${tokHTML('٥')}${tokHTML('−')}${tokHTML('٥', 'r')}${tokHTML('=')}${tokHTML('−٨')}${tokHTML('−')}${tokHTML('٥', 'r')}<br>${tokHTML('ب', 'x')}${tokHTML('=')}${tokHTML('−١٣', 'g')}`, acts: [next] });
+        });
+    }
   },
-  tap(hit) { if (hit.item) lightUp(hit.item, hit.item.kind === 'x' ? 'المتغيّر المجهول' : 'وحدة'); },
-  tour: ['جولة تلقائية', 'ص + ٦ = ٩: نطرح ٦ من الطرفين فتكون ص = ٣'],
-  async demo() { await sleep(1000); await applyBoth('sub', PROBS[0].a); await sleep(1600); }
+  tap() { },
+  tour: ['جولة تلقائية', 'أسئلة من «تدريب على اختبار» ص ١٠٨: اختر الإجابة وسيؤكّدها الميزان.'],
+  async demo() { await sleep(2500); }
 });
 
 /* ====================== أدوات التفاعل ====================== */
