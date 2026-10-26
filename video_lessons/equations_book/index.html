@@ -95,7 +95,7 @@ function scene(a, b, build, caps) {
   const el = mk('a', 'left:0;top:0;width:1280px;height:720px', '', scenesEl);
   const upd = build(el);
   SC.push({ a, b, el, upd });
-  (caps || []).forEach(c => CAPS.push([a + c[0], a + c[1], c[2]]));
+  (caps || []).forEach(c => CAPS.push([a + c[0], a + c[1], c[2].replace(/ = /g, ' يساوي ').replace(/ \+ /g, ' زائد ').replace(/ − /g, ' ناقص ')]));
 }
 function header(el, P, chipTxt, promptHtml) {
   P.add(mk('a c', 'top:28px', `<span class="chip">${chipTxt}</span>`, el), .3);
