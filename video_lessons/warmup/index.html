@@ -40,7 +40,7 @@ html,body{width:1280px;height:720px;overflow:hidden;background:#fff8ec}
   <div id="cap" class="a"></div>
 </div>
 <script>
-const DURATION = 88;
+const DURATION = 110;
 const $ = id => document.getElementById(id);
 const clamp = v => Math.min(1, Math.max(0, v));
 const S = (t, a, b) => clamp((t - a) / (b - a));
@@ -84,7 +84,7 @@ const SC = [], CAPS = [], BURSTS = [];
 function scene(a, b, build, caps) {
   const el = mk('a', 'left:0;top:0;width:1280px;height:720px', '', $('scenes'));
   SC.push({ a, b, el, upd: build(el) });
-  (caps || []).forEach(c => CAPS.push([a + c[0], a + c[1], c[2]]));
+  
 }
 
 /* ---------- قصاصات ملوّنة (حتمية) ---------- */
@@ -114,130 +114,138 @@ function boxSet(b, t, base, rev) { // حركة عين وطفو
 const symList = ['+', '−', '=', 'س', '٥', '٩', 'ص', '٢', '٨', '؟', '٣', 'جـ'];
 const symEls = symList.map((s, i) => mk('a', `left:${(i * 113 + 30) % 1200}px;top:${(i * 181 + 50) % 600}px;font-size:${64 + (i % 3) * 26}px;font-weight:700;color:${COL[i % 6]};opacity:.1`, s, $('bgsyms')));
 
-/* ===== 1: افتتاحية (0–6) ===== */
-scene(0, 6, el => {
+/* التوقيتات كلها مطلقة (بالثواني) ومضبوطة على التسجيل الصوتي voice.wav */
+function cap(a, b, txt) { CAPS.push([a, b, txt]); }
+
+/* ===== 1: افتتاحية ===== */
+scene(0, 5.4, el => {
   const P = Parts();
-  const box = mk('', '', '', el); box.style.display = 'contents';
   const mb = mysteryBox(el, 570, 120);
-  P.add(mk('a c', 'top:60px', '<span class="chip">تهيئة · الدرس ٣ - ٢</span>', el), 1.2);
-  P.add(mk('a c', 'top:300px;font-size:92px;font-weight:700', 'تحدّي العدد المجهول', el), 1.0, 0, 'pop');
-  P.add(mk('a c', 'top:440px;font-size:44px;font-weight:700;color:#7c4dff', 'هل تستطيع كشف السرّ؟', el), 2.4);
+  P.add(mk('a c', 'top:60px', '<span class="chip">تهيئة · الدرس ٣ - ٢</span>', el), .8);
+  P.add(mk('a c', 'top:300px;font-size:92px;font-weight:700', 'تحدّي العدد المجهول', el), 3.4, 0, 'pop');
+  P.add(mk('a c', 'top:440px;font-size:44px;font-weight:700;color:#7c4dff', 'هل تستطيع كشف السرّ؟', el), 4.2);
   return lt => {
     P.upd(lt);
-    put(mb, S(lt, .3, .6), 0, (1 - eb(S(lt, .3, 1))) * -300 + Math.sin(lt * 3) * 5, 1);
+    put(mb, S(lt, .2, .5), 0, (1 - eb(S(lt, .2, 1))) * -300 + Math.sin(lt * 3) * 5, 1);
     boxSet(mb, lt);
   };
-}, [[.5, 5.6, 'تهيئة: هل أنت مستعد لتحدّي العدد المجهول؟']]);
+});
 
-/* ===== 2 و 3: لغز ===== */
-function puzzle(a, b, cfg, caps) {
+/* ===== لغز (الجمع أو الطرح) ===== */
+function puzzle(a, b, cfg) {
   scene(a, b, el => {
-    const P = Parts();
-    P.add(mk('a c', 'top:24px', `<span class="chip">${cfg.chip}</span>`, el), .3);
-    P.add(mk('bubble', 'left:150px;top:92px;width:980px;font-size:38px', cfg.riddle, el), .5, 0, 'pop');
+    const P = Parts(), e = cfg.ev, r = x => x - a;
+    P.add(mk('a c', 'top:24px', `<span class="chip">${cfg.chip}</span>`, el), r(e.chip));
+    P.add(mk('bubble', 'left:150px;top:92px;width:980px;font-size:38px', cfg.riddle, el), r(e.riddle), 0, 'pop');
     const plus = cfg.op === '+';
     let x = 860;
     const mb = mysteryBox(el, x, 260);
-    const items = [];
-    const sign = (txt, left, at, col) => P.add(mk('a', `left:${left}px;top:270px;width:50px;text-align:center;font-size:78px;font-weight:700;color:${col}`, txt, el), at);
-    x -= 55; sign(plus ? '+' : '−', x, 2.0, plus ? '#1fa971' : '#ef476f');
+    const sign = (txt, left, at, col) => P.add(mk('a', `left:${left}px;top:270px;width:50px;text-align:center;font-size:78px;font-weight:700;color:${col}`, txt, el), r(at));
+    x -= 55; sign(plus ? '+' : '−', x, e.op, plus ? '#1fa971' : '#ef476f');
     x -= 60;
-    for (let i = 0; i < cfg.n; i++) {
-      const tl = mk('gt' + (plus ? '' : ' red'), `left:${x - i * 60}px;top:302px`, '١', el);
-      P.add(tl, 2.2 + i * .25, 0, 'pop');
-    }
+    for (let i = 0; i < cfg.n; i++) P.add(mk('gt' + (plus ? '' : ' red'), `left:${x - i * 60}px;top:302px`, '١', el), r(e.op) + .2 + i * .25, 0, 'pop');
     x -= (cfg.n - 1) * 60 + 90;
-    sign('=', x, 3.0, '#1f2a44');
+    sign('=', x, e.eq0, '#1f2a44');
     x -= 20;
-    for (let i = 0; i < cfg.res; i++) P.add(mk('gt', `left:${x - 56 - i * 60}px;top:302px`, '١', el), 3.3 + i * .18, 0, 'pop');
-    const eq1 = P.add(mk('a', 'left:0;top:445px;width:1280px', eqrow(cfg.eqQ[0], cfg.eqQ[1], 64), el), 5, 11);
-    const eq2 = P.add(mk('a', 'left:0;top:445px;width:1280px', eqrow(cfg.eqA[0], cfg.eqA[1], 64), el), 10.8);
-    P.add(mk('a c', 'top:540px;font-size:46px;font-weight:700;color:#1fa971', `العدد السري هو ${cfg.ans}!`, el), 11.2, 0, 'pop');
-    P.add(mk('a c', 'top:540px;font-size:42px;font-weight:700;color:#1f2a44', `لأنّ ${ieq(cfg.why[0], cfg.why[1])}`, el), 14.4, 0);
+    for (let i = 0; i < cfg.res; i++) P.add(mk('gt', `left:${x - 56 - i * 60}px;top:302px`, '١', el), r(e.eq0) + .2 + i * .18, 0, 'pop');
+    P.add(mk('a', 'left:0;top:445px;width:1280px', eqrow(cfg.eqQ[0], cfg.eqQ[1], 64), el), r(e.eq), r(e.rev) + .3);
+    P.add(mk('a', 'left:0;top:445px;width:1280px', eqrow(cfg.eqA[0], cfg.eqA[1], 64), el), r(e.rev) + .2);
+    P.add(mk('a c', 'top:540px;font-size:46px;font-weight:700;color:#1fa971', `العدد السرّي هو ${cfg.ans}!`, el), r(e.ans), r(e.why) - .2, 'pop');
+    P.add(mk('a c', 'top:540px;font-size:42px;font-weight:700;color:#1f2a44', `لأنّ ${ieq(cfg.why[0], cfg.why[1])}`, el), r(e.why), 0);
     const ring = mk('a', 'left:1060px;top:250px;width:160px;height:160px',
       `<svg width="160" height="160" viewBox="0 0 200 200"><circle cx="100" cy="100" r="84" fill="#fff" stroke="#e3e8f0" stroke-width="16"/><circle id="arc${cfg.id}" cx="100" cy="100" r="84" fill="none" stroke="#ef476f" stroke-width="16" stroke-linecap="round" transform="rotate(-90 100 100)" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/></svg>`, el);
     const cnt = mk('a', 'left:1060px;top:276px;width:160px;text-align:center;font-size:84px;font-weight:700;color:#ef476f', '٥', el);
-    burst(a + 10.5, 930, 330);
+    burst(e.rev, 930, 330);
     const dg = ['٥', '٤', '٣', '٢', '١'];
     return lt => {
       P.upd(lt);
-      put(mb, S(lt, 1.2, 1.5), 0, (1 - eb(S(lt, 1.2, 1.9))) * -260 + (lt > 10.5 ? 0 : Math.sin(lt * 3) * 4), lt > 10.5 ? 1 + .25 * Math.sin(S(lt, 10.5, 11.2) * Math.PI) : 1);
-      const rev = lt >= 10.5;
+      const t = lt + a;
+      const rev = t >= e.rev;
+      put(mb, S(t, e.box, e.box + .3), 0, (1 - eb(S(t, e.box, e.box + .7))) * -260 + (rev ? 0 : Math.sin(lt * 3) * 4), rev ? 1 + .25 * Math.sin(S(t, e.rev, e.rev + .7) * Math.PI) : 1);
       mb.querySelector('.q').textContent = rev ? cfg.ans : '؟';
       mb.querySelector('.q').style.fontSize = rev ? '92px' : '84px';
       boxSet(mb, lt, 0, rev);
-      const o = win(lt, 5, 10.2, .3);
+      const o = win(t, e.ring0 - .5, e.ring1 + .3, .3);
       put(ring, o); put(cnt, o);
-      document.getElementById('arc' + cfg.id).style.strokeDashoffset = S(lt, 5.1, 10);
-      cnt.textContent = dg[Math.min(4, Math.floor(clamp((lt - 5.1) / 4.9) * 5))];
+      document.getElementById('arc' + cfg.id).style.strokeDashoffset = S(t, e.ring0, e.ring1);
+      cnt.textContent = dg[Math.min(4, Math.floor(clamp((t - e.ring0) / (e.ring1 - e.ring0)) * 5))];
     };
-  }, caps);
+  });
 }
-puzzle(6, 24, {
+puzzle(5.3, 33.2, {
   id: 'p', chip: 'التحدّي الأول', op: '+', n: 2, res: 6, ans: '٤',
   riddle: 'فكّرتُ في عدد سرّي، وأضفتُ إليه ٢، فصار الناتج ٦. ما العدد؟',
-  eqQ: ['@؟ + ٢', '٦'], eqA: ['^٤ + ٢', '٦'], why: ['٦ ~− ~٢', '^٤']
-}, [[.6, 4.8, 'اسمع جيداً! في الصندوق عدد سرّي'], [5, 10.4, 'فكّر ... لديك ٥ ثوانٍ!'], [10.6, 14.2, 'أحسنت! العدد السرّي هو ٤'], [14.4, 17.8, 'عرفناه لأنّ ٦ ناقص ٢ يساوي ٤']]);
-
-puzzle(24, 44, {
+  eqQ: ['@؟ + ٢', '٦'], eqA: ['^٤ + ٢', '٦'], why: ['٦ ~− ~٢', '^٤'],
+  ev: { chip: 5.5, box: 5.8, riddle: 10.7, op: 12.0, eq0: 13.5, eq: 15.0, ring0: 18.4, ring1: 23.85, rev: 24.5, ans: 24.7, why: 29.3 }
+});
+puzzle(33.2, 57.3, {
   id: 'q', chip: 'التحدّي الثاني', op: '−', n: 3, res: 5, ans: '٨',
   riddle: 'فكّرتُ في عدد سرّي، وأخذتُ منه ٣، فبقي ٥. ما العدد؟',
-  eqQ: ['@؟ − ٣', '٥'], eqA: ['^٨ − ٣', '٥'], why: ['٥ ^+ ^٣', '^٨']
-}, [[.6, 4.8, 'تحدٍّ ثانٍ! عدد سرّي جديد'], [5, 10.4, 'فكّر ... لديك ٥ ثوانٍ!'], [10.6, 14.2, 'ممتاز! العدد السرّي هو ٨'], [14.4, 19, 'عرفناه لأنّ ٥ زائد ٣ يساوي ٨']]);
+  eqQ: ['@؟ − ٣', '٥'], eqA: ['^٨ − ٣', '٥'], why: ['٥ ^+ ^٣', '^٨'],
+  ev: { chip: 33.4, box: 34.6, riddle: 37.5, op: 38.8, eq0: 40.4, eq: 41.6, ring0: 44.95, ring1: 50.4, rev: 51.2, ans: 51.4, why: 54.4 }
+});
 
-/* ===== 4: قصة أحمد والمتغيّر (44–62) ===== */
-scene(44, 62, el => {
-  const P = Parts();
-  P.add(mk('a c', 'top:24px', '<span class="chip" style="background:#118ab2;box-shadow:0 6px 0 #0d6a8a">قصة أحمد في كتابك</span>', el), .3);
-  P.add(mk('a c', 'top:96px;font-size:32px;font-weight:700;padding:0 80px;line-height:1.35', 'عند أحمد بعض الكتب العلمية، ثمّ اشترى كتابين إضافيين فأصبح لديه ستة كتب', el), .6);
-  P.add(mk('mat', 'left:340px;top:200px', '', el), 2.2, 0, 'pop');
-  P.add(mk('mat', 'left:690px;top:200px', '', el), 2.2, 0, 'pop');
-  P.add(mk('a c', 'top:305px;font-size:64px;font-weight:700', '=', el), 2.6);
-  for (let i = 0; i < 6; i++) P.add(mk('gt', `left:${340 + 6 + 68 + (i % 2) * 62}px;top:${200 + 6 + 37 + Math.floor(i / 2) * 62}px`, '١', el), 3 + i * .15, 0, 'pop');
-  P.add(mk('a', 'left:736px;top:236px;width:80px;height:190px;border-radius:10px;background:#1fa971;color:#fff;font-size:56px;font-weight:700;text-align:center;line-height:186px;box-shadow:inset 0 -8px 0 #12794f', 'س', el), 4.2, 0, 'pop');
-  for (let i = 0; i < 2; i++) P.add(mk('gt', `left:836px;top:${236 + i * 62}px`, '١', el), 5 + i * .3, 0, 'pop');
-  P.add(mk('a', 'left:0;top:480px;width:1280px', eqrow('@س + ٢', '٦', 70), el), 9, 11.6);
-  P.add(mk('bubble', 'left:150px;top:460px;width:980px;font-size:34px', 'العدد المجهول نسمّيه <span class="x">متغيّراً</span>، ونرمز له بحرف مثل', el), 12, 0);
-  ['س', 'ص', 'جـ'].forEach((ch, i) => P.add(mk('a', `left:${520 + i * 130}px;top:545px;width:110px;height:80px;border-radius:40px;background:${['#7c4dff', '#118ab2', '#ef476f'][i]};color:#fff;font-size:54px;font-weight:700;text-align:center;line-height:78px;box-shadow:0 6px 0 rgba(0,0,0,.2)`, ch, el), 13 + i * .5, 0, 'pop'));
+/* ===== قصة أحمد والمتغيّر ===== */
+scene(57.2, 78.9, el => {
+  const P = Parts(), r = x => x - 57.2;
+  P.add(mk('a c', 'top:24px', '<span class="chip" style="background:#118ab2;box-shadow:0 6px 0 #0d6a8a">قصة أحمد في كتابك</span>', el), r(58.0));
+  P.add(mk('a c', 'top:96px;font-size:32px;font-weight:700;padding:0 80px;line-height:1.35', 'عند أحمد بعض الكتب العلمية، ثمّ اشترى كتابين إضافيين فأصبح لديه ستة كتب', el), r(58.2));
+  P.add(mk('mat', 'left:340px;top:200px', '', el), r(58.6), 0, 'pop');
+  P.add(mk('mat', 'left:690px;top:200px', '', el), r(58.6), 0, 'pop');
+  P.add(mk('a c', 'top:305px;font-size:64px;font-weight:700', '=', el), r(67.2));
+  P.add(mk('a', 'left:736px;top:236px;width:80px;height:190px;border-radius:10px;background:#1fa971;color:#fff;font-size:56px;font-weight:700;text-align:center;line-height:186px;box-shadow:inset 0 -8px 0 #12794f', 'س', el), r(61.9), 0, 'pop');
+  for (let i = 0; i < 2; i++) P.add(mk('gt', `left:836px;top:${236 + i * 62}px`, '١', el), r(66.0) + i * .5, 0, 'pop');
+  for (let i = 0; i < 6; i++) P.add(mk('gt', `left:${340 + 6 + 68 + (i % 2) * 62}px;top:${200 + 6 + 37 + Math.floor(i / 2) * 62}px`, '١', el), r(67.5) + i * .2, 0, 'pop');
+  P.add(mk('a', 'left:0;top:480px;width:1280px', eqrow('@س + ٢', '٦', 70), el), r(69.4), r(72.9));
+  P.add(mk('bubble', 'left:150px;top:460px;width:980px;font-size:34px', 'العدد المجهول نسمّيه <span class="x">متغيّراً</span>، ونرمز له بحرف مثل', el), r(73.0), 0);
+  ['س', 'ص', 'جـ'].forEach((ch, i) => P.add(mk('a', `left:${520 + i * 130}px;top:545px;width:110px;height:80px;border-radius:40px;background:${['#7c4dff', '#118ab2', '#ef476f'][i]};color:#fff;font-size:54px;font-weight:700;text-align:center;line-height:78px;box-shadow:0 6px 0 rgba(0,0,0,.2)`, ch, el), r(75.7 + i * .9), 0, 'pop'));
   return lt => P.upd(lt);
-}, [
-  [.6, 5, 'تذكّر قصة أحمد في كتابك: عنده عدد غير معلوم من الكتب'],
-  [5, 9, 'اشترى كتابين إضافيين فأصبح لديه ستة كتب'],
-  [9, 11.8, 'فالمعادلة: س زائد ٢ يساوي ٦'],
-  [12, 17.6, 'العدد المجهول نسمّيه متغيّراً ونرمز له بحرف مثل س أو ص أو جـ']
-]);
+});
 
-/* ===== 5: السرّ — العملية العكسية (62–76) ===== */
-scene(62, 76, el => {
-  const P = Parts();
-  P.add(mk('a c', 'top:24px', '<span class="chip" style="background:#e07f00;box-shadow:0 6px 0 #a85d00">السرّ: العملية العكسية</span>', el), .3);
+/* ===== السرّ: العملية العكسية ===== */
+scene(78.9, 100.9, el => {
+  const P = Parts(), r = x => x - 78.9;
+  P.add(mk('a c', 'top:24px', '<span class="chip" style="background:#e07f00;box-shadow:0 6px 0 #a85d00">السرّ: العملية العكسية</span>', el), r(79.0));
+  P.add(mk('a c', 'top:230px;font-size:70px;font-weight:700;color:#1f2a44', 'ما سرّ كشف العدد المجهول؟', el), r(79.4), r(81.8), 'pop');
+  P.add(mk('a c', 'top:230px;font-size:84px;font-weight:700;color:#e07f00', 'العملية العكسية!', el), r(81.9), r(83.9), 'pop');
   const vars = '--sw:190px;--mw:60px;';
-  const col = (cx, title, c, r1, op, r2, t0) => {
-    P.add(mk('a', `left:${cx - 230}px;top:110px;width:460px;text-align:center;font-size:40px;font-weight:700;color:${c}`, title, el), t0);
-    P.add(mk('a', `left:${cx - 640}px;top:190px;width:1280px`, eqrow(r1[0], r1[1], 60, vars), el), t0 + .6);
-    P.add(mk('a', `left:${cx - 230}px;top:285px;width:460px;text-align:center;font-size:36px;font-weight:700;color:#ef476f`, op, el), t0 + 2.4);
-    P.add(mk('a', `left:${cx - 640}px;top:360px;width:1280px`, eqrow(r2[0], r2[1], 76, vars), el), t0 + 4.4, 0, 'pop');
+  const col = (cx, title, c, r1, op, r2, T) => {
+    P.add(mk('a', `left:${cx - 230}px;top:110px;width:460px;text-align:center;font-size:40px;font-weight:700;color:${c}`, title, el), r(T[0]));
+    P.add(mk('a', `left:${cx - 640}px;top:190px;width:1280px`, eqrow(r1[0], r1[1], 60, vars), el), r(T[1]));
+    P.add(mk('a', `left:${cx - 230}px;top:285px;width:460px;text-align:center;font-size:36px;font-weight:700;color:#ef476f`, op, el), r(T[2]));
+    P.add(mk('a', `left:${cx - 640}px;top:360px;width:1280px`, eqrow(r2[0], r2[1], 76, vars), el), r(T[3]), 0, 'pop');
   };
-  col(930, 'معادلة جمع ← نطرح', '#1fa971', ['@س + ٢', '٦'], '↓ نطرح ٢ من الطرفين', ['@س', '^٤'], 1.0);
-  col(350, 'معادلة طرح ← نجمع', '#ef476f', ['@س − ٣', '٥'], '↓ نجمع ٣ للطرفين', ['@س', '^٨'], 6.6);
+  col(930, 'معادلة جمع ← نطرح', '#1fa971', ['@س + ٢', '٦'], '↓ نطرح ٢ من الطرفين', ['@س', '^٤'], [84.0, 84.5, 87.3, 89.2]);
+  col(350, 'معادلة طرح ← نجمع', '#ef476f', ['@س − ٣', '٥'], '↓ نجمع ٣ للطرفين', ['@س', '^٨'], [91.7, 92.1, 94.9, 96.8]);
+  P.add(mk('a c', 'top:490px;font-size:50px;font-weight:700;color:#1fa971', 'هكذا نكشف العدد المجهول!', el), r(99.1), 0, 'pop');
   return lt => P.upd(lt);
-}, [
-  [.5, 3.4, 'السرّ كلّه في العملية العكسية!'],
-  [3.4, 6.5, 'لمعرفة س في س زائد ٢ نطرح ٢ من الطرفين'],
-  [7, 11.6, 'وفي س ناقص ٣ نجمع ٣ للطرفين'],
-  [11.8, 13.8, 'هكذا نكشف العدد المجهول!']
-]);
+});
 
-/* ===== 6: التشويق (76–88) ===== */
-scene(76, 88, el => {
-  const P = Parts();
-  P.add(mk('a c', 'top:90px;font-size:56px;font-weight:700;color:#118ab2', 'اليوم سنتعلّم', el), .5);
-  P.add(mk('a c', 'top:190px;font-size:84px;font-weight:700', 'حلّ معادلات<br>الجمع والطرح', el), 1.0, 0, 'pop');
-  P.add(mk('a c', 'top:410px;font-size:50px;font-weight:700;color:#7c4dff', 'هل أنت مستعد؟', el), 3.4);
-  const btn = P.add(mk('a c', 'top:490px', '<span class="btn">هيّا نبدأ!</span>', el), 5, 0, 'pop');
-  burst(76 + 5.2, 640, 560);
-  return lt => { P.upd(lt); if (lt > 6) btn.style.transform += ` scale(${1 + .05 * Math.sin((lt - 6) * 5)})`; };
-}, [[.5, 4.8, 'اليوم سنتعلّم حلّ معادلات الجمع والطرح'], [4.8, 11.6, 'هل أنت مستعد؟ هيّا نبدأ!']]);
+/* ===== التشويق ===== */
+scene(100.9, 110, el => {
+  const P = Parts(), r = x => x - 100.9;
+  P.add(mk('a c', 'top:90px;font-size:56px;font-weight:700;color:#118ab2', 'اليوم سنتعلّم', el), r(101.2));
+  P.add(mk('a c', 'top:190px;font-size:84px;font-weight:700', 'حلّ معادلات<br>الجمع والطرح', el), r(101.8), 0, 'pop');
+  P.add(mk('a c', 'top:410px;font-size:50px;font-weight:700;color:#7c4dff', 'هل أنت مستعد؟', el), r(106.2));
+  const btn = P.add(mk('a c', 'top:490px', '<span class="btn">هيّا نبدأ!</span>', el), r(107.4), 0, 'pop');
+  burst(107.5, 640, 560);
+  return lt => { P.upd(lt); if (lt > 7.5) btn.style.transform += ` scale(${1 + .05 * Math.sin((lt - 7.5) * 5)})`; };
+});
+
+/* ---------- التعليقات النصية (ترجمة الكلام المسموع) ---------- */
+[
+  [.1, 3.3, 'أهلاً بكم يا أبطال! اليوم عندنا تحدٍّ ممتع'], [3.45, 5.2, 'تحدّي العدد المجهول. هل أنتم مستعدّون؟'],
+  [5.7, 8.4, 'انظروا إلى هذا الصندوق الغامض'], [8.5, 10.2, 'فيه عددٌ سرّي!'],
+  [10.7, 14.5, 'فكّرتُ في عدد، وأضفتُ إليه ٢، فصار الناتج ٦'], [14.7, 16.6, 'ما العدد؟ فكّروا...'], [16.7, 18.2, 'معكم خمس ثوانٍ!'],
+  [24.5, 27.2, 'أحسنتم! العدد السرّي هو ٤!'], [27.5, 28.9, 'وكيف عرفناه؟'], [29.2, 32.8, 'لأنّ ٦ ناقص ٢ يساوي ٤'],
+  [33.4, 34.4, 'تحدٍّ ثانٍ!'], [34.6, 37.2, 'صندوقٌ جديد وعددٌ سرّيٌّ جديد'], [37.5, 41.3, 'فكّرتُ في عدد، وأخذتُ منه ٣، فبقي ٥'], [41.6, 44.6, 'ما العدد؟ فكّروا... خمس ثوانٍ!'],
+  [51.2, 54.0, 'ممتاز! العدد السرّي هو ٨!'], [54.4, 57.2, 'لأنّ ٥ زائد ٣ يساوي ٨'],
+  [58.0, 59.8, 'هل تتذكّرون قصّة أحمد في كتابكم؟'], [60.0, 63.3, 'كان عنده عددٌ غير معلوم من الكتب العلمية'], [63.6, 69.0, 'ثمّ اشترى كتابين إضافيّين، فأصبح عنده ستّة كتب'],
+  [69.3, 72.5, 'فالمعادلة هي: س زائد ٢ يساوي ٦'], [72.9, 75.3, 'والعدد المجهول نسمّيه: متغيّراً'], [75.5, 78.8, 'ونرمز له بحرفٍ مثل: س، أو ص، أو جـ'],
+  [79.5, 81.5, 'هل تعرفون سرّ كشف العدد المجهول؟'], [81.9, 83.4, 'إنّه العملية العكسية!'], [84.0, 86.8, 'في معادلة الجمع: س زائد ٢ يساوي ٦'],
+  [87.2, 91.0, 'نطرح ٢ من الطرفين، فتكون س تساوي ٤'], [91.6, 94.5, 'وفي معادلة الطرح: س ناقص ٣ يساوي ٥'], [94.8, 98.6, 'نجمع ٣ للطرفين، فتكون س تساوي ٨'], [99.1, 100.6, 'هكذا نكشف العدد المجهول!'],
+  [101.2, 105.8, 'اليوم سنتعلّم حلّ معادلات الجمع والطرح، خطوةً بخطوة'], [106.2, 107.2, 'هل أنتم مستعدّون؟'], [107.4, 109.6, 'هيّا نبدأ!']
+].forEach(c => CAPS.push(c));
 
 /* ---------- الرسم لكل لحظة ---------- */
 function render(t) {

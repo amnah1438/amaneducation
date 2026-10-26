@@ -16,7 +16,7 @@ const FPS = 30;
     if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
   }
   ff.stdin.end(); await new Promise(r => ff.on('close', r)); await b.close();
-  execFileSync('ffmpeg', ['-y', '-i', __dirname + '/_silent.mp4', '-i', __dirname + '/sounds.wav', '-map', '0:v', '-map', '1:a',
+  execFileSync('ffmpeg', ['-y', '-i', __dirname + '/_silent.mp4', '-i', __dirname + '/final_audio.wav', '-map', '0:v', '-map', '1:a',
     '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k', '-t', String(dur), '-movflags', '+faststart', __dirname + '/warmup_lesson_3_2.mp4']);
   require('fs').unlinkSync(__dirname + '/_silent.mp4');
 })();
