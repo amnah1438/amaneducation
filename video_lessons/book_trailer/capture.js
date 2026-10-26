@@ -31,13 +31,13 @@ const ease = x => { x = Math.min(1, Math.max(0, x)); return x < .5 ? 4 * x * x *
   const END = '<h1>جرّب الكتاب بنفسك</h1><p>الميزان · المكعبات · الغطاء السرّي</p>';
 const fx = {
     lit: () => { const B = window.__book; B.CH[0].tap({ item: B.panL.items_.find(i => i.kind === 'x') }); },
-    go: n => window.__book.go(n),
+    go: n => { window.__book.go(n); },
     pick: k => document.querySelectorAll('#opts .opt')[k].click(),
     remL: () => { const B = window.__book; B.removeItem(B.panL, B.panL.items_.find(i => i.kind === 'unit' && !i.dying)); setTimeout(B.onChange, 700); },
     remR: () => { const B = window.__book; B.removeItem(B.panR, B.panR.items_.filter(i => i.kind === 'unit' && !i.dying)[0]); setTimeout(B.onChange, 700); },
     remBoth: () => { const B = window.__book; B.removeItem(B.panL, B.panL.items_.find(i => i.kind === 'unit' && !i.dying)); B.removeItem(B.panR, B.panR.items_.filter(i => i.kind === 'unit' && !i.dying)[0]); setTimeout(B.onChange, 900); },
-    flap: () => window.__book.liftFlap(),
-    add2: () => window.__book.applyOp('add', 2),
+    flap: () => { window.__book.liftFlap(); },
+    add2: () => { window.__book.applyOp('add', 2); },   // بدون إرجاع الوعد: الساعة متوقفة فلا ينتهي أبداً
     blkL: () => { const B = window.__book; B.subBlock(B.panL, B.panL.items_.find(i => i.kind === 'blk')); },
     blkR: () => { const B = window.__book; B.subBlock(B.panR, B.panR.items_.find(i => i.kind === 'blk')); }
   };
