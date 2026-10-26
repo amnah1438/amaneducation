@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>كتاب معادلات الجمع والطرح التفاعلي</title>
+<style>
+@font-face{font-family:Tajawal;src:url(../../vendor/fonts/Tajawal-Regular.ttf);font-weight:400}
+@font-face{font-family:Tajawal;src:url(../../vendor/fonts/Tajawal-Bold.ttf);font-weight:700}
+:root{--glass:rgba(255,255,255,.74);--glass-b:rgba(255,255,255,.7);--ink:#1d2730;--mute:#5b6a74;--pri:#6b4de0;--ok:#1f9a5a;--bad:#d6455d;--acc:#e0922d;--shadow:0 10px 34px rgba(20,30,40,.22);color-scheme:light}
+body.night{--glass:rgba(24,32,38,.72);--glass-b:rgba(255,255,255,.14);--ink:#eaf1f4;--mute:#a4b3bb;--pri:#a592ff;--ok:#52d08c;--bad:#ff7f93;--acc:#f3b45f;color-scheme:dark}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#cfc3ad;font-family:Tajawal,system-ui,sans-serif;color:var(--ink);-webkit-tap-highlight-color:transparent;user-select:none}
+body.night{background:#1a2126}
+canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+canvas#gl.drag{cursor:grabbing}
+#vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(30,25,15,.28) 100%)}
+.glass{background:var(--glass);border:1px solid var(--glass-b);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);box-shadow:var(--shadow)}
+/* البطاقة */
+#card{position:fixed;top:18px;right:18px;width:min(390px,calc(100vw - 36px));border-radius:20px;padding:16px 20px 16px;z-index:5;transition:opacity .35s,transform .35s}
+#card.swap{opacity:0;transform:translateY(-8px)}
+#card .tag{font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--bad);margin-bottom:4px}
+#card .tag.eq{color:var(--pri)}#card .tag.ok{color:var(--ok)}#card .tag.why{color:var(--acc)}
+#card h2{font-size:21px;line-height:1.45;font-weight:700;margin-bottom:6px}
+#card p{font-size:16px;line-height:1.7;color:var(--ink)}
+#card p b{color:var(--pri)}
+#card .opts{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+.opt,.act{font:inherit;font-weight:700;font-size:16px;text-align:right;padding:9px 14px;border-radius:12px;border:1.5px solid rgba(120,130,140,.35);background:rgba(255,255,255,.5);color:var(--ink);cursor:pointer;transition:.18s}
+body.night .opt,body.night .act{background:rgba(255,255,255,.07)}
+.opt:hover,.act:hover{border-color:var(--pri);transform:translateY(-1px)}
+.opt.good{background:rgba(31,154,90,.18);border-color:var(--ok);color:var(--ok)}
+.opt.bad{background:rgba(214,69,93,.14);border-color:var(--bad);color:var(--bad);animation:shake .4s}
+.act{background:var(--pri);color:#fff;border-color:transparent;text-align:center;margin-top:10px}
+.act.alt{background:transparent;color:var(--ink);border-color:rgba(120,130,140,.4)}
+.row2{display:flex;gap:8px}.row2 .act{flex:1}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#card .eqbox{margin:8px 0 2px;padding:8px 12px;border-radius:12px;background:rgba(107,77,224,.1);font-size:19px;font-weight:700;text-align:center;line-height:1.8}
+/* المعادلة الحيّة */
+#eqchip{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:4;padding:8px 22px;border-radius:40px;font-size:30px;font-weight:700;display:flex;align-items:center;gap:14px;white-space:nowrap}
+#eqchip .eq{display:inline-flex;direction:rtl;align-items:center}
+.t{display:inline-block;direction:ltr;unicode-bidi:isolate;margin:0 .14em}
+.x{color:var(--pri)}.g{color:var(--ok)}.r{color:var(--bad)}
+#eqchip .st{font-size:15px;color:var(--mute);font-weight:700}
+#eqchip.warn{outline:2px solid var(--bad)}#eqchip.good{outline:2px solid var(--ok)}
+/* الشريط السفلي */
+#bar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:6;border-radius:40px;padding:7px 12px;display:flex;align-items:center;gap:4px;width:min(660px,calc(100vw - 20px))}
+#bar button{all:unset;cursor:pointer;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--ink);flex:none;transition:.15s}
+#bar button:hover{background:rgba(120,130,140,.22)}
+#bar button:disabled{opacity:.3;cursor:default}
+#bar svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#bar .mid{flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:0 8px}
+#bar .ttl{flex:1;font-size:15px;font-weight:700;line-height:1.25;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dots{display:flex;gap:5px;flex:none}
+#dots i{width:7px;height:7px;border-radius:4px;background:rgba(120,130,140,.45);transition:.25s}
+#dots i.on{width:22px;background:var(--pri)}
+#bar button.on{background:var(--pri);color:#fff}
+/* القائمة */
+#menu{position:fixed;top:0;bottom:0;right:0;width:min(340px,86vw);z-index:9;padding:22px 20px;transform:translateX(105%);transition:transform .35s cubic-bezier(.2,.8,.2,1);border-radius:22px 0 0 22px;overflow:auto}
+#menu.open{transform:none}
+#menu h3{font-size:22px;margin-bottom:4px}
+#menu .sub{font-size:14px;color:var(--mute);margin-bottom:14px}
+#menu a{display:flex;gap:12px;align-items:center;padding:11px 10px;border-radius:12px;cursor:pointer;font-size:17px;font-weight:700}
+#menu a:hover,#menu a.cur{background:rgba(107,77,224,.14)}
+#menu a i{font-style:normal;width:30px;height:30px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;font-size:16px;flex:none}
+#menu .cr{margin-top:20px;padding-top:14px;border-top:1px solid rgba(120,130,140,.3);font-size:14px;line-height:1.9;color:var(--mute)}
+#menu .cr b{color:var(--ink)}
+/* التلميح */
+#hand{position:fixed;z-index:3;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;pointer-events:none;border:3px solid rgba(255,255,255,.95);background:rgba(255,255,255,.28);box-shadow:0 0 0 0 rgba(107,77,224,.5);animation:pulse 1.5s infinite;display:none}
+#hand svg{position:absolute;left:30px;top:30px;width:34px;height:34px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(107,77,224,.55);transform:scale(.92)}70%{box-shadow:0 0 0 22px rgba(107,77,224,0);transform:scale(1.04)}100%{box-shadow:0 0 0 0 rgba(107,77,224,0);transform:scale(.92)}}
+#tip{position:fixed;z-index:3;padding:6px 14px;border-radius:12px;font-size:16px;font-weight:700;pointer-events:none;opacity:0;transition:opacity .25s;transform:translate(-50%,-130%);white-space:nowrap}
+#loading{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:#e9e1d0;font-size:22px;font-weight:700;color:#5b4b2b;transition:opacity .6s}
+@media (max-width:640px){
+  #card{top:10px;right:10px;padding:12px 14px}#card h2{font-size:18px}#card p{font-size:14.5px}
+  #eqchip{font-size:22px;bottom:84px;padding:6px 16px}
+  #bar .ttl{display:none}
+}
+</style>
+<script type="importmap">{"imports":{"three":"../../vendor/three.module.min.js"}}</script>
+</head>
+<body>
+<div id="loading">جارٍ فتح الكتاب…</div>
+<canvas id="gl"></canvas>
+<div id="vig"></div>
+<div id="card" class="glass"></div>
+<div id="eqchip" class="glass"><span class="eq" id="eq"></span><span class="st" id="st"></span></div>
+<div id="hand"><svg viewBox="0 0 24 24" fill="#fff" stroke="#333" stroke-width="1.2"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10l1.2-.3a1.4 1.4 0 0 1 1.7 1.2l.1.3 1.1-.2a1.4 1.4 0 0 1 1.6 1.3L18 15c0 3.5-2 6-5.5 6-2.4 0-3.8-1-5-2.7L4.7 14a1.4 1.4 0 0 1 2.1-1.8L9 14z"/></svg></div>
+<div id="tip" class="glass"></div>
+<nav id="bar" class="glass" aria-label="التحكم">
+  <button id="bMenu" title="الفهرس"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <button id="bPrev" title="السابق"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+  <button id="bPlay" title="جولة تلقائية"><svg id="icPlay" viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg></button>
+  <div class="mid"><div class="ttl" id="ttl"></div><div id="dots"></div></div>
+  <button id="bNext" title="التالي"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+  <button id="bSound" title="الصوت"><svg viewBox="0 0 24 24"><path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></button>
+  <button id="bTheme" title="ليلي / نهاري"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 4v16" /><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+  <button id="bFull" title="ملء الشاشة"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+</nav>
+<aside id="menu" class="glass">
+  <h3>الدرس ٣ - ٢</h3><div class="sub">معادلات الجمع والطرح · كتاب تفاعلي</div>
+  <div id="menuList"></div>
+  <div class="cr"><b>تصميم الطالب:</b> يوسف فايز العنزي<br><b>إشراف المعلم:</b> حمود غصن العنزي</div>
+</aside>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* ====================== أدوات عامة ====================== */
+const $ = s => document.querySelector(s);
+const AR = v => String(v).replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]).replace(/-/g, '−');
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const easeOut = t => 1 - Math.pow(1 - t, 3);
+const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+await Promise.all(['400 30px Tajawal', '700 30px Tajawal'].map(f => document.fonts.load(f).catch(() => 0)));
+
+/* ====================== المشهد ====================== */
+const canvas = $('#gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(32, 1, .1, 120);
+
+const hemi = new THREE.HemisphereLight(0xfff2dc, 0x7f95a0, 1.0); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff0d6, 2.3);
+sun.position.set(-7, 13, 9); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -11, right: 11, top: 9, bottom: -9, near: 1, far: 40 });
+sun.shadow.bias = -.0005; sun.shadow.radius = 5; sun.shadow.normalBias = .02;
+scene.add(sun);
+
+/* ---------- خامات ---------- */
+function canvasTex(w, h, draw, repeat) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
+  if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(...repeat); }
+  return t;
+}
+const rng = (() => { let s = 7; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
+const hatch = canvasTex(128, 128, (g, w, h) => {
+  g.fillStyle = '#fff'; g.fillRect(0, 0, w, h);
+  g.strokeStyle = 'rgba(70,70,80,.16)'; g.lineWidth = 1;
+  for (let i = -h; i < w; i += 7) { g.beginPath(); g.moveTo(i, h); g.lineTo(i + h, 0); g.stroke(); }
+}, [2, 2]);
+const woodTex = canvasTex(1024, 1024, (g, w, h) => {
+  g.fillStyle = '#d4c7ae'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 260; i++) {
+    const y = rng() * h; g.strokeStyle = `rgba(${110 + rng() * 40},${90 + rng() * 30},${60 + rng() * 25},${.05 + rng() * .1})`;
+    g.lineWidth = .6 + rng() * 2.2; g.beginPath(); g.moveTo(0, y);
+    for (let x = 0; x <= w; x += 64) g.lineTo(x, y + Math.sin(x * .01 + i) * 3 + (rng() - .5) * 2); g.stroke();
+  }
+}, [3, 2]);
+const stripeTex = canvasTex(512, 512, (g, w, h) => {
+  g.clearRect(0, 0, w, h); g.fillStyle = 'rgba(50,50,40,.5)';
+  for (let i = 0; i < 4; i++) { g.save(); g.translate(60 + i * 130, 0); g.rotate(-.35); g.fillRect(0, -100, 52 + i * 8, h + 300); g.restore(); }
+});
+
+const labelCache = new Map();
+function labelTex(txt, { bg = '#fff', fg = '#222', size = 150, bold = true, w = 256, h = 256, ring } = {}) {
+  const k = [txt, bg, fg, size, w, h, ring].join('|');
+  if (labelCache.has(k)) return labelCache.get(k);
+  const t = canvasTex(w, h, (g) => {
+    g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    g.fillStyle = 'rgba(70,70,80,.12)';
+    for (let i = -h; i < w; i += 9) { g.fillRect(i, 0, 1.4, 1); g.save(); g.strokeStyle = 'rgba(60,60,70,.12)'; g.beginPath(); g.moveTo(i, h); g.lineTo(i + h, 0); g.stroke(); g.restore(); }
+    if (ring) { g.strokeStyle = ring; g.lineWidth = 8; g.strokeRect(10, 10, w - 20, h - 20); }
+    g.fillStyle = fg; g.font = `${bold ? 700 : 400} ${size}px Tajawal`;
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.direction = 'rtl';
+    g.fillText(txt, w / 2, h / 2 + size * .06);
+  });
+  labelCache.set(k, t); return t;
+}
+
+/* ---------- حدود "رسم القلم" ---------- */
+const LINE = new THREE.LineBasicMaterial({ color: 0x3b3b46, transparent: true, opacity: .78 });
+function outline(mesh, geo, thr = 28) {
+  const l = new THREE.LineSegments(new THREE.EdgesGeometry(geo, thr), LINE);
+  l.raycast = () => { }; mesh.add(l); return l;
+}
+const paperMat = (c = 0xf4f0e6) => new THREE.MeshStandardMaterial({ color: c, roughness: .95, map: hatch });
+function box(w, h, d, mat, castS = true) {
+  const g = new THREE.BoxGeometry(w, h, d), m = new THREE.Mesh(g, mat);
+  m.castShadow = castS; m.receiveShadow = true; outline(m, g); return m;
+}
+
+/* ====================== المكتب والكتاب ====================== */
+const desk = new THREE.Mesh(new THREE.PlaneGeometry(70, 46), new THREE.MeshStandardMaterial({ map: woodTex, roughness: .9, color: 0xffffff }));
+desk.rotation.x = -Math.PI / 2; desk.position.y = -.62; desk.receiveShadow = true; scene.add(desk);
+const mat = new THREE.Mesh(new THREE.PlaneGeometry(26, 15.5), new THREE.MeshStandardMaterial({ color: 0x9db5a9, roughness: 1 }));
+mat.rotation.x = -Math.PI / 2; mat.position.y = -.6; mat.receiveShadow = true; scene.add(mat);
+const stripes = new THREE.Mesh(new THREE.PlaneGeometry(40, 26), new THREE.MeshBasicMaterial({ map: stripeTex, transparent: true, opacity: .13, depthWrite: false }));
+stripes.rotation.x = -Math.PI / 2; stripes.position.y = -.58; scene.add(stripes);
+
+const book = new THREE.Group(); scene.add(book);
+const cover = box(10.7, .34, 7.6, new THREE.MeshStandardMaterial({ color: 0xd9a826, roughness: .7 }));
+cover.position.y = -.43; book.add(cover);
+const PW = 5, PD = 7;
+const pageBlockL = box(PW, .3, PD, paperMat(), true); pageBlockL.position.set(-PW / 2, -.12, 0); book.add(pageBlockL);
+const pageBlockR = box(PW, .3, PD, paperMat(), true); pageBlockR.position.set(PW / 2, -.12, 0); book.add(pageBlockR);
+const pageTopY = .03 + .001;
+function pagePlane(x) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(PW - .04, PD - .04), new THREE.MeshStandardMaterial({ roughness: .95 }));
+  m.rotation.x = -Math.PI / 2; m.position.set(x, pageTopY + .002, 0); m.receiveShadow = true; book.add(m); return m;
+}
+const planeL = pagePlane(-PW / 2), planeR = pagePlane(PW / 2);
+// خطّ الغلاف الذهبي + شريط الصفحة
+const ribbon = box(.12, .05, 7.6, new THREE.MeshStandardMaterial({ color: 0x2b3f6b, roughness: .8 })); ribbon.position.set(0, .03, .3); book.add(ribbon);
+
+function wrap(g, text, maxW) {
+  const words = text.split(' '), lines = []; let cur = '';
+  for (const w of words) { const t = cur ? cur + ' ' + w : w; if (g.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; } else cur = t; }
+  if (cur) lines.push(cur); return lines;
+}
+function paperBase(g, w, h, gutterSide) {
+  g.fillStyle = '#f7f3e7'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 1400; i++) { g.fillStyle = `rgba(120,100,60,${rng() * .05})`; g.fillRect(rng() * w, rng() * h, 1 + rng() * 2, 1 + rng() * 2); }
+  const gr = gutterSide === 'left' ? g.createLinearGradient(0, 0, 150, 0) : g.createLinearGradient(w, 0, w - 150, 0);
+  gr.addColorStop(0, 'rgba(60,45,20,.34)'); gr.addColorStop(1, 'rgba(60,45,20,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+}
+function textPageTex(c) {
+  return canvasTex(1024, 1434, (g, w, h) => {
+    paperBase(g, w, h, 'left');
+    g.textBaseline = 'alphabetic'; g.direction = 'rtl'; g.textAlign = 'right';
+    const R = w - 78, W = w - 200;
+    g.fillStyle = '#9a8f78'; g.font = '700 26px Tajawal'; g.fillText('الفصل ٣ · الجبر: المعادلات الخطية', R, 84);
+    g.fillStyle = '#c0392b'; g.font = '700 26px Tajawal'; g.fillText(c.kicker || 'الدرس ٣ - ٢', R, 124);
+    g.fillStyle = '#23303a'; g.font = '700 62px Tajawal'; let y = 206;
+    wrap(g, c.title, W).forEach(l => { g.fillText(l, R, y); y += 76; });
+    y += 8; g.font = '400 33px Tajawal'; g.fillStyle = '#3a4650';
+    (c.paras || []).forEach(p => { wrap(g, p, W).forEach(l => { g.fillText(l, R, y); y += 52; }); y += 14; });
+    if (c.formula) {
+      g.fillStyle = 'rgba(107,77,224,.09)'; g.fillRect(78, y, w - 156, 118);
+      g.strokeStyle = 'rgba(107,77,224,.45)'; g.lineWidth = 2; g.strokeRect(78, y, w - 156, 118);
+      g.fillStyle = '#4b34b8'; g.font = '700 56px Tajawal'; g.textAlign = 'center'; g.direction = 'ltr';
+      g.fillText(c.formula, w / 2, y + 80); g.textAlign = 'right'; g.direction = 'rtl'; y += 160;
+    }
+    if (c.sub) { g.fillStyle = '#6a7680'; g.font = '400 29px Tajawal'; (c.sub).forEach(s => { wrap(g, s, W).forEach(l => { g.fillText(l, R, y); y += 44; }); }); y += 10; }
+    if (c.checks) { c.checks.forEach(s => { g.strokeStyle = '#7a8790'; g.lineWidth = 2.5; g.strokeRect(R - 30, y - 28, 30, 30); g.fillStyle = '#3a4650'; g.font = '400 32px Tajawal'; g.fillText(s, R - 50, y); y += 52; }); }
+    g.fillStyle = '#9a8f78'; g.font = '400 24px Tajawal'; g.textAlign = 'left'; g.fillText(AR(103 + (c.n || 0)), 80, h - 52);
+  });
+}
+function leftPageTex(cap) {
+  return canvasTex(1024, 1434, (g, w, h) => {
+    paperBase(g, w, h, 'right');
+    g.strokeStyle = 'rgba(120,130,140,.18)'; g.lineWidth = 1.5; g.setLineDash([6, 8]);
+    g.strokeRect(70, 70, w - 140, h - 150); g.setLineDash([]);
+    g.fillStyle = '#7a8790'; g.font = '400 27px Tajawal'; g.textAlign = 'right'; g.direction = 'rtl'; g.textBaseline = 'alphabetic';
+    let y = h - 80; wrap(g, cap, w - 220).reverse().forEach(l => { g.fillText(l, w - 90, y); y -= 38; });
+    g.fillStyle = '#9a8f78'; g.font = '400 24px Tajawal'; g.textAlign = 'right'; g.fillText(AR(102), w - 80, h - 28 + 0);
+  });
+}
+
+/* ====================== الميزان ثلاثي الأبعاد ====================== */
+const stage = new THREE.Group(); stage.position.set(-PW / 2, .035, .1); book.add(stage);
+const popup = new THREE.Group(); stage.add(popup);               // يُنبثق من الصفحة
+// خلفية الورق المطوي
+const back = box(4.7, 3.9, .05, paperMat(0xf1ede3)); back.position.set(0, 1.95, -1.6); popup.add(back);
+const wing = box(.05, 3.3, 1.5, paperMat(0xebe6da)); wing.position.set(-2.34, 1.65, -.86); popup.add(wing);
+const wing2 = box(.05, 3.3, 1.5, paperMat(0xebe6da)); wing2.position.set(2.34, 1.65, -.86); popup.add(wing2);
+// أرضية
+const floor = box(4.9, .08, 3.3, paperMat(0xf0ece1)); floor.position.set(0, .04, -.1); popup.add(floor);
+const sbase = box(2.0, .22, 1.1, paperMat(0xefeadf)); sbase.position.set(0, .19, .1); popup.add(sbase);
+const pillar = box(.2, 3.0, .2, paperMat(0xf2eee4)); pillar.position.set(0, 1.7, .1); popup.add(pillar);
+const BEAM_Y = 3.3, HALF = 2.15, HANG = 1.3;
+const pivot = new THREE.Mesh(new THREE.CylinderGeometry(.19, .19, .3, 28), paperMat(0xf6c75a)); pivot.rotation.x = Math.PI / 2; pivot.position.set(0, BEAM_Y, .1); pivot.castShadow = true; outline(pivot, pivot.geometry); popup.add(pivot);
+const beam = new THREE.Group(); beam.position.set(0, BEAM_Y, .1); popup.add(beam);
+const beamBar = box(HALF * 2 + .2, .15, .2, paperMat(0xf2eee4)); beam.add(beamBar);
+[-1, 1].forEach(s => { const e = box(.14, .3, .24, paperMat(0xf6c75a)); e.position.set(s * HALF, -.05, 0); beam.add(e); });
+
+function makePan() {
+  const g = new THREE.Group(); popup.add(g);
+  const plate = new THREE.Mesh(new THREE.CylinderGeometry(1.12, 1.0, .1, 44), paperMat(0xf6f2e8)); plate.castShadow = true; plate.receiveShadow = true; outline(plate, plate.geometry, 40); plate.position.y = -.05; g.add(plate);
+  const items = new THREE.Group(); g.add(items);
+  const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3 * 6), 3));
+  const strings = new THREE.LineSegments(sg, LINE); strings.frustumCulled = false; strings.raycast = () => { }; popup.add(strings);
+  const plus = new THREE.Mesh(new THREE.CircleGeometry(.3, 32), new THREE.MeshBasicMaterial({ map: labelTex('+', { bg: '#fff', fg: '#6b4de0', size: 190, ring: '#6b4de0' }), transparent: true }));
+  plus.rotation.x = -Math.PI / 2; plus.position.set(0, .06, 0); plus.visible = false; g.add(plus);
+  return { group: g, items, strings, plus, items_: [], plate };
+}
+const panL = makePan(), panR = makePan(); panL.side = -1; panR.side = 1;
+const pans = [panL, panR];
+
+/* ---------- العناصر على الكفّتين ---------- */
+const COL = { unit: ['#f2c14e', '#3a2c00'], neg: ['#ee7384', '#fff'], x: ['#8a5cf6', '#fff'], blk: ['#8fd3c4', '#12423a'], ghost: ['#8fd3c4', '#12423a'] };
+let X_LABEL = 'س', XV = 4;
+function makeItem(kind, v = 1) {
+  let mesh, h;
+  if (kind === 'unit' || kind === 'neg') {
+    const [bg, fg] = COL[kind]; const top = new THREE.MeshStandardMaterial({ map: labelTex(kind === 'unit' ? '١' : '−١', { bg, fg, size: 170 }), roughness: .7 });
+    const side = new THREE.MeshStandardMaterial({ color: bg, roughness: .85, map: hatch });
+    const g = new THREE.BoxGeometry(.36, .11, .36); mesh = new THREE.Mesh(g, [side, side, top, side, side, side]); outline(mesh, g); h = .11;
+  } else if (kind === 'x') {
+    const m = new THREE.MeshStandardMaterial({ map: labelTex(X_LABEL, { bg: '#8a5cf6', fg: '#fff', size: 190 }), roughness: .5, emissive: 0x6b4de0, emissiveIntensity: .18 });
+    const g = new THREE.BoxGeometry(.64, .64, .64); mesh = new THREE.Mesh(g, m); outline(mesh, g); h = .64;
+  } else { // blk
+    mesh = null; h = .36;
+    const g = new THREE.BoxGeometry(.95, .36, .7); const mats = blkMats(v, kind); mesh = new THREE.Mesh(g, mats); outline(mesh, g);
+  }
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  const it = { kind, v, mesh, h, pos: new THREE.Vector3(), tgt: new THREE.Vector3(), dying: 0, glow: 0, born: 0 };
+  mesh.userData.item = it; return it;
+}
+function blkMats(v, kind) {
+  const [bg, fg] = kind === 'nblk' ? ['#ee7384', '#fff'] : COL.blk;
+  const top = new THREE.MeshStandardMaterial({ map: labelTex(AR(v), { bg, fg, size: 150, w: 256, h: 256 }), roughness: .7 });
+  const side = new THREE.MeshStandardMaterial({ color: bg, roughness: .85, map: hatch });
+  return [side, side, top, side, top, side];
+}
+const weight = it => it.dying ? 0 : it.kind === 'x' ? XV : it.kind === 'unit' ? 1 : it.kind === 'neg' ? -1 : it.kind === 'blk' ? it.v : -it.v;
+const panWeight = p => p.items_.reduce((s, i) => s + weight(i), 0);
+
+function layout(p) {
+  const live = p.items_.filter(i => !i.dying);
+  const x = live.find(i => i.kind === 'x'), blks = live.filter(i => i.kind === 'blk' || i.kind === 'nblk'), units = live.filter(i => i.kind === 'unit' || i.kind === 'neg');
+  const hasX = !!x; let cx0 = hasX ? .08 : -.42;
+  if (x) x.tgt.set(-.56, x.h / 2, 0);
+  let sy = 0;
+  blks.forEach(b => { b.tgt.set(hasX ? .3 : 0, sy + b.h / 2, 0); sy += b.h + .01; });
+  const cols = hasX ? 3 : 3, rows = Math.ceil(units.length / cols);
+  units.forEach((u, i) => { const c = i % cols, r = Math.floor(i / cols); u.tgt.set(cx0 + c * .41, u.h / 2, (r - (rows - 1) / 2) * .41); });
+  p.plus.position.set(0, .2 + sy, 0);
+}
+function addItem(p, kind, v, opts = {}) {
+  const it = makeItem(kind, v); p.items.add(it.mesh); p.items_.push(it);
+  it.born = performance.now(); layout(p);
+  it.pos.copy(it.tgt); it.pos.y += opts.drop ?? 1.6; it.mesh.position.copy(it.pos);
+  if (!opts.drop && opts.drop !== undefined) it.pos.copy(it.tgt);
+  it.mesh.scale.setScalar(.01); return it;
+}
+function removeItem(p, it, fly = 1.4) {
+  if (it.dying) return; it.dying = performance.now(); it.fly = fly; layout(p); sfx('pop', 520);
+}
+function clearPan(p) { p.items_.forEach(i => p.items.remove(i.mesh)); p.items_ = []; }
+function setBlockValue(it, v) { it.v = v; it.mesh.material = blkMats(v, it.kind); it.glow = 1; }
+
+/* ---------- الجسيمات ---------- */
+const NP = 160;
+const pg = new THREE.BufferGeometry(); const ppos = new Float32Array(NP * 3), pcol = new Float32Array(NP * 3);
+pg.setAttribute('position', new THREE.BufferAttribute(ppos, 3)); pg.setAttribute('color', new THREE.BufferAttribute(pcol, 3));
+const pts = new THREE.Points(pg, new THREE.PointsMaterial({ size: .11, vertexColors: true, transparent: true, depthWrite: false })); pts.frustumCulled = false; scene.add(pts);
+const parts = Array.from({ length: NP }, () => ({ life: 0, p: new THREE.Vector3(), v: new THREE.Vector3(), c: new THREE.Color() }));
+let pi = 0; const PCOL = ['#ef476f', '#ffd166', '#06d6a0', '#118ab2', '#8a5cf6', '#ff9f1c'];
+function burst(wp, n = 36) {
+  for (let i = 0; i < n; i++) {
+    const q = parts[pi++ % NP]; q.life = 1.3 + Math.random() * .6; q.p.copy(wp);
+    const a = Math.random() * Math.PI * 2, s = 1.4 + Math.random() * 2.4; q.v.set(Math.cos(a) * s, 2.5 + Math.random() * 2.5, Math.sin(a) * s); q.c.set(PCOL[i % 6]);
+  }
+}
+
+/* ====================== الصوت ====================== */
+let AC = null, soundOn = true;
+function sfx(kind, f = 600) {
+  if (!soundOn) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
+    const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain(); o.connect(g); g.connect(AC.destination);
+    if (kind === 'pop') { o.frequency.setValueAtTime(f * 1.6, t); o.frequency.exponentialRampToValueAtTime(f * .6, t + .12); g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.001, t + .14); o.start(t); o.stop(t + .15); }
+    if (kind === 'ding') [784, 988, 1319].forEach((ff, i) => { const oo = AC.createOscillator(), gg = AC.createGain(); oo.connect(gg); gg.connect(AC.destination); oo.frequency.value = ff; gg.gain.setValueAtTime(.001, t + i * .09); gg.gain.exponentialRampToValueAtTime(.16, t + i * .09 + .01); gg.gain.exponentialRampToValueAtTime(.001, t + i * .09 + .9); oo.start(t + i * .09); oo.stop(t + i * .09 + 1); });
+    if (kind === 'bad') { o.type = 'sawtooth'; o.frequency.setValueAtTime(190, t); o.frequency.linearRampToValueAtTime(130, t + .22); g.gain.setValueAtTime(.09, t); g.gain.exponentialRampToValueAtTime(.001, t + .25); o.start(t); o.stop(t + .26); }
+    if (kind === 'flap') { o.type = 'triangle'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(700, t + .25); g.gain.setValueAtTime(.08, t); g.gain.exponentialRampToValueAtTime(.001, t + .3); o.start(t); o.stop(t + .32); }
+  } catch (e) { }
+}
+
+/* ====================== الغطاء (flap) ====================== */
+const FLAP_W = 3.9, FLAP_D = 1.5, FLAP_Z = 2.9;
+const flapPivot = new THREE.Group(); flapPivot.position.set(PW / 2, .06, FLAP_Z); book.add(flapPivot);
+const flapGeo = new THREE.PlaneGeometry(FLAP_W, FLAP_D); flapGeo.rotateX(-Math.PI / 2); flapGeo.translate(0, 0, -FLAP_D / 2);
+let flapMat = new THREE.MeshStandardMaterial({ roughness: .95, side: THREE.DoubleSide });
+const flap = new THREE.Mesh(flapGeo, flapMat); flap.castShadow = true; flap.receiveShadow = true; flapPivot.add(flap);
+{ const eg = new THREE.EdgesGeometry(new THREE.BoxGeometry(FLAP_W, .02, FLAP_D)); const l = new THREE.LineSegments(eg, LINE); l.position.set(0, 0, -FLAP_D / 2); l.raycast = () => { }; flapPivot.add(l); }
+const under = new THREE.Mesh(new THREE.PlaneGeometry(FLAP_W, FLAP_D), new THREE.MeshStandardMaterial({ roughness: .95 }));
+under.rotation.x = -Math.PI / 2; under.position.set(PW / 2, .036, FLAP_Z - FLAP_D / 2); under.receiveShadow = true; book.add(under);
+let flapAngle = 0, flapTarget = 0, flapEnabled = false;
+function flapFaceTex(label, enabled) {
+  return canvasTex(780, 300, (g, w, h) => {
+    g.fillStyle = enabled ? '#f3e7bf' : '#e9e2cf'; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#b79b4a'; g.lineWidth = 5; g.setLineDash([14, 10]); g.strokeRect(14, 14, w - 28, h - 28); g.setLineDash([]);
+    g.fillStyle = '#c0392b'; g.font = '700 30px Tajawal'; g.textAlign = 'right'; g.direction = 'rtl'; g.fillText('لماذا؟', w - 40, 70);
+    g.fillStyle = '#3a4650'; g.font = '700 40px Tajawal'; wrap(g, label, w - 90).forEach((l, i) => g.fillText(l, w - 40, 126 + i * 54));
+    g.fillStyle = '#8a7a3a'; g.font = '400 26px Tajawal'; g.textAlign = 'left'; g.fillText(enabled ? '↑ ارفع الغطاء' : 'أكمل النشاط أولاً', 36, h - 34);
+  });
+}
+function underTex(lines) {
+  return canvasTex(780, 300, (g, w, h) => {
+    g.fillStyle = '#fbf6e6'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#1f9a5a'; g.font = '700 30px Tajawal'; g.textAlign = 'right'; g.direction = 'rtl'; g.fillText('الجواب ✓', w - 40, 62);
+    g.fillStyle = '#23303a'; let y = 124; lines.forEach(s => { g.font = '700 38px Tajawal'; wrap(g, s, w - 80).forEach(l => { g.fillText(l, w - 40, y); y += 52; }); });
+  });
+}
+function setFlap(label, answerLines, enabled) {
+  flapMat.map = flapFaceTex(label, enabled); flapMat.needsUpdate = true;
+  under.material.map = underTex(answerLines); under.material.needsUpdate = true;
+  flapEnabled = enabled; if (!enabled) flapTarget = 0;
+}
+
+/* ====================== الحالة والفصول ====================== */
+const state = { ch: -1, predicted: false, solved: false, busy: false, tourToken: 0, touring: false, problem: 0, lastWarn: 0 };
+function status() {
+  const wL = panWeight(panL), wR = panWeight(panR);
+  const onlyX = panL.items_.filter(i => !i.dying).every(i => i.kind === 'x') && panL.items_.some(i => i.kind === 'x' && !i.dying);
+  return { wL, wR, balanced: wL === wR, onlyX };
+}
+const tokHTML = (s, c = '') => `<span class="t ${c}">${s}</span>`;
+function eqHTML() {
+  const live = p => p.items_.filter(i => !i.dying);
+  const L = live(panL), hasX = L.some(i => i.kind === 'x');
+  const pos = L.filter(i => i.kind === 'unit').length, neg = L.filter(i => i.kind === 'neg').length;
+  const bp = L.filter(i => i.kind === 'blk').reduce((s, i) => s + i.v, 0), bn = L.filter(i => i.kind === 'nblk').reduce((s, i) => s + i.v, 0);
+  const t = []; if (hasX) t.push(tokHTML(X_LABEL, 'x'));
+  const add = (n, sign) => { if (!n) return; if (t.length) t.push(tokHTML(sign)); t.push(tokHTML(sign === '−' && !t.length ? '−' + AR(n) : AR(n), sign === '−' ? 'r' : '')); };
+  add(pos + bp, '+'); add(neg + bn, '−');
+  if (!t.length) t.push(tokHTML('٠'));
+  const wR = panWeight(panR); const st = status();
+  const rightHas = panR.items_.some(i => !i.dying);
+  return `${t.join('')}${tokHTML('=')}${tokHTML(AR(rightHas || wR ? wR : 0), st.onlyX && st.balanced ? 'g' : '')}`;
+}
+function refreshEq() {
+  const st = status(), chip = $('#eqchip');
+  $('#eq').innerHTML = eqHTML();
+  chip.classList.toggle('warn', !st.balanced); chip.classList.toggle('good', st.balanced && st.onlyX);
+  $('#st').textContent = !st.balanced ? '⚠ اختلّ التوازن' : st.onlyX ? '✓ عزلنا المتغيّر' : 'متوازن';
+}
+
+/* ---------- البطاقة ---------- */
+function setCard({ tag = '', tagCls = '', title = '', body = '', eqbox = '', opts = null, acts = [] }) {
+  const c = $('#card'); c.classList.add('swap');
+  setTimeout(() => {
+    c.innerHTML = `${tag ? `<div class="tag ${tagCls}">${tag}</div>` : ''}${title ? `<h2>${title}</h2>` : ''}${body ? `<p>${body}</p>` : ''}${eqbox ? `<div class="eqbox">${eqbox}</div>` : ''}<div class="opts" id="opts"></div><div class="row2" id="acts"></div>`;
+    if (opts) opts.forEach(o => { const b = document.createElement('button'); b.className = 'opt'; b.innerHTML = o.label; b.onclick = () => o.fn(b); $('#opts').appendChild(b); });
+    acts.forEach(a => { const b = document.createElement('button'); b.className = 'act' + (a.alt ? ' alt' : ''); b.textContent = a.label; b.onclick = a.fn; $('#acts').appendChild(b); });
+    c.classList.remove('swap');
+  }, 230);
+}
+function predict(title, body, options, onRight) {
+  state.predicted = false;
+  setCard({
+    tag: 'توقّع', title, body, opts: options.map(o => ({
+      label: o.t, fn: b => {
+        if (o.ok) { b.classList.add('good'); sfx('ding'); state.predicted = true; setTimeout(() => onRight(), 700); [...document.querySelectorAll('#opts .opt')].forEach(x => x.disabled = true); }
+        else { b.classList.add('bad'); sfx('bad'); setHint(o.hint || 'فكّر مرة أخرى'); }
+      }
+    }))
+  });
+}
+function setHint(txt) { const p = $('#card p'); if (p) { p.innerHTML = txt; } }
+const EQBOX = (a, b) => `${tokHTML(a)}${tokHTML('=')}${tokHTML(b)}`;
+
+/* ---------- التلميح والإضاءة ---------- */
+let hintObj = null; const hand = $('#hand'), tip = $('#tip');
+function hintAt(obj) { hintObj = obj; hand.style.display = obj ? 'block' : 'none'; }
+function proj(v) { const p = v.clone().project(camera); return { x: (p.x * .5 + .5) * innerWidth, y: (-p.y * .5 + .5) * innerHeight, vis: p.z < 1 }; }
+let tipObj = null, tipTimer = 0;
+function showTip(obj, txt) { tip.textContent = txt; tipObj = obj; tip.style.opacity = 1; clearTimeout(tipTimer); tipTimer = setTimeout(() => { tip.style.opacity = 0; tipObj = null; }, 2600); }
+
+/* ---------- بناء الميزان لفصل ---------- */
+function setupScale({ xl = 'س', xv, left = {}, right = {}, caption }) {
+  X_LABEL = xl; XV = xv; const my = ++setupTok;
+  [panL, panR].forEach(clearPan);
+  let n = 0; const st = () => n++ * 90;
+  const spawn = (p, kind, v) => setTimeout(() => { if (my === setupTok) addItem(p, kind, v, { drop: 1.8 }); }, st());
+  spawn(panL, 'x');
+  (left.blk ? [left.blk] : []).forEach(v => spawn(panL, 'blk', v));
+  for (let i = 0; i < (left.pos || 0); i++) spawn(panL, 'unit');
+  for (let i = 0; i < (left.neg || 0); i++) spawn(panL, 'neg');
+  (right.blk ? [right.blk] : []).forEach(v => spawn(panR, 'blk', v));
+  for (let i = 0; i < (right.pos || 0); i++) spawn(panR, 'unit');
+  planeL.material.map = leftPageTex(caption || 'الشكل: الميزان — المس أي شيء في المشهد ليضيء.'); planeL.material.needsUpdate = true;
+  popupAnim = { t0: performance.now() };
+  state.solved = false; panL.plus.visible = panR.plus.visible = false;
+  setTimeout(() => { if (my === setupTok) refreshEq(); }, 900);
+}
+let popupAnim = { t0: 0 }, setupTok = 0;
+
+/* ---------- عمليات مشتركة ---------- */
+function unitsOf(p, kind) { return p.items_.filter(i => !i.dying && !i.cancel && i.kind === kind); }
+async function subUnits(p, n) { for (let i = 0; i < n; i++) { const u = unitsOf(p, 'unit').pop(); if (u) removeItem(p, u); else addItem(p, 'neg', 1, { drop: 1.6 }); await sleep(170); } }
+async function addUnits(p, n) { for (let i = 0; i < n; i++) { const g = unitsOf(p, 'neg').pop(); if (g) { cancelPair(p, g); } else addItem(p, 'unit', 1, { drop: 1.6 }); sfx('pop', 640); await sleep(170); } }
+function cancelPair(p, neg) { neg.cancel = true; const add = addItem(p, 'unit', 1, { drop: 1.4 }); setTimeout(() => { removeItem(p, add, 0); removeItem(p, neg, 0); burst(p.group.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, .5, 0)), 10); }, 430); }
+async function applyBoth(op, n) { await Promise.all([op === 'sub' ? subUnits(panL, n) : addUnits(panL, n), op === 'sub' ? subUnits(panR, n) : addUnits(panR, n)]); await sleep(900); onChange(); }
+
+let onSolvedHook = null;
+function onChange() {
+  refreshEq(); const st = status();
+  if (!st.balanced) {
+    if (performance.now() - state.lastWarn > 1500) { state.lastWarn = performance.now(); sfx('bad'); }
+    const p = $('#card p'); if (p && state.predicted) p.innerHTML = '<b>اختلّ الميزان!</b> ما فعلته في كفّة يجب أن تفعله في الكفّة الأخرى.';
+  } else if (st.onlyX && !state.solved) {
+    state.solved = true; sfx('ding'); const xi = panL.items_.find(i => i.kind === 'x');
+    burst(xi.mesh.getWorldPosition(new THREE.Vector3()), 50); xi.glow = 1.4; revealX(xi);
+    setTimeout(() => onSolvedHook && onSolvedHook(st), 700);
+  }
+}
+function revealX(xi) {
+  const t = labelTex(AR(XV), { bg: '#1fa971', fg: '#fff', size: 190 });
+  xi.mesh.material = new THREE.MeshStandardMaterial({ map: t, roughness: .5, emissive: 0x1fa971, emissiveIntensity: .25 });
+}
+function enableFlap(label, lines, on = true) {
+  setFlap(label, lines, on); if (on) { hintAt(flapPivot); sfx('pop', 800); }
+}
+
+/* ---------- الفصول ---------- */
+const CH = [];
+const T = (n, x) => ({ n, kicker: 'الدرس ٣ - ٢', ...x });
+
+/* 0: افتح الكتاب */
+CH.push({
+  title: 'الميزان والمعادلة', short: 'افتح الكتاب',
+  page: T(0, { title: 'معادلات الجمع والطرح', paras: ['فكرة الدرس: أحلّ معادلات الجمع والطرح.', 'عند أحمد بعض الكتب العلمية، ثمّ اشترى كتابين إضافيين فأصبح لديه ستة كتب علمية.'], formula: '٦ = ٢ + س', sub: ['س تمثّل عدد الكتب التي كانت عند أحمد في البداية.'], checks: ['ماذا تمثّل س في الشكل؟', 'ما معادلة الجمع التي مُثّلت بالشكل؟'] }),
+  cam: 'over',
+  enter() {
+    setupScale({ xv: 4, left: { pos: 2 }, right: { pos: 6 }, caption: 'الشكل ١: ميزان أحمد — المس كل شيء في المشهد ليضيء.' });
+    setCard({ tag: 'ابدأ هنا', tagCls: 'eq', title: 'ميزان أحمد', body: 'في الكفّة اليمنى <b>٦</b> كتب، وفي اليسرى صندوق فيه عدد <b>مجهول</b> (س) وكتابان. الميزان متوازن!<br>المس أي شيء في المشهد لتضيئه.', acts: [{ label: 'هيّا نحلّ المعادلة ←', fn: () => go(1) }] });
+    setFlap('', [], false); flapPivot.visible = false; under.visible = false;
+    setTimeout(() => hintAt(panL.items_[0] && panL.items_[0].mesh), 1500);
+  },
+  tap(hit) {
+    hintAt(null);
+    if (hit.item) { const k = hit.item.kind; lightUp(hit.item, k === 'x' ? 'س = عدد الكتب المجهول' : k === 'unit' ? 'كتاب واحد' : 'قيمة'); }
+    else if (hit.pan) lightUp(hit.pan, hit.pan === panR ? '٦ كتب' : 'س + ٢');
+  },
+  tour: ['جولة تلقائية', 'ميزان أحمد: صندوق فيه س كتاباً وكتابان، يقابلها ٦ كتب. س + ٢ = ٦'],
+  async demo() { await sleep(1500); const x = panL.items_[0]; lightUp(x, 'س = عدد الكتب المجهول'); await sleep(2400); lightUp(panR.items_[0], 'كتاب واحد'); await sleep(2400); }
+});
+
+/* 1: خاصية الطرح */
+CH.push({
+  title: 'خاصية الطرح: س + ٢ = ٦', short: 'خاصية الطرح',
+  page: T(1, { title: 'خاصية الطرح', paras: ['إذا طرحت العدد نفسه من كلا طرفي المعادلة يبقى طرفا المعادلة متساويين.'], formula: 'أ − جـ = ب − جـ', sub: ['الرموز: إذا كان أ = ب فإنّ أ − جـ = ب − جـ'], checks: ['س + ٢ = ٦', 'نطرح ٢ من الطرفين', 'س = ٤'] }),
+  cam: 'scale',
+  enter() {
+    setupScale({ xv: 4, left: { pos: 2 }, right: { pos: 6 }, caption: 'الشكل ٢: المس مكعباً لتزيله من كفّته.' });
+    flapPivot.visible = true; under.visible = true;
+    setFlap('لماذا يبقى الميزان متوازناً عندما نزيل العدد نفسه من الكفّتين؟', ['لأنّنا طرحنا العدد نفسه من الطرفين.', 'س + ٢ − ٢ = ٦ − ٢  ⟹  س = ٤', 'التحقّق: ٤ + ٢ = ٦ ✓'], false);
+    predict('كيف نترك س وحدها؟', 'المعادلة: <b>س + ٢ = ٦</b>. ما العملية التي تعزل س؟', [
+      { t: 'نجمع ٢ إلى الطرفين', hint: 'الجمع يزيد العدد المضاف، نحتاج إلى <b>عكس</b> الجمع.' },
+      { t: 'نطرح ٢ من الطرفين', ok: true },
+      { t: 'نضرب الطرفين في ٢', hint: 'الضرب لا يعزل س هنا. فكّر في العملية العكسية للجمع.' }], () => {
+        setCard({ tag: 'جرّب', tagCls: 'eq', title: 'أزل المكعبات', body: 'المس <b>مكعباً</b> لتزيله. جرّب أن تزيل من كفّة واحدة وانظر ماذا يحدث، ثم أعد التوازن!' });
+        hintAt(panL.items_.find(i => i.kind === 'unit').mesh);
+      });
+    onSolvedHook = () => {
+      hintAt(null);
+      setCard({ tag: 'المفهوم الأساسي', tagCls: 'ok', title: 'خاصية الطرح', body: 'إذا طرحت العدد نفسه من كلا طرفي المعادلة يبقى طرفاها متساويين.', eqbox: `${tokHTML('س', 'x')}${tokHTML('+')}${tokHTML('٢')}${tokHTML('−')}${tokHTML('٢', 'r')}${tokHTML('=')}${tokHTML('٦')}${tokHTML('−')}${tokHTML('٢', 'r')}<br>${tokHTML('س', 'x')}${tokHTML('=')}${tokHTML('٤', 'g')}`, acts: [{ label: 'الخاصية التالية ←', fn: () => go(2) }] });
+      enableFlap('لماذا يبقى الميزان متوازناً عندما نزيل العدد نفسه من الكفّتين؟', ['لأنّنا طرحنا العدد نفسه من الطرفين.', 'س + ٢ − ٢ = ٦ − ٢  ⟹  س = ٤', 'التحقّق: ٤ + ٢ = ٦ ✓']);
+    };
+  },
+  tap(hit) {
+    if (!state.predicted) { if (hit.item || hit.pan) { sfx('bad'); pulseCard(); } return; }
+    hintAt(null);
+    if (hit.item && ['unit', 'neg'].includes(hit.item.kind)) { const p = panOf(hit.item); removeItem(p, hit.item); setTimeout(onChange, 650); }
+    else if (hit.item && hit.item.kind === 'x') lightUp(hit.item, 'س ما زالت مجهولة!');
+  },
+  tour: ['جولة تلقائية', 'نطرح ٢ من الطرفين: نُزيل مكعبين من كل كفّة، فيبقى الميزان متوازناً وتبقى س = ٤'],
+  async demo() {
+    await sleep(1200); await subUnits(panL, 1); await subUnits(panR, 1); await sleep(700); await subUnits(panL, 1); await subUnits(panR, 1); await sleep(1500); onChange(); await sleep(1800);
+  }
+});
+
+/* 2: خاصية الجمع */
+CH.push({
+  title: 'خاصية الجمع: س − ٢ = ٤', short: 'خاصية الجمع',
+  page: T(2, { title: 'خاصية الجمع', paras: ['إذا أضفت العدد نفسه إلى طرفي المعادلة، فإنّ طرفيها يبقيان متساويين.'], formula: 'أ + جـ = ب + جـ', sub: ['الرموز: إذا كانت أ = ب فإنّ أ + جـ = ب + جـ'], checks: ['س − ٢ = ٤', 'نضيف ٢ إلى الطرفين', 'س = ٦'] }),
+  cam: 'scale',
+  enter() {
+    setupScale({ xv: 6, left: { neg: 2 }, right: { pos: 4 }, caption: 'الشكل ٣: البطاقتان الحمراوان تمثّلان «− ١». أضف بطاقات صفراء لإلغائهما.' });
+    flapPivot.visible = true; under.visible = true;
+    setFlap('ماذا يحدث عندما نجمع بطاقة موجبة مع بطاقة سالبة؟', ['كلّ بطاقة موجبة تلغي بطاقة سالبة (الناتج صفر).', 'س − ٢ + ٢ = ٤ + ٢  ⟹  س = ٦', 'التحقّق: ٦ − ٢ = ٤ ✓'], false);
+    predict('كيف نترك س وحدها؟', 'المعادلة: <b>س − ٢ = ٤</b> (البطاقتان الحمراوان تمثّلان −٢).', [
+      { t: 'نطرح ٢ من الطرفين', hint: 'الطرح هو ما حدث أصلاً. نحتاج <b>عكسه</b>.' },
+      { t: 'نجمع ٢ إلى الطرفين', ok: true },
+      { t: 'نقسم الطرفين على ٢', hint: 'القسمة لا تُلغي «− ٢». فكّر بالعملية العكسية للطرح.' }], () => {
+        panL.plus.visible = panR.plus.visible = true;
+        setCard({ tag: 'جرّب', tagCls: 'eq', title: 'أضف بطاقات', body: 'المس علامة <b>+</b> فوق كل كفّة لإضافة بطاقة موجبة. أضف <b>٢</b> إلى كلّ كفّة.' });
+        hintAt(panL.plus);
+      });
+    onSolvedHook = () => {
+      hintAt(null); panL.plus.visible = panR.plus.visible = false;
+      setCard({ tag: 'المفهوم الأساسي', tagCls: 'ok', title: 'خاصية الجمع', body: 'إذا أضفت العدد نفسه إلى طرفي المعادلة، فإنّ طرفيها يبقيان متساويين.', eqbox: `${tokHTML('س', 'x')}${tokHTML('−')}${tokHTML('٢')}${tokHTML('+')}${tokHTML('٢', 'g')}${tokHTML('=')}${tokHTML('٤')}${tokHTML('+')}${tokHTML('٢', 'g')}<br>${tokHTML('س', 'x')}${tokHTML('=')}${tokHTML('٦', 'g')}`, acts: [{ label: 'مثال من الحياة ←', fn: () => go(3) }] });
+      enableFlap('ماذا يحدث عندما نجمع بطاقة موجبة مع بطاقة سالبة؟', ['كلّ بطاقة موجبة تلغي بطاقة سالبة (الناتج صفر).', 'س − ٢ + ٢ = ٤ + ٢  ⟹  س = ٦', 'التحقّق: ٦ − ٢ = ٤ ✓']);
+    };
+  },
+  tap(hit) {
+    if (!state.predicted) { if (hit.item || hit.pan || hit.plus) { sfx('bad'); pulseCard(); } return; }
+    hintAt(null);
+    if (hit.plus) { addUnits(hit.plus, 1).then(onChange); }
+    else if (hit.item && hit.item.kind === 'neg') lightUp(hit.item, 'بطاقة سالبة (−١)');
+  },
+  tour: ['جولة تلقائية', 'نضيف ٢ إلى الطرفين: كل بطاقة موجبة تلغي بطاقة سالبة، فتبقى س = ٦'],
+  async demo() { await sleep(1200); await applyBoth('add', 2); await sleep(1800); }
+});
+
+/* 3: السمكة */
+CH.push({
+  title: 'من واقع الحياة: أحياء بحرية', short: 'أحياء بحرية',
+  page: T(3, { kicker: 'مثال ٢ · من واقع الحياة', title: 'أحياء بحرية', paras: ['تنمو السمكة الملائكية ليصل طولها إلى ٣٠ سم، وهي أطول من السمكة المهرّج بـ ٢١ سم. فما طول السمكة المهرّج؟'], formula: 'جـ + ٢١ = ٣٠', sub: ['لتكن جـ تمثّل طول السمكة المهرّج.'], checks: ['اكتب المعادلة', 'اطرح ٢١ من كلا الطرفين', 'بسِّط'] }),
+  cam: 'scale',
+  enter() {
+    setupScale({ xl: 'جـ', xv: 9, left: { blk: 21 }, right: { blk: 30 }, caption: 'الشكل ٤: كتلة ٢١ تمثّل فرق الطول، وكتلة ٣٠ طول الملائكية.' });
+    flapPivot.visible = true; under.visible = true;
+    setFlap('كم طول السمكة المهرّج؟ وكيف نتحقق؟', ['جـ + ٢١ − ٢١ = ٣٠ − ٢١  ⟹  جـ = ٩', 'طول السمكة المهرّج ٩ سم.', 'التحقّق: ٩ + ٢١ = ٣٠ ✓'], false);
+    predict('ماذا نفعل بالعدد ٢١؟', 'المعادلة: <b>جـ + ٢١ = ٣٠</b>. نريد أن تبقى جـ وحدها.', [
+      { t: 'نطرح ٢١ من الطرفين', ok: true },
+      { t: 'نجمع ٢١ إلى الطرفين', hint: 'سيزيد الجمع الطرفين ولن يعزل جـ.' },
+      { t: 'نطرح ٣٠ من الطرفين', hint: 'نريد التخلّص من <b>٢١</b> المجموعة مع جـ.' }], () => {
+        setCard({ tag: 'جرّب', tagCls: 'eq', title: 'اطرح ٢١ من الطرفين', body: 'المس كتلة <b>٢١</b> في الكفّة اليسرى، ثم اطرح ٢١ من الكفّة اليمنى أيضاً بلمس كتلة <b>٣٠</b>.' });
+        hintAt(panL.items_.find(i => i.kind === 'blk').mesh);
+      });
+    onSolvedHook = () => {
+      hintAt(null);
+      setCard({ tag: 'الحل', tagCls: 'ok', title: 'طول السمكة المهرّج ٩ سم', body: 'طرحنا ٢١ من الطرفين فبقيت جـ وحدها.', eqbox: `${tokHTML('جـ', 'x')}${tokHTML('+')}${tokHTML('٢١')}${tokHTML('−')}${tokHTML('٢١', 'r')}${tokHTML('=')}${tokHTML('٣٠')}${tokHTML('−')}${tokHTML('٢١', 'r')}<br>${tokHTML('جـ', 'x')}${tokHTML('=')}${tokHTML('٩', 'g')}`, acts: [{ label: 'جرّب بنفسك ←', fn: () => go(4) }] });
+      enableFlap('كم طول السمكة المهرّج؟ وكيف نتحقق؟', ['جـ + ٢١ − ٢١ = ٣٠ − ٢١  ⟹  جـ = ٩', 'طول السمكة المهرّج ٩ سم.', 'التحقّق: ٩ + ٢١ = ٣٠ ✓']);
+    };
+  },
+  tap(hit) {
+    if (!state.predicted) { if (hit.item || hit.pan) { sfx('bad'); pulseCard(); } return; }
+    hintAt(null);
+    if (hit.item && hit.item.kind === 'blk') subBlock(panOf(hit.item), hit.item);
+  },
+  tour: ['جولة تلقائية', 'نطرح ٢١ من الطرفين: ٣٠ − ٢١ = ٩، إذن طول السمكة المهرّج ٩ سم'],
+  async demo() { await sleep(1200); subBlock(panL, panL.items_.find(i => i.kind === 'blk')); await sleep(900); subBlock(panR, panR.items_.find(i => i.kind === 'blk')); await sleep(2200); }
+});
+function subBlock(p, it) {
+  if (p === panL) { removeItem(p, it, 1.8); }
+  else { if (it.v < 21) return; const ghost = addItem(p, 'blk', 21, { drop: 0 }); ghost.pos.copy(it.tgt); ghost.mesh.scale.setScalar(1); ghost.ghost = true; setBlockValue(it, it.v - 21); removeItem(p, ghost, 1.8); ghost.mesh.position.y += 0; sfx('pop', 520); }
+  setTimeout(onChange, 900);
+}
+
+/* 4: جرّب بنفسك */
+const PROBS = [{ xl: 'ص', a: 6, b: 9, op: 'sub', xv: 3, e: ['ص + ٦ = ٩', 'ص + ٦ − ٦ = ٩ − ٦', 'ص = ٣', '٣ + ٦ = ٩ ✓'] }, { xl: 'س', a: 3, b: 1, op: 'sub', xv: -2, e: ['س + ٣ = ١', 'س + ٣ − ٣ = ١ − ٣', 'س = −٢', '−٢ + ٣ = ١ ✓'] }];
+CH.push({
+  title: 'تحقّق من فهمك', short: 'جرّب بنفسك',
+  page: T(4, { title: 'تحقّق من فهمك', paras: ['حلّ كلّ معادلة مما يأتي، وتحقّق من صحّة حلّك.'], formula: 'ص + ٦ = ٩', sub: ['اختر العملية المناسبة، ثم طبّقها على الطرفين، ثم ارفع الغطاء لترى الجواب.'], checks: ['أ) ص + ٦ = ٩', 'ب) س + ٣ = ١'] }),
+  cam: 'scale',
+  enter() { state.problem = 0; this.load(); },
+  load() {
+    const P = PROBS[state.problem]; const text = `${P.e[0]}`;
+    setupScale({ xl: P.xl, xv: P.xv, left: { pos: P.a }, right: { pos: P.b }, caption: `الشكل ٥: تدريب (${state.problem ? 'ب' : 'أ'})` });
+    planeR.material.map = textPageTex({ ...CH[4].page, formula: text, checks: [`${state.problem ? 'ب' : 'أ'}) ${text}`] }); planeR.material.needsUpdate = true;
+    flapPivot.visible = true; under.visible = true; flapAngle = 0; flapTarget = 0;
+    setFlap('ما قيمة المتغيّر؟ وما التحقّق؟', [P.e[1] + '  ⟹  ' + P.e[2], 'التحقّق: ' + P.e[3]], false);
+    const num = P.a;
+    predict(`المسألة (${state.problem ? 'ب' : 'أ'}): ${P.e[0]}`, 'اختر العملية التي نطبّقها على <b>الطرفين</b> لعزل المتغيّر.', [
+      { t: `نجمع ${AR(num)} إلى الطرفين`, hint: 'هذا يزيد الطرفين. نحتاج <b>عكس</b> الجمع.' },
+      { t: `نطرح ${AR(num)} من الطرفين`, ok: true },
+      { t: `نطرح ${AR(num)} من الطرف الأيسر فقط`, hint: 'يجب أن نفعل الشيء نفسه في <b>الطرفين</b>.' }], () => {
+        setCard({ tag: 'طبّق', tagCls: 'eq', title: `اطرح ${AR(num)} من الطرفين`, body: 'اضغط الزر ليُطبَّق الطرح على الكفّتين.', acts: [{ label: `طبّق: اطرح ${AR(num)} من الطرفين`, fn: async () => { setCard({ tag: 'جارٍ التطبيق…', title: '' }); await applyBoth('sub', num); } }] });
+      });
+    onSolvedHook = () => {
+      const P2 = PROBS[state.problem]; hintAt(null);
+      const opts = [P2.xv, P2.xv + 2, -P2.xv].filter((v, i, a) => a.indexOf(v) === i).slice(0, 3);
+      setCard({ tag: 'توقّع', title: `ما قيمة ${P2.xl}؟`, body: 'انظر إلى الميزان ثم اختر.', opts: opts.map(v => ({ label: `${P2.xl} = ${AR(v)}`, fn: b => { if (v === P2.xv) { b.classList.add('good'); sfx('ding'); setTimeout(() => { setCard({ tag: 'أحسنت', tagCls: 'ok', title: `${P2.xl} = ${AR(P2.xv)}`, body: 'ارفع الغطاء لترى التحقّق من الحلّ.', acts: state.problem < PROBS.length - 1 ? [{ label: 'المسألة التالية ←', fn: () => { state.problem++; CH[4].load(); } }] : [{ label: 'من البداية ↺', fn: () => go(0) }] }); enableFlap('ما قيمة المتغيّر؟ وما التحقّق؟', [P2.e[1] + '  ⟹  ' + P2.e[2], 'التحقّق: ' + P2.e[3]]); }, 600); } else { b.classList.add('bad'); sfx('bad'); } } })) });
+    };
+  },
+  tap(hit) { if (hit.item) lightUp(hit.item, hit.item.kind === 'x' ? 'المتغيّر المجهول' : 'وحدة'); },
+  tour: ['جولة تلقائية', 'ص + ٦ = ٩: نطرح ٦ من الطرفين فتكون ص = ٣'],
+  async demo() { await sleep(1000); await applyBoth('sub', PROBS[0].a); await sleep(1600); }
+});
+
+/* ====================== أدوات التفاعل ====================== */
+function panOf(it) { return panL.items_.includes(it) ? panL : panR; }
+function lightUp(obj, txt) {
+  const it = obj.mesh ? obj : null; if (it) it.glow = 1; else obj.glow = 1;
+  showTip(obj, txt); sfx('pop', 700);
+}
+function pulseCard() { const c = $('#card'); c.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-7px)' }, { transform: 'translateX(7px)' }, { transform: 'translateX(0)' }], { duration: 320 }); }
+
+/* ====================== الكاميرا ====================== */
+const CAMS = {
+  over: { pos: [0, 13.6, 13.4], look: [0, 1.3, .5], w: 13.6 },
+  scale: { pos: [-2.2, 7.6, 10.2], look: [-2.2, 1.8, .2], w: 7.2 },
+  page: { pos: [2.5, 8.5, 7.5], look: [2.5, 0, 0], w: 5.8 }
+};
+let camCur = { pos: new THREE.Vector3(...CAMS.over.pos), look: new THREE.Vector3(...CAMS.over.look) }, camTgt = { pos: camCur.pos.clone(), look: camCur.look.clone() };
+const orbit = { yaw: 0, pitch: 0, ty: 0, tp: 0 };
+function setCam(name) {
+  const c = CAMS[name]; const a = innerWidth / innerHeight;
+  const look = new THREE.Vector3(...c.look), pos = new THREE.Vector3(...c.pos);
+  const need = c.w / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * a), f = Math.max(1, need / pos.distanceTo(look));
+  const off = pos.clone().sub(look).multiplyScalar(f); camTgt.look.copy(look); camTgt.pos.copy(look.clone().add(off));
+}
+
+/* ====================== الانتقال بين الفصول ====================== */
+const $dots = $('#dots'); CH.forEach(() => $dots.appendChild(document.createElement('i')));
+const $menuList = $('#menuList');
+CH.forEach((c, i) => { const a = document.createElement('a'); a.innerHTML = `<i>${AR(i + 1)}</i>${c.short}`; a.onclick = () => { go(i); $('#menu').classList.remove('open'); }; $menuList.appendChild(a); });
+function go(i) {
+  i = clamp(i, 0, CH.length - 1); if (i === state.ch && state.ch !== -1) return;
+  const c = CH[i]; state.ch = i; state.predicted = false; state.solved = false; hintAt(null); onSolvedHook = null;
+  flapAngle = 0; flapTarget = 0;
+  planeR.material.map = textPageTex(c.page); planeR.material.needsUpdate = true;
+  setCam(c.cam === 'over' ? 'over' : 'scale');
+  c.enter();
+  $('#ttl').textContent = c.title; [...$dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+  [...$menuList.children].forEach((a, k) => a.classList.toggle('cur', k === i));
+  $('#bPrev').disabled = i === 0; $('#bNext').disabled = i === CH.length - 1;
+  history.replaceState(null, '', '#' + (i + 1));
+}
+$('#bPrev').onclick = () => { stopTour(); go(state.ch - 1); };
+$('#bNext').onclick = () => { stopTour(); go(state.ch + 1); };
+$('#bMenu').onclick = () => $('#menu').classList.toggle('open');
+$('#bSound').onclick = e => { soundOn = !soundOn; e.currentTarget.style.opacity = soundOn ? 1 : .4; };
+$('#bTheme').onclick = () => { document.body.classList.toggle('night'); applyTheme(); };
+$('#bFull').onclick = () => { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.(); };
+addEventListener('keydown', e => { if (e.key === 'ArrowLeft') $('#bNext').click(); if (e.key === 'ArrowRight') $('#bPrev').click(); });
+function applyTheme() {
+  const n = document.body.classList.contains('night');
+  desk.material.color.set(n ? 0x5b6368 : 0xffffff); mat.material.color.set(n ? 0x2f4440 : 0x9db5a9);
+  hemi.intensity = n ? .55 : 1; hemi.color.set(n ? 0x9fb4d8 : 0xfff2dc); sun.intensity = n ? 1.3 : 2.3; sun.color.set(n ? 0xcdd9ff : 0xfff0d6);
+  stripes.material.opacity = n ? .05 : .13;
+}
+
+/* ---------- جولة تلقائية ---------- */
+function stopTour() { state.touring = false; state.tourToken++; $('#bPlay').classList.remove('on'); $('#icPlay').innerHTML = '<path d="M8 5l11 7-11 7z" fill="currentColor"/>'; }
+$('#bPlay').onclick = async () => {
+  if (state.touring) return stopTour();
+  state.touring = true; const tok = ++state.tourToken; $('#bPlay').classList.add('on'); $('#icPlay').innerHTML = '<path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/>';
+  for (let i = state.ch === CH.length - 1 ? 0 : state.ch; i < CH.length; i++) {
+    if (tok !== state.tourToken) return; if (i !== state.ch) go(i); await sleep(1800); if (tok !== state.tourToken) return;
+    state.predicted = true; if (CH[i].tour) setCard({ tag: CH[i].tour[0], tagCls: 'eq', title: CH[i].title, body: CH[i].tour[1] }); if (CH[i].demo) await CH[i].demo(); await sleep(1200);
+  }
+  if (tok === state.tourToken) stopTour();
+};
+
+/* ====================== المؤشّر والنقر ====================== */
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+let down = null, dragging = false;
+canvas.addEventListener('pointerdown', e => { down = { x: e.clientX, y: e.clientY, yaw: orbit.ty, pitch: orbit.tp }; dragging = false; canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', e => {
+  mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); mx = mouse.x; my = mouse.y;
+  if (!down) return; const dx = e.clientX - down.x, dy = e.clientY - down.y;
+  if (Math.hypot(dx, dy) > 6) { dragging = true; canvas.classList.add('drag'); orbit.ty = clamp(down.yaw - dx * .004, -.7, .7); orbit.tp = clamp(down.pitch + dy * .003, -.3, .35); }
+});
+canvas.addEventListener('pointerup', e => {
+  canvas.classList.remove('drag'); const was = dragging; down = null; dragging = false; if (was) return;
+  mouse.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  stopTourOnTap(); handleTap();
+});
+function stopTourOnTap() { if (state.touring) stopTour(); }
+function pickables() {
+  const a = []; pans.forEach(p => { p.items_.forEach(i => !i.dying && a.push(i.mesh)); if (p.plus.visible) a.push(p.plus); a.push(p.plate); }); if (flapPivot.visible) a.push(flap); return a;
+}
+function handleTap() {
+  ray.setFromCamera(mouse, camera);
+  const hits = ray.intersectObjects(pickables(), false); const h = hits[0]; const hit = {};
+  if (h) {
+    const o = h.object;
+    if (o === flap) { liftFlap(); return; }
+    if (o.userData.item) hit.item = o.userData.item;
+    else if (o === panL.plus) hit.plus = panL; else if (o === panR.plus) hit.plus = panR;
+    else if (o === panL.plate) hit.pan = panL; else if (o === panR.plate) hit.pan = panR;
+  }
+  const c = CH[state.ch]; if (c && c.tap && (hit.item || hit.plus || hit.pan)) c.tap(hit);
+}
+function liftFlap() {
+  if (!flapEnabled) { sfx('bad'); pulseCard(); showTip(flapPivot, 'أكمل النشاط أولاً'); return; }
+  hintAt(null); flapTarget = flapTarget ? 0 : Math.PI * .93; sfx('flap');
+  if (flapTarget) setTimeout(() => { setCamPage(); }, 200);
+}
+function setCamPage() { setCam('page'); setTimeout(() => state.ch >= 0 && setCam(CH[state.ch].cam === 'over' ? 'over' : 'scale'), 4200); }
+let mx = 0, my = 0;
+
+/* ====================== حلقة الرسم ====================== */
+function resize() {
+  const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  if (state.ch >= 0) setCam(CH[state.ch].cam === 'over' ? 'over' : 'scale');
+}
+addEventListener('resize', resize); resize();
+
+let last = performance.now(), angle = 0, angVel = 0; const tmp = new THREE.Vector3();
+renderer.setAnimationLoop(now => {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  // كاميرا
+  const k = 1 - Math.exp(-dt * 3.2);
+  camCur.pos.lerp(camTgt.pos, k); camCur.look.lerp(camTgt.look, k);
+  orbit.yaw += (orbit.ty - orbit.yaw) * (1 - Math.exp(-dt * 8)); orbit.pitch += (orbit.tp - orbit.pitch) * (1 - Math.exp(-dt * 8));
+  const off = camCur.pos.clone().sub(camCur.look);
+  off.applyAxisAngle(new THREE.Vector3(0, 1, 0), orbit.yaw + mx * .035);
+  const right = new THREE.Vector3().crossVectors(off, new THREE.Vector3(0, 1, 0)).normalize(); off.applyAxisAngle(right, -orbit.pitch + my * .02);
+  camera.position.copy(camCur.look).add(off); camera.lookAt(camCur.look);
+
+  // انبثاق الورق
+  const pa = clamp((now - popupAnim.t0) / 900); const pe = pa < 1 ? 1 - Math.pow(1 - pa, 3) * Math.cos(pa * 7) * (1 - pa) : 1;
+  popup.scale.y = Math.max(.001, pa < 1 ? easeOut(pa) * 1.0 + Math.sin(pa * Math.PI) * .08 : 1);
+  popup.visible = pa > 0 || popupAnim.t0 === 0;
+
+  // العناصر
+  for (const p of pans) {
+    for (const it of [...p.items_]) {
+      const mesh = it.mesh;
+      if (it.dying) {
+        const a = clamp((now - it.dying) / 650);
+        mesh.position.y = it.tgt.y + easeOut(a) * (it.fly ?? 1.4); mesh.scale.setScalar(Math.max(.01, 1 - a * .6));
+        mesh.rotation.y += dt * 4; if (mesh.material.opacity !== undefined) { }
+        if (a >= 1) { p.items.remove(mesh); p.items_.splice(p.items_.indexOf(it), 1); layout(p); }
+        continue;
+      }
+      it.pos.lerp(it.tgt, 1 - Math.exp(-dt * (it.born && now - it.born < 500 ? 8 : 12)));
+      mesh.position.copy(it.pos);
+      const sc = clamp((now - it.born) / 350); mesh.scale.setScalar(.01 + easeOut(sc) * .99 + (it.glow > 0 ? .08 * Math.sin(it.glow * 9) : 0));
+      if (it.glow > 0) { it.glow = Math.max(0, it.glow - dt * .9); const m = Array.isArray(mesh.material) ? mesh.material : [mesh.material]; m.forEach(mm => { if (mm.emissive) { mm.emissive.setRGB(1, .8, .3); mm.emissiveIntensity = it.glow * .9; } }); }
+    }
+    // علامة +
+    if (p.plus.visible) { p.plus.scale.setScalar(1 + .12 * Math.sin(now * .006)); }
+  }
+  // الميزان: الكفّة الأثقل تنزل
+  const wL = panWeight(panL), wR = panWeight(panR);
+  const tgt = clamp((wL - wR) * .05, -.34, .34);
+  angVel += (tgt - angle) * 70 * dt; angVel *= Math.exp(-dt * 5.5); angle += angVel * dt;
+  beam.rotation.z = angle;
+  const hx = HALF * Math.cos(angle), hy = HALF * Math.sin(angle);
+  panL.group.position.set(-hx, BEAM_Y - hy - HANG, .1); panR.group.position.set(hx, BEAM_Y + hy - HANG, .1);
+  [[panL, -1], [panR, 1]].forEach(([p, s]) => {
+    const a = p.strings.geometry.attributes.position, gp = p.group.position, bx = s * hx, by = BEAM_Y + s * hy;
+    [[-1, 0, 0], [1, 0, 0], [0, 0, -.95]].forEach((q, i) => { a.setXYZ(i * 2, bx, by - .1, .1); a.setXYZ(i * 2 + 1, gp.x + q[0], gp.y, gp.z + q[2]); });
+    a.needsUpdate = true;
+  });
+  // الغطاء
+  flapAngle += (flapTarget - flapAngle) * (1 - Math.exp(-dt * 6)); flapPivot.rotation.x = flapAngle;
+  if (hintObj === flapPivot && flapEnabled) flapPivot.rotation.x = flapAngle + Math.max(0, Math.sin(now * .006)) * .06;
+  // جسيمات
+  for (let i = 0; i < NP; i++) {
+    const q = parts[i]; if (q.life > 0) { q.life -= dt; q.v.y -= 7 * dt; q.p.addScaledVector(q.v, dt); }
+    ppos.set(q.life > 0 ? [q.p.x, q.p.y, q.p.z] : [0, -50, 0], i * 3); pcol.set([q.c.r, q.c.g, q.c.b], i * 3);
+  }
+  pg.attributes.position.needsUpdate = true; pg.attributes.color.needsUpdate = true;
+  // التلميح
+  if (hintObj) {
+    hintObj.getWorldPosition(tmp); if (hintObj === flapPivot) tmp.set(PW / 2, .3, FLAP_Z - FLAP_D / 2);
+    const s = proj(tmp); hand.style.left = s.x + 'px'; hand.style.top = s.y + 'px';
+  }
+  if (tipObj) { const o = tipObj.mesh || tipObj.group || tipObj; o.getWorldPosition(tmp); tmp.y += .4; const s = proj(tmp); tip.style.left = s.x + 'px'; tip.style.top = s.y + 'px'; }
+  renderer.render(scene, camera);
+});
+
+/* ====================== الانطلاق ====================== */
+applyTheme();
+const start = clamp((parseInt(location.hash.slice(1)) || 1) - 1, 0, CH.length - 1);
+planeL.material.map = leftPageTex('...'); planeR.material.map = textPageTex(CH[0].page);
+go(start);
+setTimeout(() => { $('#loading').style.opacity = 0; setTimeout(() => $('#loading').remove(), 700); }, 400);
+window.__book = { go, state, CH, status, onChange, applyBoth, panL, panR, removeItem, addItem, liftFlap, subBlock, THREE, camera };
+</script>
+</body>
+</html>
