@@ -371,8 +371,10 @@ function sfx(kind, f = 600) {
 const FLAP_W = 3.9, FLAP_D = 1.5, FLAP_Z = 2.9;
 const flapPivot = new THREE.Group(); flapPivot.position.set(PW / 2, .06, FLAP_Z); book.add(flapPivot);
 const flapGeo = new THREE.PlaneGeometry(FLAP_W, FLAP_D); flapGeo.rotateX(-Math.PI / 2); flapGeo.translate(0, 0, -FLAP_D / 2);
-let flapMat = new THREE.MeshStandardMaterial({ roughness: .95, side: THREE.DoubleSide });
+let flapMat = new THREE.MeshStandardMaterial({ roughness: .95, side: THREE.FrontSide });
 const flap = new THREE.Mesh(flapGeo, flapMat); flap.castShadow = true; flap.receiveShadow = true; flapPivot.add(flap);
+// ظهر الغطاء: ورقة سادة بدل النص المقلوب
+const flapBack = new THREE.Mesh(flapGeo, new THREE.MeshStandardMaterial({ roughness: .95, side: THREE.BackSide, map: canvasTex(64, 64, (g, w, h) => { g.fillStyle = '#efe6c8'; g.fillRect(0, 0, w, h); }) })); flapBack.receiveShadow = true; flapBack.raycast = () => { }; flapPivot.add(flapBack);
 { const eg = new THREE.EdgesGeometry(new THREE.BoxGeometry(FLAP_W, .02, FLAP_D)); const l = new THREE.LineSegments(eg, LINE); l.position.set(0, 0, -FLAP_D / 2); l.raycast = () => { }; flapPivot.add(l); }
 const under = new THREE.Mesh(new THREE.PlaneGeometry(FLAP_W, FLAP_D), new THREE.MeshStandardMaterial({ roughness: .95 }));
 under.rotation.x = -Math.PI / 2; under.position.set(PW / 2, .036, FLAP_Z - FLAP_D / 2); under.receiveShadow = true; book.add(under);

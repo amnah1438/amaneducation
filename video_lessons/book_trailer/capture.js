@@ -13,6 +13,7 @@ const ease = x => { x = Math.min(1, Math.max(0, x)); return x < .5 ? 4 * x * x *
   const p = await b.newPage({ viewport: { width: W, height: H } });
   p.on('pageerror', e => console.log('PAGEERR', e.message));
   await p.clock.install({ time: 0 });
+  await p.clock.pauseAt(1000);                    // الساعة متوقفة: لا يمرّ الوقت إلا بخطوات runFor (تصوير حتمي)
   await p.addInitScript(v => { window.__sfxLog = []; window.__manual = true; window.__V = v; }, V);
   await p.goto('http://localhost:8765/static/tools/book/index.html#1');
   for (let i = 0; i < 200; i++) { await p.clock.runFor(100); if (await p.evaluate(() => !!window.__book)) break; await new Promise(r => setTimeout(r, 100)); }
@@ -50,6 +51,7 @@ const fx = {
   const ev = T.ev.map(([t, k, a]) => [t, fx[k], a]).sort((a, c) => a[0] - c[0]);
   const out = process.env.OUT || __dirname + `/_silent_${MODE}.mp4`;
   const ff = spawn('ffmpeg', ['-y', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '17', out], { stdio: ['pipe', 'inherit', 'inherit'] });
+  const T0 = await p.evaluate(() => performance.now());   // لحساب أزمنة المؤثرات الصوتية من بداية الفيديو
   const t0 = Date.now(); let k = 0;
   for (let f = 0; f < DUR * FPS; f++) {
     const t = f / FPS;
@@ -64,6 +66,6 @@ const fx = {
     if (!ff.stdin.write(buf)) await new Promise(r => ff.stdin.once('drain', r));
     if (f % 60 === 0) console.log(`frame ${f}/${DUR * FPS}  ${((Date.now() - t0) / 1000).toFixed(0)}s`);
   }
-  fs.writeFileSync(__dirname + `/sfx_log_${MODE}.json`, JSON.stringify(await p.evaluate(() => window.__sfxLog)));
+  fs.writeFileSync(__dirname + `/sfx_log_${MODE}.json`, JSON.stringify((await p.evaluate(() => window.__sfxLog)).map(([kd, f, ms]) => [kd, f, ms - T0])));
   ff.stdin.end(); await new Promise(r => ff.on('close', r)); await b.close();
 })();
