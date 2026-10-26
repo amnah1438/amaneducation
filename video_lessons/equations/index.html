@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>معادلات الجمع والطرح</title>
+<style>
+@font-face{font-family:Tajawal;src:url(fonts/Tajawal-Regular.ttf);font-weight:400}
+@font-face{font-family:Tajawal;src:url(fonts/Tajawal-Bold.ttf);font-weight:700}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1280px;height:720px;overflow:hidden;background:#fff8ec}
+#stage{position:relative;width:1280px;height:720px;overflow:hidden;font-family:Tajawal,sans-serif;color:#1f2a44;
+  background:radial-gradient(circle at 18% 12%,#ffe9c7 0,#fff8ec 45%,#e3f2ff 100%)}
+.a{position:absolute}
+.c{left:0;width:1280px;text-align:center}
+.row{position:absolute;left:0;width:1280px;display:flex;justify-content:center;direction:ltr;font-weight:700;white-space:nowrap}
+.row>.l,.row>.r2{width:400px;text-align:center}
+.row>.m{width:90px;text-align:center}
+.x{color:#7c4dff}.r{color:#ef476f}.g{color:#1fa971}.b{color:#118ab2}
+.pop{display:inline-block}
+#cap{left:90px;width:1100px;bottom:26px;padding:14px 28px;border-radius:22px;background:rgba(31,42,68,.92);color:#fff;
+  font-size:34px;font-weight:700;text-align:center;line-height:1.35}
+.tile{position:absolute;width:44px;height:44px;border-radius:8px;background:#ff9f1c;box-shadow:inset 0 -5px 0 #d97f00}
+.card{position:absolute;width:500px;height:330px;border-radius:28px;background:#fff;box-shadow:0 14px 40px rgba(31,42,68,.18);text-align:center}
+.bul{position:absolute;right:170px;font-size:44px;font-weight:700;direction:rtl}
+.bul i{display:inline-block;width:56px;height:56px;line-height:56px;border-radius:50%;background:#118ab2;color:#fff;font-style:normal;text-align:center;margin-left:18px;font-size:34px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bgsyms"></div>
+
+  <!-- المشهد 1: العنوان -->
+  <div id="s1" class="a c" style="top:0;height:720px">
+    <div class="a c" id="t1" style="top:170px;font-size:100px;font-weight:700">معادلات الجمع والطرح</div>
+    <div class="a c" id="t2" style="top:310px;font-size:46px;color:#118ab2;font-weight:700">كيف نكتشف الرقم المجهول؟</div>
+    <div class="row" id="t3" style="top:410px;font-size:96px"><span class="x">x</span>&nbsp;+&nbsp;5&nbsp;=&nbsp;12</div>
+  </div>
+
+  <!-- الميزان (المشاهد 2 و 4) -->
+  <div id="sc" class="a" style="left:0;top:0;width:1280px;height:720px"></div>
+  <div class="row" id="eqA" style="top:62px;font-size:72px"><div class="l"><span class="x">x</span> + 5</div><div class="m">=</div><div class="r2">12</div></div>
+  <div class="row" id="eqB" style="top:158px;font-size:52px"><div class="l"><span class="x">x</span> + 5 <span class="r">− 5</span></div><div class="m">=</div><div class="r2">12 <span class="r">− 5</span></div></div>
+  <div class="row" id="eqC" style="top:140px;font-size:84px"><div class="l"><span class="x">x</span></div><div class="m">=</div><div class="r2 g">7</div></div>
+  <div class="a" id="badge" style="left:300px;top:150px;font-size:32px;font-weight:700;color:#7c4dff;background:#fff;padding:6px 20px;border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.12)">x = الرقم المجهول ↓</div>
+
+  <!-- المشهد 3: القاعدة الذهبية -->
+  <div id="s3" class="a c" style="top:0;height:720px">
+    <div class="a c" style="top:60px;font-size:64px;font-weight:700;color:#e07f00">القاعدة الذهبية</div>
+    <div class="a c" style="top:160px;font-size:46px;font-weight:700">ما نفعله في طرف، نفعله في الطرف الآخر</div>
+    <div class="row" id="g1" style="top:290px;font-size:78px"><div class="l">10</div><div class="m">=</div><div class="r2">10</div></div>
+    <div class="row" id="g2" style="top:395px;font-size:78px"><div class="l">10 <span class="r">− 3</span></div><div class="m">=</div><div class="r2">10 <span class="r">− 3</span></div></div>
+    <div class="row" id="g3" style="top:500px;font-size:78px"><div class="l g">7</div><div class="m">=</div><div class="r2 g">7</div></div>
+  </div>
+
+  <!-- المشهد 5: مثال 2 -->
+  <div id="s5" class="a c" style="top:0;height:720px">
+    <div class="a c" id="chip5" style="top:44px;font-size:44px;font-weight:700;color:#fff"><span style="background:#118ab2;padding:6px 34px;border-radius:30px">مثال 2 · معادلة طرح</span></div>
+    <div class="row" id="e1" style="top:150px;font-size:100px"><div class="l"><span class="x">x</span> − 4</div><div class="m">=</div><div class="r2">9</div></div>
+    <div class="row" id="e2" style="top:300px;font-size:100px"><div class="l"><span class="x">x</span> <span id="strk"><span class="r">− 4</span> <span class="g pop" id="p1">+ 4</span></span></div><div class="m">=</div><div class="r2">9 <span class="g pop" id="p2">+ 4</span></div></div>
+    <div class="row" id="e3" style="top:450px;font-size:110px"><div class="l"><span class="x">x</span></div><div class="m">=</div><div class="r2 g">13</div></div>
+  </div>
+
+  <!-- المشهد 6: التحقق -->
+  <div id="s6" class="a c" style="top:0;height:720px">
+    <div class="a c" style="top:52px;font-size:64px;font-weight:700;color:#118ab2">نتأكد من الحل</div>
+    <div class="card" id="k1" style="left:100px;top:170px">
+      <div style="margin-top:26px;font-size:38px;font-weight:700;color:#7c4dff;direction:ltr"><span class="x">x</span> + 5 = 12 &nbsp;،&nbsp; <span class="x">x</span> = 7</div>
+      <div style="margin-top:34px;font-size:84px;font-weight:700;direction:ltr">7 + 5 = 12</div>
+      <svg id="ck1" class="a" style="left:200px;top:215px" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#1fa971"/><path id="cp1" d="M28 52 L45 69 L74 33" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg>
+    </div>
+    <div class="card" id="k2" style="left:680px;top:170px">
+      <div style="margin-top:26px;font-size:38px;font-weight:700;color:#7c4dff;direction:ltr"><span class="x">x</span> − 4 = 9 &nbsp;،&nbsp; <span class="x">x</span> = 13</div>
+      <div style="margin-top:34px;font-size:84px;font-weight:700;direction:ltr">13 − 4 = 9</div>
+      <svg id="ck2" class="a" style="left:200px;top:215px" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#1fa971"/><path id="cp2" d="M28 52 L45 69 L74 33" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/></svg>
+    </div>
+  </div>
+
+  <!-- المشهد 7: جاء دورك -->
+  <div id="s7" class="a c" style="top:0;height:720px">
+    <div class="a c" style="top:40px;font-size:64px;font-weight:700;color:#ef476f">جاء دورك!</div>
+    <div class="row" id="y1" style="top:140px;font-size:96px"><div class="l"><span class="x">y</span> + 8</div><div class="m">=</div><div class="r2">15</div></div>
+    <svg id="ring" class="a" style="left:540px;top:290px" width="200" height="200" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="84" fill="#fff" stroke="#e3e8f0" stroke-width="14"/>
+      <circle id="arc" cx="100" cy="100" r="84" fill="none" stroke="#ef476f" stroke-width="14" stroke-linecap="round" transform="rotate(-90 100 100)" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/>
+    </svg>
+    <div class="a c" id="cnt" style="top:318px;font-size:110px;font-weight:700;color:#ef476f">5</div>
+    <div class="row" id="y2" style="top:270px;font-size:80px"><div class="l"><span class="x">y</span> + 8 <span class="r">− 8</span></div><div class="m">=</div><div class="r2">15 <span class="r">− 8</span></div></div>
+    <div class="row" id="y3" style="top:410px;font-size:104px"><div class="l"><span class="x">y</span></div><div class="m">=</div><div class="r2 g">7</div></div>
+  </div>
+
+  <!-- المشهد 8: الخلاصة -->
+  <div id="s8" class="a c" style="top:0;height:720px">
+    <div class="a c" style="top:40px;font-size:68px;font-weight:700;color:#118ab2">ماذا تعلّمنا؟</div>
+    <div class="bul" id="b1" style="top:160px"><i>1</i>اجعل x وحدها في طرف</div>
+    <div class="bul" id="b2" style="top:262px"><i>2</i>استخدم العملية العكسية (الجمع ↔ الطرح)</div>
+    <div class="bul" id="b3" style="top:364px"><i>3</i>افعل الشيء نفسه في الطرفين ثم تحقّق</div>
+    <div class="a c" id="bravo" style="top:470px;font-size:84px;font-weight:700;color:#e07f00">أحسنتم! ★</div>
+  </div>
+
+  <div id="cap" class="a"></div>
+</div>
+
+<script>
+const DURATION = 122;
+const $ = id => document.getElementById(id);
+const clamp = v => Math.min(1, Math.max(0, v));
+const S = (t, a, b) => clamp((t - a) / (b - a));
+const eo = p => 1 - Math.pow(1 - p, 3);
+const eb = p => { const c = 2.4; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+const win = (t, a, b, f = .5) => S(t, a, a + f) * (1 - S(t, b - f, b));
+const fadeIn = (t, a, f = .5) => S(t, a, a + f);
+
+function mk(cls, css, html, parent) {
+  const d = document.createElement('div');
+  d.className = cls; d.style.cssText = css; if (html) d.innerHTML = html;
+  parent.appendChild(d); return d;
+}
+function put(el, o, x = 0, y = 0, s = 1, r = 0) {
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px,${y}px) scale(${s}) rotate(${r}deg)`;
+}
+// ظهور بحركة صعود خفيفة
+function rise(el, t, a, b) {
+  const o = win(t, a, b), p = eo(S(t, a, a + .6));
+  put(el, o, 0, (1 - p) * 26);
+}
+
+/* ---------- رموز خلفية ---------- */
+const syms = ['+', '−', '=', 'x', '5', '12', '7', '+', '−', '='];
+const symEls = syms.map((s, i) => mk('a', `left:${(i * 131 + 40) % 1200}px;top:${(i * 197 + 60) % 560}px;font-size:${70 + (i % 3) * 24}px;font-weight:700;color:#7c4dff;opacity:.07`, s, $('bgsyms')));
+
+/* ---------- بناء الميزان ---------- */
+const sc = $('sc');
+const BEAM_Y = 250;
+const beam = mk('a', `left:380px;top:${BEAM_Y - 7}px;width:520px;height:14px;border-radius:7px;background:#1f2a44`, '', sc);
+mk('a', `left:632px;top:${BEAM_Y}px;width:16px;height:330px;background:#1f2a44`, '', sc);
+mk('a', `left:540px;top:570px;width:200px;height:22px;border-radius:11px;background:#1f2a44`, '', sc);
+mk('a', `left:624px;top:${BEAM_Y - 16}px;width:32px;height:32px;border-radius:50%;background:#ff9f1c;border:5px solid #1f2a44`, '', sc);
+
+function buildPan(cx) {
+  const p = mk('a', `left:${cx}px;top:${BEAM_Y}px;width:0;height:0`, '', sc);
+  p.insertAdjacentHTML('beforeend',
+    `<svg class="a" style="left:-170px;top:0" width="340" height="175"><line x1="170" y1="0" x2="0" y2="170" stroke="#1f2a44" stroke-width="4"/><line x1="170" y1="0" x2="340" y2="170" stroke="#1f2a44" stroke-width="4"/></svg>`);
+  mk('a', 'left:-170px;top:170px;width:340px;height:14px;border-radius:7px;background:#1f2a44', '', p);
+  return p;
+}
+const panL = buildPan(380), panR = buildPan(900);
+
+const xbox = mk('a', 'left:-148px;top:78px;width:88px;height:88px;border-radius:14px;background:#7c4dff;color:#fff;font-size:64px;font-weight:700;text-align:center;line-height:84px;box-shadow:inset 0 -8px 0 #5b2fd6', 'x', panL);
+const tilesL = [], tilesR = [];
+for (let i = 0; i < 5; i++) tilesL.push(mk('tile', `left:${-50 + (i % 3) * 48}px;top:${122 - Math.floor(i / 3) * 48}px`, '', panL));
+for (let i = 0; i < 12; i++) tilesR.push(mk('tile', `left:${-142 + (i % 6) * 48}px;top:${122 - Math.floor(i / 6) * 48}px`, '', panR));
+const extraR = mk('tile', `left:-142px;top:26px;background:#ef476f;box-shadow:inset 0 -5px 0 #b82a4d`, '', panR);
+const extraL = mk('tile', `left:46px;top:74px;background:#ef476f;box-shadow:inset 0 -5px 0 #b82a4d`, '', panL);
+
+function lab(parent, html, color) {
+  return mk('a', `left:-120px;top:200px;width:240px;text-align:center;font-size:46px;font-weight:700;direction:ltr;color:${color || '#1f2a44'}`, html, parent);
+}
+const labL1 = lab(panL, '<span class="x">x</span> + 5'), labL2 = lab(panL, '<span class="x">x</span>', '#7c4dff');
+const labR1 = lab(panR, '12'), labR2 = lab(panR, '7', '#1fa971');
+
+/* ---------- التعليقات النصية ---------- */
+const CAPS = [
+  [0.6, 6.6, 'أهلاً بكم! اليوم نتعلّم كيف نحلّ معادلات الجمع والطرح'],
+  [8, 12, 'المعادلة تشبه ميزاناً متوازناً: ما على اليمين يساوي ما على اليسار'],
+  [12, 16, 'هنا: x + 5 = 12 ، والرقم x مجهول نريد اكتشافه'],
+  [16.2, 19.8, 'لو أضفنا مكعباً إلى كفّة واحدة فقط، يختلّ الميزان!'],
+  [19.8, 24.6, 'فنضيف مكعباً إلى الكفّة الأخرى ليعود التوازن'],
+  [25.6, 29, 'القاعدة الذهبية: ما نفعله في طرف نفعله في الطرف الآخر'],
+  [29, 35.6, 'نطرح 3 من الطرفين، فتبقى المساواة صحيحة'],
+  [36.6, 40, 'مثال 1: x + 5 = 12 . نريد أن تبقى x وحدها'],
+  [40, 44, 'المكعبات الخمسة مضافة إلى x ... نريد التخلّص منها'],
+  [44, 47, 'عكس الجمع هو الطرح، فنطرح 5 من الطرفين'],
+  [47, 54.6, 'نُزيل خمسة مكعبات من كل كفّة ... والميزان ما زال متوازناً'],
+  [55, 61.8, 'بقيت x وحدها مقابل 7 مكعبات، إذن x = 7'],
+  [62.8, 66, 'مثال 2: x − 4 = 9 . هنا العملية طرح'],
+  [66, 71, 'عكس الطرح هو الجمع، فنجمع 4 إلى الطرفين'],
+  [71, 76, 'في الطرف الأيسر: − 4 + 4 يلغي كلٌّ منهما الآخر'],
+  [76, 82, 'وفي الطرف الآخر: 9 + 4 = 13'],
+  [82, 87.6, 'إذن x = 13'],
+  [88.6, 93, 'نتأكد من الحل: نعوّض قيمة x في المعادلة الأصلية'],
+  [93, 99.6, '7 + 5 = 12 صحيحة، و 13 − 4 = 9 صحيحة أيضاً'],
+  [100.6, 105, 'جرّب بنفسك: y + 8 = 15 . ماذا نفعل بالرقم 8؟'],
+  [105, 108, 'فكّر ... لديك 5 ثوانٍ!'],
+  [108, 111, 'نطرح 8 من الطرفين'],
+  [111, 113.8, 'y = 7'],
+  [114.6, 121.6, 'تذكّر: اعزل المجهول واستخدم العملية العكسية']
+];
+
+/* ---------- الرسم لكل لحظة ---------- */
+function render(t) {
+  // رموز الخلفية تطفو
+  symEls.forEach((e, i) => { e.style.transform = `translateY(${Math.sin(t * .6 + i) * 18}px) rotate(${Math.sin(t * .3 + i) * 8}deg)`; });
+
+  // المشهد 1
+  const o1 = win(t, 0, 7.2);
+  $('s1').style.opacity = o1;
+  put($('t1'), fadeIn(t, .3, .8), 0, (1 - eo(S(t, .3, 1.1))) * -40, 0.8 + 0.2 * eb(S(t, .3, 1.1)));
+  put($('t2'), fadeIn(t, 1.6), 0, (1 - eo(S(t, 1.6, 2.4))) * 30);
+  put($('t3'), fadeIn(t, 3), 0, 0, 0.6 + 0.4 * eb(S(t, 3, 3.8)));
+  $('s1').style.display = o1 > 0.001 ? '' : 'none';
+
+  // الميزان + المعادلات (المشهد 2 ثم 4)
+  const sv = Math.max(win(t, 7.6, 25.2), win(t, 35.8, 62.6));
+  sc.style.opacity = sv; sc.style.display = sv > 0.001 ? '' : 'none';
+
+  // الميل
+  const ang = 7 * eo(S(t, 16.6, 17.4)) * (1 - eo(S(t, 20.4, 21.2)));
+  const dy = 260 * Math.sin(ang * Math.PI / 180);
+  beam.style.transform = `rotate(${ang}deg)`;
+  panL.style.transform = `translateY(${-dy}px)`;
+  panR.style.transform = `translateY(${dy}px)`;
+
+  // العناصر الأساسية تدخل
+  for (let i = 0; i < 5; i++) put(tilesL[i], fadeIn(t, 8.2 + i * .12, .3), 0, (1 - eo(S(t, 8.2 + i * .12, 8.9 + i * .12))) * -60);
+  put(xbox, fadeIn(t, 8, .4), 0, (1 - eo(S(t, 8, 8.6))) * -60, 1 + 0.08 * Math.sin(Math.max(0, t - 55) * 5) * S(t, 55, 56));
+  for (let i = 0; i < 12; i++) put(tilesR[i], fadeIn(t, 8.4 + i * .08, .3), 0, (1 - eo(S(t, 8.4 + i * .08, 9 + i * .08))) * -60);
+
+  // المكعبات الإضافية في المشهد 2
+  const dropR = (1 - eb(S(t, 16, 16.7))) * -220;
+  put(extraR, S(t, 16, 16.2) * (1 - S(t, 23.8, 24.6)), 0, dropR);
+  const dropL = (1 - eb(S(t, 19.4, 20.1))) * -220;
+  put(extraL, S(t, 19.4, 19.6) * (1 - S(t, 23.8, 24.6)), 0, dropL);
+
+  // إبراز المكعبات الخمسة (المشهد 4)
+  const pulse = 0.5 + 0.5 * Math.sin(t * 8);
+  const hiL = win(t, 40, 47, .3), hiR = win(t, 46, 48, .2);
+  tilesL.forEach(e => { e.style.outline = hiL > .01 ? `5px solid rgba(124,77,255,${hiL * (0.5 + 0.5 * pulse)})` : 'none'; });
+  tilesR.forEach((e, i) => { e.style.outline = (i >= 7 && hiR > .01) ? `5px solid rgba(239,71,111,${hiR})` : 'none'; });
+
+  // إزالة المكعبات
+  for (let i = 0; i < 5; i++) {
+    const ts = 47.6 + i * 1.3, p = S(t, ts, ts + .9);
+    const base = fadeIn(t, 8.2 + i * .12, .3);
+    put(tilesL[4 - i], base * (1 - p), 0, -110 * eo(p), 1 - .5 * p, -25 * p);
+    const baseR = fadeIn(t, 8.4 + (11 - i) * .08, .3);
+    put(tilesR[11 - i], baseR * (1 - p), 0, -110 * eo(p), 1 - .5 * p, 25 * p);
+  }
+  // ثبّت وضع المكعبات المتبقية بعد الإزالة
+  for (let i = 0; i < 5; i++) if (t >= 47.6 + i * 1.3 + .9) { tilesL[4 - i].style.opacity = 0; tilesR[11 - i].style.opacity = 0; }
+
+  // عناوين الكفتين
+  const sw = S(t, 54.6, 55.2);
+  const labO = fadeIn(t, 9.4, .5);
+  put(labL1, labO * (1 - sw)); put(labL2, labO * sw, 0, 0, 1 + .15 * Math.sin(sw * Math.PI));
+  put(labR1, labO * (1 - sw)); put(labR2, labO * sw, 0, 0, 1 + .15 * Math.sin(sw * Math.PI));
+
+  // المعادلات العلوية
+  const inScale = Math.max(win(t, 8.4, 25), win(t, 36, 62.6));
+  put($('eqA'), inScale, 0, (1 - eo(S(t, 8.4, 9))) * -20 * (t < 30 ? 1 : 0));
+  put($('badge'), win(t, 11.5, 16, .4));
+  put($('eqB'), win(t, 44, 55, .5), 0, (1 - eo(S(t, 44, 44.6))) * 20);
+  put($('eqC'), win(t, 55, 62.6, .5), 0, 0, .6 + .4 * eb(S(t, 55, 55.8)));
+
+  // المشهد 3
+  const o3 = win(t, 25.2, 36.2);
+  $('s3').style.opacity = o3; $('s3').style.display = o3 > 0.001 ? '' : 'none';
+  rise($('g1'), t, 28, 36.2); rise($('g2'), t, 30.6, 36.2); rise($('g3'), t, 33.2, 36.2);
+
+  // المشهد 5
+  const o5 = win(t, 62.4, 88.2);
+  $('s5').style.opacity = o5; $('s5').style.display = o5 > 0.001 ? '' : 'none';
+  put($('chip5'), fadeIn(t, 62.8), 0, 0, .8 + .2 * eb(S(t, 62.8, 63.5)));
+  put($('e1'), fadeIn(t, 63.6), 0, (1 - eo(S(t, 63.6, 64.3))) * 30);
+  const e2o = fadeIn(t, 71);
+  put($('e2'), e2o * (1 - .65 * S(t, 78, 78.8)), 0, (1 - eo(S(t, 71, 71.7))) * 30);
+  const pp = 1 + .5 * Math.sin(S(t, 71.4, 72.4) * Math.PI);
+  $('p1').style.transform = `scale(${pp})`; $('p2').style.transform = `scale(${pp})`;
+  const strike = S(t, 76, 76.6);
+  const sk = $('strk');
+  sk.style.textDecoration = strike > 0 ? 'line-through' : 'none';
+  sk.style.textDecorationThickness = '8px'; sk.style.textDecorationColor = '#ef476f';
+  sk.style.opacity = 1 - .65 * S(t, 76.6, 77.6);
+  put($('e3'), fadeIn(t, 78.6), 0, 0, .7 + .3 * eb(S(t, 78.6, 79.5)));
+
+  // المشهد 6
+  const o6 = win(t, 88.4, 100.2);
+  $('s6').style.opacity = o6; $('s6').style.display = o6 > 0.001 ? '' : 'none';
+  put($('k1'), fadeIn(t, 89.2), 0, (1 - eo(S(t, 89.2, 90))) * 40);
+  put($('k2'), fadeIn(t, 94.4), 0, (1 - eo(S(t, 94.4, 95.2))) * 40);
+  const c1 = S(t, 92.2, 93), c2 = S(t, 97.2, 98);
+  put($('ck1'), c1, 0, 0, eb(c1)); $('cp1').style.strokeDashoffset = 1 - S(t, 92.8, 93.5);
+  put($('ck2'), c2, 0, 0, eb(c2)); $('cp2').style.strokeDashoffset = 1 - S(t, 97.8, 98.5);
+
+  // المشهد 7
+  const o7 = win(t, 100.2, 114.4);
+  $('s7').style.opacity = o7; $('s7').style.display = o7 > 0.001 ? '' : 'none';
+  put($('y1'), fadeIn(t, 100.8), 0, (1 - eo(S(t, 100.8, 101.5))) * 30);
+  const ringO = win(t, 102.6, 108, .3);
+  put($('ring'), ringO); put($('cnt'), ringO);
+  $('arc').style.strokeDashoffset = S(t, 102.8, 107.8);
+  $('cnt').textContent = Math.max(1, Math.ceil(107.8 - Math.max(t, 102.8)));
+  put($('y2'), fadeIn(t, 108), 0, (1 - eo(S(t, 108, 108.7))) * 30);
+  put($('y3'), fadeIn(t, 111), 0, 0, .7 + .3 * eb(S(t, 111, 111.8)));
+
+  // المشهد 8
+  const o8 = fadeIn(t, 114.2) ;
+  $('s8').style.opacity = o8; $('s8').style.display = o8 > 0.001 ? '' : 'none';
+  ['b1', 'b2', 'b3'].forEach((id, i) => put($(id), fadeIn(t, 115 + i * 1.6), 0, (1 - eo(S(t, 115 + i * 1.6, 115.8 + i * 1.6))) * 30));
+  put($('bravo'), fadeIn(t, 119.4), 0, 0, .6 + .4 * eb(S(t, 119.4, 120.3)), Math.sin(t * 3) * 2 * S(t, 120, 121));
+
+  // التعليق
+  let cap = null;
+  for (const c of CAPS) if (t >= c[0] && t < c[1]) cap = c;
+  const cb = $('cap');
+  if (cap) { if (cb.dataset.k !== String(cap[0])) { cb.textContent = cap[2]; cb.dataset.k = String(cap[0]); } cb.style.opacity = Math.min(S(t, cap[0], cap[0] + .3), 1 - S(t, cap[1] - .3, cap[1])); }
+  else cb.style.opacity = 0;
+}
+window.render = render; window.DURATION = DURATION;
+
+if (location.search.includes('play')) {
+  const t0 = performance.now();
+  (function loop() { render(Math.min(DURATION, (performance.now() - t0) / 1000)); requestAnimationFrame(loop); })();
+} else render(0);
+</script>
+</body>
+</html>
