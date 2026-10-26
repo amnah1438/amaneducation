@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>تهيئة: تحدّي العدد المجهول</title>
+<style>
+@font-face{font-family:Tajawal;src:url(fonts/Tajawal-Regular.ttf);font-weight:400}
+@font-face{font-family:Tajawal;src:url(fonts/Tajawal-Bold.ttf);font-weight:700}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1280px;height:720px;overflow:hidden;background:#fff8ec}
+#stage{position:relative;width:1280px;height:720px;overflow:hidden;font-family:Tajawal,sans-serif;color:#1f2a44;
+  background:radial-gradient(circle at 82% 10%,#ffe0a8 0,#fff4df 38%,#dff1ff 100%)}
+.a{position:absolute}
+.c{left:0;width:1280px;text-align:center}
+.row{position:absolute;width:1280px;display:flex;justify-content:center;direction:rtl;font-weight:700;white-space:nowrap}
+.S{width:var(--sw,330px);display:flex;direction:rtl;justify-content:center}
+.M{width:var(--mw,80px);text-align:center}
+.t{display:inline-block;direction:ltr;unicode-bidi:isolate;margin:0 .16em}
+.ie{display:inline-flex;direction:rtl;vertical-align:middle;unicode-bidi:isolate;font-weight:700}
+.r{color:#ef476f}.g{color:#1fa971}.x{color:#7c4dff}.b{color:#1f4fa0}
+.chip{display:inline-block;background:#7c4dff;color:#fff;font-size:36px;font-weight:700;padding:4px 34px;border-radius:30px;box-shadow:0 6px 0 #5b2fd6}
+.gt{position:absolute;width:56px;height:56px;border-radius:10px;background:#e6b422;color:#5b4300;font-size:36px;font-weight:700;text-align:center;line-height:54px;box-shadow:inset 0 -6px 0 #b88a00}
+.gt.red{background:#ef476f;color:#fff;box-shadow:inset 0 -6px 0 #b82a4d}
+.bubble{position:absolute;background:#fff;border-radius:26px;box-shadow:0 10px 30px rgba(31,42,68,.16);font-weight:700;text-align:center;line-height:1.45;padding:14px 30px}
+.mat{position:absolute;width:250px;height:250px;border-radius:18px;background:#fff;border:6px solid #c9c2a8;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.mbox{position:absolute;width:140px;height:140px;border-radius:30px;background:#7c4dff;box-shadow:inset 0 -10px 0 #5b2fd6,0 12px 24px rgba(91,47,214,.35);color:#fff;text-align:center}
+.mbox .q{position:absolute;left:0;width:100%;top:44px;font-size:84px;font-weight:700;line-height:1.05}
+.mbox .e{position:absolute;top:22px;width:26px;height:26px;border-radius:50%;background:#fff}
+.mbox .e i{position:absolute;left:8px;top:8px;width:11px;height:11px;border-radius:50%;background:#1f2a44}
+#cap{left:90px;width:1100px;bottom:24px;padding:12px 28px;border-radius:22px;background:rgba(31,42,68,.93);color:#fff;
+  font-size:32px;font-weight:700;text-align:center;line-height:1.35}
+.btn{display:inline-block;font-size:70px;font-weight:700;color:#fff;background:#1fa971;padding:10px 70px;border-radius:60px;box-shadow:0 10px 0 #12794f}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bgsyms"></div>
+  <div id="scenes"></div>
+  <div id="conf"></div>
+  <div id="cap" class="a"></div>
+</div>
+<script>
+const DURATION = 88;
+const $ = id => document.getElementById(id);
+const clamp = v => Math.min(1, Math.max(0, v));
+const S = (t, a, b) => clamp((t - a) / (b - a));
+const eo = p => 1 - Math.pow(1 - p, 3);
+const eb = p => { const c = 2.4; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+const win = (t, a, b, f = .5) => S(t, a, a + f) * (1 - S(t, b - f, b));
+function mk(cls, css, html, parent) {
+  const d = document.createElement('div');
+  d.className = cls; d.style.cssText = css; if (html) d.innerHTML = html;
+  parent.appendChild(d); return d;
+}
+function put(el, o, x = 0, y = 0, s = 1, r = 0) {
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px,${y}px) scale(${s}) rotate(${r}deg)`;
+}
+function toks(s) {
+  return s.split(' ').map(w => {
+    let c = '';
+    if (w[0] === '~') { c = 'r'; w = w.slice(1); } else if (w[0] === '^') { c = 'g'; w = w.slice(1); } else if (w[0] === '@') { c = 'x'; w = w.slice(1); }
+    return `<span class="t ${c}">${w}</span>`;
+  }).join('');
+}
+const eqrow = (L, R, fs, vars = '') =>
+  `<div class="row" style="font-size:${fs}px;${vars}"><div class="S">${toks(L)}</div><div class="M">=</div><div class="S">${toks(R)}</div></div>`;
+const ieq = (L, R) => `<span class="ie">${toks(L)}<span class="t">=</span>${toks(R)}</span>`;
+
+function Parts() {
+  const L = [];
+  return {
+    add(n, at, until, kind) { L.push({ n, at, until, kind }); n.style.opacity = 0; return n; },
+    upd(lt) {
+      for (const p of L) {
+        const o = S(lt, p.at, p.at + .4) * (p.until ? 1 - S(lt, p.until - .4, p.until) : 1);
+        const pop = p.kind === 'pop';
+        put(p.n, o, 0, pop ? 0 : (1 - eo(S(lt, p.at, p.at + .6))) * 24, pop ? .5 + .5 * eb(S(lt, p.at, p.at + .7)) : 1);
+      }
+    }
+  };
+}
+const SC = [], CAPS = [], BURSTS = [];
+function scene(a, b, build, caps) {
+  const el = mk('a', 'left:0;top:0;width:1280px;height:720px', '', $('scenes'));
+  SC.push({ a, b, el, upd: build(el) });
+  (caps || []).forEach(c => CAPS.push([a + c[0], a + c[1], c[2]]));
+}
+
+/* ---------- قصاصات ملوّنة (حتمية) ---------- */
+const COL = ['#ef476f', '#ffd166', '#06d6a0', '#118ab2', '#7c4dff', '#ff9f1c'];
+function burst(at, cx, cy) {
+  const ps = [];
+  for (let i = 0; i < 44; i++) {
+    const ang = (i * 137.5) % 360 * Math.PI / 180, sp = 260 + (i * 53) % 260;
+    ps.push({ el: mk('a', `width:14px;height:${8 + i % 3 * 4}px;background:${COL[i % 6]};border-radius:2px;left:${cx}px;top:${cy}px`, '', $('conf')), vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp - 320, r: (i * 71) % 360 });
+  }
+  BURSTS.push({ at, ps });
+}
+
+/* ---------- الصندوق الغامض ---------- */
+function mysteryBox(parent, left, top) {
+  const b = mk('mbox', `left:${left}px;top:${top}px`, '<div class="e" style="left:34px"><i></i></div><div class="e" style="left:80px"><i></i></div><div class="q">؟</div>', parent);
+  return b;
+}
+function boxSet(b, t, base, rev) { // حركة عين وطفو
+  const k = Math.sin(t * 1.7) * 5;
+  b.querySelectorAll('.e i').forEach(p => { p.style.left = (8 + k) + 'px'; });
+  if (rev) { b.style.background = '#1fa971'; b.style.boxShadow = 'inset 0 -10px 0 #12794f,0 12px 24px rgba(18,121,79,.35)'; }
+  else { b.style.background = '#7c4dff'; b.style.boxShadow = 'inset 0 -10px 0 #5b2fd6,0 12px 24px rgba(91,47,214,.35)'; }
+}
+
+/* ---------- خلفية: أرقام ورموز تطفو ---------- */
+const symList = ['+', '−', '=', 'س', '٥', '٩', 'ص', '٢', '٨', '؟', '٣', 'جـ'];
+const symEls = symList.map((s, i) => mk('a', `left:${(i * 113 + 30) % 1200}px;top:${(i * 181 + 50) % 600}px;font-size:${64 + (i % 3) * 26}px;font-weight:700;color:${COL[i % 6]};opacity:.1`, s, $('bgsyms')));
+
+/* ===== 1: افتتاحية (0–6) ===== */
+scene(0, 6, el => {
+  const P = Parts();
+  const box = mk('', '', '', el); box.style.display = 'contents';
+  const mb = mysteryBox(el, 570, 120);
+  P.add(mk('a c', 'top:60px', '<span class="chip">تهيئة · الدرس ٣ - ٢</span>', el), 1.2);
+  P.add(mk('a c', 'top:300px;font-size:92px;font-weight:700', 'تحدّي العدد المجهول', el), 1.0, 0, 'pop');
+  P.add(mk('a c', 'top:440px;font-size:44px;font-weight:700;color:#7c4dff', 'هل تستطيع كشف السرّ؟', el), 2.4);
+  return lt => {
+    P.upd(lt);
+    put(mb, S(lt, .3, .6), 0, (1 - eb(S(lt, .3, 1))) * -300 + Math.sin(lt * 3) * 5, 1);
+    boxSet(mb, lt);
+  };
+}, [[.5, 5.6, 'تهيئة: هل أنت مستعد لتحدّي العدد المجهول؟']]);
+
+/* ===== 2 و 3: لغز ===== */
+function puzzle(a, b, cfg, caps) {
+  scene(a, b, el => {
+    const P = Parts();
+    P.add(mk('a c', 'top:24px', `<span class="chip">${cfg.chip}</span>`, el), .3);
+    P.add(mk('bubble', 'left:150px;top:92px;width:980px;font-size:38px', cfg.riddle, el), .5, 0, 'pop');
+    const plus = cfg.op === '+';
+    let x = 860;
+    const mb = mysteryBox(el, x, 260);
+    const items = [];
+    const sign = (txt, left, at, col) => P.add(mk('a', `left:${left}px;top:270px;width:50px;text-align:center;font-size:78px;font-weight:700;color:${col}`, txt, el), at);
+    x -= 55; sign(plus ? '+' : '−', x, 2.0, plus ? '#1fa971' : '#ef476f');
+    x -= 60;
+    for (let i = 0; i < cfg.n; i++) {
+      const tl = mk('gt' + (plus ? '' : ' red'), `left:${x - i * 60}px;top:302px`, '١', el);
+      P.add(tl, 2.2 + i * .25, 0, 'pop');
+    }
+    x -= (cfg.n - 1) * 60 + 90;
+    sign('=', x, 3.0, '#1f2a44');
+    x -= 20;
+    for (let i = 0; i < cfg.res; i++) P.add(mk('gt', `left:${x - 56 - i * 60}px;top:302px`, '١', el), 3.3 + i * .18, 0, 'pop');
+    const eq1 = P.add(mk('a', 'left:0;top:445px;width:1280px', eqrow(cfg.eqQ[0], cfg.eqQ[1], 64), el), 5, 11);
+    const eq2 = P.add(mk('a', 'left:0;top:445px;width:1280px', eqrow(cfg.eqA[0], cfg.eqA[1], 64), el), 10.8);
+    P.add(mk('a c', 'top:540px;font-size:46px;font-weight:700;color:#1fa971', `العدد السري هو ${cfg.ans}!`, el), 11.2, 0, 'pop');
+    P.add(mk('a c', 'top:540px;font-size:42px;font-weight:700;color:#1f2a44', `لأنّ ${ieq(cfg.why[0], cfg.why[1])}`, el), 14.4, 0);
+    const ring = mk('a', 'left:1060px;top:250px;width:160px;height:160px',
+      `<svg width="160" height="160" viewBox="0 0 200 200"><circle cx="100" cy="100" r="84" fill="#fff" stroke="#e3e8f0" stroke-width="16"/><circle id="arc${cfg.id}" cx="100" cy="100" r="84" fill="none" stroke="#ef476f" stroke-width="16" stroke-linecap="round" transform="rotate(-90 100 100)" pathLength="1" stroke-dasharray="1" stroke-dashoffset="0"/></svg>`, el);
+    const cnt = mk('a', 'left:1060px;top:276px;width:160px;text-align:center;font-size:84px;font-weight:700;color:#ef476f', '٥', el);
+    burst(a + 10.5, 930, 330);
+    const dg = ['٥', '٤', '٣', '٢', '١'];
+    return lt => {
+      P.upd(lt);
+      put(mb, S(lt, 1.2, 1.5), 0, (1 - eb(S(lt, 1.2, 1.9))) * -260 + (lt > 10.5 ? 0 : Math.sin(lt * 3) * 4), lt > 10.5 ? 1 + .25 * Math.sin(S(lt, 10.5, 11.2) * Math.PI) : 1);
+      const rev = lt >= 10.5;
+      mb.querySelector('.q').textContent = rev ? cfg.ans : '؟';
+      mb.querySelector('.q').style.fontSize = rev ? '92px' : '84px';
+      boxSet(mb, lt, 0, rev);
+      const o = win(lt, 5, 10.2, .3);
+      put(ring, o); put(cnt, o);
+      document.getElementById('arc' + cfg.id).style.strokeDashoffset = S(lt, 5.1, 10);
+      cnt.textContent = dg[Math.min(4, Math.floor(clamp((lt - 5.1) / 4.9) * 5))];
+    };
+  }, caps);
+}
+puzzle(6, 24, {
+  id: 'p', chip: 'التحدّي الأول', op: '+', n: 2, res: 6, ans: '٤',
+  riddle: 'فكّرتُ في عدد سرّي، وأضفتُ إليه ٢، فصار الناتج ٦. ما العدد؟',
+  eqQ: ['@؟ + ٢', '٦'], eqA: ['^٤ + ٢', '٦'], why: ['٦ ~− ~٢', '^٤']
+}, [[.6, 4.8, 'اسمع جيداً! في الصندوق عدد سرّي'], [5, 10.4, 'فكّر ... لديك ٥ ثوانٍ!'], [10.6, 14.2, 'أحسنت! العدد السرّي هو ٤'], [14.4, 17.8, 'عرفناه لأنّ ٦ ناقص ٢ يساوي ٤']]);
+
+puzzle(24, 44, {
+  id: 'q', chip: 'التحدّي الثاني', op: '−', n: 3, res: 5, ans: '٨',
+  riddle: 'فكّرتُ في عدد سرّي، وأخذتُ منه ٣، فبقي ٥. ما العدد؟',
+  eqQ: ['@؟ − ٣', '٥'], eqA: ['^٨ − ٣', '٥'], why: ['٥ ^+ ^٣', '^٨']
+}, [[.6, 4.8, 'تحدٍّ ثانٍ! عدد سرّي جديد'], [5, 10.4, 'فكّر ... لديك ٥ ثوانٍ!'], [10.6, 14.2, 'ممتاز! العدد السرّي هو ٨'], [14.4, 19, 'عرفناه لأنّ ٥ زائد ٣ يساوي ٨']]);
+
+/* ===== 4: قصة أحمد والمتغيّر (44–62) ===== */
+scene(44, 62, el => {
+  const P = Parts();
+  P.add(mk('a c', 'top:24px', '<span class="chip" style="background:#118ab2;box-shadow:0 6px 0 #0d6a8a">قصة أحمد في كتابك</span>', el), .3);
+  P.add(mk('a c', 'top:96px;font-size:32px;font-weight:700;padding:0 80px;line-height:1.35', 'عند أحمد بعض الكتب العلمية، ثمّ اشترى كتابين إضافيين فأصبح لديه ستة كتب', el), .6);
+  P.add(mk('mat', 'left:340px;top:200px', '', el), 2.2, 0, 'pop');
+  P.add(mk('mat', 'left:690px;top:200px', '', el), 2.2, 0, 'pop');
+  P.add(mk('a c', 'top:305px;font-size:64px;font-weight:700', '=', el), 2.6);
+  for (let i = 0; i < 6; i++) P.add(mk('gt', `left:${340 + 6 + 68 + (i % 2) * 62}px;top:${200 + 6 + 37 + Math.floor(i / 2) * 62}px`, '١', el), 3 + i * .15, 0, 'pop');
+  P.add(mk('a', 'left:736px;top:236px;width:80px;height:190px;border-radius:10px;background:#1fa971;color:#fff;font-size:56px;font-weight:700;text-align:center;line-height:186px;box-shadow:inset 0 -8px 0 #12794f', 'س', el), 4.2, 0, 'pop');
+  for (let i = 0; i < 2; i++) P.add(mk('gt', `left:836px;top:${236 + i * 62}px`, '١', el), 5 + i * .3, 0, 'pop');
+  P.add(mk('a', 'left:0;top:480px;width:1280px', eqrow('@س + ٢', '٦', 70), el), 9, 11.6);
+  P.add(mk('bubble', 'left:150px;top:460px;width:980px;font-size:34px', 'العدد المجهول نسمّيه <span class="x">متغيّراً</span>، ونرمز له بحرف مثل', el), 12, 0);
+  ['س', 'ص', 'جـ'].forEach((ch, i) => P.add(mk('a', `left:${520 + i * 130}px;top:545px;width:110px;height:80px;border-radius:40px;background:${['#7c4dff', '#118ab2', '#ef476f'][i]};color:#fff;font-size:54px;font-weight:700;text-align:center;line-height:78px;box-shadow:0 6px 0 rgba(0,0,0,.2)`, ch, el), 13 + i * .5, 0, 'pop'));
+  return lt => P.upd(lt);
+}, [
+  [.6, 5, 'تذكّر قصة أحمد في كتابك: عنده عدد غير معلوم من الكتب'],
+  [5, 9, 'اشترى كتابين إضافيين فأصبح لديه ستة كتب'],
+  [9, 11.8, 'فالمعادلة: س زائد ٢ يساوي ٦'],
+  [12, 17.6, 'العدد المجهول نسمّيه متغيّراً ونرمز له بحرف مثل س أو ص أو جـ']
+]);
+
+/* ===== 5: السرّ — العملية العكسية (62–76) ===== */
+scene(62, 76, el => {
+  const P = Parts();
+  P.add(mk('a c', 'top:24px', '<span class="chip" style="background:#e07f00;box-shadow:0 6px 0 #a85d00">السرّ: العملية العكسية</span>', el), .3);
+  const vars = '--sw:190px;--mw:60px;';
+  const col = (cx, title, c, r1, op, r2, t0) => {
+    P.add(mk('a', `left:${cx - 230}px;top:110px;width:460px;text-align:center;font-size:40px;font-weight:700;color:${c}`, title, el), t0);
+    P.add(mk('a', `left:${cx - 640}px;top:190px;width:1280px`, eqrow(r1[0], r1[1], 60, vars), el), t0 + .6);
+    P.add(mk('a', `left:${cx - 230}px;top:285px;width:460px;text-align:center;font-size:36px;font-weight:700;color:#ef476f`, op, el), t0 + 2.4);
+    P.add(mk('a', `left:${cx - 640}px;top:360px;width:1280px`, eqrow(r2[0], r2[1], 76, vars), el), t0 + 4.4, 0, 'pop');
+  };
+  col(930, 'معادلة جمع ← نطرح', '#1fa971', ['@س + ٢', '٦'], '↓ نطرح ٢ من الطرفين', ['@س', '^٤'], 1.0);
+  col(350, 'معادلة طرح ← نجمع', '#ef476f', ['@س − ٣', '٥'], '↓ نجمع ٣ للطرفين', ['@س', '^٨'], 6.6);
+  return lt => P.upd(lt);
+}, [
+  [.5, 3.4, 'السرّ كلّه في العملية العكسية!'],
+  [3.4, 6.5, 'لمعرفة س في س زائد ٢ نطرح ٢ من الطرفين'],
+  [7, 11.6, 'وفي س ناقص ٣ نجمع ٣ للطرفين'],
+  [11.8, 13.8, 'هكذا نكشف العدد المجهول!']
+]);
+
+/* ===== 6: التشويق (76–88) ===== */
+scene(76, 88, el => {
+  const P = Parts();
+  P.add(mk('a c', 'top:90px;font-size:56px;font-weight:700;color:#118ab2', 'اليوم سنتعلّم', el), .5);
+  P.add(mk('a c', 'top:190px;font-size:84px;font-weight:700', 'حلّ معادلات<br>الجمع والطرح', el), 1.0, 0, 'pop');
+  P.add(mk('a c', 'top:410px;font-size:50px;font-weight:700;color:#7c4dff', 'هل أنت مستعد؟', el), 3.4);
+  const btn = P.add(mk('a c', 'top:490px', '<span class="btn">هيّا نبدأ!</span>', el), 5, 0, 'pop');
+  burst(76 + 5.2, 640, 560);
+  return lt => { P.upd(lt); if (lt > 6) btn.style.transform += ` scale(${1 + .05 * Math.sin((lt - 6) * 5)})`; };
+}, [[.5, 4.8, 'اليوم سنتعلّم حلّ معادلات الجمع والطرح'], [4.8, 11.6, 'هل أنت مستعد؟ هيّا نبدأ!']]);
+
+/* ---------- الرسم لكل لحظة ---------- */
+function render(t) {
+  symEls.forEach((e, i) => { e.style.transform = `translateY(${Math.sin(t * .6 + i) * 20}px) rotate(${Math.sin(t * .3 + i) * 10}deg)`; });
+  for (const s of SC) {
+    const o = win(t, s.a - .1, s.b + .1, .5);
+    s.el.style.opacity = o; s.el.style.display = o > .001 ? '' : 'none';
+    if (o > .001) s.upd(t - s.a);
+  }
+  for (const b of BURSTS) for (const p of b.ps) {
+    const d = t - b.at;
+    if (d < 0 || d > 2.2) { p.el.style.opacity = 0; continue; }
+    p.el.style.opacity = 1 - S(d, 1.4, 2.2);
+    p.el.style.transform = `translate(${p.vx * d}px,${p.vy * d + 520 * d * d}px) rotate(${p.r + d * 360}deg)`;
+  }
+  let cap = null;
+  for (const c of CAPS) if (t >= c[0] && t < c[1]) cap = c;
+  const cb = $('cap');
+  if (cap) { if (cb.dataset.k !== String(cap[0])) { cb.textContent = cap[2]; cb.dataset.k = String(cap[0]); } cb.style.opacity = Math.min(S(t, cap[0], cap[0] + .3), 1 - S(t, cap[1] - .3, cap[1])); }
+  else cb.style.opacity = 0;
+}
+window.render = render; window.DURATION = DURATION;
+if (location.search.includes('play')) {
+  const t0 = performance.now();
+  (function loop() { render(Math.min(DURATION, (performance.now() - t0) / 1000)); requestAnimationFrame(loop); })();
+} else render(0);
+</script>
+</body>
+</html>
