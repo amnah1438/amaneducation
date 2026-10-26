@@ -99,7 +99,7 @@ body.night .opt,body.night .act{background:rgba(255,255,255,.07)}
 <aside id="menu" class="glass">
   <h3>الدرس ٣ - ٢</h3><div class="sub">معادلات الجمع والطرح · كتاب تفاعلي</div>
   <div id="menuList"></div>
-  <div class="cr"><b>تصميم الطالب:</b> يوسف فايز العنزي<br><b>إشراف المعلم:</b> حمود غصن العنزي</div>
+
 </aside>
 
 <script type="module">
@@ -804,8 +804,9 @@ function pulseCard() { const c = $('#card'); c.animate([{ transform: 'translateX
 /* ====================== الكاميرا ====================== */
 const CAMS = {
   over: { pos: [0, 13.6, 13.4], look: [0, 1.3, .5], w: 13.6 },
-  scale: { pos: [-2.2, 7.6, 10.2], look: [-2.2, 1.8, .2], w: 7.2 },
-  page: { pos: [2.5, 8.5, 7.5], look: [2.5, 0, 0], w: 5.8 }
+  scale: { pos: [-2.5, 7.6, 10.2], look: [-2.5, 1.8, .2], w: 8.4 },
+  page: { pos: [2.5, 8.5, 7.5], look: [2.5, 0, 0], w: 5.8 },
+  flap: { pos: [2.5, 4.4, 6.6], look: [2.5, .15, 2.3], w: 4.5 }
 };
 let camCur = { pos: new THREE.Vector3(...CAMS.over.pos), look: new THREE.Vector3(...CAMS.over.look) }, camTgt = { pos: camCur.pos.clone(), look: camCur.look.clone() };
 const orbit = { yaw: 0, pitch: 0, ty: 0, tp: 0 };
@@ -891,9 +892,11 @@ function handleTap() {
 function liftFlap() {
   if (!flapEnabled) { sfx('bad'); pulseCard(); showTip(flapPivot, 'أكمل النشاط أولاً'); return; }
   hintAt(null); flapTarget = flapTarget ? 0 : Math.PI * .93; sfx('flap');
-  if (flapTarget) setTimeout(() => { setCamPage(); }, 200);
+  clearTimeout(flapCamTimer);
+  if (flapTarget) { setCam('flap'); flapCamTimer = setTimeout(backToChapterCam, 5200); } else backToChapterCam();
 }
-function setCamPage() { setCam('page'); setTimeout(() => state.ch >= 0 && setCam(CH[state.ch].cam === 'over' ? 'over' : 'scale'), 4200); }
+let flapCamTimer = 0;
+function backToChapterCam() { if (state.ch >= 0) setCam(CH[state.ch].cam === 'over' ? 'over' : 'scale'); }
 let mx = 0, my = 0;
 
 /* ====================== حلقة الرسم ====================== */

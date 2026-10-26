@@ -1,7 +1,7 @@
 # موسيقى هادئة + مؤثرات تتبع أحداث الصوت التي سجّلها الكتاب أثناء التصوير (sfx_log.json)
 # الاستعمال: python3 audio.py  ← ينتج trailer_audio.wav
-import numpy as np, wave, json
-SR = 44100; D = 48.0; N = int(SR * D)
+import numpy as np, wave, json, os
+MODE = os.environ.get('MODE', 'h'); SR = 44100; D = float(os.environ.get('D', 60 if MODE == 'v' else 49)); N = int(SR * D)
 def save(path, x):
     w = wave.open(path, 'wb'); w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
     w.writeframes((np.clip(x, -1, 1) * 32000).astype(np.int16).tobytes()); w.close()
@@ -43,5 +43,5 @@ def sfx(log):
         elif kind == 'flap':
             n = int(.3*SR); t = np.arange(n)/SR; put(at, np.sin(2*np.pi*np.cumsum(220 + 1900*t)/SR) * np.exp(-t*9), .22)
     return x[:N]
-log = json.load(open('sfx_log.json'))
-save('trailer_audio.wav', music() + sfx(log)); print(len(log), 'sfx')
+log = json.load(open(f'sfx_log_{MODE}.json'))
+save(f'trailer_audio_{MODE}.wav', music() + sfx(log)); print(len(log), 'sfx')
