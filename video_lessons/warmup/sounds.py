@@ -2,7 +2,7 @@
 # الاستعمال: python3 sounds.py   ← ينتج final_audio.wav
 import numpy as np, wave, subprocess
 SR = 44100
-D = 110.0
+D = 115.0
 N = int(SR * D)
 
 def save(path, x):
