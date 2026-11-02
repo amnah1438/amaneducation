@@ -318,6 +318,18 @@ def home(request):
     })
 
 
+def landing(request):
+    """صفحة الهبوط التعريفية بالمنصة (عامة — لا تتطلب تسجيل دخول)."""
+    settings_obj = SchoolSettings.objects.first()
+    skills_count = TeacherSkill.objects.filter(is_active=True).count()
+    classrooms_count = ClassRoom.objects.count()
+    return render(request, 'core/landing.html', {
+        'settings': settings_obj,
+        'skills_count': skills_count,
+        'classrooms_count': classrooms_count,
+    })
+
+
 def skill_detail(request, skill_id):
     """
     تفاصيل المهارة/الدرس + الاختبارات.

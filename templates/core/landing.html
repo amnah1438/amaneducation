@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منصة آمنة التعليمية — تعلُّمٌ أكثرُ ذكاءً</title>
+  <meta name="description" content="منصة تعليمية ذكية: اختبارات فورية للطالبة، لوحة متابعة وخطط علاجية للمعلمة، ومركز قرار وتقارير للمديرة.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #0b1220;
+      --ink-2: #475569;
+      --paper: #ffffff;
+      --soft: #f4f6fb;
+      --line: #e5e9f2;
+      --green: #0d5c35;
+      --blue: #1a4a8a;
+      --brand: #2457d6;
+      --brand-soft: #e8eefc;
+      --chip: #cdeee4;
+      --chip-ink: #0c6b4a;
+      --night: #0a0f1c;
+      --night-2: #121a2e;
+      --lav: #e6e6fa;
+      --radius: 20px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Tajawal', system-ui, sans-serif;
+      color: var(--ink); background: var(--paper);
+      line-height: 1.7; -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: min(1120px, 100% - 40px); margin-inline: auto; }
+
+    /* ── شريط التنقل ── */
+    .nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(255,255,255,.86); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 66px; gap: 12px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 1.1rem; }
+    .brand-mark {
+      width: 36px; height: 36px; border-radius: 11px;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      display: grid; place-items: center; color: #fff; font-size: 1.15rem;
+    }
+    .nav-links { display: flex; gap: 26px; font-weight: 700; color: var(--ink-2); font-size: .95rem; }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-actions { display: flex; gap: 8px; align-items: center; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 26px; border-radius: 12px; font-family: inherit;
+      font-weight: 800; font-size: 1rem; border: 0; cursor: pointer;
+      transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn-primary { background: var(--brand); color: #fff; box-shadow: 0 6px 18px rgba(36,87,214,.28); }
+    .btn-primary:hover { background: #1c47b8; }
+    .btn-soft { background: var(--brand-soft); color: #1b3f9a; }
+    .btn-soft:hover { background: #d9e4fb; }
+    .btn-ghost { color: var(--ink-2); padding: 10px 14px; background: transparent; }
+    .btn-ghost:hover { color: var(--ink); }
+    .btn-sm { padding: 9px 20px; font-size: .92rem; }
+
+    /* ── البطل (إلهام: Notion) ── */
+    .hero { padding: 64px 0 28px; text-align: center; }
+    .faces { display: flex; justify-content: center; margin-bottom: 30px; direction: ltr; }
+    .face {
+      width: 62px; height: 62px; border-radius: 50%; margin-inline: -6px;
+      display: grid; place-items: center; font-size: 1.7rem;
+      border: 3px solid var(--paper); box-shadow: 0 0 0 2px var(--line);
+    }
+    .face:nth-child(1) { background: #dbeafe; }
+    .face:nth-child(2) { background: #fde68a; }
+    .face:nth-child(3) { background: #fecaca; }
+    .face:nth-child(4) { background: #d1fae5; }
+    .face:nth-child(5) { background: #e9d5ff; }
+    .face:nth-child(6) { background: #fed7aa; }
+    .face:nth-child(7) { background: #cffafe; }
+    .eyebrow { color: var(--ink-2); font-weight: 700; margin-bottom: 14px; }
+    h1.headline {
+      font-size: clamp(2.2rem, 6.2vw, 4.4rem); font-weight: 900; line-height: 1.25;
+      letter-spacing: -.01em; max-width: 880px; margin-inline: auto;
+    }
+    .mark {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--chip); color: var(--chip-ink);
+      padding: 0 .35em; border-radius: .45em; margin-inline: .1em;
+    }
+    .mark::before { content: ""; width: .32em; height: .32em; border-radius: 50%; background: #11846a; }
+    .lead { color: var(--ink-2); font-size: clamp(1.05rem, 2.2vw, 1.3rem); max-width: 640px; margin: 22px auto 0; }
+    .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 32px; }
+    .cta .btn { min-width: 190px; padding: 15px 30px; }
+
+    /* ── شريط الأرقام (إلهام: شريط الشعارات) ── */
+    .proof { padding: 34px 0 10px; text-align: center; color: var(--ink-2); }
+    .proof p { font-weight: 700; margin-bottom: 18px; }
+    .stats { display: flex; justify-content: center; gap: clamp(24px, 6vw, 72px); flex-wrap: wrap; }
+    .stat b { display: block; font-size: 2.2rem; font-weight: 900; color: var(--ink); line-height: 1.2; }
+    .stat span { font-weight: 700; font-size: .95rem; }
+
+    /* ── معاينة المنتج (إلهام: Linear) ── */
+    .stage { background: var(--night); padding: 80px 0 0; margin-top: 56px; color: #e7ecf7; overflow: hidden; }
+    .stage h2 { font-size: clamp(1.8rem, 4.4vw, 3rem); font-weight: 900; line-height: 1.3; max-width: 760px; }
+    .stage .sub { color: #93a0bb; font-size: 1.12rem; margin-top: 14px; max-width: 560px; }
+    .mock {
+      margin-top: 48px; border: 1px solid #1f2a44; border-bottom: 0;
+      border-radius: 18px 18px 0 0; background: var(--night-2);
+      display: grid; grid-template-columns: 200px 1fr; min-height: 340px;
+      box-shadow: 0 -20px 80px rgba(36,87,214,.18);
+    }
+    .mock-side { border-inline-end: 1px solid #1f2a44; padding: 18px 14px; font-size: .9rem; color: #8fa0c2; }
+    .mock-side div { padding: 8px 10px; border-radius: 8px; }
+    .mock-side .on { background: #1b2742; color: #fff; }
+    .mock-main { padding: 22px; }
+    .mock-title { color: #fff; font-weight: 800; font-size: 1.1rem; margin-bottom: 4px; }
+    .mock-note { color: #7c8bab; font-size: .85rem; margin-bottom: 18px; }
+    .bars { display: flex; align-items: flex-end; gap: 10px; height: 150px; border-bottom: 1px solid #1f2a44; padding-bottom: 2px; }
+    .bar {
+      flex: 1; border-radius: 6px 6px 0 0;
+      background: linear-gradient(180deg, #5b8cff, #2457d6);
+      transform-origin: bottom; animation: rise 1.1s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .bar.warn { background: linear-gradient(180deg, #ffb86b, #e5832b); }
+    @keyframes rise { from { transform: scaleY(.05); opacity: .3; } }
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+    .chip { background: #1b2742; color: #b9c6e4; padding: 6px 14px; border-radius: 999px; font-size: .85rem; font-weight: 700; }
+    .chip.ok { background: #12352c; color: #7be0b8; }
+    .chip.gap { background: #3a2813; color: #ffc27a; }
+
+    /* ── الأدوار (إلهام: بطاقات Coursera) ── */
+    section.block { padding: 88px 0 20px; }
+    .section-head { text-align: center; max-width: 700px; margin: 0 auto 44px; }
+    .section-head h2 { font-size: clamp(1.8rem, 4vw, 2.7rem); font-weight: 900; line-height: 1.3; }
+    .section-head p { color: var(--ink-2); font-size: 1.1rem; margin-top: 12px; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .card {
+      border-radius: var(--radius); padding: 28px 26px 30px;
+      border: 1px solid var(--line); background: var(--soft);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(15,23,42,.08); }
+    .card.dark { background: var(--night); color: #e7ecf7; border-color: #1f2a44; }
+    .card.dark p, .card.dark li { color: #a9b6d1; }
+    .card.lav { background: var(--lav); border-color: #d7d7f2; }
+    .tag { display: inline-block; font-size: .8rem; font-weight: 800; padding: 3px 12px; border-radius: 999px; background: var(--chip); color: var(--chip-ink); }
+    .card.dark .tag { background: #1b2742; color: #8fb2ff; }
+    .card h3 { font-size: 1.5rem; font-weight: 900; margin: 16px 0 8px; }
+    .card p { color: var(--ink-2); }
+    .card ul { list-style: none; margin-top: 16px; display: grid; gap: 8px; }
+    .card li { display: flex; gap: 10px; align-items: flex-start; font-weight: 700; color: var(--ink); }
+    .card li::before { content: "✓"; color: #11846a; font-weight: 900; }
+    .card.dark li { color: #e7ecf7; }
+
+    /* ── الخطوات ── */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; counter-reset: s; }
+    .step { padding: 22px; border-radius: 16px; background: var(--paper); border: 1px solid var(--line); }
+    .step::before {
+      counter-increment: s; content: counter(s);
+      display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+      background: var(--brand-soft); color: #1b3f9a; font-weight: 900; margin-bottom: 12px;
+    }
+    .step b { display: block; font-size: 1.1rem; }
+    .step span { color: var(--ink-2); font-size: .95rem; }
+
+    /* ── الخاتمة ── */
+    .closing {
+      margin: 90px 0 0; padding: 90px 0; text-align: center; color: #fff;
+      background: radial-gradient(900px 400px at 50% 0%, #1d3f8f 0%, transparent 70%), var(--night);
+    }
+    .closing h2 { font-size: clamp(1.9rem, 5vw, 3.4rem); font-weight: 900; line-height: 1.3; max-width: 780px; margin-inline: auto; }
+    .closing .slogan { margin-top: 20px; color: #9fb4e6; font-size: 1.25rem; font-weight: 700; }
+    .closing .btn { margin-top: 34px; background: #fff; color: var(--ink); padding: 15px 38px; }
+    .closing .btn:hover { background: #e9eefc; }
+
+    footer { background: var(--night); color: #7f8db0; padding: 26px 0 36px; font-size: .92rem; border-top: 1px solid #1a2440; }
+    footer .wrap { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+
+    @media (max-width: 860px) {
+      .nav-links { display: none; }
+      .cards, .steps { grid-template-columns: 1fr; }
+      .mock { grid-template-columns: 1fr; }
+      .mock-side { display: none; }
+      .hero { padding-top: 40px; }
+      .face { width: 52px; height: 52px; font-size: 1.4rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+      .reveal { opacity: 1; transform: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="#top"><span class="brand-mark">🎓</span> منصة آمنة التعليمية</a>
+      <nav class="nav-links" aria-label="التنقل">
+        <a href="#roles">لمن المنصة</a>
+        <a href="#preview">كيف تعمل</a>
+        <a href="#steps">الخطوات</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="btn btn-ghost btn-sm" href="{% url 'home' %}">المحتوى</a>
+        <a class="btn btn-primary btn-sm" href="{% url 'login' %}">تسجيل الدخول</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- البطل -->
+    <section class="hero">
+      <div class="wrap">
+        <div class="faces" aria-hidden="true">
+          <span class="face">👩‍🏫</span><span class="face">📚</span><span class="face">👩‍🎓</span>
+          <span class="face">📊</span><span class="face">👩‍💼</span><span class="face">🎯</span><span class="face">💡</span>
+        </div>
+        <p class="eyebrow">كلُّ إنجازٍ يبدأُ بسؤال…</p>
+        <h1 class="headline">كيف نجعلُ التعلُّمَ <span class="mark">أكثرَ ذكاءً</span>؟</h1>
+        <p class="lead">اختباراتٌ تُصحَّح فورًا، وفجواتٌ تُكتشف مبكرًا، وخططٌ علاجية بضغطةٍ واحدة. معلمة وطالبة ومديرة… رحلةٌ واحدةٌ تجمعُهن.</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="{% url 'login' %}">ابدئي الآن</a>
+          <a class="btn btn-soft" href="#preview">شاهدي كيف تعمل</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- الأرقام -->
+    <section class="proof">
+      <div class="wrap">
+        <p>منصةٌ تتعلَّمُ عليها مئاتُ الطالبات</p>
+        <div class="stats">
+          <div class="stat"><b>{{ skills_count }}</b><span>مهارة ودرس متاح</span></div>
+          <div class="stat"><b>{{ classrooms_count }}</b><span>فصل دراسي</span></div>
+          <div class="stat"><b>3</b><span>لوحات: طالبة ومعلمة ومديرة</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- معاينة -->
+    <section class="stage" id="preview">
+      <div class="wrap">
+        <h2 class="reveal">نكتشفُ الفجوة… ونوجِّهُ الدعم.</h2>
+        <p class="sub reveal">من نتيجةٍ فورية للطالبة، إلى لوحةٍ تحلِّلُ الفجوات للمعلمة، إلى مركزِ قرارٍ يقترحُ الخطوةَ التالية للمديرة.</p>
+        <div class="mock reveal" aria-label="نموذج توضيحي للوحة المنصة">
+          <div class="mock-side">
+            <div class="on">خريطة الإتقان</div>
+            <div>الفجوات</div>
+            <div>الخطط العلاجية</div>
+            <div>التقارير</div>
+          </div>
+          <div class="mock-main">
+            <div class="mock-title">متوسط الإتقان حسب المهارة</div>
+            <div class="mock-note">نموذج توضيحي لشكل اللوحة</div>
+            <div class="bars">
+              <div class="bar" style="height:82%"></div>
+              <div class="bar" style="height:68%;animation-delay:.08s"></div>
+              <div class="bar warn" style="height:38%;animation-delay:.16s"></div>
+              <div class="bar" style="height:74%;animation-delay:.24s"></div>
+              <div class="bar" style="height:90%;animation-delay:.32s"></div>
+              <div class="bar warn" style="height:30%;animation-delay:.4s"></div>
+              <div class="bar" style="height:64%;animation-delay:.48s"></div>
+            </div>
+            <div class="chips">
+              <span class="chip ok">أتقنَتْه</span>
+              <span class="chip gap">يحتاجُ إلى تدريب</span>
+              <span class="chip">خطة علاجية بضغطةٍ واحدة</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- الأدوار -->
+    <section class="block" id="roles">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <h2>ثلاثُ لوحات… ورحلةٌ واحدة</h2>
+          <p>لكلِّ دورٍ ما يحتاجُه، وكلُّها تتحدثُ بلغةٍ واحدة.</p>
+        </div>
+        <div class="cards">
+          <article class="card reveal">
+            <span class="tag">الطالبة</span>
+            <h3>تعرفُ نتيجتَها فورًا</h3>
+            <p>تدخلُ بسهولة، وتبدأُ اختبارَها والوقتُ يمضي.</p>
+            <ul>
+              <li>نتيجةٌ فورية عند الانتهاء</li>
+              <li>تفهمُ ما أتقنَتْه</li>
+              <li>وما يحتاجُ إلى تدريب</li>
+            </ul>
+          </article>
+          <article class="card dark reveal">
+            <span class="tag">المعلمة</span>
+            <h3>لوحةٌ تتابعُ بها كلَّ شيء</h3>
+            <p>ترى الإحصاءات، وتعرفُ أين تحتاجُ كلُّ طالبةٍ إلى دعم.</p>
+            <ul>
+              <li>إحصاءاتٌ واضحة</li>
+              <li>تحليلُ الفجوات</li>
+              <li>خطةٌ علاجية بضغطةٍ واحدة</li>
+            </ul>
+          </article>
+          <article class="card lav reveal">
+            <span class="tag">المديرة</span>
+            <h3>تكتملُ الصورة</h3>
+            <p>مؤشراتٌ واضحة، ومركزُ قرارٍ يقترحُ الخطوةَ التالية.</p>
+            <ul>
+              <li>مؤشراتٌ على مستوى المدرسة</li>
+              <li>مركزُ قرار</li>
+              <li>تقاريرُ جاهزةٌ بضغطةٍ واحدة</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- الخطوات -->
+    <section class="block" id="steps">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <h2>من السؤال إلى الدعم</h2>
+          <p>أربعُ خطواتٍ تُحوِّلُ النتيجةَ إلى فعل.</p>
+        </div>
+        <div class="steps">
+          <div class="step reveal"><b>اختبار</b><span>تبدأُ الطالبةُ اختبارَها بسهولة.</span></div>
+          <div class="step reveal"><b>نتيجة فورية</b><span>تظهرُ النتيجةُ حين تنتهي.</span></div>
+          <div class="step reveal"><b>اكتشافُ الفجوة</b><span>تحلِّلُ المعلمةُ أين يحتاجُ الدعم.</span></div>
+          <div class="step reveal"><b>توجيهُ الدعم</b><span>خطةٌ علاجية بضغطةٍ واحدة.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- الخاتمة -->
+    <section class="closing">
+      <div class="wrap">
+        <h2 class="reveal">حين يلتقي شغفُ التعليمِ بقوةِ البرمجة… تولدُ حلولٌ تصنعُ الفرق.</h2>
+        <p class="slogan reveal">بقدراتِنا… نحلمُ ونحقِّق.</p>
+        <a class="btn" href="{% url 'login' %}">ادخلي المنصة</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>منصة آمنة التعليمية{% if settings.header_line_4 %} · {{ settings.header_line_4 }}{% endif %}</span>
+      {% if settings.developer_name %}<span>برمجية المنصة: {{ settings.developer_name }}</span>{% endif %}
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var els = document.querySelectorAll('.reveal');
+      if (!('IntersectionObserver' in window)) {
+        els.forEach(function (e) { e.classList.add('in'); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+        });
+      }, { threshold: 0.12 });
+      els.forEach(function (e) { io.observe(e); });
+    })();
+  </script>
+</body>
+</html>

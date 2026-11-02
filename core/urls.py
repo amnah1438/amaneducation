@@ -18,6 +18,7 @@ urlpatterns = [
     path('debug-images/', views.debug_images, name='debug_images'),
     # ── الصفحات العامة ─────────────────────────────────────────
     path('', views.home, name='home'),
+    path('welcome/', views.landing, name='landing'),
     path('skill/<int:skill_id>/', views.skill_detail, name='skill_detail'),
     path('skill/<int:skill_id>/test/', views.take_test, name='take_test'),
     path('skill/<int:skill_id>/print/', views.skill_print, name='skill_print'),
